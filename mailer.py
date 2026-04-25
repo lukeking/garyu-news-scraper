@@ -105,7 +105,7 @@ def _article_card(article: dict, index: int) -> str:
 """
 
 
-def build_html(articles: list[dict]) -> str:
+def build_html(articles: list) -> str:
     now_tw = datetime.now(TW_TZ)
     date_str = now_tw.strftime("%Y 年 %m 月 %d 日")
     # ISO 週數
