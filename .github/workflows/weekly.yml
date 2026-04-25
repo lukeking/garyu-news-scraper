@@ -10,7 +10,6 @@ on:
 jobs:
   send-weekly-report:
     runs-on: ubuntu-latest
-    # 使用你的 environment（存有 secrets）
     environment: production
 
     steps:
@@ -20,7 +19,7 @@ jobs:
       - name: 設定 Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.11'
           cache: 'pip'
 
       - name: 安裝相依套件
@@ -32,3 +31,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
+          # 選填：不設定時預設用 gemini-2.5-flash
+          GEMINI_MODEL_NAME: ${{ secrets.GEMINI_MODEL_NAME }}

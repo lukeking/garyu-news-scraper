@@ -64,7 +64,7 @@ def _make_hash(article: dict) -> str:
     return hashlib.md5(title.encode("utf-8")).hexdigest()
 
 
-def filter_and_deduplicate(articles: list[dict]) -> list[dict]:
+def filter_and_deduplicate(articles: list) -> list:
     seen_hashes = set()
     result = []
 

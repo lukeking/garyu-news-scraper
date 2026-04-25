@@ -60,7 +60,7 @@ GOOGLE_NEWS_QUERIES = [
     "機車 路權",
 ]
 
-def fetch_google_news() -> list[dict]:
+def fetch_google_news() -> list:
     articles = []
     for query in GOOGLE_NEWS_QUERIES:
         url = (
@@ -84,7 +84,7 @@ def fetch_google_news() -> list[dict]:
 PTT_BOARDS = ["biker", "注意:機車版已搬移至 car-moto，請改訂閱 car-moto"]
 PTT_BOARDS = ["biker", "car-moto"]
 
-def _fetch_ptt_board(board: str) -> list[dict]:
+def _fetch_ptt_board(board: str) -> list:
     articles = []
     url = f"https://www.ptt.cc/bbs/{board}/index.html"
     try:
@@ -118,7 +118,7 @@ def _fetch_ptt_board(board: str) -> list[dict]:
         logger.warning(f"PTT/{board} 失敗: {e}")
     return articles
 
-def fetch_ptt() -> list[dict]:
+def fetch_ptt() -> list:
     articles = []
     for board in PTT_BOARDS:
         articles.extend(_fetch_ptt_board(board))
@@ -143,7 +143,7 @@ MOTORCYCLE_KEYWORDS = [
     "普通重型", "大型重型",
 ]
 
-def fetch_news_rss() -> list[dict]:
+def fetch_news_rss() -> list:
     articles = []
     for name, url in NEWS_RSS_FEEDS:
         try:
@@ -172,7 +172,7 @@ MOT_URLS = [
     ("公路局", "https://www.thb.gov.tw/sites/ch/modules/news/news_list?Type=2"),
 ]
 
-def fetch_mot_announcements() -> list[dict]:
+def fetch_mot_announcements() -> list:
     articles = []
     for name, url in MOT_URLS:
         try:
@@ -209,7 +209,7 @@ def fetch_mot_announcements() -> list[dict]:
 
 # ── 主入口 ────────────────────────────────────────────────────────────────────
 
-def collect_all() -> list[dict]:
+def collect_all() -> list:
     logger.info("=== 開始收集新聞 ===")
     all_articles = []
     all_articles.extend(fetch_google_news())
