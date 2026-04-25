@@ -41,6 +41,7 @@ HTML 週報 + Gmail 寄送（mailer.py）
 | Secret 名稱 | 說明 |
 |------------|------|
 | `GEMINI_API_KEY` | Gemini API 金鑰 |
+| `GEMINI_MODEL_NAME` | Gemini Model 名稱 (optional, default=gemini-2.5-flash) |
 | `GMAIL_APP_PASSWORD` | Gmail 應用程式密碼（16位數）|
 | `GMAIL_SENDER` | 你的 Gmail 地址（同時為收件者）|
 
