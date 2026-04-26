@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout 程式碼
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5        # v5 使用 Node.js 24，解決 Node 20 deprecation 警告
 
       - name: 寫入 sources.yml（從 GitHub Variable）
         run: echo "$SOURCES_YML" > sources.yml
@@ -20,7 +20,7 @@ jobs:
           SOURCES_YML: ${{ vars.SOURCES_YML }}
 
       - name: 設定 Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5   # v5 最新 patch 已支援 Node.js 24
         with:
           python-version: '3.11'
           cache: 'pip'
