@@ -59,7 +59,7 @@ def _call_gemini(prompt, api_key, retries=3):
         ],
         "generationConfig": {
             "temperature": 0.3,
-            "maxOutputTokens": 1024,  # 從 512 提高，確保 4-6 句分析不被截斷
+            "maxOutputTokens": 2048,  # 足夠容納 4-6 句中文分析（含 Gemini 思考 token 佔用）
         },
     }
 
@@ -68,7 +68,12 @@ def _call_gemini(prompt, api_key, retries=3):
             resp = requests.post(url, json=payload, timeout=30)
             if resp.status_code == 200:
                 data = resp.json()
-                return data["candidates"][0]["content"]["parts"][0]["text"]
+                candidate = data["candidates"][0]
+                finish_reason = candidate.get("finishReason", "")
+                if finish_reason == "MAX_TOKENS":
+                    logger.warning("⚠️  輸出被截斷（MAX_TOKENS），考慮降低 max_articles 或提高 maxOutputTokens")
+                text = candidate["content"]["parts"][0]["text"]
+                return text
             elif resp.status_code == 429:
                 wait = 15 * attempt
                 logger.warning("Rate limit（429），等待 %d 秒後重試（第 %d 次）", wait, attempt)
