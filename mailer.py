@@ -21,26 +21,79 @@ IMPORTANCE_COLOR = {
 }
 
 SOURCE_BADGE_COLOR = {
-    "Google News":  "#4285F4",
-    "PTT/biker":    "#FF4500",
-    "PTT/car-moto": "#FF4500",
-    "聯合新聞網":   "#1A3C6E",
-    "中時新聞網":   "#C0392B",
-    "自由時報":     "#27AE60",
-    "TVBS新聞":     "#2980B9",
-    "ETtoday":      "#E74C3C",
-    "交通部":       "#8E44AD",
-    "公路局":       "#7D6608",
+    "Google News 機車交通":  "#4285F4",
+    "Google News 重機":      "#4285F4",
+    "Google News 白牌機車":  "#4285F4",
+    "Google News 機車法規":  "#4285F4",
+    "Google News Gogoro":    "#4285F4",
+    "Google News 機車路權":  "#4285F4",
+    "Google News 機車事故":  "#4285F4",
+    "Google News 紅黃牌重機":"#4285F4",
+    "Google News 中時新聞網":"#4285F4",
+    "Google News TVBS新聞":  "#4285F4",
+    "PTT/biker":             "#FF4500",
+    "PTT/SuperBike":         "#FF4500",
+    "聯合新聞網":            "#1A3C6E",
+    "中時新聞網":            "#C0392B",
+    "自由時報":              "#27AE60",
+    "TVBS新聞":              "#2980B9",
+    "ETtoday":               "#E74C3C",
+    "交通部":                "#8E44AD",
+    "公路局":                "#7D6608",
 }
+
+# 超過此字數的分析內容才觸發折疊
+COLLAPSE_THRESHOLD = 80
 
 
 def _source_badge(source: str) -> str:
-    color = SOURCE_BADGE_COLOR.get(source, "#555555")
+    # Google News 來源統一顯示為「Google News」
+    display = "Google News" if source.startswith("Google News") else source
+    color = SOURCE_BADGE_COLOR.get(source, "#4285F4" if source.startswith("Google News") else "#555555")
     return (
         f'<span style="display:inline-block;padding:2px 8px;'
         f'border-radius:4px;font-size:11px;font-weight:600;'
-        f'background:{color};color:#fff;">{source}</span>'
+        f'background:{color};color:#fff;">{display}</span>'
     )
+
+
+def _collapsible_block(label: str, content: str, color: str, card_id: str, field: str) -> str:
+    """
+    長內容折疊區塊。
+    - 短內容（< COLLAPSE_THRESHOLD 字）直接顯示，不加折疊。
+    - 長內容折疊，顯示前 COLLAPSE_THRESHOLD 字預覽 + 展開按鈕。
+    用純 CSS checkbox hack 實作，不依賴 JavaScript（email client 相容性佳）。
+    """
+    if not content:
+        return ""
+
+    block_id = f"{card_id}-{field}"
+
+    if len(content) <= COLLAPSE_THRESHOLD:
+        # 短內容：直接顯示
+        return f"""
+  <div style="padding:10px 18px 0;">
+    <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:{color};letter-spacing:0.5px;">{label}</p>
+    <p style="margin:0;font-size:14px;line-height:1.7;color:#333;">{content}</p>
+  </div>"""
+
+    preview = content[:COLLAPSE_THRESHOLD] + "…"
+
+    # 長內容：用 <details>/<summary> — 原生 HTML，無需 JS，Gmail 桌面版支援
+    return f"""
+  <div style="padding:10px 18px 0;">
+    <p style="margin:0 0 4px;font-size:12px;font-weight:700;color:{color};letter-spacing:0.5px;">{label}</p>
+    <details id="{block_id}">
+      <summary style="cursor:pointer;font-size:14px;line-height:1.7;color:#333;
+                      list-style:none;display:block;">
+        <span class="preview-text">{preview}</span>
+        <span style="display:inline-block;margin-left:6px;padding:1px 8px;
+                     border-radius:10px;font-size:11px;font-weight:600;
+                     background:{color};color:#fff;white-space:nowrap;">展開 ▾</span>
+      </summary>
+      <p style="margin:6px 0 0;font-size:14px;line-height:1.7;color:#333;">{content}</p>
+    </details>
+  </div>"""
 
 
 def _article_card(article: dict, index: int) -> str:
@@ -54,11 +107,15 @@ def _article_card(article: dict, index: int) -> str:
     analysis_text = analysis.get("analysis", "")
     reason = analysis.get("importance_reason", "")
     published = article.get("published", "")
+    card_id = f"card-{index}"
 
     published_html = (
         f'<span style="color:#999;font-size:12px;margin-left:8px;">{published}</span>'
         if published else ""
     )
+
+    summary_block = _collapsible_block("📋 摘要", summary_text, border_color, card_id, "summary")
+    analysis_block = _collapsible_block("🔍 深度分析", analysis_text, border_color, card_id, "analysis")
 
     return f"""
 <div style="margin-bottom:24px;border-radius:10px;overflow:hidden;
@@ -78,23 +135,12 @@ def _article_card(article: dict, index: int) -> str:
     </a>
   </div>
 
-  <!-- 摘要 -->
-  <div style="padding:12px 18px 0;">
-    <p style="margin:0 0 4px;font-size:12px;font-weight:700;
-       color:{border_color};letter-spacing:0.5px;">📋 摘要</p>
-    <p style="margin:0;font-size:14px;line-height:1.7;color:#333;">{summary_text}</p>
-  </div>
-
-  <!-- 深度分析 -->
-  <div style="padding:10px 18px 0;">
-    <p style="margin:0 0 4px;font-size:12px;font-weight:700;
-       color:{border_color};letter-spacing:0.5px;">🔍 深度分析</p>
-    <p style="margin:0;font-size:14px;line-height:1.7;color:#333;">{analysis_text}</p>
-  </div>
+  {summary_block}
+  {analysis_block}
 
   <!-- 重要性理由 + 原文連結 -->
   <div style="padding:10px 18px 14px;display:flex;justify-content:space-between;
-       align-items:flex-end;flex-wrap:wrap;gap:8px;">
+       align-items:flex-end;flex-wrap:wrap;gap:8px;margin-top:10px;">
     <p style="margin:0;font-size:12px;color:#666;font-style:italic;">
       💡 {reason}
     </p>
@@ -108,7 +154,6 @@ def _article_card(article: dict, index: int) -> str:
 def build_html(articles: list) -> str:
     now_tw = datetime.now(TW_TZ)
     date_str = now_tw.strftime("%Y 年 %m 月 %d 日")
-    # ISO 週數
     week_num = now_tw.isocalendar()[1]
 
     high = [a for a in articles if a.get("analysis", {}).get("importance") == "高"]
@@ -150,6 +195,11 @@ def build_html(articles: list) -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>台灣機車交通週報 W{week_num}</title>
+<style>
+  details summary::-webkit-details-marker {{ display: none; }}
+  details[open] summary .preview-text {{ display: none; }}
+  details[open] summary span:last-child {{ display: none; }}
+</style>
 </head>
 <body style="margin:0;padding:0;background:#F5F6FA;font-family:'Helvetica Neue',Arial,sans-serif;">
 
@@ -175,6 +225,7 @@ def build_html(articles: list) -> str:
        margin-bottom:24px;font-size:13px;color:#1A5276;line-height:1.6;">
     📌 本週報自動收集台灣交通相關新聞，涵蓋白牌機車、紅黃牌重機、法規異動、
     事故分析等議題。每則新聞均經 AI 摘要與深度分析，依重要性排序呈現。
+    較長的摘要與分析可點擊「展開」查看完整內容。
   </div>
 
   <!-- 文章卡片 -->
@@ -195,7 +246,7 @@ def build_html(articles: list) -> str:
 def send_email(html_content: str, article_count: int) -> None:
     sender = os.environ["GMAIL_SENDER"]
     password = os.environ["GMAIL_APP_PASSWORD"]
-    recipient = sender  # 同一個 email
+    recipient = sender
 
     now_tw = datetime.now(TW_TZ)
     week_num = now_tw.isocalendar()[1]
@@ -207,7 +258,6 @@ def send_email(html_content: str, article_count: int) -> None:
     msg["From"] = f"機車交通週報 <{sender}>"
     msg["To"] = recipient
 
-    # 純文字版 fallback
     plain = f"台灣機車交通週報 W{week_num}\n本週共 {article_count} 則相關新聞\n請以 HTML 格式查看。"
     msg.attach(MIMEText(plain, "plain", "utf-8"))
     msg.attach(MIMEText(html_content, "html", "utf-8"))
