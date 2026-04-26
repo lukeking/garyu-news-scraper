@@ -12,6 +12,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL_NAME", "gemini-2.5-flash")
+logger.debug("使用 Gemini 模型：%s", GEMINI_MODEL)
 GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "{model}:generateContent?key={api_key}"
