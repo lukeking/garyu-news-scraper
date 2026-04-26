@@ -6,6 +6,7 @@ analyzer.py
 
 import os
 import time
+from math import floor
 import logging
 import requests
 
@@ -38,6 +39,14 @@ ANALYSIS_PROMPT_TEMPLATE = """以下是一則台灣交通相關新聞：
 重要性原因：（一句話說明為何如此評定）
 """
 
+"""
+每次請求間隔秒數。
+gemini-2.5-flash-lite（預設）: 15 RPM → delay=4s
+gemini-2.5-flash / gemini-2.0-flash: 10 RPM → delay=6s
+gemini-2.5-pro:                       5 RPM  → delay=12s
+"""
+DELAY_IN_SECONDS = 4  # Gemini API 預設限制約 15 RPM，保守設定為每 4 秒一請求
+
 
 def _get_api_key():
     key = os.environ.get("GEMINI_API_KEY", "")
@@ -69,7 +78,7 @@ def _call_gemini(prompt, api_key, retries=3):
                 return data["candidates"][0]["content"]["parts"][0]["text"]
             elif resp.status_code == 429:
                 # 等待時間以 delay 為基數逐次加倍（預設 4 秒 × attempt）
-                wait = max(4, delay) * attempt
+                wait = floor(max(4, DELAY_IN_SECONDS) * attempt * 2.5)
                 logger.warning("Rate limit（429），等待 %d 秒後重試（第 %d 次）", wait, attempt)
                 time.sleep(wait)
             else:
@@ -134,31 +143,24 @@ def analyze_article(article, api_key):
     return article
 
 
-def analyze_all(articles, delay=4):
-    """
-    依序分析所有文章。
-    delay: 每次請求間隔秒數。
-      gemini-2.5-flash-lite（預設）: 15 RPM → delay=4s
-      gemini-2.5-flash / gemini-2.0-flash: 10 RPM → delay=6s
-      gemini-2.5-pro:                       5 RPM  → delay=12s
-    """
+def analyze_all(articles):
     api_key = _get_api_key()
     total = len(articles)
-    eta_min = round(total * delay / 60, 1)
+    eta_min = round(total * DELAY_IN_SECONDS / 60, 1)
     logger.info("=== 開始 AI 分析，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
-                total, delay, eta_min)
+                total, DELAY_IN_SECONDS, eta_min)
 
     results = []
     for i, article in enumerate(articles):
         remaining = total - i - 1
         logger.info("[%d/%d] 分析中（完成後還剩 %d 篇，約 %.0f 秒）：%s",
                     i + 1, total, remaining,
-                    remaining * delay,
+                    remaining * DELAY_IN_SECONDS,
                     article["title"][:40])
         result = analyze_article(article, api_key)
         results.append(result)
         if i < total - 1:
-            time.sleep(delay)
+            time.sleep(DELAY_IN_SECONDS)
 
     order = {"高": 0, "中": 1, "低": 2}
     results.sort(key=lambda x: order.get(x.get("analysis", {}).get("importance", "中"), 1))
