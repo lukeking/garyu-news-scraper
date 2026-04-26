@@ -11,8 +11,7 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL_NAME", "gemini-2.5-flash")
-logger.debug("使用 Gemini 模型：%s", GEMINI_MODEL)
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL_NAME", "gemini-2.5-flash-lite")
 GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "{model}:generateContent?key={api_key}"
@@ -69,8 +68,9 @@ def _call_gemini(prompt, api_key, retries=3):
                 data = resp.json()
                 return data["candidates"][0]["content"]["parts"][0]["text"]
             elif resp.status_code == 429:
-                wait = 10 * attempt
-                logger.warning("Rate limit，等待 %d 秒後重試（第 %d 次）", wait, attempt)
+                # 等待時間以 delay 為基數逐次加倍（預設 4 秒 × attempt）
+                wait = max(4, delay) * attempt
+                logger.warning("Rate limit（429），等待 %d 秒後重試（第 %d 次）", wait, attempt)
                 time.sleep(wait)
             else:
                 logger.warning("Gemini API 回應 %s: %s", resp.status_code, resp.text[:200])
@@ -134,16 +134,30 @@ def analyze_article(article, api_key):
     return article
 
 
-def analyze_all(articles, delay=2.5):
+def analyze_all(articles, delay=4):
+    """
+    依序分析所有文章。
+    delay: 每次請求間隔秒數。
+      gemini-2.5-flash-lite（預設）: 15 RPM → delay=4s
+      gemini-2.5-flash / gemini-2.0-flash: 10 RPM → delay=6s
+      gemini-2.5-pro:                       5 RPM  → delay=12s
+    """
     api_key = _get_api_key()
-    logger.info("=== 開始 AI 分析，共 %d 篇 ===", len(articles))
+    total = len(articles)
+    eta_min = round(total * delay / 60, 1)
+    logger.info("=== 開始 AI 分析，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
+                total, delay, eta_min)
 
     results = []
     for i, article in enumerate(articles):
-        logger.info("[%d/%d] 分析中：%s", i + 1, len(articles), article["title"][:40])
+        remaining = total - i - 1
+        logger.info("[%d/%d] 分析中（完成後還剩 %d 篇，約 %.0f 秒）：%s",
+                    i + 1, total, remaining,
+                    remaining * delay,
+                    article["title"][:40])
         result = analyze_article(article, api_key)
         results.append(result)
-        if i < len(articles) - 1:
+        if i < total - 1:
             time.sleep(delay)
 
     order = {"高": 0, "中": 1, "低": 2}
