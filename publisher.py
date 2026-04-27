@@ -175,31 +175,99 @@ def build_week_html(articles: list, week_id: str):
         tags = analysis.get("tags", [])
         tag_html = " ".join(f'<span class="tag">{t}</span>' for t in tags)
         importance = analysis.get("importance", "中")
+        imp_dot = {"高": "🔴", "中": "🟡", "低": "🟢"}.get(importance, "")
+        color = {"高": "#C0392B", "中": "#D68910", "低": "#27AE60"}.get(importance, "#555")
+        src = article.get("source", "")
+        src_label = "Google News" if src.startswith("Google News") else src
+        tag_spans = "".join(f'<span class="tag">{t}</span>' for t in tags)
+        reason = analysis.get("importance_reason", "")
         cards.append(f"""
-<article data-pagefind-body data-week="{week_id}" data-importance="{importance}">
-  <h2>{i}. {article.get('title', '')}</h2>
-  <p class="meta">
-    <span class="source">{article.get('source', '')}</span>
-    <span class="importance">{importance}重要</span>
-    <span class="tags">{tag_html}</span>
-  </p>
-  <p class="summary">{analysis.get('summary', '')}</p>
-  <p class="analysis">{analysis.get('analysis', '')}</p>
-  <a href="{article.get('link', '#')}" target="_blank" rel="noopener">閱讀原文</a>
-</article>""")
+<div class="card card-{importance}" data-pagefind-body data-week="{week_id}" data-importance="{importance}">
+  <div class="card-header">
+    <div class="card-meta">
+      <span class="imp-badge imp-{importance}">{imp_dot} {importance}重要</span>
+      <span class="src-badge">{src_label}</span>
+      <span style="color:#999;font-size:12px;">{article.get("published","")}</span>
+    </div>
+    <a class="card-title" href="{article.get("link","#")}" target="_blank" rel="noopener">{i}. {article.get("title","")}</a>
+  </div>
+  <div class="card-body">
+    <p class="sec-label" style="color:{color}">📋 摘要</p>
+    <p class="sec-text">{analysis.get("summary","")}</p>
+    <p class="sec-label" style="color:{color}">🔍 深度分析</p>
+    <p class="sec-text">{analysis.get("analysis","")}</p>
+  </div>
+  {f'<div class="card-tags">{tag_spans}</div>' if tags else ""}
+  <div class="card-footer">
+    <span class="reason">💡 {reason}</span>
+    <a class="read-more" href="{article.get("link","#")}" target="_blank" rel="noopener" style="color:{color}">閱讀原文 →</a>
+  </div>
+</div>""")
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{week_id} 台灣機車交通週報</title>
+<style>
+  :root {{
+    --high:#C0392B; --high-bg:#FFF0F0;
+    --mid:#D68910;  --mid-bg:#FFFBF0;
+    --low:#27AE60;  --low-bg:#F0FFF4;
+    --accent:#1A3C6E; --accent2:#2980B9;
+    --tag-bg:#E8F4FD; --tag-text:#1A5276;
+  }}
+  *{{ box-sizing:border-box; margin:0; padding:0; }}
+  body{{ background:#F5F6FA; color:#1a1a2e; font-family:'Helvetica Neue',Arial,sans-serif; }}
+  .site-header{{
+    background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);
+    color:#fff; padding:24px 20px;
+  }}
+  .site-header h1{{ font-size:1.4rem; font-weight:800; margin-bottom:4px; }}
+  .site-header p{{ font-size:0.85rem; opacity:0.85; }}
+  .back-link{{ display:inline-block; margin-bottom:8px; font-size:13px; color:rgba(255,255,255,0.8); text-decoration:none; }}
+  .back-link:hover{{ color:#fff; }}
+  .main{{ max-width:820px; margin:0 auto; padding:24px 16px 48px; }}
+  .card{{
+    background:#fff; border-radius:10px; margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.07); overflow:hidden;
+    border:1.5px solid transparent;
+  }}
+  .card-高{{ border-color:#C0392B30; background:var(--high-bg); }}
+  .card-中{{ border-color:#D6891030; background:var(--mid-bg); }}
+  .card-低{{ border-color:#27AE6030; background:var(--low-bg); }}
+  .card-header{{ padding:14px 18px 10px; border-bottom:1px solid rgba(0,0,0,0.06); }}
+  .card-meta{{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:6px; }}
+  .imp-badge{{ font-size:12px; font-weight:700; }}
+  .imp-高{{ color:var(--high); }} .imp-中{{ color:var(--mid); }} .imp-低{{ color:var(--low); }}
+  .src-badge{{
+    display:inline-block; padding:2px 8px; border-radius:4px;
+    font-size:11px; font-weight:600; color:#fff; background:#4285F4;
+  }}
+  .card-title{{ font-size:15px; font-weight:700; color:#1a1a2e; text-decoration:none; line-height:1.5; display:block; }}
+  .card-title:hover{{ color:var(--accent2); }}
+  .card-body{{ padding:12px 18px 0; }}
+  .sec-label{{ font-size:11px; font-weight:700; letter-spacing:0.5px; margin:0 0 4px; }}
+  .sec-text{{ font-size:13px; line-height:1.75; color:#333; margin:0 0 10px; }}
+  .card-tags{{ padding:0 18px 10px; display:flex; gap:6px; flex-wrap:wrap; }}
+  .tag{{ font-size:11px; background:var(--tag-bg); color:var(--tag-text); border-radius:10px; padding:2px 8px; }}
+  .card-footer{{ padding:8px 18px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }}
+  .reason{{ font-size:12px; color:#666; font-style:italic; }}
+  .read-more{{ font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; }}
+  .site-footer{{ text-align:center; padding:20px; font-size:12px; color:#aaa; border-top:1px solid #e0e0e0; margin-top:8px; }}
+</style>
 </head>
 <body>
-<header>
-  <h1>台灣機車交通週報 {week_id}</h1>
-  <p>{now.strftime('%Y 年 %m 月 %d 日')}，共 {len(articles)} 則</p>
+<header class="site-header">
+  <a class="back-link" href="../index.html">← 回週報首頁</a>
+  <h1>🏍️ 台灣機車交通週報 {week_id}</h1>
+  <p>{now.strftime('%Y 年 %m 月 %d 日')}，共 {len(articles)} 則新聞</p>
 </header>
+<main class="main">
 {"".join(cards)}
+</main>
+<footer class="site-footer">由 GitHub Actions + Gemini AI 自動產生 · 每週一更新</footer>
 </body>
 </html>"""
 
