@@ -217,7 +217,19 @@ const srcLabel = s => s.startsWith('Google News') ? 'Google News' : s;
 // ── 初始化 ────────────────────────────────────────────────────
 async function init() {
   // Pagefind
-  new PagefindUI({ element: '#search', showSubResults: false, translations: { placeholder: '搜尋新聞關鍵字或標籤…' } });
+  new PagefindUI({
+    element: '#search',
+    showSubResults: false,
+    translations: {
+      placeholder: '搜尋新聞關鍵字或標籤…',
+      zero_results: '找不到「[SEARCH_TERM]」的相關結果',
+      many_results: '找到 [COUNT] 個「[SEARCH_TERM]」的相關結果',
+      one_result: '找到 1 個「[SEARCH_TERM]」的相關結果',
+      alt_search: '找不到「[SEARCH_TERM]」，顯示「[DIFFERENT_TERM]」的結果',
+      search_suggestion: '找不到「[SEARCH_TERM]」，試試搜尋「[DIFFERENT_TERM]」',
+      searching: '搜尋中…',
+    }
+  });
 
   // 載入週別索引
   const res = await fetch(`${DATA}/index.json`).catch(() => null);
