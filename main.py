@@ -26,7 +26,7 @@ except ImportError:
 from collector import collect_all
 from filter import filter_and_deduplicate
 from analyzer import analyze_all
-from mailer import build_html, send_email
+from publisher import publish
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,17 +51,18 @@ def main():
         logger.warning("過濾後無文章，結束執行")
         sys.exit(0)
 
-    # Step 3：限制最多 30 篇（避免 API 用量過多）
-    if len(filtered) > 30:
-        logger.info(f"文章數 {len(filtered)} > 30，截取前 30 篇")
-        filtered = filtered[:30]
+    # Step 3：限制篇數，避免超過 Gemini 免費 tier RPD（每日上限 20）
+    # 若已啟用 Google Cloud Billing（Tier 1），可調高此數字
+    MAX_ARTICLES = 20
+    if len(filtered) > MAX_ARTICLES:
+        logger.info(f"文章數 {len(filtered)} > {MAX_ARTICLES}，截取前 {MAX_ARTICLES} 篇（RPD 上限）")
+        filtered = filtered[:MAX_ARTICLES]
 
     # Step 4：AI 分析
     analyzed = analyze_all(filtered)
 
-    # Step 5：組裝 HTML + 寄送
-    html = build_html(analyzed)
-    send_email(html, len(analyzed))
+    # Step 5：發布至 docs/（JSON + RSS + 靜態 HTML）
+    publish(analyzed)
 
     logger.info("========== 執行完成 ==========")
 
