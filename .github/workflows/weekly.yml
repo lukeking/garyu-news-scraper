@@ -2,17 +2,24 @@ name: 台灣機車交通週報
 
 on:
   schedule:
-    - cron: '0 0 * * 1'
+    - cron: '0 0 * * 1'   # 每週一 UTC 00:00 = 台灣 08:00
   workflow_dispatch:
 
+permissions:
+  contents: write          # 允許 commit docs/ 回 main
+  pages: write             # 允許部署 GitHub Pages
+  id-token: write
+
 jobs:
-  send-weekly-report:
+  build-and-deploy:
     runs-on: ubuntu-latest
     environment: production
 
     steps:
       - name: Checkout 程式碼
-        uses: actions/checkout@v5        # v5 使用 Node.js 24，解決 Node 20 deprecation 警告
+        uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 寫入 sources.yml（從 GitHub Variable）
         run: echo "$SOURCES_YML" > sources.yml
@@ -20,7 +27,7 @@ jobs:
           SOURCES_YML: ${{ vars.SOURCES_YML }}
 
       - name: 設定 Python 3.11
-        uses: actions/setup-python@v5   # v5 最新 patch 已支援 Node.js 24
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -28,10 +35,22 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements.txt
 
-      - name: 執行週報程式
+      - name: 執行週報程式（產生 docs/data/*.json、docs/feed.xml）
         run: python main.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
           GEMINI_MODEL_NAME: ${{ secrets.GEMINI_MODEL_NAME }}
+          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+
+      - name: 安裝 Pagefind 並建立搜尋索引
+        run: |
+          npm install -g pagefind
+          pagefind --site docs --output-path docs/pagefind
+
+      - name: Commit docs/ 回 main 分支
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git diff --staged --quiet || git commit -m "chore: weekly report $(date +'%Y-W%V')"
+          git push

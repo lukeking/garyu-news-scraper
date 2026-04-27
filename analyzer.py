@@ -25,6 +25,13 @@ SYSTEM_PROMPT = (
 )
 
 # 明確要求每個欄位用「標籤：內容」單行格式，避免 Gemini 換行導致解析失敗
+# 系統預設標籤選項（AI 優先從此選擇，也可自行新增）
+DEFAULT_TAGS = [
+    "法規", "事故", "停車", "路權", "重機", "電動", "考照",
+    "國道", "工程", "Gogoro", "白牌", "紅牌", "黃牌", "取締",
+    "新制", "道路設計", "交通安全",
+]
+
 ANALYSIS_PROMPT_TEMPLATE = """以下是一則台灣交通相關新聞：
 
 標題：{title}
@@ -38,6 +45,8 @@ ANALYSIS_PROMPT_TEMPLATE = """以下是一則台灣交通相關新聞：
 分析：用4到6句話分析背景原因、對機車騎士的實際影響、政策趨勢或值得關注的面向（同一行寫完，句子之間用「。」分隔）
 重要性：高（或中或低，只填一個字）
 重要性原因：一句話說明為何如此評定（同一行寫完）
+標籤：從以下選項中選2到4個最相關的標籤，用逗號分隔，也可加入未列出但更精確的標籤（同一行寫完）
+可選標籤：{available_tags}
 """
 
 
@@ -98,6 +107,7 @@ def _parse_response(text):
         "analysis": "",
         "importance": "中",
         "importance_reason": "",
+        "tags": [],
     }
 
     # 先嘗試單行比對
@@ -114,6 +124,9 @@ def _parse_response(text):
                 result["importance"] = val[0]
         elif line.startswith("重要性原因："):
             result["importance_reason"] = line[6:].strip()
+        elif line.startswith("標籤："):
+            raw_tags = line[3:].strip()
+            result["tags"] = [t.strip() for t in raw_tags.replace("、", ",").replace("，", ",").split(",") if t.strip()]
 
     # fallback：若分析欄位仍為空，嘗試多行合併
     # 找到「分析：」標籤後，把直到下一個已知標籤前的所有行合併
@@ -164,11 +177,15 @@ def _parse_response(text):
 
 
 def analyze_article(article, api_key):
+    # 合併預設標籤與使用者手動新增的標籤
+    user_tags = article.get("user_tags", [])
+    all_tags = sorted(set(DEFAULT_TAGS) | set(user_tags))
     prompt = ANALYSIS_PROMPT_TEMPLATE.format(
         title=article.get("title", ""),
         source=article.get("source", ""),
         summary=article.get("summary", "（無摘要）"),
         link=article.get("link", ""),
+        available_tags="、".join(all_tags),
     )
 
     raw = _call_gemini(prompt, api_key)
@@ -183,6 +200,7 @@ def analyze_article(article, api_key):
             "analysis": "（分析失敗）",
             "importance": "中",
             "importance_reason": "（無法取得分析）",
+            "tags": [],
         }
 
     return article
