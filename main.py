@@ -1,27 +1,20 @@
 """
 main.py
 台灣機車交通週報主程式入口
-執行流程：收集 → 過濾 → AI 分析 → 寄送
+執行流程：收集 → 過濾 → AI 分析 → 發布
 """
 
 import logging
 import sys
 import os
 
-# load_dotenv 必須在所有其他 import 之前執行，
-# 這樣 collector / analyzer / mailer 讀取 os.environ 時環境變數已就緒。
-#
-# override=False（預設值）：已存在的環境變數不會被 .env 覆蓋。
-# 效果：
-#   本機測試 → 系統環境變數為空，.env 的值生效
-#   GitHub Actions → secrets 已注入為環境變數，.env 不存在，完全不影響
 try:
     from dotenv import load_dotenv
     loaded = load_dotenv(override=False)
     if loaded:
         print("[dotenv] 已載入 .env（本機測試模式）", flush=True)
 except ImportError:
-    pass  # production 環境不需要安裝 python-dotenv 也能正常運作
+    pass
 
 from collector import collect_all
 from filter import filter_and_deduplicate
@@ -45,23 +38,24 @@ def main():
         logger.warning("未收集到任何文章，結束執行")
         sys.exit(0)
 
-    # Step 2：過濾 + 去重複
+    # Step 2：過濾 + 去重複（含同主題限流）
     filtered = filter_and_deduplicate(raw_articles)
     if not filtered:
         logger.warning("過濾後無文章，結束執行")
         sys.exit(0)
 
-    # Step 3：限制篇數，避免超過 Gemini 免費 tier RPD（每日上限 20）
-    # 若已啟用 Google Cloud Billing（Tier 1），可調高此數字
-    MAX_ARTICLES = 20
+    # Step 3：限制篇數
+    # Gemini 2.5 Flash 免費 RPD=20；若已啟用計費可調高
+    # 設為 30 保留緩衝，過濾後若不足 20 篇仍有足夠來源
+    MAX_ARTICLES = 30
     if len(filtered) > MAX_ARTICLES:
-        logger.info(f"文章數 {len(filtered)} > {MAX_ARTICLES}，截取前 {MAX_ARTICLES} 篇（RPD 上限）")
+        logger.info(f"文章數 {len(filtered)} > {MAX_ARTICLES}，截取前 {MAX_ARTICLES} 篇")
         filtered = filtered[:MAX_ARTICLES]
 
     # Step 4：AI 分析
     analyzed = analyze_all(filtered)
 
-    # Step 5：發布至 docs/（JSON + RSS + 靜態 HTML）
+    # Step 5：發布至 docs/
     publish(analyzed)
 
     logger.info("========== 執行完成 ==========")

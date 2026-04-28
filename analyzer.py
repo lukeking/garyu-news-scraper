@@ -24,8 +24,6 @@ SYSTEM_PROMPT = (
     "回應格式務必嚴格按照指示，不要加入任何額外說明或 markdown 符號。"
 )
 
-# 明確要求每個欄位用「標籤：內容」單行格式，避免 Gemini 換行導致解析失敗
-# 系統預設標籤選項（AI 優先從此選擇，也可自行新增）
 DEFAULT_TAGS = [
     "法規", "事故", "停車", "路權", "重機", "電動", "考照",
     "國道", "工程", "Gogoro", "白牌", "紅牌", "黃牌", "取締",
@@ -47,6 +45,27 @@ ANALYSIS_PROMPT_TEMPLATE = """以下是一則台灣交通相關新聞：
 重要性原因：一句話說明為何如此評定（同一行寫完）
 標籤：從以下選項中選2到4個最相關的標籤，用逗號分隔，也可加入未列出但更精確的標籤（同一行寫完）
 可選標籤：{available_tags}
+
+---
+重要性評定標準（請嚴格遵守，預期分布約：高 30%、中 50%、低 20%）：
+
+【高】滿足以下任一條件：
+- 有人員傷亡（死亡或重傷）的交通事故
+- 影響全國或多縣市機車族的法規、政策新制（實際上路或立法院通過）
+- 重大道路工程設計缺失，直接威脅騎士安全
+- 取締專案或重大違規執法（影響範圍廣、罰則重）
+
+【中】滿足以下任一條件：
+- 地方性事故（輕傷或財損為主）
+- 政策討論、草案、評估階段（尚未定案）
+- 道路工程進度更新、爭議討論（無立即安全威脅）
+- 新產品/新服務上市對機車族有間接影響
+- 違規取締（一般性、地方性）
+
+【低】滿足以下條件：
+- 純報導性、無直接影響（如活動、評比、展覽）
+- 重複性新聞（同一事件的後續跟進報導、無新資訊）
+- 對機車騎士影響極小或高度不確定
 """
 
 
@@ -67,8 +86,8 @@ def _call_gemini(prompt, api_key, retries=3):
             {"role": "user", "parts": [{"text": prompt}]}
         ],
         "generationConfig": {
-            "temperature": 0.3,
-            "maxOutputTokens": 2048,  # 足夠容納 4-6 句中文分析（含 Gemini 思考 token 佔用）
+            "temperature": 0.2,
+            "maxOutputTokens": 2048,
         },
     }
 
@@ -110,7 +129,6 @@ def _parse_response(text):
         "tags": [],
     }
 
-    # 先嘗試單行比對
     for line in text.splitlines():
         line = line.strip()
         if line.startswith("摘要："):
@@ -119,7 +137,6 @@ def _parse_response(text):
             result["analysis"] = line[3:].strip()
         elif line.startswith("重要性："):
             val = line[4:].strip()
-            # 只取第一個字，避免「高（因為...）」這類格式干擾
             if val and val[0] in ("高", "中", "低"):
                 result["importance"] = val[0]
         elif line.startswith("重要性原因："):
@@ -128,8 +145,7 @@ def _parse_response(text):
             raw_tags = line[3:].strip()
             result["tags"] = [t.strip() for t in raw_tags.replace("、", ",").replace("，", ",").split(",") if t.strip()]
 
-    # fallback：若分析欄位仍為空，嘗試多行合併
-    # 找到「分析：」標籤後，把直到下一個已知標籤前的所有行合併
+    # fallback：分析欄位多行合併
     if not result["analysis"]:
         lines = text.splitlines()
         collecting = False
@@ -149,7 +165,7 @@ def _parse_response(text):
         if buf:
             result["analysis"] = "".join(buf)
 
-    # 同樣對摘要做多行 fallback
+    # fallback：摘要欄位多行合併
     if not result["summary"]:
         lines = text.splitlines()
         collecting = False
@@ -169,7 +185,6 @@ def _parse_response(text):
         if buf:
             result["summary"] = "".join(buf)
 
-    # 最終 fallback：直接把整段回應當摘要
     if not result["summary"] and text:
         result["summary"] = text[:300]
 
@@ -177,7 +192,6 @@ def _parse_response(text):
 
 
 def analyze_article(article, api_key):
-    # 合併預設標籤與使用者手動新增的標籤
     user_tags = article.get("user_tags", [])
     all_tags = sorted(set(DEFAULT_TAGS) | set(user_tags))
     prompt = ANALYSIS_PROMPT_TEMPLATE.format(
@@ -213,7 +227,6 @@ def analyze_all(articles, delay=6):
       gemini-2.5-flash（預設）:  10 RPM → delay=6s
       gemini-2.5-flash-lite:     15 RPM → delay=4s
       gemini-2.5-pro:             5 RPM → delay=12s
-      ⚠️  gemini-2.0-flash/lite: 2026/6/1 停用，請勿使用
     """
     api_key = _get_api_key()
     total = len(articles)
