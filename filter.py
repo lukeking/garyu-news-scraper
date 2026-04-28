@@ -18,13 +18,19 @@ MUST_INCLUDE = [
     "交通事故.*機車", "機車.*交通",
 ]
 
-# 排除明顯不相關的關鍵字（命中則丟棄）
+# 排除明顯不相關的關鍵字
 EXCLUDE_KEYWORDS = [
     "汽車貸款廣告", "二手車廣告", "保險推銷",
 ]
 
 # PTT 排除的文章類型
 PTT_EXCLUDE_PREFIXES = ["[公告]", "[版規]", "Fw:", "[Fw]"]
+
+# 同主題去重：標題中若包含這些核心詞組，視為同一主題
+# 格式：(主題識別詞組, 最多保留篇數)
+TOPIC_THROTTLE = [
+    (["淡江大橋", "機車道"], 3),
+]
 
 
 def _clean_html(text: str) -> str:
@@ -37,18 +43,15 @@ def _is_relevant(article: dict) -> bool:
     summary = _clean_html(article.get("summary", ""))
     combined = title + " " + summary
 
-    # PTT 排除公告文
     if article.get("source", "").startswith("PTT"):
         for prefix in PTT_EXCLUDE_PREFIXES:
             if title.startswith(prefix):
                 return False
 
-    # 排除名單
     for kw in EXCLUDE_KEYWORDS:
         if kw in combined:
             return False
 
-    # 必要關鍵字（用 re 支援簡單 pattern）
     for kw in MUST_INCLUDE:
         if re.search(kw, combined):
             return True
@@ -59,14 +62,27 @@ def _is_relevant(article: dict) -> bool:
 def _make_hash(article: dict) -> str:
     """用標題做 hash 去重複"""
     title = re.sub(r"\s+", "", article.get("title", "")).lower()
-    # 移除常見前綴差異，例如 [即時] [焦點]
     title = re.sub(r"^\[.*?\]", "", title)
     return hashlib.md5(title.encode("utf-8")).hexdigest()
 
 
+def _topic_key(title: str) -> str | None:
+    """
+    判斷文章屬於哪個需要限流的主題，回傳主題識別字串或 None。
+    """
+    for keywords, _ in TOPIC_THROTTLE:
+        if all(kw in title for kw in keywords):
+            return "+".join(keywords)
+    return None
+
+
 def filter_and_deduplicate(articles: list) -> list:
     seen_hashes = set()
+    topic_counts: dict = {}  # topic_key -> 已收錄篇數
     result = []
+
+    # 建立 topic_throttle 查找表 {key: max_count}
+    topic_limits = {"+".join(kws): limit for kws, limit in TOPIC_THROTTLE}
 
     for article in articles:
         if not article.get("title"):
@@ -78,8 +94,23 @@ def filter_and_deduplicate(articles: list) -> list:
         if h in seen_hashes:
             continue
 
+        title = _clean_html(article.get("title", ""))
+        tkey = _topic_key(title)
+
+        if tkey is not None:
+            current = topic_counts.get(tkey, 0)
+            limit = topic_limits.get(tkey, 99)
+            if current >= limit:
+                logger.debug("主題限流（%s）跳過：%s", tkey, title[:40])
+                continue
+            topic_counts[tkey] = current + 1
+
         seen_hashes.add(h)
         result.append(article)
+
+    skipped_topics = {k: v for k, v in topic_counts.items() if v >= topic_limits.get(k, 99)}
+    if skipped_topics:
+        logger.info("主題限流統計：%s", skipped_topics)
 
     logger.info(f"過濾後剩 {len(result)} 筆（原 {len(articles)} 筆）")
     return result
