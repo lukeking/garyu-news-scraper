@@ -33,12 +33,35 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements.txt
 
+      - name: Ping Supabase（防免費 tier 閒置暫停）
+        run: |
+          python - <<'EOF'
+          import os, sys
+          url = os.environ.get("SUPABASE_URL", "")
+          key = os.environ.get("SUPABASE_KEY", "")
+          if not url or not key:
+              print("SUPABASE_URL / SUPABASE_KEY 未設定，跳過 ping")
+              sys.exit(0)
+          import requests
+          resp = requests.get(
+              f"{url}/rest/v1/articles?select=id&limit=1",
+              headers={"apikey": key, "Authorization": f"Bearer {key}"},
+              timeout=10,
+          )
+          print(f"Supabase ping status: {resp.status_code}")
+          EOF
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
       - name: 執行週報程式（產生 docs/）
         run: python main.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ secrets.GEMINI_MODEL_NAME }}
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
       - name: 安裝 Pagefind 並建立搜尋索引
         run: |
