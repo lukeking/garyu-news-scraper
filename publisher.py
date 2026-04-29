@@ -6,6 +6,8 @@ publisher.py
   - docs/data/tags.json       累積標籤庫（含使用者手動標籤，供下週 AI 參考）
   - docs/feed.xml             RSS feed
   - docs/week/YYYY-WNN.html   本週靜態頁面（Pagefind 索引用）
+
+同時寫入 Supabase（若環境變數已設定）作為持久化備份。
 GitHub Actions 後續執行 Pagefind 建立搜尋索引。
 """
 
@@ -104,6 +106,33 @@ def update_tags(articles: list):
     return store
 
 
+# ── Supabase 持久化 ───────────────────────────────────────────
+
+def _save_to_supabase(articles: list, week_id: str) -> bool:
+    """
+    將本週文章寫入 Supabase。
+    若環境變數未設定或寫入失敗，僅記錄 warning，不中斷主流程。
+    回傳 True 表示成功，False 表示跳過或失敗。
+    """
+    try:
+        from storage import is_configured, upsert_articles
+    except ImportError:
+        logger.warning("storage.py 未找到，跳過 Supabase 寫入")
+        return False
+
+    if not is_configured():
+        logger.info("SUPABASE_URL / SUPABASE_KEY 未設定，跳過 Supabase 寫入")
+        return False
+
+    try:
+        count = upsert_articles(articles, week_id)
+        logger.info("✓ Supabase 寫入完成：%d 筆（week_id=%s）", count, week_id)
+        return True
+    except Exception as e:
+        logger.warning("✗ Supabase 寫入失敗（不影響主流程）：%s", e)
+        return False
+
+
 # ── RSS Feed ──────────────────────────────────────────────────
 
 def _escape_xml(text: str) -> str:
@@ -173,7 +202,6 @@ def build_week_html(articles: list, week_id: str):
     for i, article in enumerate(articles, 1):
         analysis = article.get("analysis", {})
         tags = analysis.get("tags", [])
-        tag_html = " ".join(f'<span class="tag">{t}</span>' for t in tags)
         importance = analysis.get("importance", "中")
         imp_dot = {"高": "🔴", "中": "🟡", "低": "🟢"}.get(importance, "")
         color = {"高": "#C0392B", "中": "#D68910", "低": "#27AE60"}.get(importance, "#555")
@@ -288,6 +316,9 @@ def publish(articles: list):
     week_id = save_week_data(articles)
     update_index(week_id, articles)
     tags_store = update_tags(articles)
+
+    # 寫入 Supabase（失敗不中斷）
+    _save_to_supabase(articles, week_id)
 
     # 載入所有週資料，供 RSS 使用（最新 3 週）
     index = _load_json(DATA_DIR / "index.json", [])
