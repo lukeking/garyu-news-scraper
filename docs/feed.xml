@@ -6,7 +6,7 @@
   <description>每週自動彙整台灣機車交通相關新聞，含 AI 摘要與深度分析</description>
   <language>zh-tw</language>
   <lastBuildDate>Mon, 27 Apr 2026 09:32:19 +0800</lastBuildDate>
-  <atom:link href="https://lukeking.github.io/traffic-issue-scraper/feed.xml" rel="self" type="application/rss+xml"/>
+  <atom:link href="https://traffic-issue-scraper.pages.dev/feed.xml" rel="self" type="application/rss+xml"/>
   <ttl>10080</ttl>
   <item>
     <title>[高重要] 淡江大橋機車道狹窄如「狗道」?公路局祭28套劇本： 符合規範 - MSN</title>
