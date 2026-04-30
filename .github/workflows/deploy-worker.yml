@@ -32,6 +32,7 @@ jobs:
           # Define encrypted secrets here
           secrets: |
             SUPABASE_SERVICE_ROLE_KEY
+          command: deploy --compatibility-flags nodejs_compat
         env:
           # These MUST be in the env block so the action can read them
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
