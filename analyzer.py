@@ -78,6 +78,7 @@ def _get_api_key():
 
 def _call_gemini(prompt, api_key, retries=3):
     url = GEMINI_API_URL.format(model=GEMINI_MODEL, api_key=api_key)
+    maxOutputTokens = os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", 2048)
     payload = {
         "system_instruction": {
             "parts": [{"text": SYSTEM_PROMPT}]
@@ -87,7 +88,7 @@ def _call_gemini(prompt, api_key, retries=3):
         ],
         "generationConfig": {
             "temperature": 0.2,
-            "maxOutputTokens": 2048,
+            "maxOutputTokens": maxOutputTokens,
         },
     }
 

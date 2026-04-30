@@ -220,4 +220,4 @@ __marimo__/
 sources.yml
 .claude/
 
-backfill_supabase.py
+.wrangler/
