@@ -2,9 +2,5 @@ name = "traffic-issue-scraper"
 main = "src/index.js"
 compatibility_date = "2026-04-30"
 
-# Add this to ensure it doesn't try to look for static assets
-assets = { directory = "", binding = "" }
-
 [vars]
-SUPABASE_URL = "https://gxlmcipjqjgslgtoqqgg.supabase.co"
-
+SUPABASE_URL = ""

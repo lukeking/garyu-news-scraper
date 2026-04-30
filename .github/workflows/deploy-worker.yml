@@ -22,7 +22,6 @@ jobs:
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
-          wranglerVersion: "3.x" # Note: Wrangler 4.x isn't out yet; 3.x is current major
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "workers/api"
@@ -32,7 +31,6 @@ jobs:
           # Define encrypted secrets here
           secrets: |
             SUPABASE_SERVICE_ROLE_KEY
-          command: deploy --compatibility-flags nodejs_compat
         env:
           # These MUST be in the env block so the action can read them
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
