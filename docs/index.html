@@ -6,8 +6,6 @@
 <title>台灣機車交通週報</title>
 <link rel="alternate" type="application/rss+xml" title="台灣機車交通週報 RSS" href="feed.xml">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/modern-normalize/2.0.0/modern-normalize.min.css">
-<!-- Pagefind UI -->
-<link href="/traffic-issue-scraper/pagefind/pagefind-ui.css" rel="stylesheet">
 <style>
   :root {
     --bg: #F5F6FA;
@@ -44,9 +42,17 @@
   /* ── Layout ── */
   .main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
 
-  /* ── Pagefind search ── */
+  /* ── API search ── */
   .search-wrap { margin-bottom: 24px; }
-  .pagefind-ui__search-input { border-radius: 8px !important; }
+  .search-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    background: var(--card-bg);
+    color: var(--text);
+  }
 
   /* ── Controls bar ── */
   .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
@@ -158,8 +164,10 @@
 
 <main class="main">
 
-  <!-- Pagefind 搜尋 -->
-  <div class="search-wrap" id="search"></div>
+  <!-- API 搜尋 -->
+  <div class="search-wrap">
+    <input id="search-input" class="search-input" type="search" placeholder="搜尋新聞關鍵字或標籤…">
+  </div>
 
   <!-- 週別切換 -->
   <div class="week-nav" id="week-nav"></div>
@@ -189,12 +197,9 @@
   來源：Google News、PTT 機車板、各大新聞網、交通部公告
 </footer>
 
-<!-- Pagefind -->
-<script src="/traffic-issue-scraper/pagefind/pagefind-ui.js"></script>
 <script>
 // ── 設定 ──────────────────────────────────────────────────────
-const BASE = '/traffic-issue-scraper';
-const DATA = BASE + '/data';
+const API_BASE = window.__API_BASE__ || '/api';
 const SOURCE_COLORS = {
   'Google News': '#4285F4', 'PTT/biker': '#FF4500', 'PTT/SuperBike': '#FF4500',
   '聯合新聞網': '#1A3C6E', '中時新聞網': '#C0392B', '自由時報': '#27AE60',
@@ -208,6 +213,8 @@ let currentWeekId = '';
 let currentArticles = [];
 let activeImp = 'all';
 let activeTag = '';
+let activeQuery = '';
+let searchTimer = null;
 
 // ── 工具 ──────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -216,23 +223,8 @@ const srcLabel = s => s.startsWith('Google News') ? 'Google News' : s;
 
 // ── 初始化 ────────────────────────────────────────────────────
 async function init() {
-  // Pagefind
-  new PagefindUI({
-    element: '#search',
-    showSubResults: false,
-    translations: {
-      placeholder: '搜尋新聞關鍵字或標籤…',
-      zero_results: '找不到「[SEARCH_TERM]」的相關結果',
-      many_results: '找到 [COUNT] 個「[SEARCH_TERM]」的相關結果',
-      one_result: '找到 1 個「[SEARCH_TERM]」的相關結果',
-      alt_search: '找不到「[SEARCH_TERM]」，顯示「[DIFFERENT_TERM]」的結果',
-      search_suggestion: '找不到「[SEARCH_TERM]」，試試搜尋「[DIFFERENT_TERM]」',
-      searching: '搜尋中…',
-    }
-  });
-
   // 載入週別索引
-  const res = await fetch(`${DATA}/index.json`).catch(() => null);
+  const res = await fetch(`${API_BASE}/weeks`).catch(() => null);
   if (!res || !res.ok) { $('article-list').innerHTML = '<div class="empty"><h3>尚無資料</h3><p>請等待第一次週報產生</p></div>'; return; }
   allWeeks = await res.json();
 
@@ -240,11 +232,20 @@ async function init() {
   if (allWeeks.length) await loadWeek(allWeeks[0].week_id);
 
   // 載入標籤庫
-  const tRes = await fetch(`${DATA}/tags.json`).catch(() => null);
+  const tRes = await fetch(`${API_BASE}/tags`).catch(() => null);
   if (tRes && tRes.ok) {
     const tData = await tRes.json();
     renderTagBar(tData);
   }
+
+  const searchInput = $('search-input');
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () => {
+      activeQuery = searchInput.value.trim();
+      if (currentWeekId) await loadWeek(currentWeekId);
+    }, 250);
+  });
 }
 
 // ── 週別導覽 ──────────────────────────────────────────────────
@@ -257,12 +258,19 @@ function renderWeekNav() {
 
 async function loadWeek(weekId) {
   currentWeekId = weekId;
-  activeTag = '';
-  const res = await fetch(`${DATA}/${weekId}.json`);
+  const params = new URLSearchParams();
+  if (activeImp !== 'all') params.set('importance', activeImp);
+  if (activeTag) params.set('tag', activeTag);
+  if (activeQuery) params.set('q', activeQuery);
+  const res = await fetch(`${API_BASE}/weeks/${weekId}?${params.toString()}`);
+  if (!res.ok) {
+    $('article-list').innerHTML = '<div class="empty"><h3>載入失敗</h3><p>請稍後再試</p></div>';
+    return;
+  }
   const data = await res.json();
   currentArticles = data.articles || [];
   document.title = `${weekId} 台灣機車交通週報`;
-  $('site-subtitle').textContent = `${data.date_label}，共 ${data.article_count} 則新聞`;
+  $('site-subtitle').textContent = `${weekId}，共 ${data.article_count} 則新聞`;
   renderWeekNav();
   renderAll();
 }
@@ -285,7 +293,7 @@ function filterTag(tag) {
   document.querySelectorAll('.tag-chip').forEach(c => {
     c.classList.toggle('active', c.textContent === activeTag);
   });
-  renderAll();
+  loadWeek(currentWeekId);
 }
 
 // ── 重要性篩選 ────────────────────────────────────────────────
@@ -294,21 +302,14 @@ document.querySelectorAll('.btn-filter').forEach(btn => {
     activeImp = btn.dataset.imp;
     document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    renderAll();
+    loadWeek(currentWeekId);
   });
 });
 
 // ── 渲染 ──────────────────────────────────────────────────────
 function renderAll() {
-  const filtered = currentArticles.filter(a => {
-    const imp = a.analysis?.importance || '中';
-    const tags = a.analysis?.tags || [];
-    const impOk = activeImp === 'all' || imp === activeImp;
-    const tagOk = !activeTag || tags.includes(activeTag);
-    return impOk && tagOk;
-  });
-  renderStats(filtered);
-  renderCards(filtered);
+  renderStats(currentArticles);
+  renderCards(currentArticles);
 }
 
 function renderStats(articles) {

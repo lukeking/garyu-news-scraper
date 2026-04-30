@@ -6,9 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read           # 只需要讀程式碼，不需要寫回 repo
-  pages: write             # 部署 GitHub Pages
-  id-token: write          # OIDC token，GitHub Pages 部署必要
+  contents: read
 
 jobs:
   build:
@@ -54,7 +52,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
-      - name: 執行週報程式（產生 docs/）
+      - name: 執行週報程式（寫入 Supabase）
         run: python main.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -63,24 +61,28 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
-      - name: 安裝 Pagefind 並建立搜尋索引
+      - name: 驗證本週資料可由 Supabase 讀取
         run: |
-          npm install -g pagefind
-          pagefind --site docs --output-path docs/pagefind
-
-      - name: 上傳 Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: 部署至 GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          python - <<'EOF'
+          from datetime import datetime, timezone, timedelta
+          import os
+          import requests
+          tw = timezone(timedelta(hours=8))
+          y, w, _ = datetime.now(tw).isocalendar()
+          week_id = f"{y}-W{w:02d}"
+          url = os.environ["SUPABASE_URL"]
+          key = os.environ["SUPABASE_KEY"]
+          resp = requests.get(
+              f"{url}/rest/v1/articles?select=week_id&id=not.is.null&week_id=eq.{week_id}&limit=1",
+              headers={"apikey": key, "Authorization": f"Bearer {key}"},
+              timeout=15,
+          )
+          resp.raise_for_status()
+          rows = resp.json()
+          if not rows:
+              raise RuntimeError(f"Supabase 尚未讀到本週資料: {week_id}")
+          print(f"Supabase read-after-write OK: {week_id}")
+          EOF
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}

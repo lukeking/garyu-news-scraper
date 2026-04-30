@@ -1,6 +1,8 @@
 # 🏍️ 台灣機車交通週報自動系統
 
-每週自動收集台灣機車交通相關新聞，透過 Gemini AI 分析摘要，寄送至 Gmail。
+每週自動收集台灣機車交通相關新聞，透過 Gemini AI 分析摘要，寄送至 Gmail，並將資料寫入 Supabase。
+
+完整部署步驟請看 [`RUNBOOK.md`](RUNBOOK.md)。
 
 ## 架構
 
@@ -15,7 +17,11 @@
         ↓
 AI 分析（analyzer.py）── Gemini 2.0 Flash（免費）
         ↓
-HTML 週報 + Gmail 寄送（mailer.py）
+寫入 Supabase（storage.py）
+        ↓
+Cloudflare Worker API（/api/*）
+        ↓
+Cloudflare Pages 前端 + Gmail 寄送（mailer.py）
 ```
 
 ## 排程
@@ -49,6 +55,11 @@ HTML 週報 + Gmail 寄送（mailer.py）
 | `GMAIL_APP_PASSWORD` | Gmail 應用程式密碼（16 位數，格式：`xxxx xxxx xxxx xxxx`）|
 | `GMAIL_SENDER` | 你的 Gmail 地址（同時為收件者）|
 | `GEMINI_MODEL_NAME` | 選填，預設 `gemini-2.0-flash`，可改為 `gemini-2.5-flash` 等 |
+| `SUPABASE_URL` | Supabase project URL（`https://xxx.supabase.co`） |
+| `SUPABASE_KEY` | 供 weekly job 寫入用 key |
+| `SUPABASE_SERVICE_ROLE_KEY` | 供 Worker API 查詢用 service role key |
+| `CLOUDFLARE_API_TOKEN` | GitHub Actions 部署 Worker 用 token |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
 
 #### Variables（非機敏設定，內容可見可編輯）
 
@@ -156,6 +167,10 @@ cp sources.example.yml sources.yml
 
 # 執行
 python main.py
+
+# 啟動 Cloudflare Worker API（另一個終端）
+# 需先設定 workers/api 的本機環境變數
+npx wrangler dev workers/api/src/index.js
 ```
 
 `.env` 和 `sources.yml` 已在 `.gitignore` 中排除，不會被 commit。
@@ -186,3 +201,4 @@ python main.py
 - 每次最多分析 30 篇文章（可在 `main.py` 調整 `filtered[:30]`）
 - GitHub Actions 免費方案每月 2,000 分鐘，本 job 每次約 5 分鐘，一年約用 260 分鐘
 - 切換 Gemini 模型不需改 code，在 GitHub Secrets 設定 `GEMINI_MODEL_NAME` 即可
+- 前端預設讀取 `/api/*`，Cloudflare Pages 需將 `/api/*` 路由到 Worker

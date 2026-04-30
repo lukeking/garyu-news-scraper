@@ -1,0 +1,7 @@
+name = "traffic-issue-scraper"
+main = "src/index.js"
+compatibility_date = "2026-04-30"
+
+[vars]
+SUPABASE_URL = ""
+
