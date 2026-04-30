@@ -26,9 +26,9 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "workers/api"
+          secrets: |
+            SUPABASE_SERVICE_ROLE_KEY
           command: deploy --var SUPABASE_URL:${{ secrets.SUPABASE_URL }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # Set this as a Worker secret in Cloudflare Dashboard/CLI:
-          # wrangler secret put SUPABASE_SERVICE_ROLE_KEY
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
