@@ -28,19 +28,30 @@ logger = logging.getLogger(__name__)
 _client = None
 
 
+def supabase_api_key() -> str:
+    """
+    REST API 用的金鑰。週報 / 後台寫入請用 service role（略過 RLS）；
+    若誤用 anon key 且 articles 表啟用 RLS，會出現 42501 row-level security。
+    """
+    return (
+        (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+        or (os.environ.get("SUPABASE_KEY") or "").strip()
+    )
+
+
 def _get_client():
     """取得或初始化 Supabase client（lazy init，避免 import 時即連線）"""
     global _client
     if _client is not None:
         return _client
 
-    url = os.environ.get("SUPABASE_URL", "")
-    key = os.environ.get("SUPABASE_KEY", "")
+    url = (os.environ.get("SUPABASE_URL") or "").strip()
+    key = supabase_api_key()
 
     if not url or not key:
         raise RuntimeError(
-            "SUPABASE_URL 或 SUPABASE_KEY 環境變數未設定。"
-            "請在 GitHub Secrets 中新增這兩個變數。"
+            "SUPABASE_URL 或金鑰未設定。"
+            "GitHub Actions 請設定 secrets：SUPABASE_URL 與 SUPABASE_SERVICE_ROLE_KEY（service role，非 anon）。"
         )
 
     try:
@@ -68,12 +79,16 @@ def upsert_articles(articles: list, week_id: str) -> int:
     client = _get_client()
 
     rows = []
-    for a in articles:
+    for i, a in enumerate(articles):
         analysis = a.get("analysis", {})
+        link = (a.get("link") or "").strip()
+        if not link:
+            link = f"urn:traffic-issue-scraper:{week_id}:{i}"
+            logger.warning("文章無有效 link，Supabase 使用占位鍵：%s", link)
         rows.append({
             "week_id": week_id,
             "title": a.get("title", ""),
-            "link": a.get("link", ""),
+            "link": link,
             "source": a.get("source", ""),
             "published": a.get("published", ""),
             "summary": analysis.get("summary", ""),
@@ -91,6 +106,12 @@ def upsert_articles(articles: list, week_id: str) -> int:
         return count
     except Exception as e:
         logger.error("✗ Supabase upsert 失敗：%s", e)
+        err = str(e).lower()
+        if "row-level security" in err or "42501" in err:
+            logger.error(
+                "提示：此錯誤通常表示使用了 anon public key。"
+                "請改為 SUPABASE_SERVICE_ROLE_KEY（Settings → API → service_role secret）。"
+            )
         raise
 
 
@@ -179,6 +200,4 @@ def ping() -> bool:
 
 def is_configured() -> bool:
     """檢查環境變數是否已設定，不拋出例外"""
-    return bool(
-        os.environ.get("SUPABASE_URL") and os.environ.get("SUPABASE_KEY")
-    )
+    return bool((os.environ.get("SUPABASE_URL") or "").strip() and supabase_api_key())

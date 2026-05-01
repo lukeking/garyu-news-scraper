@@ -111,8 +111,8 @@ def update_tags(articles: list):
 def _save_to_supabase(articles: list, week_id: str) -> bool:
     """
     將本週文章寫入 Supabase。
-    若環境變數未設定或寫入失敗，僅記錄 warning，不中斷主流程。
-    回傳 True 表示成功，False 表示跳過或失敗。
+    若環境變數未設定則跳過；若已設定但寫入失敗則拋出例外（供 CI 與後續驗證步驟一致）。
+    回傳 True 表示成功，False 表示未設定 Supabase。
     """
     try:
         from storage import is_configured, upsert_articles
@@ -121,7 +121,7 @@ def _save_to_supabase(articles: list, week_id: str) -> bool:
         return False
 
     if not is_configured():
-        logger.info("SUPABASE_URL / SUPABASE_KEY 未設定，跳過 Supabase 寫入")
+        logger.info("Supabase 未設定（需 SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY），跳過寫入")
         return False
 
     try:
@@ -129,8 +129,10 @@ def _save_to_supabase(articles: list, week_id: str) -> bool:
         logger.info("✓ Supabase 寫入完成：%d 筆（week_id=%s）", count, week_id)
         return True
     except Exception as e:
-        logger.warning("✗ Supabase 寫入失敗（不影響主流程）：%s", e)
-        return False
+        logger.exception("✗ Supabase 寫入失敗：%s", e)
+        raise RuntimeError(
+            "Supabase 寫入失敗：請確認使用 service role key（非 anon），且 articles 表與 RLS 設定正確"
+        ) from e
 
 
 # ── RSS Feed ──────────────────────────────────────────────────

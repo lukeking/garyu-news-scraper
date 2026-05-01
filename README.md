@@ -56,8 +56,8 @@ Cloudflare Pages 前端 + Gmail 寄送（mailer.py）
 | `GMAIL_SENDER` | 你的 Gmail 地址（同時為收件者）|
 | `GEMINI_MODEL_NAME` | 選填，預設 `gemini-2.0-flash`，可改為 `gemini-2.5-flash` 等 |
 | `SUPABASE_URL` | Supabase project URL（`https://xxx.supabase.co`） |
-| `SUPABASE_KEY` | 供 weekly job 寫入用 key |
-| `SUPABASE_SERVICE_ROLE_KEY` | 供 Worker API 查詢用 service role key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **必備**：Supabase **service_role** key（Dashboard → Settings → API）。週報寫入與 Worker 皆需略過 RLS；勿用 anon key 當寫入金鑰 |
+| `SUPABASE_KEY` | 選填；僅在未設定 `SUPABASE_SERVICE_ROLE_KEY` 時作為後備（仍須為可寫入的金鑰，不可誤用 anon） |
 | `CLOUDFLARE_API_TOKEN` | GitHub Actions 部署 Worker 用 token |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
 

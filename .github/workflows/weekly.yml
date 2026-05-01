@@ -35,10 +35,10 @@ jobs:
         run: |
           python - <<'EOF'
           import os, sys
-          url = os.environ.get("SUPABASE_URL", "")
-          key = os.environ.get("SUPABASE_KEY", "")
+          url = (os.environ.get("SUPABASE_URL") or "").strip()
+          key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
           if not url or not key:
-              print("SUPABASE_URL / SUPABASE_KEY 未設定，跳過 ping")
+              print("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 未設定，跳過 ping")
               sys.exit(0)
           import requests
           resp = requests.get(
@@ -50,15 +50,19 @@ jobs:
           EOF
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
       - name: 執行週報程式（寫入 Supabase）
         run: python main.py
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL_NAME: ${{ secrets.GEMINI_MODEL_NAME }}
+          # 模型 id 非機密：建議在 Repository variables 設定 GEMINI_MODEL_NAME，日誌才不會被 *** 遮罩
+          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          # 寫入 articles 需 service role（略過 RLS）；勿只用 anon key
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
       - name: 驗證本週資料可由 Supabase 讀取
@@ -71,7 +75,9 @@ jobs:
           y, w, _ = datetime.now(tw).isocalendar()
           week_id = f"{y}-W{w:02d}"
           url = os.environ["SUPABASE_URL"]
-          key = os.environ["SUPABASE_KEY"]
+          key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
+          if not key:
+              raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY 或 SUPABASE_KEY 未設定")
           resp = requests.get(
               f"{url}/rest/v1/articles?select=week_id&id=not.is.null&week_id=eq.{week_id}&limit=1",
               headers={"apikey": key, "Authorization": f"Bearer {key}"},
@@ -85,4 +91,5 @@ jobs:
           EOF
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}

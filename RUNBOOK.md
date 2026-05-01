@@ -40,13 +40,14 @@ In Worker settings (`Settings` -> `Variables and Secrets`):
 Go to repo -> `Settings` -> `Secrets and variables` -> `Actions` and add:
 
 - `SUPABASE_URL`
-- `SUPABASE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`（**service_role**，與 Worker 相同；週報 `main.py` 寫入優先使用此 secret，`articles` 表若啟用 RLS，anon key 會得到 42501）
+- `SUPABASE_KEY`（選填；僅在尚未設定 service role secret 時後備）
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
 Notes:
-- You can reuse one service role key for both weekly write and Worker runtime.
+- Reuse the same **service_role** JWT for the weekly GitHub Action and the Worker (both need to bypass RLS for server-side reads/writes).
+- Do not put the **anon** `public` key in `SUPABASE_KEY` expecting writes to succeed when RLS is enabled on `articles`.
 - Safer long-term: separate keys/roles when you later refine access control.
 
 ## 5) Create CLOUDFLARE_API_TOKEN with minimum scope
