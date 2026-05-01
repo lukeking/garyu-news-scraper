@@ -17,10 +17,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; TrafficNewsBot/1.0)",
-    "Accept-Language": "zh-TW,zh;q=0.9",
-}
-HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; TrafficNewsBot/1.0; +mailto:lukeking0325@gmail.com)",
     "Accept-Language": "zh-TW,zh;q=0.9",
 }
