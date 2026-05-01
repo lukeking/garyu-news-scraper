@@ -8,11 +8,12 @@ CREATE TABLE IF NOT EXISTS articles (
     id          SERIAL PRIMARY KEY,
     week_id     TEXT NOT NULL,              -- 'YYYY-WNN'，例如 '2026-W18'
     title       TEXT NOT NULL,
-    link        TEXT UNIQUE,               -- 去重複鍵，NULL 不計入唯一約束
+    link        TEXT UNIQUE,               -- 去重複鍵；無 URL 時為 urn:traffic-issue-scraper:{week}:{sha256}
     source      TEXT,                      -- 來源名稱，例如 'Google News 機車交通'
     published   TEXT,                      -- 原始發布時間字串（保留原格式）
     summary     TEXT,                      -- AI 產生的摘要（冗餘欄位，方便直接查詢）
     analysis    JSONB,                     -- 完整分析物件（含 importance, tags 等）
+    content_fingerprint TEXT,             -- 無 URL 列之 sha256 hex；有正式 link 時為 NULL
     created_at  TIMESTAMPTZ DEFAULT NOW()  -- 寫入時間
 );
 
@@ -29,6 +30,11 @@ CREATE INDEX IF NOT EXISTS idx_articles_importance
 -- 依建立時間排序
 CREATE INDEX IF NOT EXISTS idx_articles_created_at
     ON articles(created_at DESC);
+
+-- 無 URL 列依內容指紋查詢（與列表順序無關之 dedup）
+CREATE INDEX IF NOT EXISTS idx_articles_content_fingerprint
+    ON articles(content_fingerprint)
+    WHERE content_fingerprint IS NOT NULL;
 
 -- ── 常用查詢範例 ──────────────────────────────────────────────
 

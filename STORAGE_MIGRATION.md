@@ -20,6 +20,7 @@ Cloudflare Pages 前端（docs/index.html）
 ## 已完成項目
 
 - 週報資料持久化寫入 Supabase（`storage.py` / `publisher.py`）。
+- 無原始 URL 之文章以 **title + source + published** 正規化後 **sha256** 產生穩定 `link`（`urn:traffic-issue-scraper:{week_id}:{hex}`）與欄位 `content_fingerprint`，避免 workflow 重跑、順序改變時重複插入。遷移見 `supabase_migrations/001_add_content_fingerprint.sql`。
 - 前端改為呼叫 API 讀取週別、文章、標籤與搜尋過濾。
 - 移除 GitHub Pages artifact/deploy 對資料讀取鏈路的依賴。
 - 新增 Worker 專案：`workers/api`。
