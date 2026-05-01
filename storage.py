@@ -3,29 +3,51 @@ storage.py
 Supabase 持久化儲存層
 負責將每週分析結果寫入 Supabase PostgreSQL，並支援跨週查詢。
 
-Schema（請在 Supabase SQL Editor 執行）：
-    CREATE TABLE articles (
-        id          SERIAL PRIMARY KEY,
-        week_id     TEXT NOT NULL,
-        title       TEXT NOT NULL,
-        link        TEXT UNIQUE,
-        source      TEXT,
-        published   TEXT,
-        summary     TEXT,
-        analysis    JSONB,
-        created_at  TIMESTAMPTZ DEFAULT NOW()
-    );
-    CREATE INDEX idx_articles_week_id ON articles(week_id);
-    CREATE INDEX idx_articles_importance ON articles((analysis->>'importance'));
+資料表定義見 supabase_schema.sql；既有庫加欄請執行
+supabase_migrations/001_add_content_fingerprint.sql。
 """
 
+import hashlib
 import os
+import re
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
 _client = None
+
+# 正規化 title / source / published 後 sha256，供無 URL 文章穩定 upsert（與列表順序無關）
+_FINGERPRINT_SEP = "\x01"
+
+
+def _normalize_fingerprint_part(s: str) -> str:
+    if not s:
+        return ""
+    t = str(s).strip().lower()
+    t = re.sub(r"\s+", " ", t)
+    return t
+
+
+def content_fingerprint_for_article(article: dict) -> str:
+    """回傳 64 字元 hex（sha256），僅依 title + source + published，與 week 無關。"""
+    raw = _FINGERPRINT_SEP.join(
+        [
+            _normalize_fingerprint_part(article.get("title", "")),
+            _normalize_fingerprint_part(article.get("source", "")),
+            _normalize_fingerprint_part(str(article.get("published") or "")),
+        ]
+    )
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def stable_synthetic_link(week_id: str, article: dict) -> Tuple[str, str]:
+    """
+    無有效 link 時使用。link 與 content_fingerprint 對應同一 sha256，供 DB 索引與除錯。
+    """
+    fp = content_fingerprint_for_article(article)
+    link = f"urn:traffic-issue-scraper:{week_id}:{fp}"
+    return link, fp
 
 
 def supabase_api_key() -> str:
@@ -79,12 +101,13 @@ def upsert_articles(articles: list, week_id: str) -> int:
     client = _get_client()
 
     rows = []
-    for i, a in enumerate(articles):
+    for a in articles:
         analysis = a.get("analysis", {})
         link = (a.get("link") or "").strip()
+        fingerprint: Optional[str] = None
         if not link:
-            link = f"urn:traffic-issue-scraper:{week_id}:{i}"
-            logger.warning("文章無有效 link，Supabase 使用占位鍵：%s", link)
+            link, fingerprint = stable_synthetic_link(week_id, a)
+            logger.warning("文章無有效 link，使用指紋占位鍵：%s…", link[:56])
         rows.append({
             "week_id": week_id,
             "title": a.get("title", ""),
@@ -93,6 +116,7 @@ def upsert_articles(articles: list, week_id: str) -> int:
             "published": a.get("published", ""),
             "summary": analysis.get("summary", ""),
             "analysis": analysis,
+            "content_fingerprint": fingerprint,
         })
 
     try:
