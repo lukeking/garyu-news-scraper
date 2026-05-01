@@ -7,11 +7,13 @@ analyzer.py
 import os
 import time
 import logging
+import random
 import requests
 
 logger = logging.getLogger(__name__)
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL_NAME", "gemini-2.5-flash")
+# GitHub Actions 若設定 GEMINI_MODEL_NAME secret 但留空，get 會得到 "" 而非預設值
+GEMINI_MODEL = (os.environ.get("GEMINI_MODEL_NAME") or "").strip() or "gemini-2.5-flash"
 logger.debug("使用 Gemini 模型：%s", GEMINI_MODEL)
 GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -76,7 +78,30 @@ def _get_api_key():
     return key
 
 
-def _call_gemini(prompt, api_key, retries=3):
+def _retry_after_seconds(resp, attempt, status_code):
+    """
+    503/UNAVAILABLE 常持續數小時至數日（Google 端容量問題），需較長指數退避。
+    參考：https://ai.google.dev/gemini-api/docs/troubleshooting
+    """
+    if resp is not None:
+        ra = resp.headers.get("Retry-After")
+        if ra:
+            try:
+                return min(max(int(ra), 1), 120)
+            except ValueError:
+                pass
+    if status_code == 429:
+        return min(10 * (2 ** (attempt - 1)), 120)
+    if status_code in (500, 502, 503, 504):
+        # 第 1 次約 10s，之後 20、40、80… 上限 120s，略加抖動避免同步重試
+        base = min(10 * (2 ** (attempt - 1)), 120)
+        return base + random.uniform(0, 4)
+    return min(5 * attempt, 30)
+
+
+def _call_gemini(prompt, api_key, retries=None):
+    if retries is None:
+        retries = int(os.environ.get("GEMINI_MAX_RETRIES", "8"))
     url = GEMINI_API_URL.format(model=GEMINI_MODEL, api_key=api_key)
     maxOutputTokens = os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", 2048)
     payload = {
@@ -92,9 +117,12 @@ def _call_gemini(prompt, api_key, retries=3):
         },
     }
 
+    last_status = None
     for attempt in range(1, retries + 1):
+        resp = None
         try:
-            resp = requests.post(url, json=payload, timeout=30)
+            resp = requests.post(url, json=payload, timeout=120)
+            last_status = resp.status_code
             if resp.status_code == 200:
                 data = resp.json()
                 candidate = data["candidates"][0]
@@ -103,17 +131,23 @@ def _call_gemini(prompt, api_key, retries=3):
                     logger.warning("⚠️  輸出被截斷（MAX_TOKENS），考慮降低 max_articles 或提高 maxOutputTokens")
                 text = candidate["content"]["parts"][0]["text"]
                 return text
-            elif resp.status_code == 429:
-                wait = 15 * attempt
-                logger.warning("Rate limit（429），等待 %d 秒後重試（第 %d 次）", wait, attempt)
-                time.sleep(wait)
-            else:
-                logger.warning("Gemini API 回應 %s: %s", resp.status_code, resp.text[:200])
-                time.sleep(3)
+            wait = _retry_after_seconds(resp, attempt, resp.status_code)
+            logger.warning(
+                "Gemini API 回應 %s（第 %d/%d 次），%.0f 秒後重試：%s",
+                resp.status_code,
+                attempt,
+                retries,
+                wait,
+                resp.text[:200].replace("\n", " "),
+            )
+            time.sleep(wait)
         except requests.RequestException as e:
-            logger.warning("請求失敗（第 %d 次）：%s", attempt, e)
-            time.sleep(5)
+            logger.warning("請求失敗（第 %d/%d 次）：%s", attempt, retries, e)
+            wait = _retry_after_seconds(resp, attempt, 0)
+            time.sleep(wait)
 
+    if last_status is not None:
+        logger.error("Gemini 在 %d 次重試後仍失敗（最後 HTTP %s）", retries, last_status)
     return None
 
 
@@ -232,8 +266,8 @@ def analyze_all(articles, delay=6):
     api_key = _get_api_key()
     total = len(articles)
     eta_min = round(total * delay / 60, 1)
-    logger.info("=== 開始 AI 分析，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
-                total, delay, eta_min)
+    logger.info("=== 開始 AI 分析，模型=%s，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
+                GEMINI_MODEL, total, delay, eta_min)
 
     results = []
     for i, article in enumerate(articles):
