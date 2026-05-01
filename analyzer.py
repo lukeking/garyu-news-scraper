@@ -103,7 +103,10 @@ def _call_gemini(prompt, api_key, retries=None):
     if retries is None:
         retries = int(os.environ.get("GEMINI_MAX_RETRIES", "8"))
     url = GEMINI_API_URL.format(model=GEMINI_MODEL, api_key=api_key)
-    maxOutputTokens = os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", 2048)
+    try:
+        maxOutputTokens = int(os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", "8192"))
+    except ValueError:
+        maxOutputTokens = 8192
     payload = {
         "system_instruction": {
             "parts": [{"text": SYSTEM_PROMPT}]
@@ -128,7 +131,10 @@ def _call_gemini(prompt, api_key, retries=None):
                 candidate = data["candidates"][0]
                 finish_reason = candidate.get("finishReason", "")
                 if finish_reason == "MAX_TOKENS":
-                    logger.warning("⚠️  輸出被截斷（MAX_TOKENS），考慮降低 max_articles 或提高 maxOutputTokens")
+                    logger.warning(
+                        "⚠️  輸出被截斷（MAX_TOKENS），已用 maxOutputTokens=%s；可再提高環境變數 GEMINI_MAX_OUTPUT_TOKENS 或降低 max_articles",
+                        maxOutputTokens,
+                    )
                 text = candidate["content"]["parts"][0]["text"]
                 return text
             wait = _retry_after_seconds(resp, attempt, resp.status_code)
@@ -266,8 +272,20 @@ def analyze_all(articles, delay=6):
     api_key = _get_api_key()
     total = len(articles)
     eta_min = round(total * delay / 60, 1)
-    logger.info("=== 開始 AI 分析，模型=%s，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
-                GEMINI_MODEL, total, delay, eta_min)
+    try:
+        mot_log = int(os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", "8192"))
+    except ValueError:
+        mot_log = 8192
+    # 完整模型 id 若在 GitHub Secrets 與日誌相同字串會被遮罩；尾段通常足供除錯且不易觸發遮罩
+    model_hint = GEMINI_MODEL.rpartition("-")[-1] if GEMINI_MODEL else "default"
+    logger.info(
+        "=== 開始 AI 分析，模型尾段=%s，maxOutputTokens=%s，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
+        model_hint,
+        mot_log,
+        total,
+        delay,
+        eta_min,
+    )
 
     results = []
     for i, article in enumerate(articles):
