@@ -18,7 +18,7 @@ except ImportError:
 
 from src.collector import collect_all
 from src.filter import filter_and_deduplicate
-from src.analyzer import analyze_all
+from src.analyzer import analyze_all, get_kb_miss_summary
 from src.publisher import publish
 
 logging.basicConfig(
@@ -57,6 +57,16 @@ def main():
 
     # Step 5：發布至 pages/
     publish(analyzed)
+
+    # Step 6：KB MISS 提示 — 若有未知 FFXIV 術語，提醒使用者更新知識庫
+    kb_misses = get_kb_miss_summary()
+    if kb_misses:
+        logger.warning("========== ⚠️  KB MISS 術語待審查 ==========")
+        logger.warning("以下術語出現在 FFXIV 分析結果中但未收錄於 knowledge-base.md：")
+        for term in kb_misses:
+            logger.warning("  • %s", term)
+        logger.warning("請更新 knowledge-base.md 後提交 PR，避免下次執行再次出現 [[term]] 標記。")
+        logger.warning("==============================================")
 
     logger.info("========== 執行完成 ==========")
 

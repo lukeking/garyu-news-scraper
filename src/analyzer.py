@@ -49,6 +49,8 @@ FFXIV_DEFAULT_TAGS = [
 
 _KB_CACHE: dict | None = None
 _KB_KATAKANA = re.compile(r"[ァ-ヺー]{3,}")
+_KB_HIGHLIGHT = re.compile(r"\[\[([^\]]+)\]\]")
+_KB_MISS_ACCUMULATOR: set = set()
 
 ANALYSIS_PROMPT_TEMPLATE = """以下是一則台灣交通相關新聞：
 
@@ -98,6 +100,10 @@ FFXIV_ANALYSIS_TEMPLATE = """以下是一則 FFXIV 相關資訊：
 
 【FFXIV 知識庫 — 請嚴格使用以下對照翻譯，不得自行發明未收錄的譯名】
 {knowledge_base}
+
+【重要規則：未收錄術語的處理方式】
+- 若遇到知識庫中未列出的日文術語，請直接保留原文，並以 [[術語]] 格式包覆（例：[[エーテル]]）。
+- 絕對不可自行翻譯未收錄的術語。
 
 請依照以下格式回應，每個欄位必須在同一行內完成，不可換行：
 
@@ -168,11 +174,29 @@ def load_knowledge_base(path: str = "knowledge-base.md") -> dict:
 
 
 def _check_kb_misses(text: str, kb: dict) -> None:
-    """掃描 Gemini 回應中未被知識庫收錄的日文片假名術語，記錄警告供後續 KB 補充。"""
-    matches = _KB_KATAKANA.findall(text)
-    for match in set(matches):
-        if match not in kb:
-            logger.warning("[KB MISS] 未知詞彙：%s", match)
+    """
+    掃描 Gemini 回應中未被知識庫收錄的術語：
+    1. [[term]] 標記 — 模型遵守規則時自行標記的未知術語
+    2. 裸出現的片假名序列（3 字以上）— 漏標的備援掃描
+    兩類皆累積至 _KB_MISS_ACCUMULATOR 供執行結束時提示使用者。
+    """
+    # 優先：模型用 [[term]] 明確標記的未知術語
+    for match in _KB_HIGHLIGHT.findall(text):
+        term = match.strip()
+        if term and term not in kb:
+            logger.warning("[KB MISS] 未知詞彙：%s", term)
+            _KB_MISS_ACCUMULATOR.add(term)
+
+    # 備援：未加標記但出現在回應中的片假名序列
+    for match in set(_KB_KATAKANA.findall(text)):
+        if match not in kb and match not in _KB_MISS_ACCUMULATOR:
+            logger.warning("[KB MISS] 未知詞彙（未標記）：%s", match)
+            _KB_MISS_ACCUMULATOR.add(match)
+
+
+def get_kb_miss_summary() -> list:
+    """回傳本次執行中所有 [KB MISS] 術語列表，供主程式在執行結束時提示使用者。"""
+    return sorted(_KB_MISS_ACCUMULATOR)
 
 
 def _get_api_key():

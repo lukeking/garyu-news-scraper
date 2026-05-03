@@ -7,6 +7,13 @@
 adding FFXIV 8.0 battle information scraping, implementing a knowledge base for term
 normalization, and preserving all existing traffic news functionality.
 
+## Clarifications
+
+### Session 2026-05-03
+
+- Q: Does the Square Enix JP Forum provide per-subforum RSS feeds that are useful for collection? → A: RSS only delivers the first post of each thread, not full content. `html_forum` title-scraping is the correct approach; RSS is rejected for this source.
+- Q: What should the system do when a TW term in the knowledge base is uncertain or missing? → A: Use the original JP/EN term verbatim in the analysis output, wrap it in `[[term]]` to flag for user review, log it as `[KB MISS]`, and prompt the user at end of run to update `knowledge-base.md`.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - FFXIV Weekly Digest Collection (Priority: P1)
@@ -53,7 +60,8 @@ where all FFXIV-specific terms match entries in `knowledge-base.md`.
 
 2. **Given** an article contains an FFXIV term not in `knowledge-base.md`,
    **When** the analyzer processes it,
-   **Then** the term is left untranslated and a log warning is emitted.
+   **Then** the original JP/EN term appears in the analysis wrapped in `[[term]]`,
+   a `[KB MISS]` warning is logged, and a post-run prompt asks the user to update the KB.
 
 ---
 
@@ -90,6 +98,12 @@ from traffic news.
   deduplication catches it via content hash.
 - What if `SOURCES_FFXIV_YML` is not set? System falls back to traffic-only mode
   (backwards compatible; no hard failure).
+- What if an FFXIV term is not in `knowledge-base.md`? The original JP/EN term is used
+  verbatim, wrapped in `[[term]]` in the analysis text so the user can spot it; a
+  `[KB MISS]` warning is logged; a post-run summary prompts the user to update the KB.
+- JP Forum per-subforum RSS feeds are NOT used: they only deliver the first post of each
+  thread (no subsequent replies), making them equivalent to title-only data. The
+  `html_forum` scraper (thread index page, titles + links) is the authorised approach.
 
 ## Requirements
 
@@ -100,14 +114,18 @@ from traffic news.
   or `'ffxiv'`), set by the collector from the source config entry.
 - **FR-003**: System MUST load `knowledge-base.md` before FFXIV analysis and inject relevant
   entries into the Gemini prompt.
-- **FR-004**: System MUST NOT invent FFXIV term translations; unknown terms MUST be left
-  untranslated with a log warning.
+- **FR-004**: System MUST NOT invent FFXIV term translations; unknown terms MUST appear
+  as the original JP/EN text wrapped in `[[term]]` in the analysis output, logged as
+  `[KB MISS]`, and surfaced to the user in a post-run review prompt.
 - **FR-005**: System MUST persist a `content_type` column in the Supabase `articles` table.
 - **FR-006**: System MUST remain backwards-compatible: if `SOURCES_FFXIV_YML` is unset,
   traffic-only mode MUST work unchanged.
 - **FR-007**: System MUST NOT break the existing weekly GitHub Actions workflow.
 - **FR-008**: The Cloudflare Worker API MUST support filtering by `content_type` via query
   parameter (default: all content types, for backwards compatibility).
+- **FR-009**: After any run that produces `[KB MISS]` terms, the system MUST print a
+  post-run summary listing each flagged term and prompt the user to review and update
+  `knowledge-base.md` before the next run.
 
 ### Key Entities
 
@@ -139,4 +157,8 @@ from traffic news.
 - The existing `articles` Supabase table can be extended with a `content_type` column
   without breaking existing data (column defaults to `'traffic'`).
 - Knowledge base is maintained manually via PRs; automated CI validation is out of scope for v1.
+- JP Forum subforum RSS delivers only first-post content — not useful for digest purposes;
+  `html_forum` (title + link scraping) is the only supported collection mode for this source.
+- TW terms in `knowledge-base.md` may require periodic correction by the user; the `[[term]]`
+  highlight mechanism and post-run `[KB MISS]` prompt support this review workflow.
 - Email digest (`mailer.py`) update is a follow-on task; v1 focuses on pipeline and storage.
