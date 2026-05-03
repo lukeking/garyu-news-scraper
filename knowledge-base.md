@@ -84,7 +84,7 @@
 | 蒼天のイシュガルド | 蒼天 | Heavensward | 資料片 | 3.0（2015） |
 | 紅蓮のリベレーター | 紅蓮 | Stormblood | 資料片 | 4.0（2017） |
 | 漆黒のヴィランズ | 漆黑 | Shadowbringers | 資料片 | 5.0（2019） |
-| 白銀のダウンフォール | 白銀 | Dawnfall | 資料片 | 8.0（upcoming） |
+| 白銀の探求者 | 白銀 | EverCold | 資料片 | 8.0（upcoming） |
 | ARR | 新生 | A Realm Reborn | 資料片縮寫 | |
 | HW | 蒼天 | Heavensward | 資料片縮寫 | |
 | SB | 紅蓮 | Stormblood | 資料片縮寫 | |
