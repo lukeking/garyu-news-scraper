@@ -23,7 +23,7 @@ testing of each story.
 
 **Purpose**: Create new config files and schema migration that all stories depend on.
 
-- [x] T001 Create `config/sources_ffxiv.example.yml` with example entries for all three FFXIV source types: `rss` (Reddit), `html_patch` (Lodestone), and `html_forum` (forum.square-enix.com/ffxiv/forums/512-Japanese-Forums) — each with `content_type: "ffxiv"` and `enabled: false` by default
+- [x] T001 Create `config/sources_ffxiv.example.yml` with example entries for all three FFXIV source types: `rss` (Reddit), `html_patch` (Lodestone), `html_forum` (forum.square-enix.com/ffxiv/forums/512-Japanese-Forums), and `html_patch` (www.ffxiv.com.tw TW patch log) — each with `content_type: "ffxiv"` and `enabled: false`
 - [x] T002 [P] Create `db/supabase_migrations/002_add_content_type.sql` with `ALTER TABLE articles ADD COLUMN IF NOT EXISTS content_type TEXT NOT NULL DEFAULT 'traffic'` and a supporting index
 
 ---
@@ -51,39 +51,43 @@ articles, each with `content_type` field set correctly.
 
 ### Implementation for User Story 1
 
-- [x] T004 [P] [US1] Implement `load_ffxiv_sources()` in `src/collector.py` — reads `config/sources_ffxiv.yml`; returns `[]` with a `logger.warning` if file absent (backward-compatible fallback); sets `content_type` on each article from the source's `content_type` config field (default `"ffxiv"`)
-- [x] T005 [P] [US1] Implement `_fetch_html_patch(source: dict) -> list` in `src/collector.py` — fetches a Lodestone-style HTML news listing page; uses `source["selector"]` CSS selector via BeautifulSoup to extract items; reads `title_selector` (default `"a"`) and `link_attr` (default `"href"`); respects `max_items`; tags articles with `content_type: source["content_type"]`
-- [x] T006 [P] [US1] Implement `_fetch_html_forum(source: dict) -> list` in `src/collector.py` — fetches the Square Enix vBulletin forum index page; extracts `<a>` tags whose `href` matches the `threads/[ID]-[SLUG]` pattern; builds article dict with `title` = link text, `link` = absolute URL, `summary = "[JP Forum] " + title`, `published = ""`; respects `max_items`; tags with `content_type: source["content_type"]`
+- [x] T004 [P] [US1] Implement `load_ffxiv_sources()` in `src/collector.py` — reads `config/sources_ffxiv.yml`; falls back to `[]` with a warning if file absent; supports env-var `SOURCES_FFXIV_YML` → file write pattern (mirrors traffic SOURCES_YML flow)
+- [x] T005 [P] [US1] Implement `_fetch_html_patch(source: dict) -> list` in `src/collector.py` — fetches a Lodestone-style HTML news listing page; uses `source["selector"]` CSS selector via BeautifulSoup; reads `title_selector` (default `"a"`) and `max_items`; tags articles with `content_type` from source config
+- [x] T006 [P] [US1] Implement `_fetch_html_forum(source: dict) -> list` in `src/collector.py` — fetches Square Enix vBulletin forum index; extracts `<a>` tags whose `href` matches `threads/[ID]-[SLUG]`; sets `summary = "[JP Forum] " + title`; respects `max_items`; tags with `content_type` from source config (NOTE: per-subforum RSS rejected — delivers first post only)
 - [x] T007 [US1] Register `"html_patch"` and `"html_forum"` in the `FETCHERS` dict and wire `load_ffxiv_sources()` into `collect_all()` in `src/collector.py` — FFXIV sources fetched after traffic sources; 1-second inter-source delay preserved (depends on T004, T005, T006)
-- [x] T008 [US1] Add FFXIV content-type passthrough to `filter_and_deduplicate()` in `src/filter.py` — articles with `content_type == "ffxiv"` skip the `MUST_INCLUDE` motorcycle keyword check (they are already curated by source); `_is_stale_article` and deduplication hash logic apply to both types unchanged
-- [x] T009 [US1] Update `src/main.py` — call `load_ffxiv_sources()` and merge returned articles into the pipeline; if `SOURCES_FFXIV_YML` env var is set, write it to `config/sources_ffxiv.yml` before loading (mirrors the pattern for `SOURCES_YML` in `weekly.yml`); graceful no-op if neither file nor env var present
+- [x] T008 [US1] Add FFXIV content-type passthrough to `filter_and_deduplicate()` in `src/filter.py` — articles with `content_type == "ffxiv"` skip the `MUST_INCLUDE` motorcycle keyword check; stale detection and deduplication hash logic apply to both types unchanged
+- [x] T009 [US1] Update `src/main.py` — merge FFXIV sources into pipeline; update log banner to "Garyu News Scraper"
 
 **Checkpoint**: `python main.py` with FFXIV sources enabled produces articles tagged
-`content_type='ffxiv'` in log output alongside traffic articles. US1 is fully functional
-and testable independently.
+`content_type='ffxiv'` in log output alongside traffic articles. US1 fully functional
+and independently testable.
 
 ---
 
 ## Phase 4: User Story 2 — FFXIV Knowledge Base Analysis (Priority: P2)
 
-**Goal**: The AI analyzer uses `knowledge-base.md` terms when summarizing FFXIV articles.
-No invented translations; unknown terms logged as `[KB MISS]`.
+**Goal**: The AI analyzer uses `knowledge-base.md` terms when summarising FFXIV articles.
+Unknown terms appear as `[[term]]` in the output, are logged as `[KB MISS]`, and a
+post-run prompt lists them for the user to review.
 
 **Independent Test**: Run `python main.py` with one FFXIV article in the pipeline (or
-call `analyze_article()` directly on a sample FFXIV dict). Confirm that the produced
-`analysis["summary"]` uses terms from `knowledge-base.md`, and no `[KB MISS]` warnings
-appear for common FFXIV 8.0 terms.
+call `analyze_article()` directly on a sample FFXIV dict). Confirm the produced
+`analysis["summary"]` uses terms from `knowledge-base.md`; unknown terms appear wrapped
+in `[[term]]`; post-run summary lists any flagged terms.
 
 ### Implementation for User Story 2
 
-- [x] T010 [US2] Seed `knowledge-base.md` with ≥20 core FFXIV 8.0 term entries using the table format `| JP Term | TW Term | EN Term | Category | Notes |` — must include at minimum: 零式 (Savage), 絶討伐戦 (Ultimate), ノーマル (Normal), パッチ (Patch), ジョブ (Job), スキル (Skill), レイド (Raid), コンテンツ (Content), ボス (Boss), and key 8.0 jobs/roles (Viper, Pictomancer, etc.)
-- [x] T011 [P] [US2] Implement `load_knowledge_base(path: str = "knowledge-base.md") -> dict` in `src/analyzer.py` — parse the markdown table; skip header and separator rows; return `{jp_term: {"tw": str, "en": str, "category": str}}` mapping; raise `RuntimeError` with a clear message if file is missing or contains 0 data rows; log entry count on success
-- [x] T012 [P] [US2] Add `FFXIV_SYSTEM_PROMPT` and `FFXIV_ANALYSIS_TEMPLATE` constants to `src/analyzer.py` — system prompt frames the AI as an FFXIV information analyst writing in Traditional Chinese; analysis template includes a `{knowledge_base}` placeholder injected with condensed KB entries in the format `JP → TW (EN)`; output fields match existing traffic format (摘要/分析/重要性/重要性原因/標籤) for storage compatibility
-- [x] T013 [US2] Add `content_type` dispatch to `analyze_article()` in `src/analyzer.py` — when `article["content_type"] == "ffxiv"`: call `load_knowledge_base()`, format KB as condensed reference block, insert into `FFXIV_ANALYSIS_TEMPLATE`; use `FFXIV_SYSTEM_PROMPT` instead of `SYSTEM_PROMPT`; FFXIV-specific tag pool used for 標籤 field (depends on T011, T012)
-- [x] T014 [US2] Add `[KB MISS]` log warning in `src/analyzer.py` — after analysis completes for an FFXIV article, scan the raw Gemini response for JP-script terms not present in `knowledge-base.md` keys; log each at `logger.warning("[KB MISS] 未知詞彙：%s", term)` to flag knowledge base gaps
+- [x] T010 [US2] Seed `knowledge-base.md` with ≥20 core FFXIV 8.0 term entries: all 22 jobs (JP term + EN abbreviation rows for bidirectional lookup), content types, roles, features, and two expansion names — sourced from https://www.ffxiv.com.tw/web/intro/guide/battle/
+- [x] T011 [P] [US2] Implement `load_knowledge_base(path: str = "knowledge-base.md") -> dict` in `src/analyzer.py` — parse markdown table; skip header/separator rows; return `{jp_term: {"tw": str, "en": str, "category": str}}`; raise `RuntimeError` if file missing or 0 data rows; module-level cache via `_KB_CACHE`
+- [x] T012 [P] [US2] Add `FFXIV_SYSTEM_PROMPT`, `FFXIV_DEFAULT_TAGS`, and `FFXIV_ANALYSIS_TEMPLATE` constants to `src/analyzer.py` — template includes `{knowledge_base}` placeholder and the `[[term]]` rule instruction: "若遇到知識庫中未列出的日文術語，請直接保留原文，並以 [[術語]] 格式包覆"
+- [x] T013 [US2] Add `content_type` dispatch to `analyze_article()` in `src/analyzer.py` — when `article["content_type"] == "ffxiv"`: call `load_knowledge_base()`, format KB as table block, insert into `FFXIV_ANALYSIS_TEMPLATE`; use `FFXIV_SYSTEM_PROMPT`; FFXIV tag pool used for 標籤 field (depends on T011, T012)
+- [x] T014 [US2] Update `_check_kb_misses()` in `src/analyzer.py` — detect both `[[term]]`-marked unknowns (model followed the rule) and bare katakana sequences (≥3 chars, fallback scan); accumulate all misses into `_KB_MISS_ACCUMULATOR` module-level set; log each as `[KB MISS]`
+- [x] T015 [P] [US2] Add `_KB_MISS_ACCUMULATOR: set`, `_KB_HIGHLIGHT` regex, and `get_kb_miss_summary() -> list` to `src/analyzer.py` — public function returns sorted list of all flagged terms from the current run
+- [x] T016 [US2] Add post-run KB review prompt to `src/main.py` — after `publish()`, call `get_kb_miss_summary()`; if non-empty, log a warning block listing each term and prompt user to update `knowledge-base.md` (FR-009)
+- [x] T017 [P] [US2] Correct all TW job names in `knowledge-base.md` to match official TW site — key fixes: ヴァイパー→毒蛇劍士, リーパー→奪魂者, ナイト→騎士, 占星術士TW→占星術師, 白/黑/赤魔→道士 suffix; add all 22 job rows + 22 abbreviation rows for bidirectional lookup; fix パッチ→版本更新, ハウジング→住宅, アライアンスレイド→24人本, ヒーラー→補師, フリーカンパニー→FC, ゴールドソーサー→金碟, 黄金のレガシー→黃金的遺產, コンテンツファインダー→CF; add グランドカンパニー→GC
 
-**Checkpoint**: User Stories 1 AND 2 both work independently — FFXIV articles are
-collected and analyzed with correct Traditional Chinese terminology.
+**Checkpoint**: US1 and US2 both work independently — FFXIV articles collected and
+analysed with correct Traditional Chinese terminology; unknown terms flagged with `[[]]`.
 
 ---
 
@@ -100,24 +104,24 @@ are returned.
 
 ### Implementation for User Story 3
 
-- [x] T015 [P] [US3] Add `"content_type": a.get("content_type", "traffic")` to the upsert row dict in `src/storage.py` `upsert_articles()` — no other storage logic changes required
-- [x] T016 [P] [US3] Update `src/publisher.py` to render separate sections for traffic and FFXIV content — split incoming article list by `content_type`; output traffic section first, then FFXIV section; both sections use the same per-article rendering logic
-- [x] T017 [P] [US3] Add `?content_type=` query parameter support to `workers/api/index.js` — if the parameter is present, append `&content_type=eq.<value>` to the Supabase REST query; if absent, omit the filter (returns all types, backwards compatible)
-- [x] T018 [US3] Add `SOURCES_FFXIV_YML` injection step to `.github/workflows/weekly.yml` — insert immediately after the existing `SOURCES_YML` injection step: `echo "$SOURCES_FFXIV_YML" > config/sources_ffxiv.yml` with `env: SOURCES_FFXIV_YML: ${{ vars.SOURCES_FFXIV_YML }}`; step should be a no-op (empty file) if the variable is unset
-- [x] T019 [P] [US3] Review `.github/workflows/deploy-pages.yml` — verify it references the correct Cloudflare Pages project name and deploy trigger; fix any broken `actions/checkout` version or missing secrets references
-- [x] T020 [P] [US3] Review `.github/workflows/deploy-worker.yml` — verify it references the correct Cloudflare Worker name; fix any broken action versions or missing `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` references
+- [x] T018 [P] [US3] Add `"content_type": a.get("content_type", "traffic")` to the upsert row dict in `src/storage.py` `upsert_articles()`
+- [x] T019 [P] [US3] Update `src/publisher.py` — split week HTML into traffic and FFXIV sections; extract card rendering into `_build_card()`; add FFXIV purple type-badge; update header to show per-type counts
+- [x] T020 [P] [US3] Add `?content_type=` query parameter filter to `workers/api/src/index.js` — add `CONTENT_TYPE_VALUES` constant; filter `normalized` array when param present; expose `content_type` field in `normalizeRow()`; include `content_type` in Supabase SELECT
+- [x] T021 [US3] Add `SOURCES_FFXIV_YML` injection step to `.github/workflows/weekly.yml` — insert after existing `SOURCES_YML` step; step is conditional on `vars.SOURCES_FFXIV_YML != ''` (no-op when variable unset; backwards compatible)
+- [x] T022 [P] [US3] Review `.github/workflows/deploy-pages.yml` — verified correct: `actions/checkout@v5`, `cloudflare/pages-action@v1`, deploys `pages/` to `traffic-issue-scraper` project; no changes required
+- [x] T023 [P] [US3] Review `.github/workflows/deploy-worker.yml` — verified correct: `cloudflare/wrangler-action@v3`, correct secrets wiring; no changes required
 
-**Checkpoint**: All three user stories are fully functional — traffic and FFXIV articles
-collected, analyzed, stored, and queryable independently via the Worker API.
+**Checkpoint**: All three user stories fully functional — traffic and FFXIV articles
+collected, analysed, stored, and queryable independently via the Worker API.
 
 ---
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-**Purpose**: Validation, robots.txt compliance, and knowledge base completeness.
+**Purpose**: Compliance verification, knowledge base integrity, and end-to-end validation.
 
-- [x] T021 [P] Verify `www.ffxiv.com.tw/robots.txt` — if `/web/special/patchnote_log/` is not disallowed, add the TW patch log as an `html_patch` source in `config/sources_ffxiv.example.yml` with `enabled: true`; otherwise add with `enabled: false` and a comment explaining the restriction
-- [ ] T022 End-to-end validation — trigger the GitHub Actions workflow manually (Actions → 台灣機車交通週報 → Run workflow); confirm: (a) run completes in ≤15 minutes, (b) Supabase contains both `content_type` values for the current `week_id`, (c) no `[KB MISS]` warnings for core 8.0 terms, (d) Worker responds correctly to `?content_type=ffxiv`
+- [x] T024 [P] Verify `www.ffxiv.com.tw/robots.txt` (returned HTTP 404 — no restrictions); add TW patch log as disabled `html_patch` source in `config/sources_ffxiv.example.yml`; update `specs/001-extend-to-garyu-news-scraper/research.md` with finding
+- [ ] T025 End-to-end validation — trigger GitHub Actions workflow manually (Actions → 台灣機車交通週報 → Run workflow); confirm: (a) run completes in ≤15 minutes, (b) Supabase contains both `content_type` values for the current `week_id`, (c) no `[KB MISS]` warnings for core 8.0 terms in `knowledge-base.md`, (d) Worker responds correctly to `?content_type=ffxiv`
 
 ---
 
@@ -125,24 +129,24 @@ collected, analyzed, stored, and queryable independently via the Worker API.
 
 ### Phase Dependencies
 
-- **Setup (Phase 1)**: No dependencies — can start immediately; T001 and T002 are parallel
-- **Foundational (Phase 2)**: Depends on T002 (migration SQL exists) — T003 unblocks US3 storage validation
-- **US1 (Phase 3)**: Depends on T001 (example config to reference) — T004/T005/T006 are parallel; T007 depends on all three; T008/T009 can start after T007
-- **US2 (Phase 4)**: Depends on US1 completion (need FFXIV articles in pipeline to test) — T011/T012 are parallel; T013 depends on both; T014 follows T013
-- **US3 (Phase 5)**: Depends on T003 (migration applied) + US1 (articles have content_type) — T015/T016/T017/T019/T020 are parallel; T018 sequenced after T017 (Worker ready)
-- **Polish (Phase 6)**: Depends on all user stories + T018 (workflow updated)
+- **Setup (Phase 1)**: No dependencies — T001 and T002 are parallel
+- **Foundational (Phase 2)**: Depends on T002 — T003 unblocks US3 storage validation
+- **US1 (Phase 3)**: Depends on T001 — T004/T005/T006 parallel; T007→T008/T009
+- **US2 (Phase 4)**: Depends on US1 completion — T010/T011/T012/T015 parallel; T013→T014→T016; T017 parallel
+- **US3 (Phase 5)**: Depends on T003 + US1 — T018/T019/T020/T022/T023 parallel; T021 after T020
+- **Polish (Phase 6)**: Depends on all user stories + T021
 
 ### User Story Dependencies
 
 - **US1 (P1)**: Can start after Phase 1 — no dependency on US2 or US3
-- **US2 (P2)**: Depends on US1 completion (FFXIV articles must flow through the pipeline)
-- **US3 (P3)**: Depends on T003 (migration) + US1 (content_type on articles) — T015 and T016 can start after US1
+- **US2 (P2)**: Depends on US1 completion (FFXIV articles must flow through the pipeline first)
+- **US3 (P3)**: Depends on T003 (migration) + US1 (articles have content_type)
 
 ### Within Each User Story
 
 - US1: T004, T005, T006 in parallel → T007 → T008 and T009 in parallel
-- US2: T010 in parallel with T011 and T012 → T013 → T014
-- US3: T015, T016, T017, T019, T020 in parallel → T018
+- US2: T010, T011, T012, T015 in parallel → T013 → T014 → T016; T017 parallel throughout
+- US3: T018, T019, T020, T022, T023 in parallel → T021
 
 ---
 
@@ -151,13 +155,13 @@ collected, analyzed, stored, and queryable independently via the Worker API.
 ### User Story 1
 
 ```
-# Launch T004, T005, T006 together (different functions, same file OK):
+# T004, T005, T006 together (different functions, same file — no conflict):
 Task: "Implement load_ffxiv_sources() in src/collector.py"
 Task: "Implement _fetch_html_patch() in src/collector.py"
 Task: "Implement _fetch_html_forum() in src/collector.py"
 
-# Then T007 (depends on above), then T008 and T009 together:
-Task: "Register fetchers and wire FFXIV into collect_all() in src/collector.py"
+# Then T007, then T008 + T009 together:
+Task: "Register fetchers and wire FFXIV into collect_all()"
 --- after T007 ---
 Task: "Add FFXIV passthrough to filter_and_deduplicate() in src/filter.py"
 Task: "Update src/main.py to load and wire FFXIV sources"
@@ -166,27 +170,29 @@ Task: "Update src/main.py to load and wire FFXIV sources"
 ### User Story 2
 
 ```
-# Launch T010, T011, T012 together:
-Task: "Seed knowledge-base.md with ≥20 FFXIV 8.0 terms"
+# T010, T011, T012, T015 together:
+Task: "Seed knowledge-base.md with ≥20 FFXIV 8.0 terms + job abbreviations"
 Task: "Implement load_knowledge_base() in src/analyzer.py"
 Task: "Add FFXIV_SYSTEM_PROMPT and FFXIV_ANALYSIS_TEMPLATE to src/analyzer.py"
+Task: "Add _KB_MISS_ACCUMULATOR and get_kb_miss_summary() to src/analyzer.py"
 
-# Then T013 (depends on T011 + T012), then T014:
+# Then T013 (depends on T011 + T012), then T014, then T016:
 Task: "Add content_type dispatch to analyze_article() in src/analyzer.py"
-Task: "Add [KB MISS] log warning in src/analyzer.py"
+Task: "Update _check_kb_misses() for [[term]] detection + accumulation"
+Task: "Add post-run KB review prompt to src/main.py"
 ```
 
 ### User Story 3
 
 ```
-# Launch T015, T016, T017, T019, T020 together:
+# T018, T019, T020, T022, T023 together:
 Task: "Add content_type to upsert row dict in src/storage.py"
 Task: "Update src/publisher.py for dual content-type sections"
-Task: "Add ?content_type= filter to workers/api/index.js"
-Task: "Review and repair .github/workflows/deploy-pages.yml"
-Task: "Review and repair .github/workflows/deploy-worker.yml"
+Task: "Add ?content_type= filter to workers/api/src/index.js"
+Task: "Review and confirm .github/workflows/deploy-pages.yml"
+Task: "Review and confirm .github/workflows/deploy-worker.yml"
 
-# Then T018:
+# Then T021:
 Task: "Add SOURCES_FFXIV_YML injection to .github/workflows/weekly.yml"
 ```
 
@@ -205,13 +211,14 @@ Task: "Add SOURCES_FFXIV_YML injection to .github/workflows/weekly.yml"
 ### Incremental Delivery
 
 1. Setup + Foundational → Infrastructure ready
-2. User Story 1 → FFXIV articles collected and flowing through pipeline (MVP)
-3. User Story 2 → FFXIV articles analyzed with KB terminology
+2. User Story 1 → FFXIV articles flowing through pipeline (MVP)
+3. User Story 2 → FFXIV articles analysed with KB terminology + [[term]] flagging
 4. User Story 3 → Full storage + API + GitHub Actions automation
 
 ### Notes
 
-- `[P]` tasks within the same phase act on different functions/files — safe to parallelize
-- T003 is a manual Supabase operation, not a code change; do it once before any US3 validation
-- T010 (seed knowledge-base.md) is content work, not code — can be done any time before T013
+- `[P]` tasks within the same phase act on different functions/files — safe to parallelise
+- T003 is a manual Supabase operation, not a code change — do it once before US3 validation
+- T017 (KB corrections) is content work — can be done any time before a production run
 - All `src/collector.py` parallel tasks (T004–T006) touch different functions; no conflict
+- JP Forum per-subforum RSS intentionally excluded: only delivers first post per thread
