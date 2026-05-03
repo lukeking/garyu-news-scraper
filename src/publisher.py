@@ -193,34 +193,28 @@ def build_feed(all_weeks_articles: list, week_id: str):
 
 # ── 週別靜態 HTML（供 Pagefind 索引）──────────────────────────
 
-def build_week_html(articles: list, week_id: str):
-    """
-    產生 pages/week/YYYY-WNN.html。
-    這份 HTML 不是給人直接看的頁面，而是讓 Pagefind 能夠索引每篇文章的內容。
-    網站的 SPA 首頁（index.html）會動態載入 JSON 呈現。
-    """
-    WEEK_DIR.mkdir(parents=True, exist_ok=True)
-    now = _now_tw()
-    cards = []
-    for i, article in enumerate(articles, 1):
-        analysis = article.get("analysis", {})
-        tags = analysis.get("tags", [])
-        importance = analysis.get("importance", "中")
-        imp_dot = {"高": "🔴", "中": "🟡", "低": "🟢"}.get(importance, "")
-        color = {"高": "#C0392B", "中": "#D68910", "低": "#27AE60"}.get(importance, "#555")
-        src = article.get("source", "")
-        src_label = "Google News" if src.startswith("Google News") else src
-        tag_spans = "".join(f'<span class="tag">{t}</span>' for t in tags)
-        reason = analysis.get("importance_reason", "")
-        cards.append(f"""
-<div class="card card-{importance}" data-pagefind-body data-week="{week_id}" data-importance="{importance}">
+def _build_card(article: dict, index: int, week_id: str) -> str:
+    analysis = article.get("analysis", {})
+    tags = analysis.get("tags", [])
+    importance = analysis.get("importance", "中")
+    imp_dot = {"高": "🔴", "中": "🟡", "低": "🟢"}.get(importance, "")
+    color = {"高": "#C0392B", "中": "#D68910", "低": "#27AE60"}.get(importance, "#555")
+    src = article.get("source", "")
+    src_label = "Google News" if src.startswith("Google News") else src
+    tag_spans = "".join(f'<span class="tag">{t}</span>' for t in tags)
+    reason = analysis.get("importance_reason", "")
+    content_type = article.get("content_type", "traffic")
+    type_badge = '<span class="type-badge type-ffxiv">FFXIV</span>' if content_type == "ffxiv" else ""
+    return f"""
+<div class="card card-{importance}" data-pagefind-body data-week="{week_id}" data-importance="{importance}" data-content-type="{content_type}">
   <div class="card-header">
     <div class="card-meta">
       <span class="imp-badge imp-{importance}">{imp_dot} {importance}重要</span>
+      {type_badge}
       <span class="src-badge">{src_label}</span>
       <span style="color:#999;font-size:12px;">{article.get("published","")}</span>
     </div>
-    <a class="card-title" href="{article.get("link","#")}" target="_blank" rel="noopener">{i}. {article.get("title","")}</a>
+    <a class="card-title" href="{article.get("link","#")}" target="_blank" rel="noopener">{index}. {article.get("title","")}</a>
   </div>
   <div class="card-body">
     <p class="sec-label" style="color:{color}">📋 摘要</p>
@@ -233,20 +227,44 @@ def build_week_html(articles: list, week_id: str):
     <span class="reason">💡 {reason}</span>
     <a class="read-more" href="{article.get("link","#")}" target="_blank" rel="noopener" style="color:{color}">閱讀原文 →</a>
   </div>
-</div>""")
+</div>"""
+
+
+def build_week_html(articles: list, week_id: str):
+    """
+    產生 pages/week/YYYY-WNN.html。
+    這份 HTML 不是給人直接看的頁面，而是讓 Pagefind 能夠索引每篇文章的內容。
+    網站的 SPA 首頁（index.html）會動態載入 JSON 呈現。
+    """
+    WEEK_DIR.mkdir(parents=True, exist_ok=True)
+    now = _now_tw()
+
+    traffic_articles = [a for a in articles if a.get("content_type", "traffic") == "traffic"]
+    ffxiv_articles = [a for a in articles if a.get("content_type") == "ffxiv"]
+
+    sections_html = ""
+    if traffic_articles:
+        cards = "".join(_build_card(a, i, week_id) for i, a in enumerate(traffic_articles, 1))
+        sections_html += f'<section><h2 class="section-title">🏍️ 機車交通（{len(traffic_articles)} 則）</h2>{cards}</section>'
+    if ffxiv_articles:
+        cards = "".join(_build_card(a, i, week_id) for i, a in enumerate(ffxiv_articles, 1))
+        sections_html += f'<section><h2 class="section-title">⚔️ FFXIV 資訊（{len(ffxiv_articles)} 則）</h2>{cards}</section>'
+    if not sections_html:
+        sections_html = "<p>本週無文章。</p>"
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{week_id} 台灣機車交通週報</title>
+<title>{week_id} Garyu 週報</title>
 <style>
   :root {{
     --high:#C0392B; --high-bg:#FFF0F0;
     --mid:#D68910;  --mid-bg:#FFFBF0;
     --low:#27AE60;  --low-bg:#F0FFF4;
     --accent:#1A3C6E; --accent2:#2980B9;
+    --ffxiv:#6C3483;
     --tag-bg:#E8F4FD; --tag-text:#1A5276;
   }}
   *{{ box-sizing:border-box; margin:0; padding:0; }}
@@ -260,6 +278,7 @@ def build_week_html(articles: list, week_id: str):
   .back-link{{ display:inline-block; margin-bottom:8px; font-size:13px; color:rgba(255,255,255,0.8); text-decoration:none; }}
   .back-link:hover{{ color:#fff; }}
   .main{{ max-width:820px; margin:0 auto; padding:24px 16px 48px; }}
+  .section-title{{ font-size:1.1rem; font-weight:800; margin:24px 0 12px; color:var(--accent); border-left:4px solid var(--accent2); padding-left:10px; }}
   .card{{
     background:#fff; border-radius:10px; margin-bottom:20px;
     box-shadow:0 2px 8px rgba(0,0,0,0.07); overflow:hidden;
@@ -276,6 +295,11 @@ def build_week_html(articles: list, week_id: str):
     display:inline-block; padding:2px 8px; border-radius:4px;
     font-size:11px; font-weight:600; color:#fff; background:#4285F4;
   }}
+  .type-badge{{
+    display:inline-block; padding:2px 8px; border-radius:4px;
+    font-size:11px; font-weight:700; color:#fff;
+  }}
+  .type-ffxiv{{ background:var(--ffxiv); }}
   .card-title{{ font-size:15px; font-weight:700; color:#1a1a2e; text-decoration:none; line-height:1.5; display:block; }}
   .card-title:hover{{ color:var(--accent2); }}
   .card-body{{ padding:12px 18px 0; }}
@@ -292,11 +316,11 @@ def build_week_html(articles: list, week_id: str):
 <body>
 <header class="site-header">
   <a class="back-link" href="../index.html">← 回週報首頁</a>
-  <h1>🏍️ 台灣機車交通週報 {week_id}</h1>
-  <p>{now.strftime('%Y 年 %m 月 %d 日')}，共 {len(articles)} 則新聞</p>
+  <h1>📰 Garyu 週報 {week_id}</h1>
+  <p>{now.strftime('%Y 年 %m 月 %d 日')}，共 {len(articles)} 則（交通 {len(traffic_articles)}・FFXIV {len(ffxiv_articles)}）</p>
 </header>
 <main class="main">
-{"".join(cards)}
+{sections_html}
 </main>
 <footer class="site-footer">由 GitHub Actions + Gemini AI 自動產生 · 每週一更新</footer>
 </body>

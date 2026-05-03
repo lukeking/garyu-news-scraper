@@ -1,0 +1,63 @@
+# sources_ffxiv.example.yml
+# FFXIV 資訊來源設定範例。
+# 實際設定存放在 GitHub Environment Variable: SOURCES_FFXIV_YML
+# 請勿把 config/sources_ffxiv.yml 加入 git（已在 .gitignore 中排除）。
+#
+# ┌──────────────────────────────────────────────────────────────────┐
+# │  支援的 type                                                      │
+# │  rss        → feedparser RSS/Atom（不做關鍵字二次過濾）           │
+# │  html_patch → BeautifulSoup 靜態新聞列表（如 Lodestone）          │
+# │  html_forum → vBulletin 討論板標題爬蟲（僅標題+連結，不抓內文）   │
+# └──────────────────────────────────────────────────────────────────┘
+#
+# 每個來源務必設定 content_type: "ffxiv"
+
+sources:
+
+  # ── type: rss ──────────────────────────────────────────────────────────────
+  # 必要欄位：name, type, url, content_type
+  # 選用欄位：enabled（預設 true）
+
+  - name: "Reddit r/ffxiv"
+    type: rss
+    url: "https://www.reddit.com/r/ffxiv/new/.rss"
+    enabled: false                  # 改為 true 以啟用
+    content_type: "ffxiv"
+
+  # ── type: html_patch ───────────────────────────────────────────────────────
+  # 抓取靜態 HTML 新聞列表，使用 CSS selector 擷取項目
+  # 必要欄位：name, type, url, content_type, selector
+  # 選用欄位：title_selector（預設 "a"）、max_items（預設 10）
+
+  - name: "FFXIV Lodestone JP 更新資訊"
+    type: html_patch
+    url: "https://jp.finalfantasyxiv.com/lodestone/news/category/2"
+    enabled: false
+    content_type: "ffxiv"
+    selector: "li.news__list--topics"      # 每則新聞的外層容器 CSS selector
+    title_selector: "p.news__list--title"  # 標題文字的 CSS selector（找不到時 fallback 到 a）
+    max_items: 10
+
+  # ── type: html_forum ───────────────────────────────────────────────────────
+  # 抓取 vBulletin 討論板的帖子列表（僅標題+連結）
+  # 完整內文需登入，因此摘要自動設為 "[JP Forum] {標題}"
+  # 必要欄位：name, type, url, content_type
+  # 選用欄位：max_items（預設 15）
+
+  - name: "FFXIV JP Forum"
+    type: html_forum
+    url: "https://forum.square-enix.com/ffxiv/forums/512-Japanese-Forums"
+    enabled: false
+    content_type: "ffxiv"
+    max_items: 15
+
+  # ── 台灣 FFXIV 官網修正說明（已驗證 robots.txt 無限制）─────────────────────
+  # www.ffxiv.com.tw/robots.txt 回傳 HTTP 404（無限制），可安全抓取。
+  - name: "FFXIV TW 修正說明"
+    type: html_patch
+    url: "https://www.ffxiv.com.tw/web/special/patchnote_log/"
+    enabled: false
+    content_type: "ffxiv"
+    selector: "li"                 # 需依實際 DOM 結構調整
+    title_selector: "a"
+    max_items: 10

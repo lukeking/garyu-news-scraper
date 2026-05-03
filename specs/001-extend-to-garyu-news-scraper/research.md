@@ -178,7 +178,7 @@ listing pages.
 | `jp.finalfantasyxiv.com` | `/lodestone/news/` | Not disallowed ✅ |
 | `www.reddit.com` | `/r/ffxiv/new/.rss` | Not disallowed ✅ |
 | `forum.square-enix.com` | `/ffxiv/forums/` | No robots.txt found (404 redirect) ✅ |
-| `www.ffxiv.com.tw` | `/web/special/patchnote_log/` | **Must verify before enabling** ⚠️ |
+| `www.ffxiv.com.tw` | `/web/special/patchnote_log/` | No robots.txt (404) — no restrictions ✅ |
 
-Action: Check `www.ffxiv.com.tw/robots.txt` during implementation before adding the TW
-site as an enabled source.
+**Verified 2026-05-03**: `https://www.ffxiv.com.tw/robots.txt` returns HTTP 404 (no file),
+meaning no crawl restrictions are declared. Safe to add as a disabled-by-default source.

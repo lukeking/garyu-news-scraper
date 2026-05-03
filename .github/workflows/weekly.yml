@@ -22,6 +22,12 @@ jobs:
         env:
           SOURCES_YML: ${{ vars.SOURCES_YML }}
 
+      - name: 寫入 config/sources_ffxiv.yml（從 GitHub Variable，選填）
+        if: ${{ vars.SOURCES_FFXIV_YML != '' }}
+        run: echo "$SOURCES_FFXIV_YML" > config/sources_ffxiv.yml
+        env:
+          SOURCES_FFXIV_YML: ${{ vars.SOURCES_FFXIV_YML }}
+
       - name: 設定 Python 3.11
         uses: actions/setup-python@v5
         with:

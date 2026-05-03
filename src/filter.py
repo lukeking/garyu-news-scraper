@@ -119,6 +119,7 @@ def filter_and_deduplicate(articles: list) -> list:
     seen_hashes = set()
     topic_counts: dict = {}  # topic_key -> 已收錄篇數
     result = []
+    stale_count = 0
 
     # 建立 topic_throttle 查找表 {key: max_count}
     topic_limits = {"+".join(kws): limit for kws, limit in TOPIC_THROTTLE}
@@ -126,12 +127,13 @@ def filter_and_deduplicate(articles: list) -> list:
     for article in articles:
         if not article.get("title"):
             continue
-        # ── 新增：舊聞過濾 ──
         if _is_stale_article(article):
             stale_count += 1
             logger.debug("舊聞跳過：%s", article.get("title", "")[:40])
             continue
-        if not _is_relevant(article):
+        # FFXIV 來源已由來源設定過濾，跳過機車關鍵字檢查
+        is_ffxiv = article.get("content_type") == "ffxiv"
+        if not is_ffxiv and not _is_relevant(article):
             continue
 
         h = _make_hash(article)

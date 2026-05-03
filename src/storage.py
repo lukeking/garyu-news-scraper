@@ -117,6 +117,7 @@ def upsert_articles(articles: list, week_id: str) -> int:
             "summary": analysis.get("summary", ""),
             "analysis": analysis,
             "content_fingerprint": fingerprint,
+            "content_type": a.get("content_type", "traffic"),
         })
 
     try:

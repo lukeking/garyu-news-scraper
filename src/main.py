@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    logger.info("========== 台灣機車交通週報開始執行 ==========")
+    logger.info("========== Garyu News Scraper 開始執行 ==========")
 
-    # Step 1：收集新聞
+    # Step 1：收集新聞（交通 + FFXIV）
     raw_articles = collect_all()
     if not raw_articles:
         logger.warning("未收集到任何文章，結束執行")
@@ -59,6 +59,7 @@ def main():
     publish(analyzed)
 
     logger.info("========== 執行完成 ==========")
+
 
 
 if __name__ == "__main__":
