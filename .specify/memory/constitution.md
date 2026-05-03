@@ -54,8 +54,8 @@ The system is a strictly ordered data pipeline:
 
 News sources, AI model names, and credentials MUST be externalized from source code.
 
-- `config/sources.yml` is the sole source-of-truth for traffic news sources; it MUST be
-  stored as the GitHub Environment Variable `SOURCES_YML` and MUST NOT be committed.
+- `config/sources_traffic.yml` is the sole source-of-truth for traffic news sources; it MUST be
+  stored as the GitHub Environment Variable `SOURCES_TRAFFIC_YML` and MUST NOT be committed.
 - `config/sources_ffxiv.yml` is the sole source-of-truth for FFXIV sources; it MUST be
   stored as the GitHub Environment Variable `SOURCES_FFXIV_YML` and MUST NOT be committed.
 - Secrets (API keys, passwords) MUST live in GitHub Secrets (production) or `.env` (local
@@ -149,9 +149,9 @@ Standard operating procedures that all contributors MUST follow.
   週報自動系統 → Run workflow**. Confirm success by checking that `信件寄送成功` appears
   in the run log.
 - Local development MUST use `.env` (copied from `.env.example`) and local copies of both
-  `config/sources.yml` and `config/sources_ffxiv.yml` (copied from their `.example` counterparts).
+  `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example` counterparts).
   All four files MUST remain in `.gitignore`.
-- To add or modify traffic sources: edit `SOURCES_YML` in GitHub Environment Variables.
+- To add or modify traffic sources: edit `SOURCES_TRAFFIC_YML` in GitHub Environment Variables.
 - To add or modify FFXIV sources: edit `SOURCES_FFXIV_YML` in GitHub Environment Variables.
 - Neither sources update requires a PR.
 - To rotate secrets: update the relevant GitHub Secret. No PR needed.

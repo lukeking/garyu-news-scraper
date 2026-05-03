@@ -1,6 +1,6 @@
 # Contract: Sources Configuration Schema
 
-Both `sources.yml` (traffic) and `sources_ffxiv.yml` (FFXIV) share the same base schema.
+Both `sources_traffic.yml` (traffic) and `sources_ffxiv.yml` (FFXIV) share the same base schema.
 
 ## Base fields (all source types)
 

@@ -17,10 +17,10 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
-      - name: 寫入 config/sources.yml（從 GitHub Variable）
-        run: echo "$SOURCES_YML" > config/sources.yml
+      - name: 寫入 config/sources_traffic.yml（從 GitHub Variable）
+        run: echo "$SOURCES_TRAFFIC_YML" > config/sources_traffic.yml
         env:
-          SOURCES_YML: ${{ vars.SOURCES_YML }}
+          SOURCES_TRAFFIC_YML: ${{ vars.SOURCES_TRAFFIC_YML }}
 
       - name: 寫入 config/sources_ffxiv.yml（從 GitHub Variable，選填）
         if: ${{ vars.SOURCES_FFXIV_YML != '' }}

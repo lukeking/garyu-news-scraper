@@ -5,7 +5,7 @@ __pycache__/
 
 # Local config
 .env
-config/sources.yml
+config/sources_traffic.yml
 config/sources_ffxiv.yml
 
 # C extensions
@@ -222,7 +222,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-sources.yml
+sources_traffic.yml
 .claude/
 
 # wrangler files

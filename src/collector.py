@@ -1,7 +1,7 @@
 """
 collector.py
 抓取多來源新聞：台灣機車交通（traffic）和 FFXIV 遊戲資訊（ffxiv）
-來源分別由 config/sources.yml 和 config/sources_ffxiv.yml 設定。
+來源分別由 config/sources_traffic.yml 和 config/sources_ffxiv.yml 設定。
 支援的 type：rss、ptt、web、html_patch、html_forum
 """
 
@@ -48,7 +48,7 @@ DAYS_BACK = 7
 CUTOFF = datetime.now(timezone.utc) - timedelta(days=DAYS_BACK)
 
 _CONFIG_DIR = os.path.join(os.path.dirname(__file__), "..", "config")
-SOURCES_FILE = os.path.join(_CONFIG_DIR, "sources.yml")
+SOURCES_FILE = os.path.join(_CONFIG_DIR, "sources_traffic.yml")
 FFXIV_SOURCES_FILE = os.path.join(_CONFIG_DIR, "sources_ffxiv.yml")
 
 _THREAD_HREF_PATTERN = re.compile(r"threads/\d+")
@@ -60,7 +60,7 @@ def load_sources() -> list:
     if not os.path.exists(SOURCES_FILE):
         raise FileNotFoundError(
             f"找不到 {SOURCES_FILE}。"
-            "請確認 GitHub Variable SOURCES_YML 有設定，"
+            "請確認 GitHub Variable SOURCES_TRAFFIC_YML 有設定，"
             "且 weekly.yml 有寫入該檔案的步驟。"
         )
     with open(SOURCES_FILE, "r", encoding="utf-8") as f:

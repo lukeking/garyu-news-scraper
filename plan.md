@@ -35,7 +35,7 @@ Extend the existing traffic-issue-scraper codebase into garyu-news-scraper by ad
 - Use shared Supabase schema for both content types, differentiated by tags or source.
 - Implement knowledge base as markdown file with CI validation, auto-updating via PRs.
 - Exclude non-technical content from FFXIV summaries per template guidelines.
-- Separate source definitions: `sources.yml` for traffic, `sources_ffxiv.yml` for FFXIV.
+- Separate source definitions: `sources_traffic.yml` for traffic, `sources_ffxiv.yml` for FFXIV.
 - Separate frontend deployments: Traffic on main domain, FFXIV on subdomain or separate Pages project.
 
 **Further Considerations**

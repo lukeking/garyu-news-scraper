@@ -80,8 +80,8 @@ src/
 └── main.py          # + FFXIV source loading; pass content_type through pipeline
 
 config/
-├── sources.yml              # Traffic (from SOURCES_YML env var; not committed)
-├── sources.example.yml      # Traffic example (committed)
+├── sources_traffic.yml          # Traffic (from SOURCES_TRAFFIC_YML env var; not committed)
+├── sources_traffic.example.yml  # Traffic example (committed)
 ├── sources_ffxiv.yml        # FFXIV (from SOURCES_FFXIV_YML env var; not committed)
 └── sources_ffxiv.example.yml  # FFXIV example with all 3 source types (committed)
 

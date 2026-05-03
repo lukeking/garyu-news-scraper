@@ -75,7 +75,7 @@ CREATE INDEX IF NOT EXISTS articles_content_type_idx
 
 ### Source config entry
 
-**Traffic** (`sources.yml` / `SOURCES_YML`) — existing schema, unchanged:
+**Traffic** (`sources_traffic.yml` / `SOURCES_TRAFFIC_YML`) — existing schema, unchanged:
 ```yaml
 sources:
   - name: "..."

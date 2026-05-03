@@ -6,7 +6,7 @@
 
 - Python 3.11+
 - `.env` with `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
-- `config/sources.yml` (copy from `config/sources.example.yml`)
+- `config/sources_traffic.yml` (copy from `config/sources_traffic.example.yml`)
 - `config/sources_ffxiv.yml` (copy from `config/sources_ffxiv.example.yml`)
 - `knowledge-base.md` with ≥1 FFXIV term entry (≥20 recommended before production)
 
@@ -80,7 +80,7 @@ Expected: only FFXIV articles returned.
 ## GitHub Actions Setup
 
 1. Add `SOURCES_FFXIV_YML` as a GitHub **Environment Variable** in the `production`
-   environment (same location as `SOURCES_YML`).
+   environment (same location as `SOURCES_TRAFFIC_YML`).
 
 2. The updated `weekly.yml` will inject it automatically:
    ```yaml
