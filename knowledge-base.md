@@ -82,18 +82,18 @@
 | Lancer | 槍術士 | Lancer | 職業 | EN 直查 |
 | 新生エオルゼア | 新生艾歐澤亞 | A Realm Reborn | 資料片 | 2.0（2013） |
 | 蒼天のイシュガルド | 蒼穹的伊修加德 | Heavensward | 資料片 | 3.0（2015） |
-| 紅蓮のリベレーター | 紅蓮的解放者 | Stormblood | 資料片 | 4.0（2017） |
-| 漆黒のヴィランズ | 暗影之涯 | Shadowbringers | 資料片 | 5.0（2019） |
+| 紅蓮のリベレーター | 4.0 | Stormblood | 資料片 | 4.0（2017）；官方 TW 名未確認 |
+| 漆黒のヴィランズ | 5.0 | Shadowbringers | 資料片 | 5.0（2019）；官方 TW 名未確認 |
 | ARR | 新生艾歐澤亞 | A Realm Reborn | 資料片縮寫 | |
 | HW | 蒼穹的伊修加德 | Heavensward | 資料片縮寫 | |
-| SB | 紅蓮的解放者 | Stormblood | 資料片縮寫 | |
-| ShB | 暗影之涯 | Shadowbringers | 資料片縮寫 | |
+| SB | 4.0 | Stormblood | 資料片縮寫 | |
+| ShB | 5.0 | Shadowbringers | 資料片縮寫 | |
 | EW | 曉月之終焉 | Endwalker | 資料片縮寫 | |
 | DT | 黃金的遺產 | Dawntrail | 資料片縮寫 | |
 | A Realm Reborn | 新生艾歐澤亞 | A Realm Reborn | 資料片 | EN 直查 |
 | Heavensward | 蒼穹的伊修加德 | Heavensward | 資料片 | EN 直查 |
-| Stormblood | 紅蓮的解放者 | Stormblood | 資料片 | EN 直查 |
-| Shadowbringers | 暗影之涯 | Shadowbringers | 資料片 | EN 直查 |
+| Stormblood | 4.0 | Stormblood | 資料片 | EN 直查 |
+| Shadowbringers | 5.0 | Shadowbringers | 資料片 | EN 直查 |
 | メインクエスト | 主線任務 | Main Scenario Quest | 功能 | 主幹劇情任務 |
 | MSQ | 主線任務 | Main Scenario Quest | 功能縮寫 | |
 | フェイス | 信賴系統 | Duty Support | 功能 | 帶 NPC 隊友進地下城；舊稱 Trust（トラスト）|
