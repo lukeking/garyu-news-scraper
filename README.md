@@ -2,7 +2,7 @@
 
 每週自動收集台灣機車交通相關新聞，透過 Gemini AI 分析摘要，寄送至 Gmail，並將資料寫入 Supabase。
 
-完整部署步驟請看 [`RUNBOOK.md`](RUNBOOK.md)。
+完整部署步驟請看 [`docs/runbook.md`](docs/runbook.md)。
 
 ## 架構
 
@@ -67,16 +67,16 @@ Cloudflare Pages 前端 + Gmail 寄送（mailer.py）
 
 | Variable 名稱 | 說明 |
 |--------------|------|
-| `SOURCES_YML` | `sources.yml` 的完整內容（見下方說明）|
+| `SOURCES_YML` | `config/sources.yml` 的完整內容（見下方說明）|
 
 > **Secrets vs Variables 的差別：**
 > Secrets 的值一旦儲存就無法再看到（只能覆蓋）；Variables 的值可以隨時查看和編輯，
-> 適合用來存放不含密碼的設定，例如 `sources.yml`。
+> 適合用來存放不含密碼的設定，例如 `config/sources.yml`。
 
 ### 4. 設定 `SOURCES_YML` Variable
 
-`sources.yml` 定義所有新聞來源，**不進 git**，改為存在 GitHub Variable 中。
-每次 workflow 執行時會自動把 variable 的內容寫成 `sources.yml` 檔案。
+`config/sources.yml` 定義所有新聞來源，**不進 git**，改為存在 GitHub Variable 中。
+每次 workflow 執行時會自動把 variable 的內容寫成 `config/sources.yml` 檔案。
 
 **步驟：**
 
@@ -97,9 +97,9 @@ Settings → Environments → production → `SOURCES_YML` → 鉛筆圖示編�
 
 ---
 
-## `sources.yml` 格式說明
+## `config/sources.yml` 格式說明
 
-`sources.yml` 支援三種 type，詳細欄位說明請見 `sources.example.yml`。
+`config/sources.yml` 支援三種 type，詳細欄位說明請見 `config/sources.example.yml`。
 
 ### type: rss — RSS / Atom feed
 
@@ -161,9 +161,9 @@ pip install -r requirements.txt
 cp .env.example .env
 # 編輯 .env，填入 GEMINI_API_KEY、GMAIL_APP_PASSWORD、GMAIL_SENDER
 
-# 複製 sources.yml 範本（或直接用 sources.example.yml 的內容）
-cp sources.example.yml sources.yml
-# 依需求編輯 sources.yml
+# 複製 config/sources.yml 範本（或直接用 config/sources.example.yml 的內容）
+cp config/sources.example.yml config/sources.yml
+# 依需求編輯 config/sources.yml
 
 # 執行
 python main.py
@@ -173,7 +173,7 @@ python main.py
 npx wrangler dev workers/api/src/index.js
 ```
 
-`.env` 和 `sources.yml` 已在 `.gitignore` 中排除，不會被 commit。
+`.env` 和 `config/sources.yml` 已在 `.gitignore` 中排除，不會被 commit。
 
 ---
 
@@ -182,15 +182,15 @@ npx wrangler dev workers/api/src/index.js
 | 檔案 | 說明 | 進 git？ |
 |------|------|---------|
 | `main.py` | 主程式入口 | ✅ |
-| `collector.py` | 多來源新聞抓取，由 `sources.yml` 驅動 | ✅ |
+| `collector.py` | 多來源新聞抓取，由 `config/sources.yml` 驅動 | ✅ |
 | `filter.py` | 機車關鍵字過濾 + 去重複 | ✅ |
 | `analyzer.py` | Gemini API 摘要與深度分析 | ✅ |
 | `mailer.py` | HTML 信件組裝 + Gmail SMTP 寄送 | ✅ |
 | `requirements.txt` | Python 相依套件 | ✅ |
 | `.github/workflows/weekly.yml` | GitHub Actions 排程設定 | ✅ |
-| `sources.example.yml` | `sources.yml` 格式範本，含欄位說明 | ✅ |
+| `config/sources.example.yml` | `config/sources.yml` 格式範本，含欄位說明 | ✅ |
 | `.env.example` | 本機測試環境變數範本 | ✅ |
-| `sources.yml` | 實際使用的來源設定（不進 git） | ❌ |
+| `config/sources.yml` | 實際使用的來源設定（不進 git） | ❌ |
 | `.env` | 本機測試用的 API key / 密碼（不進 git） | ❌ |
 
 ---

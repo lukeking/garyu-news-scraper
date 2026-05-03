@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Local config
+.env
+config/sources.yml
+
 # C extensions
 *.so
 
