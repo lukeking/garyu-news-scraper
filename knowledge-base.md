@@ -107,8 +107,8 @@
 | Raids | 團隊本 | Raids | 副本 | EN 直查 |
 | クリスタルタワー | 水晶塔 | Crystal Tower | 副本 | 24人本；暗影之涯主線前置 |
 | Tower | 水晶塔 | Crystal Tower | 副本 | EN 直查；指水晶塔系列 |
-| 制限解除 | 無同步 | Unsynced | 機制 | 無等級同步；挑戰舊副本用 |
-| unsynced | 無同步 | Unsynced | 機制 | EN 直查 |
+| 制限解除 | 解限 | Unsynced | 機制 | 無等級同步；挑戰舊副本用 |
+| unsynced | 解限 | Unsynced | 機制 | EN 直查 |
 | 第一世界 | 第一世界 | The First | 地點 | 暗影之涯的平行世界 |
 | エルピス | 厄爾庇斯 | Elpis | 地點 | 曉月之終焉的夢幻地區 |
 | エーテルライト | 以太之光 | Aetherlight | 機制 | 遊戲內指引光點；引導玩家前往目標 |
