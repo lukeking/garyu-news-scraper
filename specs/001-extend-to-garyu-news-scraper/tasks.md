@@ -34,7 +34,7 @@ testing of each story.
 
 **⚠️ CRITICAL**: No US3 storage validation can succeed until this phase is complete.
 
-- [ ] T003 Apply `db/supabase_migrations/002_add_content_type.sql` in the Supabase SQL editor (Settings → SQL Editor → paste and run); confirm the `content_type` column exists in the `articles` table with default `'traffic'` and that existing rows are unaffected
+- [x] T003 Apply `db/supabase_migrations/002_add_content_type.sql` in the Supabase SQL editor (Settings → SQL Editor → paste and run); confirm the `content_type` column exists in the `articles` table with default `'traffic'` and that existing rows are unaffected
 
 **Checkpoint**: Supabase `articles` table has `content_type` column — user story implementation can now begin.
 
