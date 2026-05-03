@@ -27,8 +27,8 @@
 | クラフター | 製作職 | Crafter | 職業 | 製作系職業 |
 | ギャザラー | 採集職 | Gatherer | 職業 | 採集系職業 |
 | ゴールドソーサー | 金碟 | Gold Saucer | 功能 | 娛樂設施 |
-| 黄金のレガシー | 黃金的遺產 | Dawntrail | 資料片 | 7.0 資料片（2024） |
-| 暁月のフィナーレ | 曉月之終焉 | Endwalker | 資料片 | 6.0 資料片（2021） |
+| 黄金のレガシー | 黃金 | Dawntrail | 資料片 | 7.0（2024） |
+| 暁月のフィナーレ | 曉月 | Endwalker | 資料片 | 6.0（2021） |
 | パーティ | 隊伍 | Party | 社交 | 一組玩家 |
 | コンテンツファインダー | CF | Duty Finder | 功能 | 副本配對系統 |
 | アイテムレベル | 裝等 | Item Level | 裝備 | 裝備強度指標（iLv） |
@@ -80,20 +80,21 @@
 | 槍術士 | 槍術士 | Lancer | 職業 | 龍騎士前置職；LNC |
 | LNC | 槍術士 | Lancer | 職業縮寫 | 龍騎士前置 |
 | Lancer | 槍術士 | Lancer | 職業 | EN 直查 |
-| 新生エオルゼア | 新生艾歐澤亞 | A Realm Reborn | 資料片 | 2.0（2013） |
-| 蒼天のイシュガルド | 蒼穹的伊修加德 | Heavensward | 資料片 | 3.0（2015） |
-| 紅蓮のリベレーター | 4.0 | Stormblood | 資料片 | 4.0（2017）；官方 TW 名未確認 |
-| 漆黒のヴィランズ | 5.0 | Shadowbringers | 資料片 | 5.0（2019）；官方 TW 名未確認 |
-| ARR | 新生艾歐澤亞 | A Realm Reborn | 資料片縮寫 | |
-| HW | 蒼穹的伊修加德 | Heavensward | 資料片縮寫 | |
-| SB | 4.0 | Stormblood | 資料片縮寫 | |
-| ShB | 5.0 | Shadowbringers | 資料片縮寫 | |
-| EW | 曉月之終焉 | Endwalker | 資料片縮寫 | |
-| DT | 黃金的遺產 | Dawntrail | 資料片縮寫 | |
-| A Realm Reborn | 新生艾歐澤亞 | A Realm Reborn | 資料片 | EN 直查 |
-| Heavensward | 蒼穹的伊修加德 | Heavensward | 資料片 | EN 直查 |
-| Stormblood | 4.0 | Stormblood | 資料片 | EN 直查 |
-| Shadowbringers | 5.0 | Shadowbringers | 資料片 | EN 直查 |
+| 新生エオルゼア | 新生 | A Realm Reborn | 資料片 | 2.0（2013） |
+| 蒼天のイシュガルド | 蒼天 | Heavensward | 資料片 | 3.0（2015） |
+| 紅蓮のリベレーター | 紅蓮 | Stormblood | 資料片 | 4.0（2017） |
+| 漆黒のヴィランズ | 漆黑 | Shadowbringers | 資料片 | 5.0（2019） |
+| 白銀のダウンフォール | 白銀 | Dawnfall | 資料片 | 8.0（upcoming） |
+| ARR | 新生 | A Realm Reborn | 資料片縮寫 | |
+| HW | 蒼天 | Heavensward | 資料片縮寫 | |
+| SB | 紅蓮 | Stormblood | 資料片縮寫 | |
+| ShB | 漆黑 | Shadowbringers | 資料片縮寫 | |
+| EW | 曉月 | Endwalker | 資料片縮寫 | |
+| DT | 黃金 | Dawntrail | 資料片縮寫 | |
+| A Realm Reborn | 新生 | A Realm Reborn | 資料片 | EN 直查 |
+| Heavensward | 蒼天 | Heavensward | 資料片 | EN 直查 |
+| Stormblood | 紅蓮 | Stormblood | 資料片 | EN 直查 |
+| Shadowbringers | 漆黑 | Shadowbringers | 資料片 | EN 直查 |
 | メインクエスト | 主線任務 | Main Scenario Quest | 功能 | 主幹劇情任務 |
 | MSQ | 主線任務 | Main Scenario Quest | 功能縮寫 | |
 | フェイス | 信賴系統 | Duty Support | 功能 | 帶 NPC 隊友進地下城；舊稱 Trust（トラスト）|
