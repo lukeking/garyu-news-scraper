@@ -96,19 +96,19 @@
 | Shadowbringers | 暗影之涯 | Shadowbringers | 資料片 | EN 直查 |
 | メインクエスト | 主線任務 | Main Scenario Quest | 功能 | 主幹劇情任務 |
 | MSQ | 主線任務 | Main Scenario Quest | 功能縮寫 | |
-| トラスト | 信賴系統 | Trust System | 功能 | 帶 NPC 隊友進地下城 |
+| フェイス | 信賴系統 | Duty Support | 功能 | 帶 NPC 隊友進地下城；舊稱 Trust（トラスト）|
 | パーティ募集 | 招募板 | Party Finder | 功能 | 玩家自由組隊招募 |
 | コンテンツルーレット | 副本輪盤 | Duty Roulette | 功能 | 每日隨機副本；常被誤稱「隨機任務」 |
 | Duty Roulette | 副本輪盤 | Duty Roulette | 功能 | EN 直查 |
-| 極討滅戦 | 極式戰 | Extreme | 副本 | 討伐戰困難版；EX |
-| EX | 極式戰 | Extreme | 副本縮寫 | |
+| 極討滅戦 | 極本 | Extreme | 副本 | 討伐戰困難版；EX |
+| EX | 極本 | Extreme | 副本縮寫 | |
 | レイド | 團隊本 | Raids | 副本 | 泛指多人高難度副本 |
 | Raids | 團隊本 | Raids | 副本 | EN 直查 |
 | クリスタルタワー | 水晶塔 | Crystal Tower | 副本 | 24人本；暗影之涯主線前置 |
 | Tower | 水晶塔 | Crystal Tower | 副本 | EN 直查；指水晶塔系列 |
-| アンシンク | 無同步 | Unsynced | 機制 | 無等級同步；挑戰舊副本用 |
+| 制限解除 | 無同步 | Unsynced | 機制 | 無等級同步；挑戰舊副本用 |
 | unsynced | 無同步 | Unsynced | 機制 | EN 直查 |
 | 第一世界 | 第一世界 | The First | 地點 | 暗影之涯的平行世界 |
 | エルピス | 厄爾庇斯 | Elpis | 地點 | 曉月之終焉的夢幻地區 |
-| 以太之光 | 以太之光 | Aetherlight | 機制 | 待確認官方對應術語 |
+| エーテルライト | 以太之光 | Aetherlight | 機制 | 遊戲內指引光點；引導玩家前往目標 |
 | エスティニアン | 艾斯蒂尼安 | Estinien | 角色 | 龍騎士 NPC；蒼穹騎士 |
