@@ -77,3 +77,38 @@
 | RDM | 赤魔道士 | Red Mage | 職業縮寫 | 魔法 DPS |
 | PCT | 繪靈法師 | Pictomancer | 職業縮寫 | 魔法 DPS |
 | BLU | 青魔道士 | Blue Mage | 職業縮寫 | 魔法 DPS（限制職業）|
+| 槍術士 | 槍術士 | Lancer | 職業 | 龍騎士前置職；LNC |
+| LNC | 槍術士 | Lancer | 職業縮寫 | 龍騎士前置 |
+| Lancer | 槍術士 | Lancer | 職業 | EN 直查 |
+| 新生エオルゼア | 新生艾歐澤亞 | A Realm Reborn | 資料片 | 2.0（2013） |
+| 蒼天のイシュガルド | 蒼穹的伊修加德 | Heavensward | 資料片 | 3.0（2015） |
+| 紅蓮のリベレーター | 紅蓮的解放者 | Stormblood | 資料片 | 4.0（2017） |
+| 漆黒のヴィランズ | 暗影之涯 | Shadowbringers | 資料片 | 5.0（2019） |
+| ARR | 新生艾歐澤亞 | A Realm Reborn | 資料片縮寫 | |
+| HW | 蒼穹的伊修加德 | Heavensward | 資料片縮寫 | |
+| SB | 紅蓮的解放者 | Stormblood | 資料片縮寫 | |
+| ShB | 暗影之涯 | Shadowbringers | 資料片縮寫 | |
+| EW | 曉月之終焉 | Endwalker | 資料片縮寫 | |
+| DT | 黃金的遺產 | Dawntrail | 資料片縮寫 | |
+| A Realm Reborn | 新生艾歐澤亞 | A Realm Reborn | 資料片 | EN 直查 |
+| Heavensward | 蒼穹的伊修加德 | Heavensward | 資料片 | EN 直查 |
+| Stormblood | 紅蓮的解放者 | Stormblood | 資料片 | EN 直查 |
+| Shadowbringers | 暗影之涯 | Shadowbringers | 資料片 | EN 直查 |
+| メインクエスト | 主線任務 | Main Scenario Quest | 功能 | 主幹劇情任務 |
+| MSQ | 主線任務 | Main Scenario Quest | 功能縮寫 | |
+| トラスト | 信賴系統 | Trust System | 功能 | 帶 NPC 隊友進地下城 |
+| パーティ募集 | 招募板 | Party Finder | 功能 | 玩家自由組隊招募 |
+| コンテンツルーレット | 副本輪盤 | Duty Roulette | 功能 | 每日隨機副本；常被誤稱「隨機任務」 |
+| Duty Roulette | 副本輪盤 | Duty Roulette | 功能 | EN 直查 |
+| 極討滅戦 | 極式戰 | Extreme | 副本 | 討伐戰困難版；EX |
+| EX | 極式戰 | Extreme | 副本縮寫 | |
+| レイド | 團隊本 | Raids | 副本 | 泛指多人高難度副本 |
+| Raids | 團隊本 | Raids | 副本 | EN 直查 |
+| クリスタルタワー | 水晶塔 | Crystal Tower | 副本 | 24人本；暗影之涯主線前置 |
+| Tower | 水晶塔 | Crystal Tower | 副本 | EN 直查；指水晶塔系列 |
+| アンシンク | 無同步 | Unsynced | 機制 | 無等級同步；挑戰舊副本用 |
+| unsynced | 無同步 | Unsynced | 機制 | EN 直查 |
+| 第一世界 | 第一世界 | The First | 地點 | 暗影之涯的平行世界 |
+| エルピス | 厄爾庇斯 | Elpis | 地點 | 曉月之終焉的夢幻地區 |
+| 以太之光 | 以太之光 | Aetherlight | 機制 | 待確認官方對應術語 |
+| エスティニアン | 艾斯蒂尼安 | Estinien | 角色 | 龍騎士 NPC；蒼穹騎士 |

@@ -116,7 +116,7 @@ def _save_to_supabase(articles: list, week_id: str) -> bool:
     回傳 True 表示成功，False 表示未設定 Supabase。
     """
     try:
-        from storage import is_configured, upsert_articles
+        from src.storage import is_configured, upsert_articles
     except ImportError:
         logger.warning("storage.py 未找到，跳過 Supabase 寫入")
         return False
