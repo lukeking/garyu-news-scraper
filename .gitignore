@@ -3,6 +3,11 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Local config
+.env
+config/sources_traffic.yml
+config/sources_ffxiv.yml
+
 # C extensions
 *.so
 
@@ -217,7 +222,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-sources.yml
+sources_traffic.yml
+sources_ffxiv.yml
 .claude/
 
 # wrangler files

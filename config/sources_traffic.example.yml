@@ -1,7 +1,7 @@
-# sources.example.yml
-# 這是 sources.yml 的格式範例，說明所有支援的欄位與 type。
-# 實際使用的設定存放在 GitHub Environment Variable: SOURCES_YML
-# 請勿把 sources.yml 加入 git（已在 .gitignore 中排除）。
+# sources_traffic.example.yml
+# 這是 config/sources_traffic.yml 的格式範例，說明所有支援的欄位與 type。
+# 實際使用的設定存放在 GitHub Environment Variable: SOURCES_TRAFFIC_YML
+# 請勿把 config/sources_traffic.yml 加入 git（已在 .gitignore 中排除）。
 #
 # ┌─────────────────────────────────────────────┐
 # │  支援的 type                                 │

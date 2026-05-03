@@ -14,7 +14,7 @@ Supabase（articles）
   ↓
 Cloudflare Worker API（/api/weeks, /api/weeks/:id, /api/tags）
   ↓
-Cloudflare Pages 前端（docs/index.html）
+Cloudflare Pages 前端（pages/index.html）
 ```
 
 ## 已完成項目

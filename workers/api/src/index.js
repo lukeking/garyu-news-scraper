@@ -6,6 +6,7 @@ const CORS_HEADERS = {
 
 const IMPORTANCE_ORDER = { "高": 0, "中": 1, "低": 2 };
 const IMPORTANCE_VALUES = new Set(["高", "中", "低"]);
+const CONTENT_TYPE_VALUES = new Set(["traffic", "ffxiv"]);
 const MAX_LIMIT = 100;
 
 function jsonResponse(data, status = 200) {
@@ -37,6 +38,7 @@ function normalizeRow(row) {
     link: row.link || "",
     source: row.source || "",
     published: row.published || "",
+    content_type: row.content_type || "traffic",
     analysis: {
       importance: analysis.importance || "中",
       importance_reason: analysis.importance_reason || "",
@@ -131,12 +133,17 @@ async function handleWeekDetail(env, weekId, url) {
   const params = new URLSearchParams();
   params.set(
     "select",
-    "week_id,title,link,source,published,summary,analysis,created_at",
+    "week_id,title,link,source,published,summary,analysis,content_type,created_at",
   );
   params.set("week_id", `eq.${weekId}`);
   params.set("order", "created_at.asc");
   const rows = await supabaseGet(env, "articles", params);
   let normalized = rows.map(normalizeRow);
+
+  const contentType = url.searchParams.get("content_type");
+  if (contentType && CONTENT_TYPE_VALUES.has(contentType)) {
+    normalized = normalized.filter((article) => article.content_type === contentType);
+  }
 
   const importance = url.searchParams.get("importance");
   if (importance && IMPORTANCE_VALUES.has(importance)) {

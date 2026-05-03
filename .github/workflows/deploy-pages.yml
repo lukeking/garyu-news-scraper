@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - "docs/**"
+      - "pages/**"
       - ".github/workflows/deploy-pages.yml"
 
 permissions:
@@ -25,4 +25,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: traffic-issue-scraper
-          directory: docs
+          directory: pages

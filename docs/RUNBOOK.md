@@ -16,7 +16,7 @@ This runbook is for first-time setup from zero to production.
 4. Build settings:
    - Framework preset: `None`
    - Build command: leave empty
-   - Build output directory: `docs`
+   - Build output directory: `pages`
 5. Create/deploy.
 6. Keep the Pages project name (used by `deploy-pages.yml`).
 
@@ -69,7 +69,7 @@ Optional only if you later manage routes via CI:
    - `name` should match Worker name.
 2. Check `.github/workflows/deploy-pages.yml`:
    - `projectName` should match your actual Pages project.
-3. Check `docs/index.html`:
+3. Check `pages/index.html`:
    - default is `'/api'`.
    - if you cannot bind `/api/*` on Pages UI, set API base to Worker URL:
      - `https://<worker>.workers.dev/api`

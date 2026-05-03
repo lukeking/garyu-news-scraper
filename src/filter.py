@@ -6,6 +6,7 @@ filter.py
 import hashlib
 import logging
 import re
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -75,11 +76,50 @@ def _topic_key(title: str) -> str | None:
             return "+".join(keywords)
     return None
 
+def _extract_year_from_text(text: str) -> int | None:
+    """從標題或摘要抓出明確的年份"""
+    matches = re.findall(r'\b(20\d{2})\b', text)
+    for m in matches:
+        year = int(m)
+        if 2020 <= year <= datetime.now().year + 1:
+            return year
+    return None
+
+def _is_stale_article(article: dict) -> bool:
+    """
+    判斷文章是否為舊聞：
+    1. 標題或摘要中出現明確的舊年份
+    2. published 欄位有值且超過 14 天（給一點容錯空間）
+    """
+    current_year = datetime.now().year
+    title = article.get("title", "")
+    summary = article.get("summary", "")
+
+    # 信號 1：文字中出現的年份明顯過舊
+    year = _extract_year_from_text(title + " " + summary)
+    if year and year < current_year - 1:
+        return True
+
+    # 信號 2：published 欄位解析後超過 14 天
+    published = article.get("published", "")
+    if published:
+        try:
+            from email.utils import parsedate_to_datetime
+            pub_dt = parsedate_to_datetime(published)
+            cutoff = datetime.now(pub_dt.tzinfo) - timedelta(days=14)
+            if pub_dt < cutoff:
+                return True
+        except Exception:
+            pass
+
+    return False
+
 
 def filter_and_deduplicate(articles: list) -> list:
     seen_hashes = set()
     topic_counts: dict = {}  # topic_key -> 已收錄篇數
     result = []
+    stale_count = 0
 
     # 建立 topic_throttle 查找表 {key: max_count}
     topic_limits = {"+".join(kws): limit for kws, limit in TOPIC_THROTTLE}
@@ -87,7 +127,13 @@ def filter_and_deduplicate(articles: list) -> list:
     for article in articles:
         if not article.get("title"):
             continue
-        if not _is_relevant(article):
+        if _is_stale_article(article):
+            stale_count += 1
+            logger.debug("舊聞跳過：%s", article.get("title", "")[:40])
+            continue
+        # FFXIV 來源已由來源設定過濾，跳過機車關鍵字檢查
+        is_ffxiv = article.get("content_type") == "ffxiv"
+        if not is_ffxiv and not _is_relevant(article):
             continue
 
         h = _make_hash(article)
