@@ -4,32 +4,76 @@
 更新方式：提交 PR，描述術語來源（官方補丁說明、日文維基等）。
 
 <!-- DO NOT translate terms not listed here. Log [KB MISS] for unknown terms. -->
+<!-- 職業縮寫來源：https://www.ffxiv.com.tw/web/intro/guide/battle/ -->
 
 | JP Term | TW Term | EN Term | Category | Notes |
 |---------|---------|---------|----------|-------|
 | 零式 | 零式 | Savage | 副本 | 高難度四人團隊本 |
 | 絶討伐戦 | 絕境戰 | Ultimate | 副本 | 最高難度內容 |
 | ノーマル | 一般 | Normal | 副本 | 入門難度 |
-| アライアンスレイド | 同盟突擊任務 | Alliance Raid | 副本 | 24 人大型團隊本 |
+| アライアンスレイド | 24人本 | Alliance Raid | 副本 | 24 人大型團隊本；正式名稱：同盟突擊任務 |
 | 討滅戦 | 討伐戰 | Trial | 副本 | Boss 單場挑戰 |
 | ダンジョン | 地下城 | Dungeon | 副本 | 4 人副本 |
-| ヴァイパー | 蝮蛇師 | Viper | 職業 | 近戰 DPS；7.0 新職業 |
-| ピクトマンサー | 繪靈法師 | Pictomancer | 職業 | 魔法 DPS；7.0 新職業 |
 | タンク | 坦克 | Tank | 職能 | 承受傷害 |
-| ヒーラー | 治療師 | Healer | 職能 | 恢復隊友 HP |
+| ヒーラー | 補師 | Healer | 職能 | 恢復隊友 HP |
 | DPS | DPS | DPS | 職能 | 輸出職業 |
-| パッチ | 修補版本 | Patch | 更新 | 遊戲版本更新 |
+| ロール | 職能 | Role | 機制 | Tank／Healer／DPS |
+| パッチ | 版本更新 | Patch | 更新 | 遊戲版本更新 |
 | ジョブ | 職業 | Job | 角色 | 玩家職業 |
 | スキル | 技能 | Skill | 機制 | 職業能力 |
-| ハウジング | 置房 | Housing | 功能 | 玩家住宅系統 |
-| フリーカンパニー | 自由部隊 | Free Company | 社交 | 玩家公會 |
+| ハウジング | 住宅 | Housing | 功能 | 玩家住宅系統 |
+| フリーカンパニー | FC | Free Company | 社交 | 玩家公會 |
+| グランドカンパニー | GC | Grand Company | 社交 | 三大軍事組織（黑渦、雙蛇、燃熾）|
 | クラフター | 製作職 | Crafter | 職業 | 製作系職業 |
 | ギャザラー | 採集職 | Gatherer | 職業 | 採集系職業 |
-| ゴールドソーサー | 黃金碟 | Gold Saucer | 功能 | 娛樂設施 |
-| 黄金のレガシー | 黃金的遺輝 | Dawntrail | 資料片 | 7.0 資料片（2024） |
+| ゴールドソーサー | 金碟 | Gold Saucer | 功能 | 娛樂設施 |
+| 黄金のレガシー | 黃金的遺產 | Dawntrail | 資料片 | 7.0 資料片（2024） |
 | 暁月のフィナーレ | 曉月之終焉 | Endwalker | 資料片 | 6.0 資料片（2021） |
-| ロール | 職能 | Role | 機制 | Tank／Healer／DPS |
 | パーティ | 隊伍 | Party | 社交 | 一組玩家 |
-| コンテンツファインダー | 副本搜尋器 | Duty Finder | 功能 | 副本配對系統 |
+| コンテンツファインダー | CF | Duty Finder | 功能 | 副本配對系統 |
 | アイテムレベル | 裝等 | Item Level | 裝備 | 裝備強度指標（iLv） |
 | 強化 | 強化 | Augmented | 裝備 | 升級版裝備 |
+| ナイト | 騎士 | Paladin | 職業 | 坦克；PLD |
+| 戦士 | 戰士 | Warrior | 職業 | 坦克；WAR |
+| 暗黒騎士 | 暗黑騎士 | Dark Knight | 職業 | 坦克；DRK |
+| ガンブレイカー | 絕槍戰士 | Gunbreaker | 職業 | 坦克；GNB |
+| 白魔道士 | 白魔道士 | White Mage | 職業 | 補師（純治癒）；WHM |
+| 学者 | 學者 | Scholar | 職業 | 補師（屏障）；SCH |
+| 占星術士 | 占星術師 | Astrologian | 職業 | 補師（靈活）；AST |
+| 賢者 | 賢者 | Sage | 職業 | 補師（屏障）；SGE |
+| モンク | 武僧 | Monk | 職業 | 近戰 DPS；MNK |
+| 竜騎士 | 龍騎士 | Dragoon | 職業 | 近戰 DPS；DRG |
+| 忍者 | 忍者 | Ninja | 職業 | 近戰 DPS；NIN |
+| 侍 | 武士 | Samurai | 職業 | 近戰 DPS；SAM |
+| リーパー | 奪魂者 | Reaper | 職業 | 近戰 DPS；RPR；6.0 新職業 |
+| ヴァイパー | 毒蛇劍士 | Viper | 職業 | 近戰 DPS；VPR；7.0 新職業 |
+| 吟遊詩人 | 吟遊詩人 | Bard | 職業 | 遠端物理 DPS；BRD |
+| 機工士 | 機工士 | Machinist | 職業 | 遠端物理 DPS；MCH |
+| 踊り子 | 舞者 | Dancer | 職業 | 遠端物理 DPS；DNC |
+| 黒魔道士 | 黑魔道士 | Black Mage | 職業 | 魔法 DPS；BLM |
+| 召喚士 | 召喚士 | Summoner | 職業 | 魔法 DPS；SMN |
+| 赤魔道士 | 赤魔道士 | Red Mage | 職業 | 魔法 DPS；RDM |
+| ピクトマンサー | 繪靈法師 | Pictomancer | 職業 | 魔法 DPS；PCT；7.0 新職業 |
+| 青魔道士 | 青魔道士 | Blue Mage | 職業 | 魔法 DPS（限制職業）；BLU |
+| PLD | 騎士 | Paladin | 職業縮寫 | 坦克 |
+| WAR | 戰士 | Warrior | 職業縮寫 | 坦克 |
+| DRK | 暗黑騎士 | Dark Knight | 職業縮寫 | 坦克 |
+| GNB | 絕槍戰士 | Gunbreaker | 職業縮寫 | 坦克 |
+| WHM | 白魔道士 | White Mage | 職業縮寫 | 補師 |
+| SCH | 學者 | Scholar | 職業縮寫 | 補師 |
+| AST | 占星術師 | Astrologian | 職業縮寫 | 補師 |
+| SGE | 賢者 | Sage | 職業縮寫 | 補師 |
+| MNK | 武僧 | Monk | 職業縮寫 | 近戰 DPS |
+| DRG | 龍騎士 | Dragoon | 職業縮寫 | 近戰 DPS |
+| NIN | 忍者 | Ninja | 職業縮寫 | 近戰 DPS |
+| SAM | 武士 | Samurai | 職業縮寫 | 近戰 DPS |
+| RPR | 奪魂者 | Reaper | 職業縮寫 | 近戰 DPS |
+| VPR | 毒蛇劍士 | Viper | 職業縮寫 | 近戰 DPS |
+| BRD | 吟遊詩人 | Bard | 職業縮寫 | 遠端物理 DPS |
+| MCH | 機工士 | Machinist | 職業縮寫 | 遠端物理 DPS |
+| DNC | 舞者 | Dancer | 職業縮寫 | 遠端物理 DPS |
+| BLM | 黑魔道士 | Black Mage | 職業縮寫 | 魔法 DPS |
+| SMN | 召喚士 | Summoner | 職業縮寫 | 魔法 DPS |
+| RDM | 赤魔道士 | Red Mage | 職業縮寫 | 魔法 DPS |
+| PCT | 繪靈法師 | Pictomancer | 職業縮寫 | 魔法 DPS |
+| BLU | 青魔道士 | Blue Mage | 職業縮寫 | 魔法 DPS（限制職業）|
