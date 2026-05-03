@@ -121,7 +121,39 @@ collected, analysed, stored, and queryable independently via the Worker API.
 **Purpose**: Compliance verification, knowledge base integrity, and end-to-end validation.
 
 - [x] T024 [P] Verify `www.ffxiv.com.tw/robots.txt` (returned HTTP 404 — no restrictions); add TW patch log as disabled `html_patch` source in `config/sources_ffxiv.example.yml`; update `specs/001-extend-to-garyu-news-scraper/research.md` with finding
-- [ ] T025 End-to-end validation — trigger GitHub Actions workflow manually (Actions → 台灣機車交通週報 → Run workflow); confirm: (a) run completes in ≤15 minutes, (b) Supabase contains both `content_type` values for the current `week_id`, (c) no `[KB MISS]` warnings for core 8.0 terms in `knowledge-base.md`, (d) Worker responds correctly to `?content_type=ffxiv`
+- [x] T025 [P] Fix pipeline truncation — split `main.py` into per-category filter+budget: traffic capped at 20, FFXIV at 10; merged before `analyze_all()`; removes the `filtered[:30]` that silently discarded all FFXIV articles
+- [ ] T026 End-to-end validation — trigger GitHub Actions workflow manually (Actions → Garyu News Scraper 週報 → Run workflow); confirm: (a) run completes in ≤15 minutes, (b) Supabase contains both `content_type` values for the current `week_id`, (c) no `[KB MISS]` warnings for core 8.0 terms in `knowledge-base.md`, (d) Worker responds correctly to `?content_type=ffxiv`, (e) both content types appear in the published HTML
+
+---
+
+## Phase 7: Future — Modular Pipeline Architecture (Planned, Not Yet Scheduled)
+
+**Purpose**: Refactor the pipeline so each news category is a fully independent,
+self-contained unit. Main orchestrates; individual modules own their collect/filter/
+analyze/publish logic. Enables new categories (anime, cycling, etc.) without touching
+existing code.
+
+**Prerequisite**: T026 validated in production. Design this spec before starting implementation.
+
+### Abstract Plan
+
+- [ ] T027 Create `specs/002-modular-pipeline/` feature spec — define the per-category
+  pipeline abstraction: each category module exposes `collect() -> list`,
+  `filter(raw) -> list`, `analyze(articles) -> list`, `publish(articles, output_dir)`
+  and a `config: CategoryConfig` (name, max_articles, output_dir, content_type)
+- [ ] T028 [P] Design `src/pipeline/base.py` — abstract `Category` protocol/dataclass:
+  `name`, `max_articles`, `output_dir`, `content_type`; `run() -> list[Article]` orchestrates
+  the four stages; `main.py` iterates registered categories
+- [ ] T029 [P] Design `src/pipeline/traffic.py` and `src/pipeline/ffxiv.py` — each implements
+  the `Category` protocol, wrapping existing collector/filter/analyzer logic; no logic
+  duplication — shared utilities stay in `src/`
+- [ ] T030 [P] Design publisher parameterisation — `publish(articles, output_dir='pages/')`
+  so traffic writes to `pages/`, FFXIV to `pages-ffxiv/`; each maps to its own CF Pages
+  project and deploy workflow
+- [ ] T031 Update GitHub Actions — add `deploy-pages-ffxiv.yml` deploying `pages-ffxiv/`
+  to a second CF Pages project; traffic workflow unchanged
+- [ ] T032 Run `/speckit-plan` for `specs/002-modular-pipeline/` to produce full research,
+  data-model, contracts, and implementation plan before any code change
 
 ---
 

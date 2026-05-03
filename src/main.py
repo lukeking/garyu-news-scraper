@@ -29,6 +29,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+TRAFFIC_MAX = 20
+FFXIV_MAX   = 10
+
+
 def main():
     logger.info("========== Garyu News Scraper 開始執行 ==========")
 
@@ -38,27 +42,34 @@ def main():
         logger.warning("未收集到任何文章，結束執行")
         sys.exit(0)
 
-    # Step 2：過濾 + 去重複（含同主題限流）
-    filtered = filter_and_deduplicate(raw_articles)
+    # Step 2：按 content_type 分流，各自過濾 + 去重複，各自套用篇數上限
+    # 分流確保 FFXIV 文章不會被交通文章的數量擠掉
+    traffic_raw = [a for a in raw_articles if a.get("content_type", "traffic") == "traffic"]
+    ffxiv_raw   = [a for a in raw_articles if a.get("content_type") == "ffxiv"]
+
+    traffic_filtered = filter_and_deduplicate(traffic_raw)
+    ffxiv_filtered   = filter_and_deduplicate(ffxiv_raw)
+
+    if len(traffic_filtered) > TRAFFIC_MAX:
+        logger.info("交通文章數 %d > %d，截取前 %d 篇", len(traffic_filtered), TRAFFIC_MAX, TRAFFIC_MAX)
+        traffic_filtered = traffic_filtered[:TRAFFIC_MAX]
+    if len(ffxiv_filtered) > FFXIV_MAX:
+        logger.info("FFXIV 文章數 %d > %d，截取前 %d 篇", len(ffxiv_filtered), FFXIV_MAX, FFXIV_MAX)
+        ffxiv_filtered = ffxiv_filtered[:FFXIV_MAX]
+
+    filtered = traffic_filtered + ffxiv_filtered
+    logger.info("分析篇數：交通 %d + FFXIV %d = %d", len(traffic_filtered), len(ffxiv_filtered), len(filtered))
     if not filtered:
         logger.warning("過濾後無文章，結束執行")
         sys.exit(0)
 
-    # Step 3：限制篇數
-    # Gemini 2.5 Flash 免費 RPD=20；若已啟用計費可調高
-    # 設為 30 保留緩衝，過濾後若不足 20 篇仍有足夠來源
-    MAX_ARTICLES = 30
-    if len(filtered) > MAX_ARTICLES:
-        logger.info(f"文章數 {len(filtered)} > {MAX_ARTICLES}，截取前 {MAX_ARTICLES} 篇")
-        filtered = filtered[:MAX_ARTICLES]
-
-    # Step 4：AI 分析
+    # Step 3：AI 分析
     analyzed = analyze_all(filtered)
 
-    # Step 5：發布至 pages/
+    # Step 4：發布至 pages/
     publish(analyzed)
 
-    # Step 6：KB MISS 提示 — 若有未知 FFXIV 術語，提醒使用者更新知識庫
+    # Step 5：KB MISS 提示 — 若有未知 FFXIV 術語，提醒使用者更新知識庫
     kb_misses = get_kb_miss_summary()
     if kb_misses:
         logger.warning("========== ⚠️  KB MISS 術語待審查 ==========")
