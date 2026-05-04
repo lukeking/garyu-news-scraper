@@ -65,7 +65,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # 模型 id 非機密：建議在 Repository variables 設定 GEMINI_MODEL_NAME，日誌才不會被 *** 遮罩
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
-          SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
+          FFXIV_SITE_URL: ${{ vars.FFXIV_SITE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           # 寫入 articles 需 service role（略過 RLS）；勿只用 anon key
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

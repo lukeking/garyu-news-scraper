@@ -1,12 +1,12 @@
-name: Deploy Cloudflare Pages
+name: Deploy Cloudflare Pages (FFXIV)
 
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
     paths:
-      - "pages/traffic/**"
-      - ".github/workflows/deploy-pages.yml"
+      - "pages/ffxiv/**"
+      - ".github/workflows/deploy-pages-ffxiv.yml"
 
 permissions:
   contents: read
@@ -19,10 +19,10 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Pages (FFXIV)
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: traffic-issue-scraper
-          directory: pages/traffic
+          projectName: garyu-ffxiv-news
+          directory: pages/ffxiv

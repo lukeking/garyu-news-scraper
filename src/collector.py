@@ -359,3 +359,8 @@ def collect_all() -> list:
 
     logger.info("=== 收集完成，共 %d 筆（去重前）===", len(all_articles))
     return all_articles
+
+
+def collect_by_type(content_type: str) -> list:
+    """回傳 collect_all() 中符合指定 content_type 的文章"""
+    return [a for a in collect_all() if a.get("content_type", "traffic") == content_type]

@@ -11,6 +11,11 @@
 # └──────────────────────────────────────────────────────────────────┘
 #
 # 每個來源務必設定 content_type: "ffxiv"
+#
+# FFXIV 靜態網站輸出目錄：pages/ffxiv/
+# 公開網址（CF Pages 專案 garyu-ffxiv-news）請在 GitHub Environment Variables 設定：
+#   FFXIV_SITE_URL=https://garyu-ffxiv-news.pages.dev
+# 若未設定，預設值為 https://garyu-ffxiv-news.pages.dev
 
 sources:
 

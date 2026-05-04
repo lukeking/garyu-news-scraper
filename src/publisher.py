@@ -1,11 +1,11 @@
 """
 publisher.py
-將分析結果發布至 pages/ 目錄：
-  - pages/data/YYYY-WNN.json   本週資料
-  - pages/data/index.json      所有週別索引（供首頁載入）
-  - pages/data/tags.json       累積標籤庫（含使用者手動標籤，供下週 AI 參考）
-  - pages/feed.xml             RSS feed
-  - pages/week/YYYY-WNN.html   本週靜態頁面（Pagefind 索引用）
+將分析結果發布至輸出目錄（預設 pages/traffic/）：
+  - <output_dir>/data/YYYY-WNN.json   本週資料
+  - <output_dir>/data/index.json      所有週別索引（供首頁載入）
+  - <output_dir>/data/tags.json       累積標籤庫（含使用者手動標籤，供下週 AI 參考）
+  - <output_dir>/feed.xml             RSS feed
+  - <output_dir>/week/YYYY-WNN.html   本週靜態頁面（Pagefind 索引用）
 
 同時寫入 Supabase（若環境變數已設定）作為持久化備份。
 GitHub Actions 後續執行 Pagefind 建立搜尋索引。
@@ -21,10 +21,6 @@ logger = logging.getLogger(__name__)
 
 TW_TZ = timezone(timedelta(hours=8))
 ROOT_DIR = Path(__file__).resolve().parents[1]
-DOCS_DIR = ROOT_DIR / "pages"
-DATA_DIR = DOCS_DIR / "data"
-WEEK_DIR = DOCS_DIR / "week"
-SITE_URL = os.environ.get("SITE_URL", "https://lukeking.github.io/traffic-issue-scraper")
 
 
 def _now_tw():
@@ -50,7 +46,7 @@ def _save_json(path: Path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def save_week_data(articles: list) -> str:
+def save_week_data(articles: list, data_dir: Path) -> str:
     """儲存本週 JSON，回傳 week_id"""
     week_id = _week_id()
     now = _now_tw()
@@ -61,15 +57,15 @@ def save_week_data(articles: list) -> str:
         "article_count": len(articles),
         "articles": articles,
     }
-    path = DATA_DIR / f"{week_id}.json"
+    path = data_dir / f"{week_id}.json"
     _save_json(path, data)
     logger.info("週資料已儲存：%s", path)
     return week_id
 
 
-def update_index(week_id: str, articles: list):
+def update_index(week_id: str, articles: list, data_dir: Path):
     """更新 index.json，記錄每週的 week_id、日期、文章數"""
-    path = DATA_DIR / "index.json"
+    path = data_dir / "index.json"
     index = _load_json(path, [])
 
     # 移除同一週的舊記錄（重跑時覆蓋）
@@ -87,14 +83,14 @@ def update_index(week_id: str, articles: list):
     logger.info("index.json 已更新，共 %d 週記錄", len(index))
 
 
-def update_tags(articles: list):
+def update_tags(articles: list, data_dir: Path):
     """
     累積標籤庫：
       - ai_tags: AI 自動產生的標籤（含出現次數）
       - user_tags: 使用者手動新增的標籤（網頁操作後寫回此檔）
     下週 AI 分析時會讀取 user_tags 加入 prompt。
     """
-    path = DATA_DIR / "tags.json"
+    path = data_dir / "tags.json"
     store = _load_json(path, {"ai_tags": {}, "user_tags": []})
 
     for article in articles:
@@ -146,7 +142,7 @@ def _escape_xml(text: str) -> str:
             .replace('"', "&quot;"))
 
 
-def build_feed(all_weeks_articles: list, week_id: str):
+def build_feed(all_weeks_articles: list, week_id: str, docs_dir: Path, site_url: str):
     """產生 RSS feed（最新 3 週的文章）"""
     now_rfc = _now_tw().strftime("%a, %d %b %Y %H:%M:%S +0800")
 
@@ -175,17 +171,17 @@ def build_feed(all_weeks_articles: list, week_id: str):
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>台灣機車交通週報</title>
-  <link>{SITE_URL}</link>
+  <link>{site_url}</link>
   <description>每週自動彙整台灣機車交通相關新聞，含 AI 摘要與深度分析</description>
   <language>zh-tw</language>
   <lastBuildDate>{now_rfc}</lastBuildDate>
-  <atom:link href="{SITE_URL}/feed.xml" rel="self" type="application/rss+xml"/>
+  <atom:link href="{site_url}/feed.xml" rel="self" type="application/rss+xml"/>
   <ttl>10080</ttl>
 {chr(10).join(items)}
 </channel>
 </rss>"""
 
-    out = DOCS_DIR / "feed.xml"
+    out = docs_dir / "feed.xml"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(feed, encoding="utf-8")
     logger.info("feed.xml 已產生，共 %d 則", len(items))
@@ -230,13 +226,13 @@ def _build_card(article: dict, index: int, week_id: str) -> str:
 </div>"""
 
 
-def build_week_html(articles: list, week_id: str):
+def build_week_html(articles: list, week_id: str, docs_dir: Path, week_dir: Path):
     """
-    產生 pages/week/YYYY-WNN.html。
+    產生 <output_dir>/week/YYYY-WNN.html。
     這份 HTML 不是給人直接看的頁面，而是讓 Pagefind 能夠索引每篇文章的內容。
     網站的 SPA 首頁（index.html）會動態載入 JSON 呈現。
     """
-    WEEK_DIR.mkdir(parents=True, exist_ok=True)
+    week_dir.mkdir(parents=True, exist_ok=True)
     now = _now_tw()
 
     traffic_articles = [a for a in articles if a.get("content_type", "traffic") == "traffic"]
@@ -326,37 +322,47 @@ def build_week_html(articles: list, week_id: str):
 </body>
 </html>"""
 
-    out = WEEK_DIR / f"{week_id}.html"
+    out = week_dir / f"{week_id}.html"
     out.write_text(html, encoding="utf-8")
     logger.info("週別 HTML 已產生：%s", out)
 
 
 # ── 主入口 ────────────────────────────────────────────────────
 
-def publish(articles: list):
+def publish(articles: list, output_dir: str = "pages/traffic", site_url: str = None):
     """
     articles: 已分析完的文章列表（含 analysis.tags）
+    output_dir: 相對於 repo root 的輸出目錄（預設 pages/traffic）
+    site_url: RSS feed 用的公開網址；未傳入時使用 SITE_URL 環境變數
     """
-    logger.info("=== 開始發布 ===")
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    docs_dir = ROOT_DIR / output_dir
+    data_dir = docs_dir / "data"
+    week_dir = docs_dir / "week"
+    resolved_site_url = (site_url or
+                         os.environ.get("TRAFFIC_SITE_URL") or
+                         os.environ.get("SITE_URL") or
+                         "https://lukeking.github.io/traffic-issue-scraper")
 
-    week_id = save_week_data(articles)
-    update_index(week_id, articles)
-    tags_store = update_tags(articles)
+    logger.info("=== 開始發布（%s）===", output_dir)
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    week_id = save_week_data(articles, data_dir)
+    update_index(week_id, articles, data_dir)
+    update_tags(articles, data_dir)
 
     # 寫入 Supabase（失敗不中斷）
     _save_to_supabase(articles, week_id)
 
     # 載入所有週資料，供 RSS 使用（最新 3 週）
-    index = _load_json(DATA_DIR / "index.json", [])
+    index = _load_json(data_dir / "index.json", [])
     recent_articles = []
     for week in index[:3]:
         wid = week["week_id"]
-        wdata = _load_json(DATA_DIR / f"{wid}.json", {})
+        wdata = _load_json(data_dir / f"{wid}.json", {})
         recent_articles.extend(wdata.get("articles", []))
 
-    build_feed(recent_articles, week_id)
-    build_week_html(articles, week_id)
+    build_feed(recent_articles, week_id, docs_dir, resolved_site_url)
+    build_week_html(articles, week_id, docs_dir, week_dir)
 
-    logger.info("=== 發布完成，week_id=%s ===", week_id)
+    logger.info("=== 發布完成（%s），week_id=%s ===", output_dir, week_id)
     return week_id

@@ -24,7 +24,9 @@
 | 漆黒のヴィランズ | 漆黑 | Shadowbringers | 資料片 | 5.0（2019） |
 | 暁月のフィナーレ | 曉月 | Endwalker | 資料片 | 6.0（2021） |
 | 黄金のレガシー | 黃金 | Dawntrail | 資料片 | 7.0（2024） |
+| 黄金 | 黃金 | Dawntrail | 資料片 | 7.0 省略形 |
 | 白銀の探求者 | 白銀 | EverCold | 資料片 | 8.0（upcoming） |
+| 白銀 | 白銀 | EverCold | 資料片 | 8.0 省略形 |
 | ARR | 新生 | A Realm Reborn | 資料片縮寫 | |
 | HW | 蒼天 | Heavensward | 資料片縮寫 | |
 | SB | 紅蓮 | Stormblood | 資料片縮寫 | |
