@@ -1,32 +1,56 @@
-# 🏍️ 台灣機車交通週報自動系統
+# Garyu News Scraper
 
-每週自動收集台灣機車交通相關新聞，透過 Gemini AI 分析摘要，寄送至 Gmail，並將資料寫入 Supabase。
+每週自動收集新聞、透過 Gemini AI 分析摘要，並部署至 Cloudflare Pages。
 
-完整部署步驟請看 [`docs/runbook.md`](docs/runbook.md)。
+目前支援兩條 pipeline：
+
+| Pipeline | 內容 | 前端網址 |
+|----------|------|---------|
+| 🏍️ 台灣機車交通週報 | 台灣機車交通相關新聞 | `garyu-traffic-news.pages.dev` |
+| ⚔️ Garyu FFXIV 週報 | FFXIV 最終幻想 XIV 資訊 | `garyu-ffxiv-news.pages.dev` |
+
+---
 
 ## 架構
 
 ```
 收集（collector.py）
   ├── Google News RSS
-  ├── PTT 機車板 / SuperBike 重機板
-  ├── 聯合/中時/自由/TVBS/ETtoday RSS
-  └── 交通部 / 公路局公告
+  ├── PTT 看板爬蟲
+  ├── 各大新聞網 RSS
+  └── 官網爬蟲（交通部等）
         ↓
-過濾去重（filter.py）
+新鮮度過濾（filter.py）
+  ├── 跨週標題指紋去重（Supabase 歷史比對）
+  └── 30 天時效過濾（pubDate / Google News URL 日期）
         ↓
-AI 分析（analyzer.py）── Gemini 2.0 Flash（免費）
+關鍵字過濾 + 去重（filter.py）
+        ↓
+AI 分析（analyzer.py）── Gemini（可設定模型）
+  └── FFXIV pipeline 額外載入 knowledge-base.md 術語對照
         ↓
 寫入 Supabase（storage.py）
         ↓
-Cloudflare Worker API（/api/*）
+發布靜態檔案（publisher.py）── feed.xml、week/*.html
         ↓
-Cloudflare Pages 前端 + Gmail 寄送（mailer.py）
+部署至 Cloudflare Pages（weekly.yml 觸發）
+        ↓
+前端讀取 CF Worker API（/api/*）← 從 Supabase 查詢資料
 ```
 
-## 排程
+**排程**：每週一 UTC 00:00（台灣 08:00）自動執行。
 
-每週一台灣時間 08:00 自動執行（GitHub Actions）。
+---
+
+## Cloudflare 部署架構
+
+```
+garyu-traffic-news (CF Pages)  →  pages/traffic/
+garyu-ffxiv-news   (CF Pages)  →  pages/ffxiv/
+garyu-news-scraper (CF Worker) →  workers/api/   ← 兩個 Pages 共用
+```
+
+`pages/*/index.html` 的 `/api/*` 請求，由 `functions/api/[[path]].js`（CF Pages Function）代理至 Worker（透過 `API` Service Binding 設定）。
 
 ---
 
@@ -34,120 +58,127 @@ Cloudflare Pages 前端 + Gmail 寄送（mailer.py）
 
 ### 1. Fork 或 clone 此 repo
 
-### 2. 取得必要的 API Key / 密碼
+### 2. Supabase — 建立資料庫
 
-| 項目 | 取得方式 |
-|------|---------|
-| Gemini API Key | [aistudio.google.com](https://aistudio.google.com) → Get API key |
-| Gmail App Password | Google 帳號 → 安全性 → 兩步驟驗證 → 應用程式密碼（16 位數）|
+1. 建立 Supabase project
+2. 在 SQL Editor 執行 `db/supabase_schema.sql`
+3. 若升級既有資料庫，依序執行 `db/supabase_migrations/` 內的 SQL
 
-### 3. 在 GitHub 建立 Environment 並設定 Secrets / Variables
+### 3. Cloudflare — 建立三個專案
 
-前往 repo → **Settings → Environments → New environment**，命名為 `production`。
+**CF Worker（API）**
 
-#### Secrets（機敏資訊，內容隱藏）
+1. Dashboard → Workers & Pages → Create → Workers
+2. 建立後不需手動配置，CI 會在首次部署時自動寫入 Secret 與設定
 
-在 production environment 加入以下 secrets：
+**CF Pages（Traffic + FFXIV）**
 
-| Secret 名稱 | 說明 |
-|------------|------|
-| `GEMINI_API_KEY` | Gemini API 金鑰 |
-| `GMAIL_APP_PASSWORD` | Gmail 應用程式密碼（16 位數，格式：`xxxx xxxx xxxx xxxx`）|
-| `GMAIL_SENDER` | 你的 Gmail 地址（同時為收件者）|
-| `GEMINI_MODEL_NAME` | 選填，預設 `gemini-2.0-flash`，可改為 `gemini-2.5-flash` 等 |
+各建一個 Pages project，設定如下：
+
+| 設定 | Traffic | FFXIV |
+|------|---------|-------|
+| 連結 GitHub repo | ✓ | ✓ |
+| Build command | 留空 | 留空 |
+| Build output directory | `pages/traffic` | `pages/ffxiv` |
+
+> Pages project name 決定 `*.pages.dev` 網址，建立後無法更改，請謹慎命名。
+
+**CF Pages Function — API Binding**
+
+兩個 Pages 專案均需設定 Service Binding：
+
+Dashboard → Pages 專案 → Settings → Functions → Service bindings → Add:
+- Variable name: `API`
+- Service: 選擇 `garyu-news-scraper` Worker
+
+### 4. GitHub — 建立 Environment 並設定 Secrets / Variables
+
+前往 repo → Settings → Environments → New environment，命名為 `production`。
+
+#### Secrets（機敏，儲存後無法查看）
+
+| Secret | 說明 |
+|--------|------|
+| `GEMINI_API_KEY` | Gemini API 金鑰（[aistudio.google.com](https://aistudio.google.com)） |
 | `SUPABASE_URL` | Supabase project URL（`https://xxx.supabase.co`） |
-| `SUPABASE_SERVICE_ROLE_KEY` | **必備**：Supabase **service_role** key（Dashboard → Settings → API）。週報寫入與 Worker 皆需略過 RLS；勿用 anon key 當寫入金鑰 |
-| `SUPABASE_KEY` | 選填；僅在未設定 `SUPABASE_SERVICE_ROLE_KEY` 時作為後備（仍須為可寫入的金鑰，不可誤用 anon） |
-| `CLOUDFLARE_API_TOKEN` | GitHub Actions 部署 Worker 用 token |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account id |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service_role** key（Dashboard → Settings → API）。週報寫入與 Worker 均需略過 RLS，勿用 anon key |
+| `CLOUDFLARE_API_TOKEN` | 需有 `Cloudflare Pages:Edit` 與 `Workers Scripts:Edit` 權限 |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 
-#### Variables（非機敏設定，內容可見可編輯）
+#### Variables（可見可編輯）
 
-在 production environment 加入以下 variable：
+| Variable | 說明 |
+|----------|------|
+| `GEMINI_MODEL_NAME` | 模型 ID，例如 `gemini-2.0-flash`（建議存為 Variable 避免 log 遮罩） |
+| `SOURCES_TRAFFIC_YML` | `config/sources_traffic.yml` 的完整內容（見下方說明） |
+| `SOURCES_FFXIV_YML` | `config/sources_ffxiv.yml` 的完整內容（選填，不設定則跳過 FFXIV pipeline） |
+| `TRAFFIC_SITE_URL` | Traffic 前端網址，例如 `https://garyu-traffic-news.pages.dev` |
+| `FFXIV_SITE_URL` | FFXIV 前端網址，例如 `https://garyu-ffxiv-news.pages.dev` |
 
-| Variable 名稱 | 說明 |
-|--------------|------|
-| `SOURCES_TRAFFIC_YML` | `config/sources_traffic.yml` 的完整內容（見下方說明）|
+### 5. 設定來源 YAML
 
-> **Secrets vs Variables 的差別：**
-> Secrets 的值一旦儲存就無法再看到（只能覆蓋）；Variables 的值可以隨時查看和編輯，
-> 適合用來存放不含密碼的設定，例如 `config/sources_traffic.yml`。
+`config/sources_*.yml` 不進 git，改存在 GitHub Variables。每次 workflow 執行時自動還原為檔案。
 
-### 4. 設定 `SOURCES_TRAFFIC_YML` Variable
+複製範本內容：
+- `config/sources_traffic.example.yml` → 填入 `SOURCES_TRAFFIC_YML`
+- `config/sources_ffxiv.example.yml` → 填入 `SOURCES_FFXIV_YML`
 
-`config/sources_traffic.yml` 定義所有新聞來源，**不進 git**，改為存在 GitHub Variable 中。
-每次 workflow 執行時會自動把 variable 的內容寫成 `config/sources_traffic.yml` 檔案。
+**之後新增/停用來源**：Settings → Environments → production → 對應 Variable → 編輯儲存。
 
-**步驟：**
+### 6. 首次部署
 
-1. 複製 `sources_traffic.example.yml` 的內容（或參考下方格式）
-2. 前往 repo → **Settings → Environments → production → Environment variables → Add variable**
-3. Name 填 `SOURCES_TRAFFIC_YML`，Value 貼上 YAML 內容
-4. 儲存
+依序執行 GitHub Actions（手動觸發 workflow_dispatch）：
 
-**之後要新增/停用來源，只要：**
-
-Settings → Environments → production → `SOURCES_TRAFFIC_YML` → 鉛筆圖示編輯 → 儲存。
-下次 workflow 執行就自動生效，完全不需要動程式碼。
-
-### 5. 手動執行測試
-
-在 GitHub → **Actions → 台灣機車交通週報 → Run workflow**，
-觀察 log 確認最後出現 `信件寄送成功` 即完成設定。
+1. `Deploy Cloudflare Worker API` — 建立 Worker 並上傳 Secret
+2. `Garyu News Scraper 週報` — 執行完整 pipeline 並部署兩個 Pages
 
 ---
 
-## `config/sources_traffic.yml` 格式說明
+## 來源設定格式（`sources_*.yml`）
 
-`config/sources_traffic.yml` 支援三種 type，詳細欄位說明請見 `config/sources_traffic.example.yml`。
-
-### type: rss — RSS / Atom feed
+### type: rss
 
 ```yaml
-- name: Google News 機車交通      # 顯示在 log 與信件來源標籤
+- name: Google News 機車交通
   type: rss
-  enabled: true                   # false 可停用，不需要刪除
+  enabled: true
   url: "https://news.google.com/rss/search?q=機車+交通&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 ```
 
-- Google News RSS 支援 `site:` 運算子，可鎖定特定媒體，例如：
-  ```
-  q=機車+site:udn.com
-  ```
-- 主流新聞網 RSS（非 Google News）會用關鍵字二次過濾，Google News 不需要（query 已鎖定主題）。
-
-### type: ptt — PTT 看板爬蟲
+### type: ptt
 
 ```yaml
 - name: PTT/biker
   type: ptt
   enabled: true
-  board: biker          # 板名，注意大小寫（biker、SuperBike）
-  min_pushes: 5         # 只收推文數 >= 5 的文章；「爆」自動視為 10
+  board: biker       # 板名大小寫有別（biker、SuperBike）
+  min_pushes: 5      # 只收推文數 >= N 的文章
 ```
 
-- PTT 板名**大小寫有別**，例如 `SuperBike`（S 和 B 要大寫）。
-- `min_pushes` 可調整，發文較少的板可以設低一點（如 3）。
-
-### type: web — 網頁爬蟲
+### type: web
 
 ```yaml
 - name: 交通部
   type: web
   enabled: true
   url: "https://www.motc.gov.tw/ch/home.jsp?id=14&parentpath=0,2"
-  max_items: 10         # 最多抓幾筆命中關鍵字的連結
+  max_items: 10
 ```
 
-### 常用操作速查
+| 常用操作 | 方法 |
+|---------|------|
+| 停用來源 | `enabled: false` |
+| 新增 Google News 主題 | 複製 rss block，修改 `url` 的 `q=` 參數 |
+| 新增 PTT 看板 | 複製 ptt block，修改 `board` |
+| 調整推文門檻 | 修改 `min_pushes` |
 
-| 想做什麼 | 怎麼改 |
-|---------|-------|
-| 停用某來源 | `enabled: false` |
-| 新增 Google News 主題 | 複製任一 `type: rss` block，修改 `name` 和 `url` 的 query 參數 |
-| 新增 PTT 看板 | 複製任一 `type: ptt` block，修改 `name` 和 `board` |
-| 調整推文門檻 | 修改 `min_pushes` 數字 |
-| 新增官網爬蟲 | 複製任一 `type: web` block，修改 `name` 和 `url` |
+---
+
+## FFXIV 知識庫
+
+`knowledge-base.md` 提供術語對照表（JP → TW / EN），供 Gemini 分析時使用。格式說明見 `config/knowledge-base-template.md`。
+
+Pipeline 執行後若出現 `[KB MISS]` 日誌，代表出現未收錄術語。使用 `ffxiv-term-translator` subagent 查詢後，將新詞條加入 `knowledge-base.md`。
 
 ---
 
@@ -157,48 +188,56 @@ Settings → Environments → production → `SOURCES_TRAFFIC_YML` → 鉛筆圖
 # 安裝相依套件
 pip install -r requirements.txt
 
-# 複製 .env 範本並填入實際值
+# 複製並填寫環境變數
 cp .env.example .env
-# 編輯 .env，填入 GEMINI_API_KEY、GMAIL_APP_PASSWORD、GMAIL_SENDER
 
-# 複製 config/sources_traffic.yml 範本（或直接用 config/sources_traffic.example.yml 的內容）
+# 複製來源設定
 cp config/sources_traffic.example.yml config/sources_traffic.yml
-# 依需求編輯 config/sources_traffic.yml
+cp config/sources_ffxiv.example.yml config/sources_ffxiv.yml
 
-# 執行
+# 執行 pipeline
 python main.py
 
-# 啟動 Cloudflare Worker API（另一個終端）
-# 需先設定 workers/api 的本機環境變數
-npx wrangler dev workers/api/src/index.js
+# 啟動 Worker API（另一個終端）
+cd workers/api && npx wrangler dev
 ```
 
-`.env` 和 `config/sources_traffic.yml` 已在 `.gitignore` 中排除，不會被 commit。
+`.env` 和 `config/sources_*.yml` 已在 `.gitignore` 排除。
 
 ---
 
-## 檔案說明
+## 主要檔案
 
-| 檔案 | 說明 | 進 git？ |
-|------|------|---------|
-| `main.py` | 主程式入口 | ✅ |
-| `collector.py` | 多來源新聞抓取，由 `config/sources_traffic.yml` 驅動 | ✅ |
-| `filter.py` | 機車關鍵字過濾 + 去重複 | ✅ |
-| `analyzer.py` | Gemini API 摘要與深度分析 | ✅ |
-| `mailer.py` | HTML 信件組裝 + Gmail SMTP 寄送 | ✅ |
-| `requirements.txt` | Python 相依套件 | ✅ |
-| `.github/workflows/weekly.yml` | GitHub Actions 排程設定 | ✅ |
-| `config/sources_traffic.example.yml` | `config/sources_traffic.yml` 格式範本，含欄位說明 | ✅ |
-| `.env.example` | 本機測試環境變數範本 | ✅ |
-| `config/sources_traffic.yml` | 實際使用的來源設定（不進 git） | ❌ |
-| `.env` | 本機測試用的 API key / 密碼（不進 git） | ❌ |
+| 路徑 | 說明 |
+|------|------|
+| `main.py` | 入口（shim → `src/main.py`） |
+| `src/main.py` | 主程式：依序執行各 pipeline |
+| `src/collector.py` | 多來源新聞收集 |
+| `src/filter.py` | 新鮮度過濾 + 關鍵字過濾 + 去重 |
+| `src/analyzer.py` | Gemini AI 摘要與分析 |
+| `src/storage.py` | Supabase 讀寫 |
+| `src/publisher.py` | 靜態檔案輸出（feed.xml、week/*.html） |
+| `src/pipeline/traffic.py` | Traffic pipeline 設定 |
+| `src/pipeline/ffxiv.py` | FFXIV pipeline 設定 |
+| `knowledge-base.md` | FFXIV 術語對照表（JP/TW/EN） |
+| `workers/api/src/index.js` | CF Worker API（讀取 Supabase） |
+| `functions/api/[[path]].js` | CF Pages Function（代理 `/api/*` 至 Worker） |
+| `pages/traffic/index.html` | Traffic 前端（含深色模式、過時標記） |
+| `pages/ffxiv/index.html` | FFXIV 前端（含深色模式、過時標記） |
+| `config/sources_traffic.example.yml` | Traffic 來源設定範本 |
+| `config/sources_ffxiv.example.yml` | FFXIV 來源設定範本 |
+| `config/knowledge-base-template.md` | KB 詞條格式說明 |
+| `db/supabase_schema.sql` | 資料庫 schema |
+| `db/supabase_migrations/` | 增量 migration SQL |
+| `.github/workflows/weekly.yml` | 週報 pipeline + 部署 |
+| `.github/workflows/deploy-worker.yml` | Worker 手動部署 |
+| `.github/workflows/deploy-pages-traffic.yml` | Traffic Pages 快速部署（index.html 異動時） |
+| `.github/workflows/deploy-pages-ffxiv.yml` | FFXIV Pages 快速部署（index.html 異動時） |
 
 ---
 
 ## 注意事項
 
-- Gemini 免費 tier 每分鐘有請求數限制，程式已內建 2.5 秒間隔
-- 每次最多分析 30 篇文章（可在 `main.py` 調整 `filtered[:30]`）
-- GitHub Actions 免費方案每月 2,000 分鐘，本 job 每次約 5 分鐘，一年約用 260 分鐘
-- 切換 Gemini 模型不需改 code，在 GitHub Secrets 設定 `GEMINI_MODEL_NAME` 即可
-- 前端預設讀取 `/api/*`，Cloudflare Pages 需將 `/api/*` 路由到 Worker
+- Gemini 免費 tier 每分鐘有請求數限制，程式內建間隔避免 429
+- `SUPABASE_KEY` secret 為舊版後備，建議統一使用 `SUPABASE_SERVICE_ROLE_KEY`
+- Pipeline 執行失敗時可直接重跑 `workflow_dispatch`；新鮮度指紋去重會跳過已寫入 Supabase 的文章
