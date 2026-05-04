@@ -6,7 +6,7 @@ filter.py
 import hashlib
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -113,6 +113,93 @@ def _is_stale_article(article: dict) -> bool:
             pass
 
     return False
+
+
+# ── 跨週新鮮度過濾 ────────────────────────────────────────────
+
+FRESHNESS_THRESHOLD_DAYS = 30
+
+
+def _normalize_title_for_fingerprint(title: str) -> str:
+    return re.sub(r'[^\w一-鿿぀-ヿ]', '', title.lower().strip())
+
+
+def title_fingerprint(article: dict) -> str:
+    """sha256 of the article's normalized title — cross-week dedup signal."""
+    normalized = _normalize_title_for_fingerprint(article.get("title", ""))
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def _extract_url_date(url: str):
+    """Extract a publication date from common TW/JP news URL patterns. Returns datetime.date or None."""
+    m = re.search(r'/(\d{4})[/-](\d{2})[/-](\d{2})/', url)
+    if m:
+        try:
+            return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3))).date()
+        except ValueError:
+            pass
+    m = re.search(r'[/_-](\d{4})(\d{2})(\d{2})[/_.\-]', url)
+    if m:
+        try:
+            return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3))).date()
+        except ValueError:
+            pass
+    return None
+
+
+def _is_too_old_by_age(article: dict, threshold_days: int = FRESHNESS_THRESHOLD_DAYS):
+    """
+    Returns (True, reason) if the article exceeds the age threshold; (False, "") otherwise.
+    Google News: checks URL-embedded date. Direct RSS: checks pubDate.
+    Returns (False, "") when age cannot be determined — article is included (known limitation).
+    """
+    from email.utils import parsedate_to_datetime
+    link = article.get("link", "")
+    cutoff_date = (datetime.now(timezone.utc) - timedelta(days=threshold_days)).date()
+
+    if "news.google.com" in link:
+        extracted = _extract_url_date(link)
+        if extracted is None:
+            return False, ""
+        if extracted < cutoff_date:
+            return True, f"URL date: {extracted}"
+        return False, ""
+    else:
+        published = article.get("published", "")
+        if not published:
+            return False, ""
+        try:
+            pub_dt = parsedate_to_datetime(published)
+            if pub_dt.date() < cutoff_date:
+                return True, f"pubDate: {pub_dt.date()}"
+        except Exception:
+            pass
+        return False, ""
+
+
+def freshness_filter(
+    articles: list,
+    existing_fingerprints: set,
+    threshold_days: int = FRESHNESS_THRESHOLD_DAYS,
+) -> list:
+    """
+    Two-layer freshness filter (FR-001, FR-002, FR-003):
+      1. Cross-week fingerprint dedup: exclude if title fingerprint in existing_fingerprints
+      2. Age gate: exclude if article is older than threshold_days
+    Gracefully handles empty existing_fingerprints (Supabase failure path, FR-004).
+    """
+    result = []
+    for article in articles:
+        fp = title_fingerprint(article)
+        if fp in existing_fingerprints:
+            logger.info("跨週去重跳過：%s (fingerprint match)", article.get("title", "")[:50])
+            continue
+        too_old, reason = _is_too_old_by_age(article, threshold_days)
+        if too_old:
+            logger.info("過時文章跳過：%s (%s)", article.get("title", "")[:50], reason)
+            continue
+        result.append(article)
+    return result
 
 
 def filter_and_deduplicate(articles: list) -> list:
