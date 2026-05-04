@@ -114,17 +114,25 @@ async function supabaseGet(env, path, searchParams) {
   return res.json();
 }
 
-async function handleWeeks(env) {
+async function handleWeeks(env, url) {
   const params = new URLSearchParams();
-  params.set("select", "week_id,analysis");
+  params.set("select", "week_id,analysis,content_type");
   params.set("order", "week_id.desc");
+  const contentType = url.searchParams.get("content_type");
+  if (contentType && CONTENT_TYPE_VALUES.has(contentType)) {
+    params.set("content_type", `eq.${contentType}`);
+  }
   const rows = await supabaseGet(env, "articles", params);
   return jsonResponse(aggregateWeeks(rows));
 }
 
-async function handleTags(env) {
+async function handleTags(env, url) {
   const params = new URLSearchParams();
-  params.set("select", "analysis");
+  params.set("select", "analysis,content_type");
+  const contentType = url.searchParams.get("content_type");
+  if (contentType && CONTENT_TYPE_VALUES.has(contentType)) {
+    params.set("content_type", `eq.${contentType}`);
+  }
   const rows = await supabaseGet(env, "articles", params);
   return jsonResponse(aggregateTags(rows));
 }
@@ -205,10 +213,10 @@ export default {
       }
 
       if (url.pathname === "/api/weeks") {
-        return await handleWeeks(env);
+        return await handleWeeks(env, url);
       }
       if (url.pathname === "/api/tags") {
-        return await handleTags(env);
+        return await handleTags(env, url);
       }
       if (parts.length === 4 && parts[1] === "api" && parts[2] === "weeks") {
         const weekId = decodeURIComponent(parts[3]);

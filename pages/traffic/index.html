@@ -224,7 +224,7 @@ const srcLabel = s => s.startsWith('Google News') ? 'Google News' : s;
 // ── 初始化 ────────────────────────────────────────────────────
 async function init() {
   // 載入週別索引
-  const res = await fetch(`${API_BASE}/weeks`).catch(() => null);
+  const res = await fetch(`${API_BASE}/weeks?content_type=traffic`).catch(() => null);
   if (!res || !res.ok) { $('article-list').innerHTML = '<div class="empty"><h3>尚無資料</h3><p>請等待第一次週報產生</p></div>'; return; }
   allWeeks = await res.json();
 
@@ -232,7 +232,7 @@ async function init() {
   if (allWeeks.length) await loadWeek(allWeeks[0].week_id);
 
   // 載入標籤庫
-  const tRes = await fetch(`${API_BASE}/tags`).catch(() => null);
+  const tRes = await fetch(`${API_BASE}/tags?content_type=traffic`).catch(() => null);
   if (tRes && tRes.ok) {
     const tData = await tRes.json();
     renderTagBar(tData);
@@ -259,6 +259,7 @@ function renderWeekNav() {
 async function loadWeek(weekId) {
   currentWeekId = weekId;
   const params = new URLSearchParams();
+  params.set('content_type', 'traffic');
   if (activeImp !== 'all') params.set('importance', activeImp);
   if (activeTag) params.set('tag', activeTag);
   if (activeQuery) params.set('q', activeQuery);
