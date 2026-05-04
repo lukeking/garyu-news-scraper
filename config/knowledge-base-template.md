@@ -1,31 +1,36 @@
-# FFXIV Knowledge Base Template (V1.0)
-*此文件為 Agent 擴展知識庫時必須遵循的抽象格式。*
+# FFXIV Knowledge Base — Entry Format Reference
 
-## 1. 術語定義格式 (Glossary Entry Format)
-所有新增術語必須包含以下欄位，以確保多語系定錨：
+`knowledge-base.md` is parsed by `src/analyzer.py:load_knowledge_base()` as a **5-column pipe table**.
+Every entry must follow this exact format:
 
 ```markdown
-### [中文統一術語]
-- **EN**: [English Term]
-- **JP**: [日本語用語]
-- **Category**: [Job / Skill / System / Zone]
-- **Description**: [簡短的功能描述，用於 AI 摘要時的背景參考]
-- **Source**: [來源 URL 或 Wiki 連結]
+| JP Term | TW Term | EN Term | Category | Notes |
+|---------|---------|---------|----------|-------|
+| [lookup key] | [TW official/colloquial] | [EN term] | [Category] | [optional context] |
 ```
 
-## 2. 職業縮寫規範
-- 輸出週報時，優先使用「中文名稱 (縮寫)」格式。
-- 例如：`吟遊詩人 (BRD)`, `武僧 (MNK)`。
+## Column Rules
 
-## 3. 數據定錨原則
-- **Potency (威力)**: 必須保留數值變化（例如：500 -> 520）。
-- **Cooldown (冷卻時間)**: 統一使用「秒」作為單位。
+| Column | Description |
+|--------|-------------|
+| **JP Term** | The lookup key — exact form from the source (kanji, katakana, EN abbreviation, or EN full name). Must be unique within the file. |
+| **TW Term** | Official TW localization or dominant TW community colloquial term |
+| **EN Term** | English name (use official EN localization) |
+| **Category** | One of the valid values below |
+| **Notes** | Optional — version, source, alternative names, or usage notes |
 
-## 4. 排除詞彙清單 (Exclusion Filter)
-Agent 在摘要時應主動過濾以下無意義內容：
-- 社交辭令 (如：お疲れ様です, 感謝開發組)
-- 非技術性的玩家抱怨或情緒抒發。
-```
+## Valid Category Values
 
----
-*維護提醒：Agent 發現缺漏並完成檢索後，應依照此格式附加於 knowledge-base.md 末尾。*
+`遊戲`、`資料片`、`資料片縮寫`、`副本`、`副本縮寫`、`職能`、`職業`、`技能`、`道具`、`貨幣`、`地區`、`系統`、`機制`
+
+## Adding Entries
+
+- Add under the appropriate `## Section` heading in `knowledge-base.md`
+- One row per lookup key form — if a term has a full name AND an abbreviation, add both rows
+- Use the `ffxiv-term-translator` subagent to resolve unknown terms; it produces ready-to-paste rows
+
+## Exclusion Filter (analyzer behavior)
+
+The analyzer skips terms it cannot find in the KB and logs `[KB MISS]`. Use those logs as your input queue for new KB entries.
+
+社交辭令 (e.g., お疲れ様です), non-technical player venting, and generic phrases do not need KB entries.
