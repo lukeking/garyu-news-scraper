@@ -232,3 +232,18 @@ sources_ffxiv.yml
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Pipeline-generated site artifacts (deployed to CF Pages directly from CI runner)
+pages/traffic/data/
+pages/traffic/feed.xml
+pages/traffic/pagefind/
+pages/traffic/week/
+pages/traffic/.nojekyll
+pages/ffxiv/data/
+pages/ffxiv/feed.xml
+pages/ffxiv/pagefind/
+pages/ffxiv/week/
+pages/ffxiv/.nojekyll
+
+# Runtime logs
+logs/
