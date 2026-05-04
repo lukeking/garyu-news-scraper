@@ -1,4 +1,4 @@
-name: Deploy Cloudflare Pages
+name: Deploy Cloudflare Pages (Traffic)
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     branches: [ main ]
     paths:
       - "pages/traffic/**"
-      - ".github/workflows/deploy-pages.yml"
+      - ".github/workflows/deploy-pages-traffic.yml"
 
 permissions:
   contents: read
@@ -19,10 +19,10 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
-      - name: Deploy to Cloudflare Pages
+      - name: Deploy to Cloudflare Pages (Traffic)
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: traffic-issue-scraper
+          projectName: garyu-traffic-news
           directory: pages/traffic
