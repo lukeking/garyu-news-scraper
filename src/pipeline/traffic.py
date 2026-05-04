@@ -1,4 +1,7 @@
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 
 class TrafficCategory:
@@ -15,8 +18,16 @@ class TrafficCategory:
         return collect_by_type("traffic")
 
     def filter(self, raw: list) -> list:
-        from src.filter import filter_and_deduplicate
-        return filter_and_deduplicate(raw)[:self.max_articles]
+        from src.filter import freshness_filter, filter_and_deduplicate
+        from src.storage import get_existing_title_fingerprints, is_configured
+        existing_fps: set = set()
+        if is_configured():
+            try:
+                existing_fps = get_existing_title_fingerprints()
+            except Exception as e:
+                logger.warning("[%s] 跨週指紋查詢失敗，略過：%s", self.name, e)
+        after_freshness = freshness_filter(raw, existing_fps)
+        return filter_and_deduplicate(after_freshness)[:self.max_articles]
 
     def analyze(self, articles: list) -> list:
         from src.analyzer import analyze_all

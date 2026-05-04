@@ -11,7 +11,7 @@ import hashlib
 import os
 import re
 import logging
-from typing import Optional, Tuple
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,33 @@ def stable_synthetic_link(week_id: str, article: dict) -> Tuple[str, str]:
     fp = content_fingerprint_for_article(article)
     link = f"urn:traffic-issue-scraper:{week_id}:{fp}"
     return link, fp
+
+
+def _title_fingerprint(title: str) -> str:
+    """sha256 of normalized title — cross-week dedup signal stored in content_fingerprint column."""
+    normalized = re.sub(r'[^\w一-鿿぀-ヿ]', '', title.lower().strip())
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def get_existing_title_fingerprints() -> set:
+    """
+    Fetch all title fingerprints from Supabase for cross-week dedup.
+    Returns empty set if Supabase is not configured or the query fails (FR-004).
+    """
+    if not is_configured():
+        return set()
+    try:
+        client = _get_client()
+        resp = (
+            client.table("articles")
+            .select("content_fingerprint")
+            .not_.is_("content_fingerprint", "null")
+            .execute()
+        )
+        return {row["content_fingerprint"] for row in (resp.data or [])}
+    except Exception as e:
+        logger.warning("跨週指紋查詢失敗：%s", e)
+        return set()
 
 
 def supabase_api_key() -> str:
@@ -104,9 +131,8 @@ def upsert_articles(articles: list, week_id: str) -> int:
     for a in articles:
         analysis = a.get("analysis", {})
         link = (a.get("link") or "").strip()
-        fingerprint: Optional[str] = None
         if not link:
-            link, fingerprint = stable_synthetic_link(week_id, a)
+            link, _ = stable_synthetic_link(week_id, a)
             logger.warning("文章無有效 link，使用指紋占位鍵：%s…", link[:56])
         rows.append({
             "week_id": week_id,
@@ -116,7 +142,7 @@ def upsert_articles(articles: list, week_id: str) -> int:
             "published": a.get("published", ""),
             "summary": analysis.get("summary", ""),
             "analysis": analysis,
-            "content_fingerprint": fingerprint,
+            "content_fingerprint": _title_fingerprint(a.get("title", "")),
             "content_type": a.get("content_type", "traffic"),
         })
 

@@ -142,7 +142,14 @@ def _escape_xml(text: str) -> str:
             .replace('"', "&quot;"))
 
 
-def build_feed(all_weeks_articles: list, week_id: str, docs_dir: Path, site_url: str):
+def build_feed(
+    all_weeks_articles: list,
+    week_id: str,
+    docs_dir: Path,
+    site_url: str,
+    feed_title: str = "台灣機車交通週報",
+    feed_description: str = "每週自動彙整台灣機車交通相關新聞，含 AI 摘要與深度分析",
+):
     """產生 RSS feed（最新 3 週的文章）"""
     now_rfc = _now_tw().strftime("%a, %d %b %Y %H:%M:%S +0800")
 
@@ -170,9 +177,9 @@ def build_feed(all_weeks_articles: list, week_id: str, docs_dir: Path, site_url:
     feed = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
-  <title>台灣機車交通週報</title>
+  <title>{_escape_xml(feed_title)}</title>
   <link>{site_url}</link>
-  <description>每週自動彙整台灣機車交通相關新聞，含 AI 摘要與深度分析</description>
+  <description>{_escape_xml(feed_description)}</description>
   <language>zh-tw</language>
   <lastBuildDate>{now_rfc}</lastBuildDate>
   <atom:link href="{site_url}/feed.xml" rel="self" type="application/rss+xml"/>
@@ -329,7 +336,13 @@ def build_week_html(articles: list, week_id: str, docs_dir: Path, week_dir: Path
 
 # ── 主入口 ────────────────────────────────────────────────────
 
-def publish(articles: list, output_dir: str = "pages/traffic", site_url: str = None):
+def publish(
+    articles: list,
+    output_dir: str = "pages/traffic",
+    site_url: str = None,
+    feed_title: str = "台灣機車交通週報",
+    feed_description: str = "每週自動彙整台灣機車交通相關新聞，含 AI 摘要與深度分析",
+):
     """
     articles: 已分析完的文章列表（含 analysis.tags）
     output_dir: 相對於 repo root 的輸出目錄（預設 pages/traffic）
@@ -361,7 +374,7 @@ def publish(articles: list, output_dir: str = "pages/traffic", site_url: str = N
         wdata = _load_json(data_dir / f"{wid}.json", {})
         recent_articles.extend(wdata.get("articles", []))
 
-    build_feed(recent_articles, week_id, docs_dir, resolved_site_url)
+    build_feed(recent_articles, week_id, docs_dir, resolved_site_url, feed_title, feed_description)
     build_week_html(articles, week_id, docs_dir, week_dir)
 
     logger.info("=== 發布完成（%s），week_id=%s ===", output_dir, week_id)
