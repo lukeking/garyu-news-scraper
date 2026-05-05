@@ -6,6 +6,14 @@
 
 ## Clarifications
 
+### Session 2026-05-05
+
+- Q: When should KB miss re-resolution be triggered? → A: Automatic on next pipeline run + a dedicated GitHub Actions workflow triggered when `knowledge-base.md` is pushed to `main`.
+- Q: Which articles should the re-resolution job target? → A: Only articles in Supabase that contain at least one `[[term]]` marker (targeted, idempotent).
+- Q: What does re-resolution do to each article? → A: KB string replacement only — look up each `[[term]]` in the updated KB and substitute the TW term; no AI re-call. If a term is still absent, re-raise the KB MISS warning in the same format as the main pipeline.
+- Q: How frequently does the re-resolution job run? → A: Triggered automatically by a GitHub Actions workflow on push to `main` when `knowledge-base.md` changes — not on a time schedule.
+- Q: Does fixing Supabase require a Cloudflare Pages redeploy? → A: No — pages are served dynamically by a Worker API querying Supabase; a DB update is sufficient.
+
 ### Session 2026-05-04
 
 - Q: Should dismissed-article state be stored in the database? → A: No — dismissed state stays in localStorage (per-device). Pipeline handles automatic filtering instead.
@@ -98,6 +106,25 @@ A reader wants to subscribe to the FFXIV weekly report via RSS.
 
 ---
 
+### User Story 6 - KB Miss Re-Resolution Job (Priority: P2)
+
+After a contributor updates `knowledge-base.md` to resolve flagged terms, the pipeline operator wants previously-collected articles that contain `[[term]]` placeholders to be automatically updated in Supabase — without waiting for the next weekly run and without any AI or scraping cost.
+
+**Why this priority**: `[[term]]` markers in live articles degrade output quality. The weekly pipeline cadence means markers can persist for up to 7 days without this mechanism. Since the Worker API serves data dynamically, a Supabase update is immediately visible to readers.
+
+**Independent Test**: Merge a PR adding a previously-flagged term to `knowledge-base.md`; within one GH Actions run, all Supabase articles that contained `[[that-term]]` must have the marker replaced with the correct TW term.
+
+**Acceptance Scenarios**:
+
+1. **Given** `knowledge-base.md` is updated on `main`, **When** the GH Actions workflow triggers, **Then** it queries Supabase for all articles containing any `[[term]]` marker.
+2. **Given** a `[[term]]` matches a newly-added KB entry, **When** the job processes that article, **Then** the placeholder is replaced with the KB's TW term and the Supabase record is updated in place.
+3. **Given** a `[[term]]` is still absent from the updated KB, **When** the job processes that article, **Then** the placeholder is left unchanged and a KB MISS warning is emitted in the same format as the main pipeline.
+4. **Given** no articles contain `[[term]]` markers, **When** the workflow triggers, **Then** it exits cleanly with no updates.
+5. **Given** a Supabase update fails for one article, **When** the job continues, **Then** the failure is logged, the remaining articles are still processed, and the failed article retains its `[[term]]` marker for the next cycle.
+6. **Given** the job completes, **When** a reader loads the page, **Then** the resolved terms are immediately visible — no CF Pages redeploy required.
+
+---
+
 ### Edge Cases
 
 - What if the Supabase query fails? → Pipeline continues using only the URL-date age filter; a warning is logged. No crash.
@@ -106,6 +133,10 @@ A reader wants to subscribe to the FFXIV weekly report via RSS.
 - What if localStorage is unavailable? → Dismiss hides the card for the session only; no error shown.
 - What if the FFXIV pipeline produces no articles? → `feed.xml` is still generated with no `<item>` elements.
 - What if the user's OS theme preference changes after the page loads? → No auto-update; only the toggle or a fresh page load re-evaluates.
+- What if `knowledge-base.md` changes but no articles have `[[term]]` markers? → Re-resolution job exits cleanly with no DB writes.
+- What if a `[[term]]` appears in multiple articles? → Each article is updated independently in the same job run.
+- What if the Supabase update fails mid-job? → Log the error, continue processing remaining articles; failed articles retain `[[term]]` markers and will be retried on the next KB push.
+- What if a term is partially resolvable (some `[[term]]` markers in an article resolved, others not)? → Apply all resolvable replacements, leave unresolvable markers, emit KB MISS for the unresolved subset only.
 
 ## Requirements *(mandatory)*
 
@@ -125,6 +156,10 @@ A reader wants to subscribe to the FFXIV weekly report via RSS.
 - **FR-012**: Article date labels MUST read "收錄時間" on both the traffic and FFXIV sites.
 - **FR-013**: The FFXIV weekly pipeline MUST generate `pages/ffxiv/feed.xml` in valid RSS 2.0 format.
 - **FR-014**: The FFXIV site header MUST include an RSS subscription link pointing to `feed.xml`.
+- **FR-015**: A GitHub Actions workflow MUST trigger automatically when `knowledge-base.md` is pushed to `main`; it MUST query Supabase for all articles whose content contains at least one `[[term]]` marker.
+- **FR-016**: For each resolvable `[[term]]` (term present in the updated KB), the job MUST replace the placeholder with the KB's TW term and update the Supabase record in place; no AI call or HTTP scrape is permitted.
+- **FR-017**: For each `[[term]]` still absent from the updated KB after the re-resolution pass, the job MUST emit a KB MISS warning in the same log format as the main pipeline.
+- **FR-018**: The re-resolution job MUST NOT trigger a Cloudflare Pages redeploy; the Worker API serves article data dynamically from Supabase, so a DB update is sufficient for readers to see the resolved terms immediately.
 
 ### Key Entities
 
@@ -132,6 +167,7 @@ A reader wants to subscribe to the FFXIV weekly report via RSS.
 - **DismissedArticle**: An article URL stored in the browser's local storage per site; cleared via "清除過時標記". No server-side representation.
 - **ThemePreference**: A `light` | `dark` value in the browser's local storage; applied on every page load.
 - **FFXIVFeed**: An RSS 2.0 document generated by the weekly pipeline, analogous to the existing traffic feed.
+- **KBReResolutionJob**: A GitHub Actions workflow triggered on push to `main` when `knowledge-base.md` changes; queries Supabase for all articles containing `[[term]]` markers, performs KB string replacement for each resolvable term, and emits KB MISS warnings for terms still absent.
 
 ## Success Criteria *(mandatory)*
 
@@ -144,6 +180,7 @@ A reader wants to subscribe to the FFXIV weekly report via RSS.
 - **SC-005**: Theme preference persists across browser sessions on the same device.
 - **SC-006**: All date displays on both sites carry the "收錄時間" label — zero unlabelled dates.
 - **SC-007**: `pages/ffxiv/feed.xml` is present and parseable by a standard feed reader after the next weekly run.
+- **SC-008**: Within one GH Actions run after a KB update, all Supabase articles referencing the newly-added term have `[[term]]` replaced with the correct TW value — verified by querying Supabase before and after the workflow run.
 
 ## Assumptions
 

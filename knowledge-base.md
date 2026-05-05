@@ -146,6 +146,27 @@
 | Duty Support | 信賴系統 | Duty Support | 功能 | EN 直查 |
 | Party Finder | 招募板 | Party Finder | 功能 | EN 直查 |
 
+## 系統與公告 / System & Announcements
+
+| JP Term | TW Term | EN Term | Category | Notes |
+|---------|---------|---------|----------|-------|
+| お知らせ | 公告 | Notice | 公告 | 官方訊息發佈；遊戲內公告系統 |
+| フォーラム | 論壇 | Forum | 公告 | Lodestone 論壇或官方討論區 |
+| 報告 | 回報 | Report | 公告 | 玩家回報問題或舉報 |
+| メンテナンス | 維護 | Maintenance | 系統 | 伺服器定期維護時間 |
+| メンテナンス作業 | 維護作業 | Maintenance Work | 系統 | 進行中的維護作業 |
+| 障害発生 | 障礙發生 | Service Disruption | 系統 | 伺服器故障或服務中斷 |
+| 対応・確認中 | 處理中・確認中 | Under Investigation | 系統 | 官方正在處理或確認問題中 |
+| 不具合 | 不具合 | Bug / Issue | 系統 | 遊戲缺陷或已知問題；TW 玩家常直接用「bug」 |
+| エラー | 錯誤 | Error | 系統 | 系統錯誤或異常 |
+| ランチャー | 啟動程式 | Launcher | 系統 | FFXIV 遊戲啟動器 |
+| アプリ | 應用程式 | App | 系統 | 行動應用或軟體應用程式 |
+| アプリ削除 | 應用程式刪除 | App Deletion | 系統 | 移除行動應用或程式 |
+| ソフトウェアトークン | 軟體令牌 | Software Token | 系統 | 雙重認證工具；TW 玩家常說「認証器」或「OTP app」 |
+| 各種認証アプリ | 各種認証應用 | Various Authentication Apps | 系統 | 支援多種雙重認證應用 |
+| 機種変更 | 裝置變更 | Device Change | 系統 | 變更帳號綁定的裝置；常見於雙重認證語境 |
+| コンテンツワールド | 資料世界 | Content World | 系統 | 跨世界副本配對的世界頻道 |
+
 ## 社交 / Social
 
 | JP Term | TW Term | EN Term | Category | Notes |
@@ -185,6 +206,10 @@
 
 | JP Term | TW Term | EN Term | Category | Notes |
 |---------|---------|---------|----------|-------|
+| ヒルディブランド | 希爾迪布蘭德 | Hildibrand | 角色 | 紳士偵探；跨多資料片的喜劇支線主角；因同名任務系列「事件屋」而被 TW 玩家簡稱「事件屋」 |
+| Hildibrand | 希爾迪布蘭德 | Hildibrand | 角色 | EN 直查 |
+| ヒルディブランド冒険譚 | 事件屋 | Hildibrand Adventures | 副本 | 以 Hildibrand 為主角的系列支線任務；TW 官方名稱「事件屋」 |
+| Hildibrand Adventures | 事件屋 | Hildibrand Adventures | 副本 | EN 直查 |
 | エスティニアン | 艾斯蒂尼安 | Estinien | 角色 | 龍騎士 NPC；蒼穹騎士 |
 | Alisaie | 阿莉澤 | Alisaie | 角色 | 雙生子之一（Scions of the Seventh Dawn）；EN 直查 |
 | Alisae | 阿莉澤 | Alisaie | 角色 | Reddit 常見拼法變體 |
