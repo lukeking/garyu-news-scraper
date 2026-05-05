@@ -348,13 +348,9 @@ FETCHERS = {
 }
 
 
-def collect_all() -> list:
-    logger.info("=== 開始收集新聞 ===")
-    traffic_sources = load_sources()
-    ffxiv_sources = load_ffxiv_sources()
+def collect_sources(sources: list) -> list:
     all_articles = []
-
-    for source in traffic_sources + ffxiv_sources:
+    for source in sources:
         stype = source.get("type", "")
         fetcher = FETCHERS.get(stype)
         if not fetcher:
@@ -363,11 +359,5 @@ def collect_all() -> list:
         articles = fetcher(source)
         all_articles.extend(articles)
         time.sleep(1)
-
-    logger.info("=== 收集完成，共 %d 筆（去重前）===", len(all_articles))
+    logger.info("收集完成，共 %d 筆（去重前）", len(all_articles))
     return all_articles
-
-
-def collect_by_type(content_type: str) -> list:
-    """回傳 collect_all() 中符合指定 content_type 的文章"""
-    return [a for a in collect_all() if a.get("content_type", "traffic") == content_type]

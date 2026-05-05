@@ -14,8 +14,8 @@ class TrafficCategory:
                 "https://lukeking.github.io/traffic-issue-scraper")
 
     def collect(self) -> list:
-        from src.collector import collect_by_type
-        return collect_by_type("traffic")
+        from src.collector import load_sources, collect_sources
+        return collect_sources(load_sources())
 
     def filter(self, raw: list) -> list:
         from src.filter import freshness_filter, filter_and_deduplicate
