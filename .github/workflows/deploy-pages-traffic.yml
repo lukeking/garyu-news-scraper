@@ -19,6 +19,11 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
+      - name: 複製共用靜態資源至各站台目錄
+        run: |
+          cp pages/shared/app.js pages/traffic/app.js
+          cp pages/shared/shared.css pages/traffic/shared.css
+
       - name: Deploy to Cloudflare Pages (Traffic)
         uses: cloudflare/pages-action@v1
         with:
