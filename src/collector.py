@@ -130,13 +130,22 @@ def _entry_to_dict(entry, source_name: str, content_type: str = "traffic") -> di
 
 
 def _fetch_rss_bytes(url: str) -> bytes:
-    """用 requests 完整下載 RSS，再交給 feedparser 解析，避免 IncompleteRead。"""
+    """用 requests 完整下載 RSS，再交給 feedparser 解析，避免 IncompleteRead。
+    遇到 429 時依 Retry-After（或指數退避）重試，最多 3 次。"""
     rss_headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; FeedFetcher/1.0)",
+        "User-Agent": "GaryuNewsBot/1.0 (+mailto:lukeking0325@gmail.com)",
         "Accept": "application/rss+xml, application/xml, text/xml, */*",
         "Accept-Encoding": "gzip, deflate",
     }
-    resp = requests.get(url, headers=rss_headers, timeout=20)
+    for attempt in range(3):
+        resp = requests.get(url, headers=rss_headers, timeout=20)
+        if resp.status_code == 429:
+            wait = int(resp.headers.get("Retry-After", 2 ** (attempt + 2)))
+            logger.warning("429 from %s，%d 秒後重試（第 %d 次）", url, wait, attempt + 1)
+            time.sleep(wait)
+            continue
+        resp.raise_for_status()
+        return resp.content
     resp.raise_for_status()
     return resp.content
 
