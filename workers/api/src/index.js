@@ -46,6 +46,7 @@ function normalizeRow(row) {
       summary: analysis.summary || row.summary || "",
       analysis: analysis.analysis || "",
       tags: Array.isArray(analysis.tags) ? analysis.tags : [],
+      location: analysis.location || "",
     },
   };
 }

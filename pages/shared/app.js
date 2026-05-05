@@ -202,15 +202,19 @@ function articleCard(a, idx) {
   const tags = an.tags || [];
   const color = imp === '高' ? 'var(--high)' : imp === '中' ? 'var(--mid)' : 'var(--low)';
   const src = a.source || '';
+  const lang = C.sourceLang && C.sourceLang[src];
   const tagHtml = tags.map(t =>
     `<span class="article-tag" onclick="filterTag('${t}')">${t}</span>`
   ).join('');
+  const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
   return `
 <div class="card card-${imp}" data-url="${a.link}">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-${imp}">${IMP_DOT[imp] || ''} ${imp}重要</span>
       <span class="source-badge" style="background:${C.srcColor(src)}">${C.srcLabel(src)}</span>
+      ${lang ? `<span class="lang-badge">${lang}</span>` : ''}
+      ${an.location && an.location !== '不明' ? `<span class="location-badge">📍 ${an.location}</span>` : ''}
       ${a.published ? `<span class="pub-date">發布時間 ${new Date(a.published).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>` : ''}
     </div>
     <a class="card-title" href="${a.link}" target="_blank" rel="noopener">${idx}. ${a.title}</a>
@@ -225,6 +229,7 @@ function articleCard(a, idx) {
   <div class="card-footer">
     <span class="reason-text">💡 ${an.importance_reason || ''}</span>
     <div style="display:flex;gap:8px;align-items:center;">
+      ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a>` : ''}
       <a class="read-more" href="${a.link}" target="_blank" rel="noopener" style="color:${color}">閱讀原文 →</a>
       <button class="dismiss-btn" data-url="${a.link}" onclick="dismissArticle(this)">標記過時</button>
     </div>

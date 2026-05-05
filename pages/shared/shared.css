@@ -91,6 +91,15 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
   font-size: 11px; font-weight: 600; color: #fff;
 }
 .pub-date { color: var(--text-muted); font-size: 12px; }
+.lang-badge {
+  font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+  background: var(--border); color: var(--text-secondary); letter-spacing: 0.3px;
+}
+.location-badge { color: var(--text-secondary); font-size: 12px; }
+.line-share {
+  font-size: 11px; font-weight: 700; text-decoration: none; padding: 2px 8px;
+  border-radius: 4px; background: #06C755; color: #fff; white-space: nowrap;
+}
 .card-title { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; line-height: 1.5; display: block; }
 .card-title:hover { color: var(--accent2); }
 

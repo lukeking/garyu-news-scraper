@@ -67,6 +67,7 @@ ANALYSIS_PROMPT_TEMPLATE = """以下是一則台灣交通相關新聞：
 重要性原因：一句話說明為何如此評定（同一行寫完）
 標籤：從以下選項中選2到4個最相關的標籤，用逗號分隔，也可加入未列出但更精確的標籤（同一行寫完）
 可選標籤：{available_tags}
+地區：填入最相關的地理標籤，如「台北市」「新北市」「台中市」「高雄市」「全台」「不明」（只填一個，同一行寫完）
 
 ---
 重要性評定標準（請嚴格遵守，預期分布約：高 30%、中 50%、低 20%）：
@@ -299,6 +300,7 @@ def _parse_response(text):
         "importance": "中",
         "importance_reason": "",
         "tags": [],
+        "location": "",
     }
 
     for line in text.splitlines():
@@ -316,13 +318,15 @@ def _parse_response(text):
         elif line.startswith("標籤："):
             raw_tags = line[3:].strip()
             result["tags"] = [t.strip() for t in raw_tags.replace("、", ",").replace("，", ",").split(",") if t.strip()]
+        elif line.startswith("地區："):
+            result["location"] = line[3:].strip()
 
     # fallback：分析欄位多行合併
     if not result["analysis"]:
         lines = text.splitlines()
         collecting = False
         buf = []
-        known_tags = ("摘要：", "重要性：", "重要性原因：")
+        known_tags = ("摘要：", "重要性：", "重要性原因：", "地區：")
         for line in lines:
             line = line.strip()
             if line.startswith("分析："):
@@ -342,7 +346,7 @@ def _parse_response(text):
         lines = text.splitlines()
         collecting = False
         buf = []
-        known_tags = ("分析：", "重要性：", "重要性原因：")
+        known_tags = ("分析：", "重要性：", "重要性原因：", "地區：")
         for line in lines:
             line = line.strip()
             if line.startswith("摘要："):
