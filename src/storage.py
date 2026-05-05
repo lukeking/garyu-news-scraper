@@ -139,7 +139,7 @@ def upsert_articles(articles: list, week_id: str) -> int:
             "title": a.get("title", ""),
             "link": link,
             "source": a.get("source", ""),
-            "published": a.get("published", ""),
+            "published": a.get("published") or None,
             "summary": analysis.get("summary", ""),
             "analysis": analysis,
             "content_fingerprint": _title_fingerprint(a.get("title", "")),
