@@ -12,8 +12,8 @@ class FFXIVCategory:
     site_url = os.environ.get("FFXIV_SITE_URL", "https://garyu-ffxiv-news.pages.dev")
 
     def collect(self) -> list:
-        from src.collector import collect_by_type
-        return collect_by_type("ffxiv")
+        from src.collector import load_ffxiv_sources, collect_sources
+        return collect_sources(load_ffxiv_sources())
 
     def filter(self, raw: list) -> list:
         from src.filter import freshness_filter, filter_and_deduplicate
