@@ -53,7 +53,9 @@ function compareArticle(a, b) {
   const orderA = IMPORTANCE_ORDER[a.analysis?.importance || "中"] ?? 1;
   const orderB = IMPORTANCE_ORDER[b.analysis?.importance || "中"] ?? 1;
   if (orderA !== orderB) return orderA - orderB;
-  return (a.published || "").localeCompare(b.published || "");
+  const ta = a.published ? new Date(a.published).getTime() : 0;
+  const tb = b.published ? new Date(b.published).getTime() : 0;
+  return ta - tb;
 }
 
 function aggregateWeeks(rows) {
