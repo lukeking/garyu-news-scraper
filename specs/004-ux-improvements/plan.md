@@ -41,6 +41,22 @@ is fresh.
 - Display: small muted line in the week header, e.g. "最後更新：3 小時前"
 - Use `Intl.RelativeTimeFormat` for human-readable relative time in viewer's locale
 
+### P1-D: Filter stat box behaviour
+Two connected UX complaints from user testing:
+
+1. **Visual hierarchy confusion** — the stat boxes (高/中/低 with large numbers)
+   feel more prominent than the small filter pill buttons above them, making the
+   hierarchy feel backwards
+2. **0-count boxes when filtered** — when 高 is selected, the API returns only 高
+   articles; `renderStats()` then renders 中(0) and 低(0) prominently, which looks
+   like there are no 中/低 articles at all rather than "filtered out"
+
+Fix:
+- In `renderStats()`, when `activeImp !== 'all'`, hide stat boxes whose count
+  is 0 — only the selected importance box and the total "本頁顯示" box remain
+- The surviving stat box naturally acts as a result header matching the active
+  filter, resolving the hierarchy confusion without any size changes
+
 **Deliverables**: changes to both `index.html` files only. No backend, no worker.
 
 ---
