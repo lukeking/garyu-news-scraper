@@ -429,7 +429,7 @@ function articleCard(a, idx) {
     <div class="card-meta">
       <span class="importance-badge imp-${imp}">${IMP_DOT[imp] || ''} ${imp}重要</span>
       <span class="source-badge" style="background:${srcColor(src)}">${src}</span>
-      ${a.published ? `<span class="pub-date">收錄時間 ${a.published}</span>` : ''}
+      ${a.published ? `<span class="pub-date">發布時間 ${new Date(a.published).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>` : ''}
     </div>
     <a class="card-title" href="${a.link}" target="_blank" rel="noopener">${idx}. ${a.title}</a>
   </div>
