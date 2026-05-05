@@ -12,7 +12,7 @@ import requests
 import yaml
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin
 import time
 import logging
 import os
@@ -152,12 +152,7 @@ def _fetch_rss_bytes(url: str) -> bytes:
 
 def _abs_url(href: str, base_url: str) -> str:
     """將相對路徑轉為絕對 URL。"""
-    if href.startswith("http"):
-        return href
-    if href.startswith("/"):
-        parsed = urlparse(base_url)
-        return f"{parsed.scheme}://{parsed.netloc}{href}"
-    return href
+    return urljoin(base_url, href)
 
 
 # ── 各 type 抓取函式 ──────────────────────────────────────────
