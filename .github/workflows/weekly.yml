@@ -101,6 +101,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
+      - name: 複製共用靜態資源至各站台目錄
+        run: |
+          cp pages/shared/app.js pages/traffic/app.js
+          cp pages/shared/app.js pages/ffxiv/app.js
+          cp pages/shared/shared.css pages/traffic/shared.css
+          cp pages/shared/shared.css pages/ffxiv/shared.css
+
       - name: Deploy Traffic Pages to Cloudflare
         uses: cloudflare/pages-action@v1
         with:

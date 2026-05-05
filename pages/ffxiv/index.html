@@ -15,175 +15,28 @@
 </script>
 <style>
   :root {
-    --bg: #F5F6FA;
-    --card-bg: #fff;
-    --text: #1a1a2e;
-    --text-secondary: #555;
-    --text-body: #333;
-    --text-muted: #999;
-    --border: #e0e0e0;
-    --accent: #4A235A;
-    --accent2: #8E44AD;
-    --high: #C0392B;
-    --high-bg: #FFF0F0;
-    --mid: #D68910;
-    --mid-bg: #FFFBF0;
-    --low: #27AE60;
-    --low-bg: #F0FFF4;
-    --tag-bg: #F5EEF8;
-    --tag-text: #6C3483;
-    --radius: 10px;
-    --shadow: 0 2px 8px rgba(0,0,0,0.07);
+    --bg: #F5F6FA; --card-bg: #fff; --text: #1a1a2e; --text-secondary: #555;
+    --text-body: #333; --text-muted: #999; --border: #e0e0e0;
+    --accent: #4A235A; --accent2: #8E44AD;
+    --high: #C0392B; --high-bg: #FFF0F0;
+    --mid: #8B6000;  --mid-bg: #FFFBF0;
+    --low: #1A7A43;  --low-bg: #F0FFF4;
+    --tag-bg: #F5EEF8; --tag-text: #6C3483;
+    --radius: 10px; --shadow: 0 2px 8px rgba(0,0,0,0.07);
   }
   [data-theme="dark"] {
-    --bg: #1a1a2e;
-    --card-bg: #2d2d44;
-    --text: #e8e8f0;
-    --text-secondary: #aaa;
-    --text-body: #ccc;
-    --text-muted: #888;
-    --border: #3d3d5c;
-    --high-bg: #3d1f1f;
-    --mid-bg: #3d3020;
-    --low-bg: #1f3d25;
-    --tag-bg: #3a2d44;
-    --tag-text: #c39bd3;
+    --bg: #1a1a2e; --card-bg: #2d2d44; --text: #e8e8f0; --text-secondary: #aaa;
+    --text-body: #ccc; --text-muted: #888; --border: #3d3d5c;
+    --high: #FF8080; --mid: #E09918; --low: #44CC7A;
+    --high-bg: #3d1f1f; --mid-bg: #3d3020; --low-bg: #1f3d25;
+    --tag-bg: #3a2d44; --tag-text: #c39bd3;
     --shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; }
-
-  /* ── Header ── */
-  .site-header {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-    color: #fff; padding: 28px 24px 22px;
-  }
-  .site-header h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 4px; }
-  .site-header p  { font-size: 0.85rem; opacity: 0.85; margin: 0; }
-  .header-inner { max-width: 860px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
-  .header-actions { display: flex; gap: 8px; align-items: center; }
-  .rss-link { color: #fff; font-size: 12px; opacity: 0.8; text-decoration: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
-  .rss-link:hover { opacity: 1; }
-  #theme-toggle { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
-  #theme-toggle:hover { border-color: rgba(255,255,255,0.8); }
-
-  /* ── Layout ── */
-  .main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
-
-  /* ── Search ── */
-  .search-wrap { margin-bottom: 24px; }
-  .search-input {
-    width: 100%;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 14px;
-    background: var(--card-bg);
-    color: var(--text);
-  }
-
-  /* ── Controls bar ── */
-  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
-  .controls label { font-size: 13px; color: var(--text-secondary); }
-  .btn-filter {
-    font-size: 13px; border: 1px solid var(--border); border-radius: 6px;
-    padding: 5px 10px; background: var(--card-bg); cursor: pointer; color: var(--text);
-    display: inline-flex; align-items: center; gap: 4px;
-  }
-  .btn-filter.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-  /* ── Stats row ── */
-  .stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
-  .stat-box {
-    flex: 1; min-width: 90px; border-radius: 8px; padding: 10px 14px;
-    text-align: center; border: 1px solid transparent;
-  }
-  .stat-box .num { font-size: 22px; font-weight: 700; }
-  .stat-box .lbl { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-  .stat-high { background: var(--high-bg); border-color: #C0392B30; }
-  .stat-high .num { color: var(--high); }
-  .stat-mid  { background: var(--mid-bg);  border-color: #D6891030; }
-  .stat-mid .num  { color: var(--mid); }
-  .stat-low  { background: var(--low-bg);  border-color: #27AE6030; }
-  .stat-low .num  { color: var(--low); }
-  .stat-all  { background: #F5EEF8; border-color: #8E44AD30; }
-  .stat-all .num  { color: var(--accent2); }
+  .stat-all { background: #F5EEF8; border-color: #8E44AD30; }
+  .stat-all .num { color: var(--accent2); }
   [data-theme="dark"] .stat-all { background: #2d1f3d; }
-
-  /* ── Week nav ── */
-  .week-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-  .week-btn {
-    font-size: 12px; border: 1px solid var(--border); border-radius: 6px;
-    padding: 4px 10px; background: var(--card-bg); cursor: pointer; color: var(--text-secondary);
-    transition: all .15s;
-  }
-  .week-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-  .week-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-  /* ── Tag filters ── */
-  .tag-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
-  .tag-chip {
-    font-size: 12px; border: 1px solid var(--border); border-radius: 12px;
-    padding: 3px 10px; background: var(--card-bg); cursor: pointer; color: var(--text-secondary);
-    transition: all .15s;
-  }
-  .tag-chip:hover { border-color: var(--accent2); color: var(--accent2); }
-  .tag-chip.active { background: var(--tag-bg); color: var(--tag-text); border-color: var(--tag-text); font-weight: 600; }
-
-  /* ── Article card ── */
-  .card {
-    background: var(--card-bg); border-radius: var(--radius); margin-bottom: 20px;
-    box-shadow: var(--shadow); border: 1.5px solid transparent; overflow: hidden;
-    transition: transform .15s;
-  }
-  .card:hover { transform: translateY(-2px); }
-  .card-高 { border-color: #C0392B30; background: var(--high-bg); }
-  .card-中 { border-color: #D6891030; background: var(--mid-bg); }
-  .card-低 { border-color: #27AE6030; background: var(--low-bg); }
-
-  .card-header { padding: 14px 18px 10px; border-bottom: 1px solid rgba(0,0,0,0.06); }
-  .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-  .importance-badge { font-size: 12px; font-weight: 700; }
-  .imp-高 { color: var(--high); }
-  .imp-中 { color: var(--mid); }
-  .imp-低 { color: var(--low); }
-  .source-badge {
-    display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 11px; font-weight: 600; color: #fff;
-  }
-  .pub-date { color: var(--text-muted); font-size: 12px; }
-  .card-title { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; line-height: 1.5; display: block; }
-  .card-title:hover { color: var(--accent2); }
-
-  .card-body { padding: 12px 18px 0; }
-  .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin: 0 0 4px; }
-  .section-text  { font-size: 13px; line-height: 1.75; color: var(--text-body); margin: 0 0 10px; }
-
-  .card-footer { padding: 8px 18px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-  .reason-text { font-size: 12px; color: var(--text-secondary); font-style: italic; }
-  .read-more { font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; }
-
-  .article-tags { padding: 0 18px 12px; display: flex; gap: 6px; flex-wrap: wrap; }
-  .article-tag {
-    font-size: 11px; background: var(--tag-bg); color: var(--tag-text);
-    border-radius: 10px; padding: 2px 8px; cursor: pointer; border: 1px solid transparent;
-    transition: all .15s;
-  }
-  .article-tag:hover { border-color: var(--tag-text); font-weight: 600; }
-
-  .dismiss-btn {
-    font-size: 11px; cursor: pointer; color: var(--text-muted); background: none;
-    border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px;
-    transition: all .15s;
-  }
-  .dismiss-btn:hover { color: var(--text); border-color: var(--text-secondary); }
-
-  /* ── Empty state ── */
-  .empty { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
-  .empty h3 { margin-bottom: 8px; }
-
-  /* ── Footer ── */
-  .site-footer { text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 16px; }
 </style>
+<link rel="stylesheet" href="shared.css">
 </head>
 <body>
 
@@ -195,21 +48,18 @@
     </div>
     <div class="header-actions">
       <button id="theme-toggle" onclick="toggleTheme()" aria-label="切換主題">🌙</button>
+      <a class="rss-link" href="https://garyu-traffic-news.pages.dev">🏍️ 交通新聞</a>
       <a class="rss-link" href="feed.xml">📡 RSS 訂閱</a>
     </div>
   </div>
 </header>
 
 <main class="main">
-
   <div class="search-wrap">
     <input id="search-input" class="search-input" type="search" placeholder="搜尋 FFXIV 資訊關鍵字或標籤…">
   </div>
-
   <div class="week-nav" id="week-nav"></div>
-
   <div class="tag-bar" id="tag-bar"></div>
-
   <div class="controls">
     <label>重要性：</label>
     <button class="btn-filter active" data-imp="all">全部</button>
@@ -217,11 +67,8 @@
     <button class="btn-filter" data-imp="中">🟡 中</button>
     <button class="btn-filter" data-imp="低">🟢 低</button>
   </div>
-
   <div class="stats" id="stats"></div>
-
   <div id="article-list"></div>
-
 </main>
 
 <footer class="site-footer">
@@ -230,227 +77,24 @@
 </footer>
 
 <script>
-const API_BASE = window.__API_BASE__ || '/api';
-const DISMISSED_KEY = 'dismissed-ffxiv';
-const SOURCE_COLORS = {
-  'Lodestone': '#6C3483',
-  'JP Forum': '#8E44AD',
-  'Reddit': '#FF4500',
+window.SITE_CONFIG = {
+  contentType:  'ffxiv',
+  dismissedKey: 'dismissed-ffxiv',
+  statAllLabel: '⚔️',
+  pageTitle:  weekId => `${weekId} Garyu FFXIV 週報`,
+  subtitle:   (weekId, count, syncLabel) => `${weekId}，共 ${count} 則 FFXIV 資訊${syncLabel}`,
+  emptyHtml:  '<h3>尚無 FFXIV 資訊</h3><p>請等待下次週報產生，或調整篩選條件</p>',
+  sourceColors: {
+    'Lodestone': '#6C3483',
+    'JP Forum':  '#8E44AD',
+    'Reddit':    '#FF4500',
+  },
+  srcColor: s => window.SITE_CONFIG.sourceColors[s] || (s.includes('Lodestone') ? '#6C3483' : s.includes('Forum') ? '#8E44AD' : '#555'),
+  srcLabel: s => s,
+  sourceLang: { 'Lodestone': 'JP', 'JP Forum': 'JP', 'Reddit': 'EN', 'Reddit r/ffxiv': 'EN' },
+  shareToLine: false,
 };
-const IMP_DOT = { '高': '🔴', '中': '🟡', '低': '🟢' };
-
-let allWeeks = [];
-let currentWeekId = '';
-let currentArticles = [];
-let activeImp = 'all';
-let activeTag = '';
-let activeQuery = '';
-let searchTimer = null;
-
-const $ = id => document.getElementById(id);
-const srcColor = s => SOURCE_COLORS[s] || (s.includes('Lodestone') ? '#6C3483' : s.includes('Forum') ? '#8E44AD' : '#555');
-
-// ── 主題切換 ──────────────────────────────────────────────────
-function toggleTheme() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const next = isDark ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  try { localStorage.setItem('theme', next); } catch(e) {}
-  $('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
-}
-function syncThemeIcon() {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  const btn = $('theme-toggle');
-  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
-}
-
-// ── 過時標記 ──────────────────────────────────────────────────
-function getDismissed() {
-  try { return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]')); }
-  catch(e) { return new Set(); }
-}
-function dismissArticle(btn) {
-  const url = btn.dataset.url;
-  const set = getDismissed();
-  set.add(url);
-  try { localStorage.setItem(DISMISSED_KEY, JSON.stringify([...set])); } catch(e) {}
-  const card = btn.closest('.card');
-  if (card) card.style.display = 'none';
-  checkEmptyDismissed();
-}
-function checkEmptyDismissed() {
-  const list = $('article-list');
-  const cards = list.querySelectorAll('.card');
-  const allHidden = cards.length > 0 && [...cards].every(c => c.style.display === 'none');
-  let emptyState = document.getElementById('empty-dismissed-state');
-  if (allHidden && !emptyState) {
-    list.insertAdjacentHTML('beforeend',
-      '<div id="empty-dismissed-state" class="empty">' +
-      '<h3>本週所有文章均已標記為過時。</h3>' +
-      '<button onclick="clearDismissed()" style="margin-top:12px;padding:8px 16px;cursor:pointer;' +
-      'border:1px solid var(--border);border-radius:6px;background:var(--card-bg);color:var(--text);font-size:14px;">' +
-      '清除過時標記</button></div>');
-  } else if (!allHidden && emptyState) {
-    emptyState.remove();
-  }
-}
-function clearDismissed() {
-  try { localStorage.setItem(DISMISSED_KEY, '[]'); } catch(e) {}
-  const emptyState = document.getElementById('empty-dismissed-state');
-  if (emptyState) emptyState.remove();
-  document.querySelectorAll('#article-list .card').forEach(c => c.style.display = '');
-}
-function applyDismissed() {
-  const dismissed = getDismissed();
-  if (!dismissed.size) return;
-  document.querySelectorAll('#article-list .card[data-url]').forEach(card => {
-    if (dismissed.has(card.dataset.url)) card.style.display = 'none';
-  });
-  checkEmptyDismissed();
-}
-
-async function init() {
-  syncThemeIcon();
-  const res = await fetch(`${API_BASE}/weeks?content_type=ffxiv`).catch(() => null);
-  if (!res || !res.ok) {
-    $('article-list').innerHTML = '<div class="empty"><h3>尚無資料</h3><p>請等待第一次週報產生</p></div>';
-    return;
-  }
-  allWeeks = await res.json();
-
-  renderWeekNav();
-  if (allWeeks.length) await loadWeek(allWeeks[0].week_id);
-
-  const tRes = await fetch(`${API_BASE}/tags?content_type=ffxiv`).catch(() => null);
-  if (tRes && tRes.ok) {
-    const tData = await tRes.json();
-    renderTagBar(tData);
-  }
-
-  const searchInput = $('search-input');
-  searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(async () => {
-      activeQuery = searchInput.value.trim();
-      if (currentWeekId) await loadWeek(currentWeekId);
-    }, 250);
-  });
-}
-
-function renderWeekNav() {
-  $('week-nav').innerHTML = allWeeks.map(w =>
-    `<button class="week-btn${w.week_id === currentWeekId ? ' active' : ''}"
-      onclick="loadWeek('${w.week_id}')">${w.week_id} (${w.article_count}篇)</button>`
-  ).join('');
-}
-
-async function loadWeek(weekId) {
-  currentWeekId = weekId;
-  const params = new URLSearchParams();
-  params.set('content_type', 'ffxiv');
-  if (activeImp !== 'all') params.set('importance', activeImp);
-  if (activeTag) params.set('tag', activeTag);
-  if (activeQuery) params.set('q', activeQuery);
-  const res = await fetch(`${API_BASE}/weeks/${weekId}?${params.toString()}`);
-  if (!res.ok) {
-    $('article-list').innerHTML = '<div class="empty"><h3>載入失敗</h3><p>請稍後再試</p></div>';
-    return;
-  }
-  const data = await res.json();
-  currentArticles = data.articles || [];
-  document.title = `${weekId} Garyu FFXIV 週報`;
-  $('site-subtitle').textContent = `${weekId}，共 ${data.article_count} 則 FFXIV 資訊`;
-  renderWeekNav();
-  renderAll();
-}
-
-function renderTagBar(tData) {
-  const aiTags = tData.ai_tags || {};
-  const userTags = tData.user_tags || [];
-  const top = Object.entries(aiTags).sort((a,b) => b[1]-a[1]).slice(0,20).map(([t]) => t);
-  const all = [...new Set([...userTags, ...top])];
-  $('tag-bar').innerHTML = all.map(t =>
-    `<button class="tag-chip${t === activeTag ? ' active' : ''}" onclick="filterTag('${t}')">${t}</button>`
-  ).join('');
-}
-
-function filterTag(tag) {
-  activeTag = activeTag === tag ? '' : tag;
-  document.querySelectorAll('.tag-chip').forEach(c => {
-    c.classList.toggle('active', c.textContent === activeTag);
-  });
-  loadWeek(currentWeekId);
-}
-
-document.querySelectorAll('.btn-filter').forEach(btn => {
-  btn.addEventListener('click', () => {
-    activeImp = btn.dataset.imp;
-    document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    loadWeek(currentWeekId);
-  });
-});
-
-function renderAll() {
-  renderStats(currentArticles);
-  renderCards(currentArticles);
-}
-
-function renderStats(articles) {
-  const cnt = imp => articles.filter(a => (a.analysis?.importance || '中') === imp).length;
-  $('stats').innerHTML = `
-    <div class="stat-box stat-high"><div class="num">${cnt('高')}</div><div class="lbl">🔴 高重要性</div></div>
-    <div class="stat-box stat-mid"><div class="num">${cnt('中')}</div><div class="lbl">🟡 中重要性</div></div>
-    <div class="stat-box stat-low"><div class="num">${cnt('低')}</div><div class="lbl">🟢 低重要性</div></div>
-    <div class="stat-box stat-all"><div class="num">${articles.length}</div><div class="lbl">⚔️ 本頁顯示</div></div>`;
-}
-
-function renderCards(articles) {
-  if (!articles.length) {
-    $('article-list').innerHTML = '<div class="empty"><h3>尚無 FFXIV 資訊</h3><p>請等待下次週報產生，或調整篩選條件</p></div>';
-    return;
-  }
-  $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
-  applyDismissed();
-}
-
-function articleCard(a, idx) {
-  const an = a.analysis || {};
-  const imp = an.importance || '中';
-  const tags = an.tags || [];
-  const color = imp === '高' ? 'var(--high)' : imp === '中' ? 'var(--mid)' : 'var(--low)';
-  const src = a.source || '';
-  const tagHtml = tags.map(t =>
-    `<span class="article-tag" onclick="filterTag('${t}')">${t}</span>`
-  ).join('');
-  return `
-<div class="card card-${imp}" data-url="${a.link}">
-  <div class="card-header">
-    <div class="card-meta">
-      <span class="importance-badge imp-${imp}">${IMP_DOT[imp] || ''} ${imp}重要</span>
-      <span class="source-badge" style="background:${srcColor(src)}">${src}</span>
-      ${a.published ? `<span class="pub-date">發布時間 ${new Date(a.published).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span>` : ''}
-    </div>
-    <a class="card-title" href="${a.link}" target="_blank" rel="noopener">${idx}. ${a.title}</a>
-  </div>
-  <div class="card-body">
-    <p class="section-label" style="color:${color}">📋 摘要</p>
-    <p class="section-text">${an.summary || ''}</p>
-    <p class="section-label" style="color:${color}">🔍 深度分析</p>
-    <p class="section-text">${an.analysis || ''}</p>
-  </div>
-  ${tags.length ? `<div class="article-tags">${tagHtml}</div>` : ''}
-  <div class="card-footer">
-    <span class="reason-text">💡 ${an.importance_reason || ''}</span>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <a class="read-more" href="${a.link}" target="_blank" rel="noopener" style="color:${color}">閱讀原文 →</a>
-      <button class="dismiss-btn" data-url="${a.link}" onclick="dismissArticle(this)">標記過時</button>
-    </div>
-  </div>
-</div>`;
-}
-
-init();
 </script>
+<script src="app.js"></script>
 </body>
 </html>

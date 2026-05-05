@@ -233,6 +233,12 @@ sources_ffxiv.yml
 !.dev.vars.example
 !.env.example
 
+# Shared static assets copied into each site by CI (canonical source: pages/shared/)
+pages/traffic/app.js
+pages/traffic/shared.css
+pages/ffxiv/app.js
+pages/ffxiv/shared.css
+
 # Pipeline-generated site artifacts (deployed to CF Pages directly from CI runner)
 pages/traffic/data/
 pages/traffic/feed.xml
