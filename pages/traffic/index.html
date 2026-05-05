@@ -195,6 +195,7 @@
     </div>
     <div class="header-actions">
       <button id="theme-toggle" onclick="toggleTheme()" aria-label="切換主題">🌙</button>
+      <a class="rss-link" href="https://garyu-ffxiv-news.pages.dev">🎮 FFXIV 新聞</a>
       <a class="rss-link" href="feed.xml">📡 RSS 訂閱</a>
     </div>
   </div>
@@ -250,7 +251,7 @@ const IMP_DOT = { '高': '🔴', '中': '🟡', '低': '🟢' };
 let allWeeks = [];
 let currentWeekId = '';
 let currentArticles = [];
-let activeImp = 'all';
+let activeImp = localStorage.getItem('garyu_filter_importance') || 'all';
 let activeTag = '';
 let activeQuery = '';
 let searchTimer = null;
@@ -368,7 +369,9 @@ async function loadWeek(weekId) {
   const data = await res.json();
   currentArticles = data.articles || [];
   document.title = `${weekId} 台灣機車交通週報`;
-  $('site-subtitle').textContent = `${weekId}，共 ${data.article_count} 則新聞`;
+  const latestAt = currentArticles.reduce((m, a) => a.created_at > m ? a.created_at : m, '');
+  const syncLabel = latestAt ? ` · 最後更新 ${relativeTime(latestAt)}` : '';
+  $('site-subtitle').textContent = `${weekId}，共 ${data.article_count} 則新聞${syncLabel}`;
   renderWeekNav();
   renderAll();
 }
@@ -394,13 +397,28 @@ function filterTag(tag) {
 
 // ── 重要性篩選 ────────────────────────────────────────────────
 document.querySelectorAll('.btn-filter').forEach(btn => {
+  if (btn.dataset.imp === activeImp) {
+    document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
   btn.addEventListener('click', () => {
     activeImp = btn.dataset.imp;
+    localStorage.setItem('garyu_filter_importance', activeImp);
     document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     loadWeek(currentWeekId);
   });
 });
+
+// ── 相對時間 ──────────────────────────────────────────────────
+function relativeTime(isoStr) {
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  const diff = (new Date(isoStr) - Date.now()) / 1000;
+  const abs = Math.abs(diff);
+  if (abs < 3600)  return rtf.format(Math.round(diff / 60), 'minute');
+  if (abs < 86400) return rtf.format(Math.round(diff / 3600), 'hour');
+  return rtf.format(Math.round(diff / 86400), 'day');
+}
 
 // ── 渲染 ──────────────────────────────────────────────────────
 function renderAll() {
@@ -410,11 +428,13 @@ function renderAll() {
 
 function renderStats(articles) {
   const cnt = imp => articles.filter(a => (a.analysis?.importance || '中') === imp).length;
-  $('stats').innerHTML = `
-    <div class="stat-box stat-high"><div class="num">${cnt('高')}</div><div class="lbl">🔴 高重要性</div></div>
-    <div class="stat-box stat-mid"><div class="num">${cnt('中')}</div><div class="lbl">🟡 中重要性</div></div>
-    <div class="stat-box stat-low"><div class="num">${cnt('低')}</div><div class="lbl">🟢 低重要性</div></div>
-    <div class="stat-box stat-all"><div class="num">${articles.length}</div><div class="lbl">📰 本頁顯示</div></div>`;
+  const show = imp => activeImp === 'all' || cnt(imp) > 0;
+  $('stats').innerHTML = [
+    show('高') ? `<div class="stat-box stat-high"><div class="num">${cnt('高')}</div><div class="lbl">🔴 高重要性</div></div>` : '',
+    show('中') ? `<div class="stat-box stat-mid"><div class="num">${cnt('中')}</div><div class="lbl">🟡 中重要性</div></div>` : '',
+    show('低') ? `<div class="stat-box stat-low"><div class="num">${cnt('低')}</div><div class="lbl">🟢 低重要性</div></div>` : '',
+    `<div class="stat-box stat-all"><div class="num">${articles.length}</div><div class="lbl">📰 本頁顯示</div></div>`,
+  ].join('');
 }
 
 function renderCards(articles) {

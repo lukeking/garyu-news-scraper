@@ -38,6 +38,7 @@ function normalizeRow(row) {
     link: row.link || "",
     source: row.source || "",
     published: row.published || "",
+    created_at: row.created_at || "",
     content_type: row.content_type || "traffic",
     analysis: {
       importance: analysis.importance || "中",
