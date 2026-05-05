@@ -6,6 +6,7 @@ collector.py
 """
 
 import re
+import calendar
 import feedparser
 import requests
 import yaml
@@ -112,12 +113,18 @@ def _is_recent(entry) -> bool:
 
 
 def _entry_to_dict(entry, source_name: str, content_type: str = "traffic") -> dict:
+    pub = ""
+    if entry.get("published_parsed"):
+        ts = calendar.timegm(entry["published_parsed"])
+        pub = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+    elif entry.get("published"):
+        pub = entry["published"]
     return {
         "title": entry.get("title", "").strip(),
         "link": entry.get("link", "").strip(),
         "summary": entry.get("summary", "").strip()[:500],
         "source": source_name,
-        "published": entry.get("published", ""),
+        "published": pub,
         "content_type": content_type,
     }
 

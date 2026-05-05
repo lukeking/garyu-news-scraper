@@ -8,6 +8,16 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 
+
+def _parse_published(published: str) -> datetime:
+    """Parse a published string in either ISO 8601 or RFC 2822 format."""
+    try:
+        return datetime.fromisoformat(published)
+    except ValueError:
+        pass
+    from email.utils import parsedate_to_datetime
+    return parsedate_to_datetime(published)
+
 logger = logging.getLogger(__name__)
 
 # 必須包含的機車相關關鍵字（至少命中一個）
@@ -104,8 +114,7 @@ def _is_stale_article(article: dict) -> bool:
     published = article.get("published", "")
     if published:
         try:
-            from email.utils import parsedate_to_datetime
-            pub_dt = parsedate_to_datetime(published)
+            pub_dt = _parse_published(published)
             cutoff = datetime.now(pub_dt.tzinfo) - timedelta(days=14)
             if pub_dt < cutoff:
                 return True
@@ -153,7 +162,6 @@ def _is_too_old_by_age(article: dict, threshold_days: int = FRESHNESS_THRESHOLD_
     Google News: checks URL-embedded date. Direct RSS: checks pubDate.
     Returns (False, "") when age cannot be determined — article is included (known limitation).
     """
-    from email.utils import parsedate_to_datetime
     link = article.get("link", "")
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=threshold_days)).date()
 
@@ -169,7 +177,7 @@ def _is_too_old_by_age(article: dict, threshold_days: int = FRESHNESS_THRESHOLD_
         if not published:
             return False, ""
         try:
-            pub_dt = parsedate_to_datetime(published)
+            pub_dt = _parse_published(published)
             if pub_dt.date() < cutoff_date:
                 return True, f"pubDate: {pub_dt.date()}"
         except Exception:
