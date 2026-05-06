@@ -1,0 +1,34 @@
+name: KB Miss Re-Resolution
+
+on:
+  push:
+    branches: [main]
+    paths: ['knowledge-base.md']
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 設定 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 解析 [[term]] 標記
+        run: python scripts/resolve_kb_misses.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}

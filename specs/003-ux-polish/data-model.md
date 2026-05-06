@@ -102,6 +102,43 @@ A derived value, not a separate entity. Computed in `filter.py` and stored in `A
 
 ---
 
+### 6. KBMissMarker (ephemeral, within Article.analysis JSONB)
+
+Not a separate DB entity — a pattern that may appear within the `analysis` JSONB field of stored FFXIV articles. Produced by the AI analyzer when a game term is absent from `knowledge-base.md` at analysis time.
+
+| Attribute | Value |
+|-----------|-------|
+| Pattern | `[[term]]` where `term` is the unresolved JP/EN game term |
+| Location | Any text-value field within `articles.analysis` (JSONB) |
+| Detected by | `re.findall(r'\[\[([^\]]+)\]\]', json.dumps(analysis))` |
+| Resolved by | `scripts/resolve_kb_misses.py` after KB update |
+| Persistence | Remains in Supabase until resolved by the re-resolution job |
+
+---
+
+### 7. KBReResolutionJob (GitHub Actions workflow, no DB entity)
+
+| Attribute | Value |
+|-----------|-------|
+| Trigger | Push to `main` with path filter `knowledge-base.md` |
+| Workflow file | `.github/workflows/resolve-kb-misses.yml` |
+| Script | `scripts/resolve_kb_misses.py` |
+| Supabase query | `SELECT id, analysis FROM articles WHERE content_type = 'ffxiv' AND analysis::text LIKE '%[[%'` |
+| Resolution | KB string replacement on serialized JSON; `json.loads()` back before UPDATE |
+| KB source | `knowledge-base.md` parsed at job runtime (JP Term → TW Term dict) |
+| Secrets required | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (existing) |
+| Output | Supabase UPDATE per resolved article; KB MISS warning per unresolvable term |
+
+**Lifecycle**:
+1. KB PR merged to `main` → GH Actions triggers
+2. Script reads updated `knowledge-base.md` → builds JP→TW dict
+3. Queries Supabase for articles with `[[` in analysis
+4. For each article: replaces all resolvable `[[term]]` markers → UPDATEs row
+5. Logs KB MISS for any still-unresolvable markers
+6. Readers see resolved content immediately (Worker API is dynamic)
+
+---
+
 ## Relationships
 
 ```
@@ -110,11 +147,19 @@ Pipeline run
        └─ freshness_filter() excludes stale Articles (logged only)
             └─ filter_and_deduplicate() dedups within run
                  └─ upsert_articles() stores Article with content_fingerprint (TitleFingerprint)
+                      └─ analysis JSONB may contain KBMissMarkers if KB was incomplete
+
+knowledge-base.md pushed to main
+  └─ GH Actions triggers KBReResolutionJob
+       └─ loads KB → JP→TW dict
+            └─ queries Supabase for Articles with KBMissMarkers
+                 └─ resolves markers via string replacement → UPDATEs Article rows
+                      └─ emits KB MISS warning for still-unresolvable markers
 
 Browser session
-  └─ reads Article list from API
+  └─ reads Article list from Worker API (dynamic, reflects latest Supabase state)
        └─ filters by DismissedArticle.urls (localStorage)
-            └─ renders visible Articles
+            └─ renders visible Articles (KBMissMarkers resolved if KB job has run)
                  └─ user may DismissArticle → updates DismissedArticle.urls
                  └─ user may toggle ThemePreference → updates localStorage
 ```

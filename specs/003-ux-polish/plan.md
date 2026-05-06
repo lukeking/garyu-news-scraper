@@ -12,6 +12,7 @@ Five incremental improvements to the garyu news scraper system:
 3. **P3 — Theme Toggle**: Light/dark theme toggle in the site header; preference stored in localStorage; OS `prefers-color-scheme` applied on first visit.
 4. **P4 — Collected-Time Label**: All article date displays prefixed with "收錄時間" on both sites.
 5. **P5 — FFXIV RSS Feed**: Parameterize `publisher.py`'s `build_feed()` with feed title and description; `FFXIVCategory.publish()` passes FFXIV-specific values so `pages/ffxiv/feed.xml` is correctly titled; `pages/ffxiv/index.html` header exposes the RSS link.
+6. **P6 — KB Miss Re-Resolution Job**: A standalone GitHub Actions workflow triggered on push to `main` when `knowledge-base.md` changes. Queries Supabase for all FFXIV articles whose `analysis` JSONB contains `[[term]]` placeholders, performs KB string replacement for each resolvable term, and emits KB MISS warnings (same log format as the main pipeline) for terms still absent. No AI calls, no scraping, no CF Pages redeploy — the Worker API serves article data dynamically so the Supabase update is immediately visible.
 
 ## Technical Context
 
@@ -53,11 +54,12 @@ Five incremental improvements to the garyu news scraper system:
 - Frontend: all client-side features self-contained in each site's `index.html`.
 
 ### Principle VI — Knowledge Base Integrity ✓
-- No changes to FFXIV analysis or prompt logic; knowledge base is unaffected.
+- No changes to FFXIV analysis or prompt logic; knowledge base is unaffected by P1–P5.
+- **P6**: The re-resolution job directly enforces this principle. It repairs `[[term]]` placeholders that bypassed KB lookup at analysis time. The job reads `knowledge-base.md` at runtime (authoritative source); re-raises KB MISS for unresolved terms; makes no inline guesses. This satisfies "unknown terms MUST trigger a knowledge-base update PR rather than a best-guess inline translation."
 
 **Gate result**: PASS — no constitution violations detected.
 
-**Post-design re-check**: All design decisions in research.md and data-model.md are consistent with the above analysis. No new violations introduced.
+**Post-design re-check**: All design decisions in research.md and data-model.md are consistent with the above analysis. P6 adds `scripts/resolve_kb_misses.py` (not a `src/` stage module — operational script per Principle V) and `.github/workflows/resolve-kb-misses.yml`. No new violations introduced.
 
 ## Project Structure
 
@@ -90,6 +92,13 @@ src/
 │   └── ffxiv.py         ← update filter() same as traffic; update publish() with FFXIV feed params
 └── publisher.py         ← add feed_title + feed_description params to build_feed() and publish()
 
+scripts/
+└── resolve_kb_misses.py ← NEW (P6): standalone KB re-resolution script; called by GH Actions;
+                            NOT a src/ pipeline stage module (operational script per Principle V)
+
+.github/workflows/
+└── resolve-kb-misses.yml ← NEW (P6): triggers on push to main when knowledge-base.md changes
+
 pages/
 ├── traffic/
 │   └── index.html       ← P2: dismiss button + localStorage logic
@@ -102,7 +111,7 @@ pages/
                             P5: RSS subscription link in header
 ```
 
-**Structure Decision**: Single-project, in-place extension of existing modules. No new Python modules, no new directories. All pipeline logic extends existing files at their current stage boundary.
+**Structure Decision**: Single-project, in-place extension of existing modules for P1–P5. P6 adds one new script under `scripts/` (not `src/`) since re-resolution is an operational repair job, not a pipeline stage. One new GH Actions workflow file.
 
 ## Complexity Tracking
 

@@ -100,6 +100,87 @@ Both patterns are common in TW and JP news URLs (e.g., UDN, ETtoday, NHK).
 
 ---
 
+## Decision 9: KB Re-Resolution Script Location
+
+**Decision**: `scripts/resolve_kb_misses.py` — a standalone operational script, not a `src/` module.
+
+**Rationale**: Constitution Principle V reserves `src/` for pipeline stage modules (collect → filter → analyze → store → publish). KB re-resolution is not a pipeline stage; it is an out-of-band repair job triggered independently. Placing it under `scripts/` (existing convention for operational tooling) satisfies Principle V without introducing a spurious cross-stage dependency.
+
+**Alternatives considered**:
+- `src/kb_resolver.py`: violates the spirit of Principle V — not a pipeline stage, no upstream/downstream stage contract.
+- Inline in a GH Actions `run:` block: too long for inline shell; difficult to test locally.
+
+---
+
+## Decision 10: KB Table Parsing Strategy
+
+**Decision**: Parse `knowledge-base.md` line by line. Rows matching `^|\s` with 5+ pipe-separated cells and not matching the separator pattern (`|---`) are table data rows. Build a dict keyed by JP Term (cell 0, stripped) → TW Term (cell 1, stripped).
+
+**Implementation sketch**:
+```python
+import re, pathlib
+
+def load_kb(kb_path: pathlib.Path) -> dict[str, str]:
+    mapping = {}
+    for line in kb_path.read_text(encoding="utf-8").splitlines():
+        if not line.startswith("|") or "|---" in line:
+            continue
+        cells = [c.strip() for c in line.split("|") if c.strip()]
+        if len(cells) >= 2 and cells[0] not in ("JP Term",):
+            mapping[cells[0]] = cells[1]
+    return mapping
+```
+
+**Rationale**: No external markdown parser needed; the KB table format is stable and machine-written. The JP Term column is the authoritative lookup key per the KB spec (`## KB Output Format` rule).
+
+**Alternatives considered**:
+- python-markdown / mistletoe: adds a dependency for a trivial task.
+- YAML/JSON sidecar: would need to be kept in sync; PR overhead.
+
+---
+
+## Decision 11: [[term]] Detection and Resolution in analysis JSONB
+
+**Decision**:
+- **Supabase query**: `SELECT id, link, title, analysis FROM articles WHERE content_type = 'ffxiv' AND analysis::text LIKE '%[[%'`
+- **Detection regex**: `r'\[\[([^\]]+)\]\]'` applied to `json.dumps(analysis)` (the full JSONB serialized as a string)
+- **Resolution**: string replace on the serialized JSON, then `json.loads()` back to dict before UPDATE
+- **KB MISS condition**: any `[[term]]` match whose captured group is absent from the KB mapping dict
+
+**Rationale**: JSONB `analysis` may contain `[[term]]` at any depth in the JSON tree. Serializing to string and replacing globally is simpler and safer than recursive tree traversal. The `LIKE '%[[%'` Supabase filter uses the existing `analysis::text` cast pattern — no new index needed for the small article table.
+
+**Guarantees**:
+- Idempotent: replacing an already-resolved term is a no-op (no `[[` in resolved text).
+- Partial resolution: articles with mixed (some resolvable, some not) markers are partially updated and remain in the re-resolution pool until all markers are resolved.
+- No AI call, no HTTP request.
+
+**Alternatives considered**:
+- Recursive JSONB traversal: more correct for deeply nested structures, but overkill for the flat analysis schema.
+- Separate `analysis_raw` column to preserve the original: not needed; the resolved version is the desired permanent state.
+
+---
+
+## Decision 12: GitHub Actions Workflow Design
+
+**Decision**: `.github/workflows/resolve-kb-misses.yml` with:
+```yaml
+on:
+  push:
+    branches: [main]
+    paths: ['knowledge-base.md']
+```
+Single job: checkout → `pip install supabase` → `python scripts/resolve_kb_misses.py`
+
+**Secrets reused** (no new secrets): `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` — both already exist for the weekly pipeline workflow.
+
+**Rationale**: `paths:` filter ensures the job only runs when `knowledge-base.md` itself changes, not on every main push. Reuses existing secrets — no new configuration required. Script duration well within 10-minute GH Actions limit (Supabase query + local string ops on <1000 rows).
+
+**Alternatives considered**:
+- Scheduled daily trigger: possible but wasteful when no KB change has occurred; push-triggered is exact.
+- Manual `workflow_dispatch`: requires human action after every KB PR merge; defeats the automation goal.
+
+---
+
 ## Decision 8: Dark Mode CSS Strategy
 
 **Decision**: CSS custom properties (variables) on `:root` for light mode defaults; a `[data-theme="dark"]` attribute on `<html>` overrides the variables. No external CSS framework.
