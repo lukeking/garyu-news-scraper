@@ -23,9 +23,9 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 **⚠️ CRITICAL**: No user story work can be deployed to production until T004 is verified.
 
-- [ ] T002 Create `knowledge_base` table in Supabase — run the SQL migration from `specs/005-gemini-kb-auto-resolve/data-model.md` (schema: `jp_term UNIQUE`, `tw_term`, `en_term`, `category`, `notes`, `auto_generated BOOLEAN`, `created_at`, `updated_at`)
+- [x] T002 Create `knowledge_base` table in Supabase — run the SQL migration from `specs/005-gemini-kb-auto-resolve/data-model.md` (schema: `jp_term UNIQUE`, `tw_term`, `en_term`, `category`, `notes`, `auto_generated BOOLEAN`, `created_at`, `updated_at`)
 - [x] T003 [P] Write `scripts/migrate_kb.py` — parse `knowledge-base.md` using 5-column pipe table logic, upsert all rows to `knowledge_base` with `auto_generated = false`, on_conflict `jp_term` (idempotent); see `contracts/pipeline-kb-migration.md` for full spec
-- [ ] T004 Run `python scripts/migrate_kb.py` and verify: row count in Supabase `knowledge_base` table matches the number of term rows in `knowledge-base.md` (~60 rows); log shows expected count; no errors
+- [x] T004 Run `python scripts/migrate_kb.py` and verify: row count in Supabase `knowledge_base` table matches the number of term rows in `knowledge-base.md` (~60 rows); log shows expected count; no errors
 
 **Checkpoint**: `knowledge_base` table populated — user story implementation can now begin.
 
@@ -42,10 +42,10 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 ### Implementation for User Story 2
 
 - [x] T005 [P] [US2] Rewrite `load_knowledge_base()` in `src/analyzer.py` — replace file-read logic with Supabase SELECT (`jp_term, tw_term, en_term, category`); create Supabase client inline using `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`; preserve `_KB_CACHE` module-level dict and existing return format `{jp_term: {"tw", "en", "category"}}`; raise `RuntimeError` on empty result or connection failure (see `contracts/pipeline-kb-migration.md`)
-- [ ] T006 Delete `knowledge-base.md` from repository root — only after T004 row count verified and T005 deployed; confirm pipeline run succeeds without the file
-- [ ] T007 [P] Delete `config/knowledge-base-template.md` from repository
-- [ ] T008 [P] Delete `scripts/resolve_kb_misses.py` from repository (superseded by auto-KB job inline re-resolution in US1)
-- [ ] T009 [P] Delete `.github/workflows/resolve-kb-misses.yml` from repository (trigger path `knowledge-base.md` no longer exists)
+- [x] T006 Delete `knowledge-base.md` from repository root — only after T004 row count verified and T005 deployed; confirm pipeline run succeeds without the file
+- [x] T007 [P] Delete `config/knowledge-base-template.md` from repository
+- [x] T008 [P] Delete `scripts/resolve_kb_misses.py` from repository (superseded by auto-KB job inline re-resolution in US1)
+- [x] T009 [P] Delete `.github/workflows/resolve-kb-misses.yml` from repository (trigger path `knowledge-base.md` no longer exists)
 
 **Checkpoint**: Pipeline runs cleanly from Supabase KB; all retired files removed.
 
