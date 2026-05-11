@@ -20,6 +20,10 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+
       - name: 準備部署目錄
         run: |
           mkdir -p /tmp/deploy-traffic
