@@ -17,6 +17,14 @@ import time
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
+try:
+    from dotenv import load_dotenv
+    loaded = load_dotenv(override=False)
+    if loaded:
+        print("[dotenv] 已載入 .env（本機測試模式）", flush=True)
+except ImportError:
+    pass
+
 MARKER_RE = re.compile(r"\[\[([^\]]+)\]\]")
 
 SYSTEM_PROMPT = "你是 FFXIV 術語翻譯專家，專精繁體中文（台灣）玩家社群用語。"
@@ -97,7 +105,8 @@ def main() -> None:
     # Step 1 — load existing KB terms
     try:
         kb_result = supabase.table("knowledge_base").select("jp_term, tw_term").execute()
-        existing_terms: set[str] = {row["jp_term"] for row in kb_result.data}
+        kb_rows: list[dict] = kb_result.data or []  # type: ignore[assignment]
+        existing_terms: set[str] = {str(r["jp_term"]) for r in kb_rows}
         logger.info("知識庫現有術語：%d 個", len(existing_terms))
     except Exception as exc:
         logger.error("無法讀取 knowledge_base 表格：%s", exc)
@@ -112,7 +121,7 @@ def main() -> None:
             .like("analysis::text", "%[[%")
             .execute()
         )
-        article_rows = articles_result.data or []
+        article_rows: list[dict] = articles_result.data or []  # type: ignore[assignment]
     except Exception as exc:
         logger.error("無法查詢 articles 表格：%s", exc)
         sys.exit(0)
@@ -179,8 +188,9 @@ def main() -> None:
         if replaced:
             try:
                 patched_analysis = json.loads(patched_text)
-                supabase.table("articles").update({"analysis": patched_analysis}).eq("id", row["id"]).execute()
-                logger.info("文章 %s 已內聯修補術語", row["id"])
+                article_id = row["id"]  # type: ignore[index]
+                supabase.table("articles").update({"analysis": patched_analysis}).eq("id", article_id).execute()
+                logger.info("文章 %s 已內聯修補術語", article_id)
             except Exception as exc:
                 logger.warning("無法更新文章 %s：%s", row["id"], exc)
 
