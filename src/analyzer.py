@@ -132,42 +132,40 @@ FFXIV_ANALYSIS_TEMPLATE = """以下是一則 FFXIV 相關資訊：
 """
 
 
-def load_knowledge_base(path: str = "knowledge-base.md") -> dict:
+def load_knowledge_base() -> dict:
     """
-    解析 knowledge-base.md 的 Markdown 表格。
+    從 Supabase knowledge_base 表格載入術語對照表。
     回傳 {jp_term: {"tw": str, "en": str, "category": str}} 的對照字典。
-    若檔案不存在或沒有資料列，拋出 RuntimeError。
-    結果在模組層級快取，同一程序只讀取一次。
+    若表格為空或連線失敗，拋出 RuntimeError（pipeline 中止）。
+    結果在模組層級快取，同一程序只查詢一次。
     """
     global _KB_CACHE
     if _KB_CACHE is not None:
         return _KB_CACHE
 
-    if not os.path.exists(path):
-        raise RuntimeError(
-            f"找不到知識庫檔案：{path}。"
-            "請在 knowledge-base.md 中加入 FFXIV 術語對照表後再執行 FFXIV 分析。"
-        )
+    url = (os.environ.get("SUPABASE_URL") or "").strip()
+    key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
+    if not url or not key:
+        raise RuntimeError("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 未設定")
 
-    kb: dict = {}
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if not line.startswith("|") or line.startswith("| JP") or set(line.replace("|", "").replace("-", "").replace(" ", "")) == set():
-                continue
-            parts = [p.strip() for p in line.strip("|").split("|")]
-            if len(parts) < 4 or not parts[0]:
-                continue
-            kb[parts[0]] = {
-                "tw": parts[1] if len(parts) > 1 else "",
-                "en": parts[2] if len(parts) > 2 else "",
-                "category": parts[3] if len(parts) > 3 else "",
-            }
+    from supabase import create_client
+    client = create_client(url, key)
+
+    result = client.table("knowledge_base").select("jp_term, tw_term, en_term, category").execute()
+
+    kb = {
+        row["jp_term"]: {
+            "tw": row["tw_term"],
+            "en": row["en_term"],
+            "category": row["category"],
+        }
+        for row in result.data
+    }
 
     if not kb:
         raise RuntimeError(
-            f"knowledge-base.md 中沒有有效的術語資料列。"
-            "請至少加入一列術語對照後再執行 FFXIV 分析。"
+            "knowledge_base 表格中沒有有效的術語資料。"
+            "請先執行 python scripts/migrate_kb.py 或在 Supabase 中加入術語後再執行 FFXIV 分析。"
         )
 
     logger.info("知識庫載入完成：%d 個術語", len(kb))

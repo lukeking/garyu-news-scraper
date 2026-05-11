@@ -35,6 +35,43 @@
   .stat-all { background: #F5EEF8; border-color: #8E44AD30; }
   .stat-all .num { color: var(--accent2); }
   [data-theme="dark"] .stat-all { background: #2d1f3d; }
+  .term-pool {
+    position: relative;
+    border: 2px double var(--accent);
+    border-radius: var(--radius);
+    padding: 12px 16px 12px;
+    margin-bottom: 16px;
+    background: var(--tag-bg);
+    overflow: hidden;
+  }
+  .term-pool-header {
+    font-size: 0.8rem;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-bottom: 8px;
+    user-select: none;
+  }
+  .term-pool-sub {
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 6px;
+    font-size: 0.75rem;
+  }
+  .term-pool-tags {
+    position: relative;
+    height: 100px;
+  }
+  .term-tag {
+    position: absolute;
+    color: var(--tag-text);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+  }
 </style>
 <link rel="stylesheet" href="shared.css">
 </head>
@@ -59,6 +96,14 @@
     <input id="search-input" class="search-input" type="search" placeholder="搜尋 FFXIV 資訊關鍵字或標籤…">
   </div>
   <div class="week-nav" id="week-nav"></div>
+
+  <div id="unknown-term-pool" class="term-pool" style="display:none">
+    <div class="term-pool-header">
+      ⚔ 未知術語池 <span class="term-pool-sub">Unknown Term Pool</span>
+    </div>
+    <div class="term-pool-tags" id="term-pool-tags"></div>
+  </div>
+
   <div class="tag-bar" id="tag-bar"></div>
   <div class="controls">
     <label>重要性：</label>

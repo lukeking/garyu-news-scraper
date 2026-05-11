@@ -174,6 +174,38 @@ function relativeTime(isoStr) {
 function renderAll() {
   renderStats(currentArticles);
   renderCards(currentArticles);
+  renderTermPool(currentArticles);
+}
+
+function renderTermPool(articles) {
+  if (C.contentType !== 'ffxiv') return;
+  const pool = document.getElementById('unknown-term-pool');
+  const tagsEl = document.getElementById('term-pool-tags');
+  if (!pool || !tagsEl) return;
+
+  const termRe = /\[\[([^\]]+)\]\]/g;
+  const termSet = new Set();
+  articles.forEach(a => {
+    const text = JSON.stringify(a.analysis || {});
+    let m;
+    while ((m = termRe.exec(text)) !== null) {
+      termSet.add(m[1].trim());
+    }
+  });
+
+  if (!termSet.size) {
+    pool.style.display = 'none';
+    return;
+  }
+
+  pool.style.display = '';
+  const terms = [...termSet];
+  tagsEl.innerHTML = terms.map(t => {
+    const size = (0.85 + Math.random() * 0.7).toFixed(2);
+    const left = (2 + Math.random() * 88).toFixed(1);
+    const top  = (5 + Math.random() * 75).toFixed(1);
+    return `<span class="term-tag" style="font-size:${size}rem;left:${left}%;top:${top}%">${t}</span>`;
+  }).join('');
 }
 
 function renderStats(articles) {
