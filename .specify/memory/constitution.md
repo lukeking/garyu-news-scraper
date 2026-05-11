@@ -1,32 +1,31 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.0.0 → 1.1.0
-**Bump rationale**: MINOR — new Principle VI (Knowledge Base Integrity) added; Principles II and V
-  materially expanded for dual-content (traffic + FFXIV) scope; Technology Constraints and
-  Operations updated accordingly.
+**Version change**: 1.1.0 → 1.2.0
+**Bump rationale**: MINOR — Principle VI materially updated to reflect migration of the FFXIV
+  knowledge base from `knowledge-base.md` to the Supabase `knowledge_base` table; PR-gate
+  requirement replaced by auto-KB job confidence gate; Technology Constraints and Operations
+  updated accordingly. Core intent of the principle (authoritative KB, no invented translations)
+  is preserved.
 
 ### Modified Principles
-- II. Configuration over Code → expanded: `sources_ffxiv.yml` added as second mandatory
-  externalized config; `SOURCES_FFXIV_YML` GitHub Environment Variable rule added.
-- V. Single Responsibility per Module → updated: `publisher.py` added to the canonical module
-  list; future `src/scrapers/traffic/` and `src/scrapers/ffxiv/` sub-structure documented.
+- VI. Knowledge Base Integrity → updated: storage changed from `knowledge-base.md` to
+  Supabase `knowledge_base` table; PR requirement removed; auto-KB job rules added.
 
 ### Added Sections
-- Principle VI: Knowledge Base Integrity (new; FFXIV term-normalization requirement)
-- Technology Constraints: Reddit RSS source, JP forum HTML scraping, knowledge-base.md
-
-### Removed Sections
 - None
 
+### Removed Sections
+- References to `knowledge-base.md` and `knowledge-base-template.md` throughout.
+
 ### Templates Checked
-- ✅ `.specify/templates/plan-template.md` — "Constitution Check" gate is content-agnostic;
-    aligns with updated Principles I–VI. No structural changes required.
-- ✅ `.specify/templates/spec-template.md` — Generic requirements structure; compatible.
+- ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic;
+    no `knowledge-base.md` references. No changes required.
+- ✅ `.specify/templates/spec-template.md` — Generic requirements structure; no file
+    references. No changes required.
+- ✅ `.specify/templates/tasks-template.md` — Phase/parallel model is content-agnostic.
     No changes required.
-- ✅ `.specify/templates/tasks-template.md` — Phase/parallel model covers both scrapers and
-    knowledge-base tasks. No changes required.
-- ✅ `.specify/templates/commands/` — No command templates found; skipped.
+- ✅ `.specify/templates/commands/` — Directory does not exist; skipped.
 
 ### Deferred Items
 - None
@@ -109,17 +108,22 @@ Each Python module in `src/` owns exactly one pipeline stage or concerns.
 
 ### VI. Knowledge Base Integrity
 
-The FFXIV knowledge base (`knowledge-base.md`) is the authoritative source for game-term
-normalization and MUST be consulted by `src/analyzer.py` before generating any FFXIV summary.
+The FFXIV knowledge base is the authoritative source for game-term normalization and MUST
+be consulted by `src/analyzer.py` before generating any FFXIV summary.
 
-- `knowledge-base.md` MUST NOT be committed with placeholder entries; every term listed
-  MUST have a verified, accurate mapping.
-- The AI analyzer MUST NOT invent game-term translations or romanizations; unknown terms
-  MUST trigger a knowledge-base update PR rather than a best-guess inline translation.
-- New terms discovered during pipeline runs MAY be proposed for addition via PR; the PR
-  description MUST document the source of the mapping (e.g., official patch note, JP wiki).
-- `knowledge-base-template.md` is the canonical template for term entries; it MUST be kept
-  in sync with the structure of `knowledge-base.md`.
+- The knowledge base is stored in the Supabase `knowledge_base` table and queried at
+  analysis runtime; it is the sole source of truth for FFXIV term translations.
+- The AI analyzer MUST NOT invent game-term translations or romanizations. Unknown terms
+  MUST be written as `[[term]]` placeholders so they can be resolved by the auto-KB job.
+- The auto-KB job (`scripts/auto_kb.py`) runs weekly after the pipeline and MUST only write
+  terms it can resolve with high confidence (sourced from official TW patch notes, TW wikis,
+  or established community usage); it MUST NOT guess or include low-confidence entries.
+- Manual KB additions are made directly via the Supabase dashboard or a migration script;
+  no PR is required. The `auto_generated` column distinguishes automated from manual entries.
+- Every term in the `knowledge_base` table MUST have a verified, accurate mapping —
+  auto-generated entries are held to the same accuracy standard as manually added ones.
+- If the `knowledge_base` table is empty or unreachable at pipeline startup, the pipeline
+  MUST halt with a clear error rather than continuing with an empty translation set.
 
 ## Technology Constraints
 
@@ -133,8 +137,8 @@ amendment.
 - **FFXIV Sources**: Reddit RSS (`/r/ffxiv/new/.rss`), JP official forums HTML scraping
   (`forum.square-enix.com/ffxiv/` and official patch note pages), and Taiwan/JP FFXIV
   official sites for structured patch note pages.
-- **Knowledge Base**: Markdown file (`knowledge-base.md`); read at analysis runtime; updated
-  via PRs.
+- **Knowledge Base**: Supabase `knowledge_base` table; queried at analysis runtime by
+  `src/analyzer.py`; auto-expanded weekly by `scripts/auto_kb.py` via Gemini.
 - **Public API**: Cloudflare Worker (`workers/api/`); serves the `articles` data to frontends.
 - **Frontend**: Cloudflare Pages (`pages/`); separate deployments for traffic and FFXIV
   content (distinct domains or sub-paths).
@@ -149,16 +153,20 @@ Standard operating procedures that all contributors MUST follow.
   週報自動系統 → Run workflow**. Confirm success by checking that `信件寄送成功` appears
   in the run log.
 - Local development MUST use `.env` (copied from `.env.example`) and local copies of both
-  `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example` counterparts).
-  All four files MUST remain in `.gitignore`.
+  `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example`
+  counterparts). All four files MUST remain in `.gitignore`.
 - To add or modify traffic sources: edit `SOURCES_TRAFFIC_YML` in GitHub Environment Variables.
 - To add or modify FFXIV sources: edit `SOURCES_FFXIV_YML` in GitHub Environment Variables.
 - Neither sources update requires a PR.
 - To rotate secrets: update the relevant GitHub Secret. No PR needed.
 - The `SUPABASE_SERVICE_ROLE_KEY` secret MUST be shared between the weekly workflow and the
   Cloudflare Worker; both require the ability to bypass RLS on the `articles` table.
-- Knowledge base updates MUST go through a PR so term mappings are peer-reviewed before
-  they influence production summaries.
+- To add or modify KB terms manually: insert or update rows in the Supabase `knowledge_base`
+  table directly (dashboard or migration script). Set `auto_generated = false` for manually
+  verified entries. No PR required.
+- Auto-generated KB entries are written by `scripts/auto_kb.py` after each weekly pipeline
+  run. They take effect on the next pipeline run. Review auto-generated entries periodically
+  via the Supabase dashboard to verify accuracy.
 
 ## Governance
 
@@ -181,4 +189,4 @@ wins unless the constitution is formally amended.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 1.1.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-05-03
+**Version**: 1.2.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-05-11
