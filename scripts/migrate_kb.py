@@ -18,6 +18,14 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
+try:
+    from dotenv import load_dotenv
+    loaded = load_dotenv(override=False)
+    if loaded:
+        print("[dotenv] 已載入 .env（本機測試模式）", flush=True)
+except ImportError:
+    pass
+
 
 def parse_kb_md(path: str) -> list[dict]:
     rows = []
