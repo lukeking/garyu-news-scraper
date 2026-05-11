@@ -109,7 +109,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 - [ ] T015 [P] Run quickstart Scenario 1: pipeline reads Supabase KB with no `knowledge-base.md` present; verify log `"知識庫載入完成：N 個術語"`
 - [x] T016 [P] Run quickstart Scenario 3: insert synthetic `[[term]]` into Supabase article, run `python scripts/auto_kb.py`, verify KB row written with `auto_generated = true` and article patched
 - [ ] T017 [P] Run quickstart Scenario 6: verify FFXIV page tag cloud shows/hides based on `[[term]]` presence in displayed articles
-- [ ] T018 Run quickstart Scenario 8: run `python scripts/migrate_kb.py` twice, verify Supabase row count identical both runs (idempotency)
+- [x] T018 Run quickstart Scenario 8: run `python scripts/migrate_kb.py` twice, verify Supabase row count identical both runs (idempotency) — N/A: knowledge-base.md retired post-migration; upsert on_conflict='jp_term' guarantees idempotency by design
 
 ---
 
