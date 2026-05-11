@@ -102,12 +102,18 @@ def main() -> None:
     from supabase import create_client
     supabase = create_client(url, key)
 
-    # Step 1 — load existing KB terms
+    # Step 1 — load existing KB terms (both jp_term and tw_term)
+    # tw_term is needed so [[Chinese term]] markers written by the pipeline
+    # aren't mistakenly sent to Gemini as unknown Japanese terms.
     try:
         kb_result = supabase.table("knowledge_base").select("jp_term, tw_term").execute()
         kb_rows: list[dict] = kb_result.data or []  # type: ignore[assignment]
-        existing_terms: set[str] = {str(r["jp_term"]) for r in kb_rows}
-        logger.info("知識庫現有術語：%d 個", len(existing_terms))
+        existing_jp: set[str] = {str(r["jp_term"]) for r in kb_rows}
+        # tw_term→tw_term map lets Step 5 strip brackets from [[TW term]] that are
+        # already translated; value equals key because no further mapping is needed.
+        known_tw: dict[str, str] = {str(r["tw_term"]): str(r["tw_term"]) for r in kb_rows}
+        existing_terms: set[str] = existing_jp | set(known_tw)
+        logger.info("知識庫現有術語：%d 個（JP）＋ %d 個（TW）", len(existing_jp), len(known_tw))
     except Exception as exc:
         logger.error("無法讀取 knowledge_base 表格：%s", exc)
         sys.exit(0)
@@ -153,7 +159,7 @@ def main() -> None:
         if not jp or not tw:
             logger.warning("[KB AUTO-MISS] 跳過無效 Gemini 回應項目：%s", entry)
             continue
-        if jp in existing_terms:
+        if jp in existing_jp:
             logger.info("術語 %s 已存在，跳過", jp)
             continue
         try:
@@ -171,6 +177,9 @@ def main() -> None:
             logger.warning("無法寫入術語 %s：%s", jp, exc)
 
     # Step 5 — inline re-resolution
+    # replacement_map covers: (a) newly Gemini-resolved jp→tw, and
+    # (b) already-known tw→tw so [[TW term]] brackets get stripped.
+    replacement_map: dict[str, str] = {**known_tw, **newly_added}
     all_miss_terms: set[str] = set()
 
     for row in article_rows:
@@ -180,9 +189,9 @@ def main() -> None:
         def replace_marker(m: re.Match) -> str:
             nonlocal replaced
             term = m.group(1).strip()
-            if term in newly_added:
+            if term in replacement_map:
                 replaced = True
-                return newly_added[term]
+                return replacement_map[term]
             return m.group(0)
 
         patched_text = MARKER_RE.sub(replace_marker, text)
