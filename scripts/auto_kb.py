@@ -123,14 +123,14 @@ def main() -> None:
             .execute()
         )
         all_ffxiv: list[dict] = articles_result.data or []  # type: ignore[assignment]
-        article_rows = [r for r in all_ffxiv if "[[" in json.dumps(r.get("analysis") or {})]
+        article_rows = [r for r in all_ffxiv if "[[" in json.dumps(r.get("analysis") or {}, ensure_ascii=False)]
     except Exception as exc:
         logger.error("無法查詢 articles 表格：%s", exc)
         sys.exit(0)
 
     unknown_terms: set[str] = set()
     for row in article_rows:
-        text = json.dumps(row.get("analysis") or {})
+        text = json.dumps(row.get("analysis") or {}, ensure_ascii=False)
         for m in MARKER_RE.finditer(text):
             term = m.group(1).strip()
             if term not in existing_terms:
@@ -174,7 +174,7 @@ def main() -> None:
     all_miss_terms: set[str] = set()
 
     for row in article_rows:
-        text = json.dumps(row.get("analysis") or {})
+        text = json.dumps(row.get("analysis") or {}, ensure_ascii=False)
         replaced = False
 
         def replace_marker(m: re.Match) -> str:
