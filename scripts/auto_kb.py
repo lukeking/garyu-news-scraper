@@ -113,15 +113,17 @@ def main() -> None:
         sys.exit(0)
 
     # Step 2 — collect [[term]] misses from FFXIV articles
+    # Fetch all FFXIV articles and filter for [[markers]] client-side;
+    # supabase-py quotes column names in .like(), breaking JSONB cast syntax.
     try:
         articles_result = (
             supabase.table("articles")
             .select("id, analysis")
             .eq("content_type", "ffxiv")
-            .like("analysis::text", "%[[%")
             .execute()
         )
-        article_rows: list[dict] = articles_result.data or []  # type: ignore[assignment]
+        all_ffxiv: list[dict] = articles_result.data or []  # type: ignore[assignment]
+        article_rows = [r for r in all_ffxiv if "[[" in json.dumps(r.get("analysis") or {})]
     except Exception as exc:
         logger.error("無法查詢 articles 表格：%s", exc)
         sys.exit(0)
