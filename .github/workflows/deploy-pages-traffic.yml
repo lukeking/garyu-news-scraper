@@ -30,7 +30,6 @@ jobs:
           cp -r pages/traffic/. /tmp/deploy-traffic/
           cp pages/shared/app.js /tmp/deploy-traffic/app.js
           cp pages/shared/shared.css /tmp/deploy-traffic/shared.css
-          cp -r functions/ /tmp/deploy-traffic/functions/
 
       - name: Deploy to Cloudflare Pages (Traffic)
         working-directory: /tmp/deploy-traffic
