@@ -6,6 +6,7 @@ on:
     branches: [ main ]
     paths:
       - "pages/traffic/**"
+      - "pages/shared/**"
       - ".github/workflows/deploy-pages-traffic.yml"
 
 permissions:

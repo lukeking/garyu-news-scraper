@@ -6,6 +6,7 @@ on:
     branches: [ main ]
     paths:
       - "pages/ffxiv/**"
+      - "pages/shared/**"
       - ".github/workflows/deploy-pages-ffxiv.yml"
 
 permissions:
