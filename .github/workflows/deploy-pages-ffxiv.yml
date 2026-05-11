@@ -20,10 +20,12 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
-      - name: 複製共用靜態資源至各站台目錄
+      - name: 複製共用靜態資源至部署目錄
         run: |
-          cp pages/shared/app.js pages/ffxiv/app.js
-          cp pages/shared/shared.css pages/ffxiv/shared.css
+          mkdir -p /tmp/deploy-ffxiv
+          cp -r pages/ffxiv/. /tmp/deploy-ffxiv/
+          cp pages/shared/app.js /tmp/deploy-ffxiv/app.js
+          cp pages/shared/shared.css /tmp/deploy-ffxiv/shared.css
 
       - name: Deploy to Cloudflare Pages (FFXIV)
         uses: cloudflare/pages-action@v1
@@ -31,4 +33,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           projectName: garyu-ffxiv-news
-          directory: pages/ffxiv
+          directory: /tmp/deploy-ffxiv
