@@ -13,7 +13,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 **Purpose**: Commit the completed constitution amendment before any implementation deploys.
 
-- [ ] T001 Verify and commit `.specify/memory/constitution.md` amendment (v1.1.0 → v1.2.0) — removes `knowledge-base.md` restrictions, adds Supabase `knowledge_base` table rules
+- [x] T001 Verify and commit `.specify/memory/constitution.md` amendment (v1.1.0 → v1.2.0) — removes `knowledge-base.md` restrictions, adds Supabase `knowledge_base` table rules
 
 ---
 
@@ -24,7 +24,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 **⚠️ CRITICAL**: No user story work can be deployed to production until T004 is verified.
 
 - [ ] T002 Create `knowledge_base` table in Supabase — run the SQL migration from `specs/005-gemini-kb-auto-resolve/data-model.md` (schema: `jp_term UNIQUE`, `tw_term`, `en_term`, `category`, `notes`, `auto_generated BOOLEAN`, `created_at`, `updated_at`)
-- [ ] T003 [P] Write `scripts/migrate_kb.py` — parse `knowledge-base.md` using 5-column pipe table logic, upsert all rows to `knowledge_base` with `auto_generated = false`, on_conflict `jp_term` (idempotent); see `contracts/pipeline-kb-migration.md` for full spec
+- [x] T003 [P] Write `scripts/migrate_kb.py` — parse `knowledge-base.md` using 5-column pipe table logic, upsert all rows to `knowledge_base` with `auto_generated = false`, on_conflict `jp_term` (idempotent); see `contracts/pipeline-kb-migration.md` for full spec
 - [ ] T004 Run `python scripts/migrate_kb.py` and verify: row count in Supabase `knowledge_base` table matches the number of term rows in `knowledge-base.md` (~60 rows); log shows expected count; no errors
 
 **Checkpoint**: `knowledge_base` table populated — user story implementation can now begin.
@@ -41,7 +41,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 ### Implementation for User Story 2
 
-- [ ] T005 [P] [US2] Rewrite `load_knowledge_base()` in `src/analyzer.py` — replace file-read logic with Supabase SELECT (`jp_term, tw_term, en_term, category`); create Supabase client inline using `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`; preserve `_KB_CACHE` module-level dict and existing return format `{jp_term: {"tw", "en", "category"}}`; raise `RuntimeError` on empty result or connection failure (see `contracts/pipeline-kb-migration.md`)
+- [x] T005 [P] [US2] Rewrite `load_knowledge_base()` in `src/analyzer.py` — replace file-read logic with Supabase SELECT (`jp_term, tw_term, en_term, category`); create Supabase client inline using `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`; preserve `_KB_CACHE` module-level dict and existing return format `{jp_term: {"tw", "en", "category"}}`; raise `RuntimeError` on empty result or connection failure (see `contracts/pipeline-kb-migration.md`)
 - [ ] T006 Delete `knowledge-base.md` from repository root — only after T004 row count verified and T005 deployed; confirm pipeline run succeeds without the file
 - [ ] T007 [P] Delete `config/knowledge-base-template.md` from repository
 - [ ] T008 [P] Delete `scripts/resolve_kb_misses.py` from repository (superseded by auto-KB job inline re-resolution in US1)
@@ -59,7 +59,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Write `scripts/auto_kb.py` — complete implementation per `contracts/auto-kb-job.md`:
+- [x] T010 [P] [US1] Write `scripts/auto_kb.py` — complete implementation per `contracts/auto-kb-job.md`:
   - Step 1: load existing `jp_term` set from Supabase `knowledge_base`
   - Step 2: query FFXIV articles with `analysis::text LIKE '%[[%'`, extract unique unknown terms (not in existing set)
   - Step 3: if no unknown terms, log and exit 0
@@ -67,7 +67,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
   - Step 5: INSERT each valid entry to `knowledge_base` with `auto_generated = true`; skip duplicates; log `[KB AUTO-MISS]` for omitted terms
   - Step 6: inline re-resolution — for each article from Step 2, replace `[[term]]` with newly-added `tw_term`, UPDATE Supabase if any replacements made
   - Always exit 0; all failures are logged and non-blocking
-- [ ] T011 [US1] Write `.github/workflows/auto-kb.yml` — trigger: `workflow_run` on `Garyu News Scraper 週報` with `types: [completed]`; job guard: `if: github.event.workflow_run.conclusion == 'success'`; steps: checkout, Python 3.11 setup, pip install, `python scripts/auto_kb.py`; env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL_NAME` (all from existing secrets/vars)
+- [x] T011 [US1] Write `.github/workflows/auto-kb.yml` — trigger: `workflow_run` on `Garyu News Scraper 週報` with `types: [completed]`; job guard: `if: github.event.workflow_run.conclusion == 'success'`; steps: checkout, Python 3.11 setup, pip install, `python scripts/auto_kb.py`; env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `GEMINI_MODEL_NAME` (all from existing secrets/vars)
 
 **Checkpoint**: Auto-KB job collects misses, calls Gemini, writes KB rows, patches articles — end-to-end without human intervention.
 
@@ -81,8 +81,8 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 ### Implementation for User Story 3
 
-- [ ] T012 [P] [US3] Add `#unknown-term-pool` HTML and CSS to `pages/ffxiv/index.html` — insert `<div id="unknown-term-pool" class="term-pool" style="display:none">` with `<div class="term-pool-header">` and `<div class="term-pool-tags" id="term-pool-tags">` between `<div class="week-nav" id="week-nav">` and `<div class="tag-bar" id="tag-bar">`; add `.term-pool`, `.term-pool-header`, `.term-pool-sub`, `.term-pool-tags`, `.term-tag` CSS using `var(--accent)`, `var(--tag-bg)`, `var(--card-bg)` variables in the `<style>` block (see `contracts/frontend-tag-cloud.md` for exact HTML/CSS)
-- [ ] T013 [P] [US3] Add `renderTermPool(articles)` to `pages/shared/app.js` and call from `renderAll()` — function: guard on `C.contentType !== 'ffxiv'`; extract `[[term]]` matches from `JSON.stringify(a.analysis || {})` for all articles; deduplicate via `Set`; if empty set `pool.style.display = 'none'`; else render tags as `position:absolute` spans with random `font-size` (0.85–1.55rem), `left` (2–90%), `top` (5–80%) per tag (see `contracts/frontend-tag-cloud.md` for exact JS)
+- [x] T012 [P] [US3] Add `#unknown-term-pool` HTML and CSS to `pages/ffxiv/index.html` — insert `<div id="unknown-term-pool" class="term-pool" style="display:none">` with `<div class="term-pool-header">` and `<div class="term-pool-tags" id="term-pool-tags">` between `<div class="week-nav" id="week-nav">` and `<div class="tag-bar" id="tag-bar">`; add `.term-pool`, `.term-pool-header`, `.term-pool-sub`, `.term-pool-tags`, `.term-tag` CSS using `var(--accent)`, `var(--tag-bg)`, `var(--card-bg)` variables in the `<style>` block (see `contracts/frontend-tag-cloud.md` for exact HTML/CSS)
+- [x] T013 [P] [US3] Add `renderTermPool(articles)` to `pages/shared/app.js` and call from `renderAll()` — function: guard on `C.contentType !== 'ffxiv'`; extract `[[term]]` matches from `JSON.stringify(a.analysis || {})` for all articles; deduplicate via `Set`; if empty set `pool.style.display = 'none'`; else render tags as `position:absolute` spans with random `font-size` (0.85–1.55rem), `left` (2–90%), `top` (5–80%) per tag (see `contracts/frontend-tag-cloud.md` for exact JS)
 
 **Checkpoint**: Tag cloud appears with scattered tags when unresolved terms exist; hides when none exist; traffic page unaffected.
 
