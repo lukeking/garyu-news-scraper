@@ -20,7 +20,7 @@ jobs:
       - name: Checkout 程式碼
         uses: actions/checkout@v5
 
-      - name: 複製共用靜態資源至部署目錄
+      - name: 準備部署目錄
         run: |
           mkdir -p /tmp/deploy-traffic
           cp -r pages/traffic/. /tmp/deploy-traffic/
@@ -28,9 +28,8 @@ jobs:
           cp pages/shared/shared.css /tmp/deploy-traffic/shared.css
 
       - name: Deploy to Cloudflare Pages (Traffic)
-        uses: cloudflare/pages-action@v1
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: garyu-traffic-news
-          directory: /tmp/deploy-traffic
+        working-directory: /tmp/deploy-traffic
+        run: npx wrangler@latest pages deploy . --project-name=garyu-traffic-news --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
