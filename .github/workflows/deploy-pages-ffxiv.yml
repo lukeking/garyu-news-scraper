@@ -30,6 +30,7 @@ jobs:
           cp -r pages/ffxiv/. /tmp/deploy-ffxiv/
           cp pages/shared/app.js /tmp/deploy-ffxiv/app.js
           cp pages/shared/shared.css /tmp/deploy-ffxiv/shared.css
+          cp -r functions/ /tmp/deploy-ffxiv/functions/
 
       - name: Deploy to Cloudflare Pages (FFXIV)
         working-directory: /tmp/deploy-ffxiv
