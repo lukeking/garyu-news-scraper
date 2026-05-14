@@ -29,6 +29,9 @@ _DEFAULTS = {
     "buffer": {
         "max_age_weeks": 8,
     },
+    "embed_dedup": {
+        "threshold": 0.88,
+    },
     "quality_score_weights": {
         "keyword_match_ratio": 0.4,
         "normalised_word_count": 0.3,

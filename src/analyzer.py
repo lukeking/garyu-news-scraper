@@ -21,6 +21,11 @@ GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "{model}:generateContent?key={api_key}"
 )
+GEMINI_EMBED_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/"
+    "gemini-embedding-2:embedContent?key={api_key}"
+)
+EMBED_DIMENSIONS = 768  # MRL truncation from 3072; balances accuracy vs storage
 
 SYSTEM_PROMPT = (
     "你是台灣交通新聞分析師，專精機車議題（含白牌普通重型機車、紅黃牌大型重型機車）。"
@@ -204,6 +209,105 @@ def _get_api_key():
     if not key:
         raise RuntimeError("GEMINI_API_KEY 環境變數未設定")
     return key
+
+
+# ── Embedding Dedup (traffic pipeline) ───────────────────────────────────────
+
+def generate_embedding(text: str) -> list | None:
+    """
+    Call Gemini Embedding 2 to produce a 768-dim vector for the given text.
+    Returns None on any API failure so callers can skip similarity checks gracefully.
+    """
+    api_key = _get_api_key()
+    url = GEMINI_EMBED_URL.format(api_key=api_key)
+    payload = {
+        "content": {"parts": [{"text": f"task: semantic_similarity\n\n{text[:4000]}"}]},
+        "outputDimensionality": EMBED_DIMENSIONS,
+    }
+    try:
+        resp = requests.post(url, json=payload, timeout=30)
+        resp.raise_for_status()
+        return resp.json()["embedding"]["values"]
+    except Exception as e:
+        logger.warning("[embedding] 生成失敗：%s", e)
+        return None
+
+
+def _cosine_similarity(a: list, b: list) -> float:
+    import math
+    dot = sum(x * y for x, y in zip(a, b))
+    mag_a = math.sqrt(sum(x * x for x in a))
+    mag_b = math.sqrt(sum(x * x for x in b))
+    if mag_a == 0 or mag_b == 0:
+        return 0.0
+    return dot / (mag_a * mag_b)
+
+
+def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88) -> list:
+    """
+    Deduplicate candidates by cosine similarity of Gemini embeddings.
+    Checks each candidate against: (1) buffer articles already in the weekly DB,
+    (2) other candidates in the same batch.
+    Attaches the embedding to each article dict so publish() can store it.
+    Falls back to returning all candidates if embeddings cannot be generated.
+    """
+    if not candidates:
+        return candidates
+
+    # Generate embeddings for all candidates
+    for a in candidates:
+        if "embedding" not in a:
+            text = (a.get("title") or "") + "\n" + (a.get("summary") or "")[:300]
+            a["embedding"] = generate_embedding(text)
+
+    has_embed = [a for a in candidates if a.get("embedding") is not None]
+    no_embed = [a for a in candidates if a.get("embedding") is None]
+
+    if not has_embed:
+        logger.warning("[embed_dedup] 所有候選嵌入生成失敗，保留所有")
+        return candidates
+
+    buffer_with_embed = [a for a in buffer_articles if a.get("embedding")]
+
+    # Step 1: drop candidates already covered by the week's buffer
+    after_buffer: list = []
+    for a in has_embed:
+        matched = next(
+            (b for b in buffer_with_embed
+             if _cosine_similarity(a["embedding"], b["embedding"]) >= threshold),
+            None,
+        )
+        if matched:
+            logger.info(
+                "[embed_dedup] 已在緩衝區，略過（相似度≥%.2f）：%s",
+                threshold, a.get("title", ""),
+            )
+        else:
+            after_buffer.append(a)
+
+    # Step 2: pairwise dedup within the batch; keep the article with more summary content
+    deduped: list = []
+    for a in after_buffer:
+        dup_idx = next(
+            (j for j, kept in enumerate(deduped)
+             if _cosine_similarity(a["embedding"], kept["embedding"]) >= threshold),
+            None,
+        )
+        if dup_idx is None:
+            deduped.append(a)
+        else:
+            kept_len = len(deduped[dup_idx].get("summary") or "")
+            cand_len = len(a.get("summary") or "")
+            if cand_len > kept_len:
+                logger.info("[embed_dedup] 批次去重，保留較詳細版本：%s", a.get("title", ""))
+                deduped[dup_idx] = a
+            else:
+                logger.info("[embed_dedup] 批次去重，略過：%s", a.get("title", ""))
+
+    result = deduped + no_embed
+    skipped = len(candidates) - len(result)
+    logger.info("[embed_dedup] 結果：%d → %d 篇（略過 %d）", len(candidates), len(result), skipped)
+    return result
 
 
 def _retry_after_seconds(resp, attempt, status_code):
@@ -519,9 +623,10 @@ def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: 
 
 _DEDUP_SYSTEM_PROMPT = (
     "你是新聞去重複助手。你的任務是找出描述「完全相同事件」的重複報導。\n"
-    "重複的定義非常嚴格：必須是同一天、同一地點、同一起事故或同一當事人。\n"
-    "僅因為主題相似（例如都是機車事故、都提到同一條路）不算重複。\n"
-    "不確定時一律保留，寧可多收也不要誤刪。\n"
+    "重複的判斷標準：同一地點＋同一事件類型＋同一政府機關或當事人出現，即視為同一事件，"
+    "即使措辭不同（如「騎士」vs「網紅」、「函警」vs「報警舉發」）。\n"
+    "不算重複的情形：主題相似但事件明顯不同（不同起事故、不同地點、不同當事人）。\n"
+    "候選間互為重複時，只保留摘要最詳細的一篇。\n"
     "只回覆 JSON，不加任何說明或 markdown 符號。"
 )
 
@@ -556,8 +661,8 @@ def dedup_same_event(candidates: list, buffer_articles: list) -> list:
         f"本週緩衝區（已收錄）：\n\n{buffer_section}\n\n"
         f"今日候選（待決定）：\n\n{candidates_section}\n\n"
         "請找出今日候選中，與緩衝區或其他候選描述「完全相同事件」的重複報導。\n"
-        "排除條件：必須同時符合——同一天、同一地點、同一起事故或當事人。\n"
-        "僅主題相似（例如都是機車事故）不得排除。不確定一律保留。\n"
+        "排除條件：同一地點＋同一事件類型＋同一政府機關或當事人出現，即可排除，措辭不同亦算重複。\n"
+        "保留條件：不同起事故（不同當事人、不同地點、不同日期）一律保留。\n"
         "候選間互為重複時，保留摘要最詳細的一篇。\n\n"
         '回覆 JSON，必須包含 exclude（排除的 N 編號）與 reasons（排除原因）：\n'
         '{"exclude": ["N3"], "reasons": {"N3": "與 N1 描述同一天同一地點的事故"}, "keep": ["N1", "N2"]}'

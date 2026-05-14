@@ -16,6 +16,9 @@ topic_scoring:
 buffer:
   max_age_weeks: 8           # Articles older than this are expired from the buffer
 
+embed_dedup:
+  threshold: 0.88            # Cosine similarity ≥ this → same event (Gemini Embedding 2, 768d)
+
 quality_score_weights:       # Must sum to 1.0
   keyword_match_ratio: 0.4
   normalised_word_count: 0.3

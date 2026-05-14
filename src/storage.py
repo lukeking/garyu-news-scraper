@@ -296,6 +296,7 @@ def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) 
             "buffered_at": now.isoformat(),
             "buffer_expires_at": expires_at.isoformat(),
             "hot_topic_analyzed": False,
+            "embedding": a.get("embedding"),
         })
 
     try:

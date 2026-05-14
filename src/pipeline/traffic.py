@@ -105,15 +105,18 @@ class TrafficCategory:
         if is_configured():
             try:
                 from src.storage import get_traffic_buffer
-                from src.analyzer import dedup_same_event
+                from src.analyzer import embed_dedup
+                from src.pipeline_config import load_pipeline_config as _lpc
+                _cfg = _lpc()
+                _threshold = _cfg.get("embed_dedup", {}).get("threshold", 0.88)
                 week_id = self._current_week_id()
                 this_week = [
                     a for a in get_traffic_buffer(max_age_weeks=1)
                     if a.get("week_id") == week_id
                 ]
-                deduped = dedup_same_event(deduped, this_week)
+                deduped = embed_dedup(deduped, this_week, threshold=_threshold)
             except Exception as e:
-                logger.warning("[%s] LLM 同事件去重複失敗，略過：%s", self.name, e)
+                logger.warning("[%s] 嵌入去重複失敗，略過：%s", self.name, e)
 
         deduped.sort(key=lambda a: float(a.get("initial_quality_score") or 0), reverse=True)
         return deduped[:self.max_articles]
