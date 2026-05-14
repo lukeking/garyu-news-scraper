@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 22 * * *'  # 每日 UTC 22:00 = 台灣 06:00（週一由 weekly.yml 處理）
   workflow_dispatch:
+  push:
+    branches:
+      - 006-traffic-news-pipeline  # remove before merging to main
 
 permissions:
   contents: read
