@@ -458,3 +458,278 @@ def analyze_all(articles, delay=6):
 
     logger.info("=== AI 分析完成 ===")
     return results
+
+
+HOT_TOPIC_SYSTEM_PROMPT = (
+    "你是台灣交通安全深度分析師，專精機車與道路安全議題。"
+    "請用繁體中文回應，融合台灣民眾觀點與國際道路安全標準，語氣客觀且具建設性。"
+    "分析應點出問題根源、社會背景與可行改善方向，避免重複資訊或泛泛而論。"
+    "回應格式務必嚴格按照指示，不要加入任何額外說明或 markdown 符號。"
+)
+
+HOT_TOPIC_PROMPT_TEMPLATE = """以下是本週「{topic_label}」類別的熱點交通新聞（共 {article_count} 篇）：
+
+{article_list}
+
+請針對以上新聞群，依照以下格式回應，每個欄位必須在同一行內完成，不可換行：
+
+現象摘要：用2到3句話描述本週該議題的整體現象與規模（同一行，句子之間用「。」分隔）
+根源分析：用3到5句話分析造成此現象的結構性原因、道路設計、法規落差或駕駛行為因素（同一行，句子之間用「。」分隔）
+影響評估：用2到3句話評估此議題對台灣機車騎士與整體道路安全的實際影響（同一行，句子之間用「。」分隔）
+改善建議：用2到3句話提出具體可行的改善方向，可參考國際案例（同一行，句子之間用「。」分隔）
+"""
+
+
+def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: str) -> str:
+    """
+    Generate a deep-analysis report for a hot topic bucket using Gemini.
+    Selects top 10 articles by initial_quality_score for the prompt.
+    Returns the report text string, or empty string on failure.
+    Caller is responsible for respecting rate limits (existing 2.5s delay convention).
+    """
+    api_key = _get_api_key()
+
+    top_articles = sorted(
+        bucket_articles,
+        key=lambda a: float(a.get("initial_quality_score") or 0),
+        reverse=True,
+    )[:10]
+
+    lines = []
+    for i, a in enumerate(top_articles, 1):
+        title = a.get("title", "（無標題）")
+        body = (a.get("summary", "") or a.get("content", "") or "")[:200]
+        lines.append(f"{i}. 標題：{title}\n   摘要：{body}")
+
+    article_list = "\n\n".join(lines)
+    prompt = HOT_TOPIC_PROMPT_TEMPLATE.format(
+        topic_label=topic_label,
+        article_count=len(top_articles),
+        article_list=article_list,
+    )
+
+    raw = _call_gemini(prompt, api_key, system_prompt=HOT_TOPIC_SYSTEM_PROMPT)
+    if raw:
+        logger.info("✓ 熱點分析完成：%s (%s)", topic_label, week_start_date)
+        return raw.strip()
+
+    logger.warning("✗ 熱點分析失敗：%s (%s)", topic_label, week_start_date)
+    return ""
+
+
+_DEDUP_SYSTEM_PROMPT = (
+    "你是新聞去重複助手。你的任務是找出描述「完全相同事件」的重複報導。\n"
+    "重複的定義非常嚴格：必須是同一天、同一地點、同一起事故或同一當事人。\n"
+    "僅因為主題相似（例如都是機車事故、都提到同一條路）不算重複。\n"
+    "不確定時一律保留，寧可多收也不要誤刪。\n"
+    "只回覆 JSON，不加任何說明或 markdown 符號。"
+)
+
+
+def dedup_same_event(candidates: list, buffer_articles: list) -> list:
+    """
+    Use Gemini to drop candidates that describe the same event as each other
+    or as articles already in the weekly buffer.
+    Jaccard dedup should run first; this handles the grey zone that token overlap misses.
+    Falls back to returning all candidates on any error.
+    """
+    if not candidates:
+        return candidates
+
+    import json
+
+    api_key = _get_api_key()
+
+    buffer_lines = []
+    for i, a in enumerate(buffer_articles[-30:], 1):
+        excerpt = (a.get("summary") or "")[:120].replace("\n", " ")
+        buffer_lines.append(f"[B{i}] {a.get('title', '')}\n摘要：{excerpt}")
+    buffer_section = "\n\n".join(buffer_lines) or "（本週尚無已收錄文章）"
+
+    candidate_lines = []
+    for i, a in enumerate(candidates, 1):
+        excerpt = (a.get("summary") or "")[:120].replace("\n", " ")
+        candidate_lines.append(f"[N{i}] {a.get('title', '')}\n摘要：{excerpt}")
+    candidates_section = "\n\n".join(candidate_lines)
+
+    prompt = (
+        f"本週緩衝區（已收錄）：\n\n{buffer_section}\n\n"
+        f"今日候選（待決定）：\n\n{candidates_section}\n\n"
+        "請找出今日候選中，與緩衝區或其他候選描述「完全相同事件」的重複報導。\n"
+        "排除條件：必須同時符合——同一天、同一地點、同一起事故或當事人。\n"
+        "僅主題相似（例如都是機車事故）不得排除。不確定一律保留。\n"
+        "候選間互為重複時，保留摘要最詳細的一篇。\n\n"
+        '回覆 JSON，必須包含 exclude（排除的 N 編號）與 reasons（排除原因）：\n'
+        '{"exclude": ["N3"], "reasons": {"N3": "與 N1 描述同一天同一地點的事故"}, "keep": ["N1", "N2"]}'
+    )
+
+    logger.info(
+        "[dedup_same_event] 送出：%d 候選，%d 緩衝區文章",
+        len(candidates), len(buffer_articles),
+    )
+    logger.debug("[dedup_same_event] prompt:\n%s", prompt)
+
+    try:
+        raw = _call_gemini(prompt, api_key, system_prompt=_DEDUP_SYSTEM_PROMPT)
+        logger.debug("[dedup_same_event] 原始回覆：%s", raw)
+        if not raw:
+            logger.warning("[dedup_same_event] Gemini 回傳空回覆，保留所有候選")
+            return candidates
+
+        # Find the outermost JSON object using brace counting (handles nested objects)
+        start = raw.find('{')
+        if start == -1:
+            logger.warning("[dedup_same_event] 無法解析回覆（找不到 JSON），保留所有候選\n原始回覆：%s", raw)
+            return candidates
+        depth, end = 0, -1
+        for i, ch in enumerate(raw[start:], start):
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+        if end == -1:
+            logger.warning("[dedup_same_event] JSON 括號不匹配，保留所有候選\n原始回覆：%s", raw)
+            return candidates
+
+        result = json.loads(raw[start:end + 1])
+        exclude_ids = {s for s in result.get("exclude", []) if isinstance(s, str)}
+        reasons = result.get("reasons", {})
+        for nid, reason in reasons.items():
+            if nid in exclude_ids:
+                logger.info("[dedup_same_event] 排除 %s：%s", nid, reason)
+
+        filtered = [a for i, a in enumerate(candidates, 1) if f"N{i}" not in exclude_ids]
+        skipped = len(candidates) - len(filtered)
+        logger.info("[dedup_same_event] 結果：%d → %d 篇（略過 %d）", len(candidates), len(filtered), skipped)
+        return filtered
+
+    except Exception as e:
+        logger.warning("[dedup_same_event] LLM 去重複失敗，保留所有候選：%s", e)
+        return candidates
+
+
+# ── Traffic Pipeline: Clustering + Scoring (US3) ─────────────────────────────
+
+def _article_word_count(article: dict) -> int:
+    body = article.get("summary", "") or article.get("content", "") or ""
+    return len((article.get("title", "") + body).replace(" ", ""))
+
+
+def _date_part(published: str) -> str:
+    return published[:10] if published else ""
+
+
+def cluster_traffic_articles(articles: list, config: dict) -> dict:
+    """
+    Group traffic articles into topic buckets by Jaccard similarity within each
+    major_category.
+
+    - Jaccard > merge_threshold: near-duplicate pair — keep higher word-count article (FR-013)
+    - Jaccard in [cluster_lower, merge_threshold]: same topic bucket (FR-014)
+    - Otherwise: new independent bucket
+
+    Returns {bucket_id: [article_dicts]}.
+    """
+    from src.filter import normalise_title, compute_jaccard
+
+    merge_threshold = config.get("jaccard", {}).get("merge_threshold", 0.45)
+    cluster_lower = config.get("jaccard", {}).get("cluster_lower", 0.20)
+
+    # Group by major_category
+    by_category: dict = {}
+    for article in articles:
+        cat = article.get("major_category", "uncategorised")
+        by_category.setdefault(cat, []).append(article)
+
+    all_buckets: dict = {}
+    bucket_counter = 0
+
+    for cat_articles in by_category.values():
+        token_sets = {id(a): normalise_title(a.get("title", "")) for a in cat_articles}
+
+        # 1. Deduplicate: sort by word count desc; retain article only if no
+        #    already-retained article has Jaccard > merge_threshold with it.
+        sorted_articles = sorted(cat_articles, key=_article_word_count, reverse=True)
+        deduplicated: list = []
+        for article in sorted_articles:
+            ts_a = token_sets[id(article)]
+            is_dup = any(
+                compute_jaccard(ts_a, token_sets[id(r)]) > merge_threshold
+                for r in deduplicated
+            )
+            if not is_dup:
+                deduplicated.append(article)
+
+        # 2. Cluster: assign to an existing bucket if any member scores in
+        #    [cluster_lower, merge_threshold]; start a new bucket otherwise.
+        cat_buckets: dict = {}
+        for article in deduplicated:
+            ts_a = token_sets[id(article)]
+            assigned = False
+            for bid, bucket_articles in cat_buckets.items():
+                for b_article in bucket_articles:
+                    score = compute_jaccard(ts_a, token_sets[id(b_article)])
+                    if cluster_lower <= score <= merge_threshold:
+                        bucket_articles.append(article)
+                        assigned = True
+                        break
+                if assigned:
+                    break
+            if not assigned:
+                bid = f"bucket_{bucket_counter}"
+                bucket_counter += 1
+                cat_buckets[bid] = [article]
+
+        all_buckets.update(cat_buckets)
+
+    return all_buckets
+
+
+def score_topic_buckets(buckets: dict, config: dict) -> dict:
+    """
+    Compute the cumulative momentum score for each bucket:
+    score = Σ(quality_scores) × log(distinct_sources + 1) × log(distinct_days + 1)
+
+    Returns {bucket_id: score}.
+    """
+    import math
+
+    scores: dict = {}
+    for bid, bucket_articles in buckets.items():
+        quality_sum = sum(
+            float(a.get("initial_quality_score") or 0) for a in bucket_articles
+        )
+        distinct_sources = len({a.get("source", "") for a in bucket_articles})
+        distinct_days = len({
+            _date_part(a.get("published", ""))
+            for a in bucket_articles
+            if a.get("published")
+        })
+        score = (
+            quality_sum
+            * math.log(distinct_sources + 1)
+            * math.log(max(distinct_days, 1) + 1)
+        )
+        scores[bid] = score
+
+    return scores
+
+
+def select_hot_topics(bucket_scores: dict, config: dict) -> list:
+    """
+    Return at most max_hot_topics bucket_ids with score >= min_threshold,
+    sorted by score descending.
+    """
+    topic_cfg = config.get("topic_scoring", {})
+    min_threshold = float(topic_cfg.get("min_threshold", 1.5))
+    max_hot_topics = int(topic_cfg.get("max_hot_topics", 3))
+
+    qualified = [
+        (bid, score) for bid, score in bucket_scores.items()
+        if score >= min_threshold
+    ]
+    qualified.sort(key=lambda x: x[1], reverse=True)
+    return [bid for bid, _ in qualified[:max_hot_topics]]

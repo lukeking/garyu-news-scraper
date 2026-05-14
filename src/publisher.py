@@ -379,3 +379,34 @@ def publish(
 
     logger.info("=== 發布完成（%s），week_id=%s ===", output_dir, week_id)
     return week_id
+
+
+# ── Hot Topic Reports (US1) ───────────────────────────────────────────────────
+
+def publish_hot_topic_reports(reports: list) -> None:
+    """
+    Write hot topic reports as JSON to pages/traffic/hot_topics.json.
+    The file is consumed by the frontend renderHotTopics() function.
+    """
+    output_path = ROOT_DIR / "pages" / "traffic" / "hot_topics.json"
+    now = _now_tw()
+    data = {
+        "generated_at": now.isoformat(),
+        "week_start_date": reports[0]["week_start_date"] if reports else "",
+        "report_count": len(reports),
+        "reports": [
+            {
+                "topic_label": r["topic_label"],
+                "report_text": r["report_text"],
+                "source_article_count": r.get("source_article_count", 0),
+                "source_article_links": r.get("source_article_links", []),
+                "cumulative_score": r.get("cumulative_score", 0),
+                "distinct_sources": r.get("distinct_sources", 0),
+                "distinct_days": r.get("distinct_days", 0),
+                "week_start_date": r["week_start_date"],
+            }
+            for r in reports
+        ],
+    }
+    _save_json(output_path, data)
+    logger.info("✓ hot_topics.json 已寫入：%s (%d 個熱點)", output_path, len(reports))

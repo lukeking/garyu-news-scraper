@@ -1,10 +1,11 @@
 """
 filter.py
-機車關鍵字過濾 + 去重複
+機車關鍵字過濾 + 去重複 + 標題正規化 + Jaccard 相似度 + 類別指派
 """
 
 import hashlib
 import logging
+import os
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -210,7 +211,7 @@ def freshness_filter(
     return result
 
 
-def filter_and_deduplicate(articles: list) -> list:
+def filter_and_deduplicate(articles: list, throttle: bool = True) -> list:
     seen_hashes = set()
     topic_counts: dict = {}  # topic_key -> 已收錄篇數
     result = []
@@ -235,23 +236,190 @@ def filter_and_deduplicate(articles: list) -> list:
         if h in seen_hashes:
             continue
 
-        title = _clean_html(article.get("title", ""))
-        tkey = _topic_key(title)
-
-        if tkey is not None:
-            current = topic_counts.get(tkey, 0)
-            limit = topic_limits.get(tkey, 99)
-            if current >= limit:
-                logger.debug("主題限流（%s）跳過：%s", tkey, title[:40])
-                continue
-            topic_counts[tkey] = current + 1
+        if throttle:
+            title = _clean_html(article.get("title", ""))
+            tkey = _topic_key(title)
+            if tkey is not None:
+                current = topic_counts.get(tkey, 0)
+                limit = topic_limits.get(tkey, 99)
+                if current >= limit:
+                    logger.debug("主題限流（%s）跳過：%s", tkey, title[:40])
+                    continue
+                topic_counts[tkey] = current + 1
 
         seen_hashes.add(h)
         result.append(article)
 
-    skipped_topics = {k: v for k, v in topic_counts.items() if v >= topic_limits.get(k, 99)}
-    if skipped_topics:
-        logger.info("主題限流統計：%s", skipped_topics)
+    if throttle:
+        skipped_topics = {k: v for k, v in topic_counts.items() if v >= topic_limits.get(k, 99)}
+        if skipped_topics:
+            logger.info("主題限流統計：%s", skipped_topics)
 
     logger.info(f"過濾後剩 {len(result)} 筆（原 {len(articles)} 筆）")
     return result
+
+
+# ── 標題正規化 + Jaccard 相似度 + 類別指派 (US4 / Traffic Pipeline) ─────────
+
+# 全型→半型數字對照
+_FULLWIDTH_DIGITS = str.maketrans("０１２３４５６７８９", "0123456789")
+
+# 中文數字→阿拉伯數字（簡單一位數，足應付新聞標題）
+_ZH_DIGIT_MAP = {"零": "0", "一": "1", "二": "2", "三": "3", "四": "4",
+                 "五": "5", "六": "6", "七": "7", "八": "8", "九": "9",
+                 "十": "10", "百": "100", "千": "1000"}
+_ZH_DIGIT_RE = re.compile(r"([零一二三四五六七八九十百千])(?=[人名死傷歲輛起件條])")
+
+# 媒體標籤 / 記者署名模式
+_MEDIA_TAG_RE = re.compile(r"[【〔\[［].*?[】〕\]］]|（[^）]*?報導[^）]*?）|／[^\s]{2,6}報導.*$")
+_LINK_SUFFIX_RE = re.compile(r"（?相關報導.*$|連結.*$|更多報導.*$")
+
+_jieba_loaded = False
+
+
+def _load_jieba() -> None:
+    global _jieba_loaded
+    if _jieba_loaded:
+        return
+    try:
+        import jieba  # noqa: F401
+        userdict_path = os.environ.get("JIEBA_USERDICT_PATH", "config/jieba_userdict.txt")
+        if os.path.exists(userdict_path):
+            jieba.load_userdict(userdict_path)
+            logger.info("[filter] jieba 自訂詞典已載入：%s", userdict_path)
+        else:
+            logger.warning("[filter] jieba 自訂詞典不存在，使用預設分詞：%s", userdict_path)
+        _jieba_loaded = True
+    except ImportError:
+        logger.warning("[filter] jieba 未安裝，將使用字元級 tokenisation")
+        _jieba_loaded = True
+
+
+def normalise_title(title: str) -> frozenset:
+    """
+    正規化文章標題並回傳 token frozenset，用於 Jaccard 相似度計算。
+    步驟：
+      1. 移除媒體標籤 【…】 〔…〕 [… ] 及記者署名
+      2. 移除「相關報導」「連結」等尾綴
+      3. 全型數字 → 半型
+      4. 中文數詞 → 阿拉伯數字（人/死/傷等單位前的數詞）
+      5. 使用 jieba 分詞，過濾長度 < 2 的 token
+    """
+    t = _clean_html(title)
+    t = _MEDIA_TAG_RE.sub("", t)
+    t = _LINK_SUFFIX_RE.sub("", t)
+    t = t.translate(_FULLWIDTH_DIGITS)
+    t = _ZH_DIGIT_RE.sub(lambda m: _ZH_DIGIT_MAP.get(m.group(1), m.group(1)), t)
+    t = t.strip()
+
+    _load_jieba()
+    try:
+        import jieba
+        tokens = jieba.lcut(t)
+    except ImportError:
+        tokens = list(t)
+
+    return frozenset(tok for tok in tokens if len(tok) >= 2)
+
+
+def compute_jaccard(set_a: frozenset, set_b: frozenset) -> float:
+    """Jaccard 相似度：|A∩B| / |A∪B|。任一集合為空時回傳 0.0。"""
+    if not set_a or not set_b:
+        return 0.0
+    intersection = len(set_a & set_b)
+    union = len(set_a | set_b)
+    return intersection / union if union else 0.0
+
+
+def assign_category(title_tokens: frozenset, taxonomy: dict) -> str:
+    """
+    依類別分類詞典指派 major_category。
+    按詞典定義順序，第一個關鍵字有交集的類別獲勝。
+    無任何交集時回傳 'uncategorised'。
+    """
+    for label, keywords in taxonomy.items():
+        kw_set = frozenset(keywords)
+        if title_tokens & kw_set:
+            return label
+    return "uncategorised"
+
+
+def compute_quality_score(article: dict, category_keywords: list, config: dict) -> float:
+    """
+    計算文章初始品質分數（0.0–1.0），不使用 AI。
+    公式：kw_match_ratio × w1 + norm_word_count × w2 + source_weight × w3
+    """
+    weights = config.get("quality_score_weights", {})
+    w1 = weights.get("keyword_match_ratio", 0.4)
+    w2 = weights.get("normalised_word_count", 0.3)
+    w3 = weights.get("source_weight", 0.3)
+
+    title = article.get("title", "")
+    body = article.get("summary", "") or article.get("content", "") or ""
+    combined = title + " " + body
+    word_count = len(combined.replace(" ", ""))
+
+    if category_keywords:
+        matched = sum(1 for kw in category_keywords if kw in combined.lower())
+        kw_ratio = min(matched / len(category_keywords), 1.0)
+    else:
+        kw_ratio = 0.0
+
+    norm_wc = min(word_count, 500) / 500.0
+
+    source = article.get("source", "")
+    source_weights = config.get("source_weights", {})
+    src_weight = source_weights.get(source, 0.5)
+
+    score = kw_ratio * w1 + norm_wc * w2 + src_weight * w3
+    return min(max(score, 0.0), 1.0)
+
+
+def game_deduplicate(articles: list, config: dict) -> list:
+    """
+    FFXIV 遊戲新聞去重複：
+      1. 排除包含關係（A 標題是 B 標題的子集）
+      2. 排除 Jaccard > game_threshold 的相似標題
+    回傳最多 20 篇，依發布時間降冪排序（最新在前）。
+    """
+    game_threshold = config.get("jaccard", {}).get("game_threshold", 0.50)
+
+    # 預先計算 token set
+    token_sets = []
+    for a in articles:
+        ts = normalise_title(a.get("title", ""))
+        token_sets.append(ts)
+
+    retained_indices: list[int] = []
+    retained_token_sets: list[frozenset] = []
+
+    for i, (article, ts_i) in enumerate(zip(articles, token_sets)):
+        duplicate = False
+        for j, ts_j in enumerate(retained_token_sets):
+            if not ts_i or not ts_j:
+                continue
+            # 包含關係：短標題 token set 是長標題 token set 的子集
+            if ts_i <= ts_j or ts_j <= ts_i:
+                duplicate = True
+                break
+            if compute_jaccard(ts_i, ts_j) > game_threshold:
+                duplicate = True
+                break
+        if not duplicate:
+            retained_indices.append(i)
+            retained_token_sets.append(ts_i)
+
+    retained = [articles[i] for i in retained_indices]
+
+    # 依發布時間排序（最新在前）
+    def _pub_key(a):
+        pub = a.get("published", "")
+        if pub:
+            try:
+                return _parse_published(pub)
+            except Exception:
+                pass
+        return datetime.min.replace(tzinfo=timezone.utc)
+
+    retained.sort(key=_pub_key, reverse=True)
+    return retained[:20]

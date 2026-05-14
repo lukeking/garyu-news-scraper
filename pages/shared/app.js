@@ -73,9 +73,47 @@ function applyDismissed() {
   checkEmptyDismissed();
 }
 
+// ── Hot Topics (traffic only) ─────────────────────────────────
+function renderHotTopics(reports) {
+  const container = $('hot-topics-list');
+  if (!container) return;
+  if (!reports || !reports.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">本週熱點話題尚未產生</p>';
+    return;
+  }
+  container.innerHTML = reports.map(r => `
+<div class="card" style="margin-bottom:1rem">
+  <div class="card-header">
+    <div class="card-meta">
+      <span class="importance-badge imp-高">🔥 熱點</span>
+      <span class="source-badge" style="background:var(--accent)">${r.topic_label}</span>
+      <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
+    </div>
+    <div style="font-weight:600;margin-top:0.4rem;color:var(--text)">${r.topic_label}</div>
+  </div>
+  <div class="card-body">
+    ${r.report_text.split('\n').filter(l => l.trim()).map(line => {
+      const colon = line.indexOf('：');
+      if (colon === -1) return `<p class="section-text">${line}</p>`;
+      return `<p class="section-label" style="color:var(--accent)">${line.slice(0, colon + 1)}</p>` +
+             `<p class="section-text">${line.slice(colon + 1)}</p>`;
+    }).join('')}
+  </div>
+</div>`).join('');
+}
+
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
   syncThemeIcon();
+
+  if (C.contentType === 'traffic') {
+    const htRes = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
+    if (htRes && htRes.ok) {
+      const htData = await htRes.json();
+      renderHotTopics(htData.reports || []);
+    }
+  }
+
   const res = await fetch(`${API_BASE}/weeks?content_type=${C.contentType}`).catch(() => null);
   if (!res || !res.ok) {
     $('article-list').innerHTML = '<div class="empty"><h3>尚無資料</h3><p>請等待第一次週報產生</p></div>';

@@ -1,0 +1,51 @@
+# Traffic Pipeline Configuration
+# Stored as GitHub Environment Variable: PIPELINE_CONFIG_YML
+# Copy to config/pipeline_config.yml for local development (gitignored).
+#
+# All thresholds are configurable here — no code changes required for tuning.
+
+jaccard:
+  merge_threshold: 0.45      # Traffic: Jaccard > this → deduplicate (keep higher word count)
+  cluster_lower: 0.20        # Traffic: 0.20–0.45 → cluster into same topic bucket
+  game_threshold: 0.50       # Game (FFXIV): Jaccard > this → discard as duplicate
+
+topic_scoring:
+  min_threshold: 1.5         # Cumulative score must meet/exceed this to qualify as hot topic
+  max_hot_topics: 3          # Maximum hot-topic reports generated per weekly run
+
+buffer:
+  max_age_weeks: 8           # Articles older than this are expired from the buffer
+
+quality_score_weights:       # Must sum to 1.0
+  keyword_match_ratio: 0.4
+  normalised_word_count: 0.3
+  source_weight: 0.3
+
+source_weights:              # Credibility weight per outlet (0.0–1.0); default 0.5 for unlisted
+  中央社: 0.9
+  聯合新聞網: 0.85
+
+# Brand keywords — any article whose source contains one of these
+# is dropped at filter time, even if it arrived via an aggregator feed.
+# Example: ["太報", "TaiSounds", "某媒體"]
+blocked_sources:
+  - "三立"
+  - "自由時報"
+  - "ETtoday"
+  - "東森"
+  - "太報"
+  - "TaiSounds"
+
+blocked_content_keywords:
+  - "汽機車"      # ← catches the Yahoo section tag in titles
+  - "優惠"
+  - "上市"
+  - "售價"
+  - "試駕"
+  - "銷售排行"
+  - "開學季"
+  - "推薦"
+  - "車展"
+  - "重機展"
+  - "車聚"
+  - "代言"

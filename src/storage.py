@@ -252,3 +252,162 @@ def ping() -> bool:
 def is_configured() -> bool:
     """檢查環境變數是否已設定，不拋出例外"""
     return bool((os.environ.get("SUPABASE_URL") or "").strip() and supabase_api_key())
+
+
+# ── Traffic Buffer (US1) ──────────────────────────────────────────────────────
+
+def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) -> int:
+    """
+    Upsert traffic articles into the buffer (articles table with content_type='traffic').
+    Sets major_category, initial_quality_score, buffered_at, buffer_expires_at,
+    hot_topic_analyzed=FALSE. Uses link as the conflict key.
+    Returns count of rows written.
+    """
+    from datetime import datetime, timezone, timedelta
+
+    if not articles:
+        return 0
+
+    client = _get_client()
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(weeks=max_age_weeks)
+
+    seen_links: set = set()
+    rows = []
+    for a in articles:
+        link = (a.get("link") or "").strip()
+        if not link:
+            link, _ = stable_synthetic_link(week_id, a)
+        if link in seen_links:
+            continue
+        seen_links.add(link)
+        rows.append({
+            "week_id": week_id,
+            "title": a.get("title", ""),
+            "link": link,
+            "source": a.get("source", ""),
+            "published": a.get("published") or None,
+            "summary": a.get("summary", ""),
+            "analysis": {},
+            "content_fingerprint": content_fingerprint_for_article(a),
+            "content_type": "traffic",
+            "major_category": a.get("major_category"),
+            "initial_quality_score": a.get("initial_quality_score"),
+            "buffered_at": now.isoformat(),
+            "buffer_expires_at": expires_at.isoformat(),
+            "hot_topic_analyzed": False,
+        })
+
+    try:
+        resp = (
+            client.table("articles")
+            .upsert(rows, on_conflict="link")
+            .execute()
+        )
+        count = len(resp.data) if resp.data else 0
+        logger.info("✓ traffic buffer upsert 完成：%d 筆（week_id=%s）", count, week_id)
+        return count
+    except Exception as e:
+        logger.error("✗ traffic buffer upsert 失敗：%s", e)
+        raise
+
+
+def get_traffic_buffer(max_age_weeks: int = 8) -> list:
+    """
+    Return unbuffered traffic articles from the last max_age_weeks weeks.
+    Filters: content_type='traffic', hot_topic_analyzed=FALSE, buffer_expires_at > NOW().
+    Ordered by published DESC.
+    """
+    from datetime import datetime, timezone
+
+    client = _get_client()
+    now = datetime.now(timezone.utc).isoformat()
+
+    try:
+        resp = (
+            client.table("articles")
+            .select("*")
+            .eq("content_type", "traffic")
+            .eq("hot_topic_analyzed", False)
+            .gt("buffer_expires_at", now)
+            .order("published", desc=True)
+            .execute()
+        )
+        rows = resp.data or []
+        logger.info("get_traffic_buffer：取得 %d 筆", len(rows))
+        return rows
+    except Exception as e:
+        logger.error("get_traffic_buffer 失敗：%s", e)
+        raise
+
+
+def expire_buffer_articles() -> int:
+    """
+    Delete expired, unanalyzed traffic buffer articles.
+    Removes rows where content_type='traffic', hot_topic_analyzed=FALSE,
+    buffer_expires_at < NOW(). Returns count deleted.
+    """
+    from datetime import datetime, timezone
+
+    client = _get_client()
+    now = datetime.now(timezone.utc).isoformat()
+
+    try:
+        resp = (
+            client.table("articles")
+            .delete()
+            .eq("content_type", "traffic")
+            .eq("hot_topic_analyzed", False)
+            .lt("buffer_expires_at", now)
+            .execute()
+        )
+        count = len(resp.data) if resp.data else 0
+        logger.info("expire_buffer_articles：刪除 %d 筆過期 buffer", count)
+        return count
+    except Exception as e:
+        logger.error("expire_buffer_articles 失敗：%s", e)
+        raise
+
+
+def upsert_hot_topic_report(report: dict) -> None:
+    """
+    Upsert one row to hot_topic_reports using (week_start_date, topic_label) as conflict key.
+    After upsert, marks all source articles as hot_topic_analyzed=TRUE.
+    """
+    client = _get_client()
+
+    row = {
+        "week_start_date": report["week_start_date"],
+        "topic_label": report["topic_label"],
+        "report_text": report["report_text"],
+        "source_article_count": report.get("source_article_count", 0),
+        "source_article_links": report.get("source_article_links", []),
+        "cumulative_score": float(report.get("cumulative_score", 0)),
+        "distinct_sources": report.get("distinct_sources", 0),
+        "distinct_days": report.get("distinct_days", 0),
+    }
+
+    try:
+        client.table("hot_topic_reports").upsert(
+            row,
+            on_conflict="week_start_date,topic_label",
+        ).execute()
+        logger.info(
+            "✓ hot_topic_report upserted: %s / %s",
+            report["week_start_date"], report["topic_label"],
+        )
+    except Exception as e:
+        logger.error("✗ hot_topic_report upsert 失敗：%s", e)
+        raise
+
+    # Mark source articles as analyzed
+    links = report.get("source_article_links", [])
+    if not links:
+        return
+    try:
+        client.table("articles").update({"hot_topic_analyzed": True}).in_(
+            "link", links
+        ).execute()
+        logger.info("已標記 %d 篇文章為 hot_topic_analyzed", len(links))
+    except Exception as e:
+        logger.warning("標記 hot_topic_analyzed 失敗：%s", e)
