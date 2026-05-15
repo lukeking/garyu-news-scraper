@@ -3,12 +3,13 @@
 # 實際使用的設定存放在 GitHub Environment Variable: SOURCES_TRAFFIC_YML
 # 請勿把 config/sources_traffic.yml 加入 git（已在 .gitignore 中排除）。
 #
-# ┌─────────────────────────────────────────────┐
-# │  支援的 type                                 │
-# │  rss  → feedparser 抓取 RSS / Atom feed      │
-# │  ptt  → PTT 看板爬蟲（含 over18 cookie）    │
-# │  web  → 一般網頁爬蟲（BeautifulSoup）        │
-# └─────────────────────────────────────────────┘
+# ┌─────────────────────────────────────────────────────────────┐
+# │  支援的 type                                                 │
+# │  rss     → feedparser 抓取 RSS / Atom feed                  │
+# │  ptt     → PTT 看板爬蟲（含 over18 cookie）                 │
+# │  web     → 一般網頁爬蟲（BeautifulSoup）                    │
+# │  youtube → YouTube 頻道影片（需設定 YOUTUBE_API_KEY）        │
+# └─────────────────────────────────────────────────────────────┘
 
 sources:
 
@@ -67,3 +68,30 @@ sources:
     enabled: true
     url: "https://www.thb.gov.tw/sites/ch/modules/news/news_list?Type=2"
     max_items: 10
+
+  # ── type: youtube ──────────────────────────────────────────
+  # 必要欄位：name, type, channel_id
+  # 選用欄位：enabled（預設 true）、max_items（預設 5）、lookback_days（預設 2）
+  # channel_id：YouTube 頻道 ID，UC 開頭的 24 字元字串。
+  #   找法：頻道頁面 URL → youtube.com/channel/UC...
+  #         或在頻道頁面原始碼搜尋 "channelId"
+  # 前置條件：需在 GitHub Secrets 設定 YOUTUBE_API_KEY（YouTube Data API v3 金鑰）
+  #
+  # 適合收錄的頻道類型（提供新聞 RSS 沒有的分析視角）：
+  #   1. 台灣交通觀察 — 從騎士視角評論道路設計、執法問題
+  #   2. 外國交通比較 — 對比日本／歐洲／美國與台灣的交通文化、法規
+  #   3. 道路安全倡議 — 深度分析事故原因、政策改革
+
+  - name: 台灣道路觀察頻道範例
+    type: youtube
+    enabled: false                          # ← 填入真實 channel_id 後再改為 true
+    channel_id: UCxxxxxxxxxxxxxxxxxxxxxxxx  # 替換為實際 channel_id（UC 開頭 24 字元）
+    max_items: 5                            # 每次最多抓幾支影片（過濾 Shorts 前）
+    lookback_days: 2                        # 只抓最近幾天發布的影片
+
+  - name: 外國交通比較頻道範例
+    type: youtube
+    enabled: false
+    channel_id: UCyyyyyyyyyyyyyyyyyyyyyyyy
+    max_items: 3                            # 更新頻率低的頻道可設低一點
+    # lookback_days 省略時使用預設值 2

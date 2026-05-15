@@ -155,6 +155,35 @@ def _abs_url(href: str, base_url: str) -> str:
     return urljoin(base_url, href)
 
 
+# ── YouTube ヘルパー ──────────────────────────────────────────
+
+def _parse_iso8601_duration(duration: str) -> int:
+    """Parse an ISO 8601 duration string (e.g. 'PT1M30S') and return total seconds."""
+    import re as _re
+    m = _re.match(
+        r"P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?",
+        duration or "",
+    )
+    if not m:
+        return 0
+    days, hours, minutes, seconds = (int(v or 0) for v in m.groups())
+    return days * 86400 + hours * 3600 + minutes * 60 + seconds
+
+
+def _build_youtube_client():
+    """Return a YouTube Data API v3 resource, or None if the key is missing."""
+    api_key = os.environ.get("YOUTUBE_API_KEY", "").strip()
+    if not api_key:
+        logger.error("[youtube] YOUTUBE_API_KEY 未設定，略過所有 YouTube 來源")
+        return None
+    try:
+        from googleapiclient.discovery import build
+        return build("youtube", "v3", developerKey=api_key, cache_discovery=False)
+    except Exception as e:
+        logger.error("[youtube] 無法建立 API 客戶端：%s", e)
+        return None
+
+
 # ── 各 type 抓取函式 ──────────────────────────────────────────
 
 def _fetch_rss(source: dict) -> list:
@@ -341,6 +370,116 @@ def _fetch_html_forum(source: dict) -> list:
     return articles
 
 
+def _fetch_youtube(source: dict) -> list:
+    """Fetch recent uploads from a YouTube channel and return article dicts."""
+    name = source["name"]
+    channel_id = source.get("channel_id", "")
+    max_items = source.get("max_items", 5)
+    lookback_days = source.get("lookback_days", 2)
+
+    if not channel_id:
+        logger.warning("[youtube] %s: channel_id 未設定，略過", name)
+        return []
+
+    youtube = _build_youtube_client()
+    if youtube is None:
+        return []
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
+    articles = []
+
+    try:
+        from googleapiclient.errors import HttpError
+
+        # Uploads playlist ID = "UU" + channel_id[2:]
+        playlist_id = "UU" + channel_id[2:]
+
+        # Step 1: fetch playlist items (1 quota unit)
+        pl_resp = (
+            youtube.playlistItems()
+            .list(playlistId=playlist_id, part="snippet", maxResults=max_items)
+            .execute()
+        )
+        items = pl_resp.get("items", [])
+
+        # Filter by publish date and collect video IDs
+        video_ids = []
+        for item in items:
+            published_str = item["snippet"].get("publishedAt", "")
+            try:
+                pub_dt = datetime.fromisoformat(published_str.replace("Z", "+00:00"))
+            except Exception:
+                continue
+            if pub_dt < cutoff:
+                continue
+            vid = item["snippet"]["resourceId"]["videoId"]
+            video_ids.append(vid)
+
+        if not video_ids:
+            logger.info("[youtube] %s: lookback_days=%d 內無新影片", name, lookback_days)
+            return []
+
+        # Step 2: fetch duration + snippet for each video (1 unit per call)
+        vids_resp = (
+            youtube.videos()
+            .list(id=",".join(video_ids), part="contentDetails,snippet")
+            .execute()
+        )
+
+        for item in vids_resp.get("items", []):
+            video_id = item["id"]
+            snippet = item["snippet"]
+            duration_str = item["contentDetails"].get("duration", "PT0S")
+
+            # Skip Shorts (≤ 60 seconds)
+            if _parse_iso8601_duration(duration_str) <= 60:
+                logger.debug("[youtube] 略過 Short：%s", snippet.get("title", ""))
+                continue
+
+            title = snippet.get("title", "").strip()
+            description = snippet.get("description", "").strip()
+            published_at = snippet.get("publishedAt", "")
+            video_url = f"https://www.youtube.com/watch?v={video_id}"
+
+            # Step 3: attempt transcript extraction; fall back to title + description
+            try:
+                from youtube_transcript_api import YouTubeTranscriptApi
+                segments = YouTubeTranscriptApi.get_transcript(
+                    video_id, languages=["zh-TW", "zh", "en", "ja"]
+                )
+                transcript = " ".join(s["text"] for s in segments)[:4000]
+                summary = transcript
+            except Exception as e:
+                logger.warning(
+                    "[youtube] 逐字稿取得失敗，使用標題+描述：%s（%s）", title, e
+                )
+                summary = title + "\n" + description[:500]
+
+            articles.append({
+                "title": title,
+                "link": video_url,
+                "summary": summary,
+                "source": name,
+                "published": published_at,
+                "content_type": "traffic",
+                "source_type": "youtube",
+            })
+
+        logger.info("[youtube] %s: %d 筆", name, len(articles))
+
+    except Exception as e:
+        try:
+            from googleapiclient.errors import HttpError as _HttpError
+            if isinstance(e, _HttpError) and e.status_code in (403, 429):
+                logger.error("[youtube] %s: API 配額已耗盡（%s），略過此來源", name, e.status_code)
+                return []
+        except ImportError:
+            pass
+        logger.warning("[youtube] %s 失敗：%s", name, e)
+
+    return articles
+
+
 # ── 主入口 ────────────────────────────────────────────────────
 
 FETCHERS = {
@@ -349,6 +488,7 @@ FETCHERS = {
     "web": _fetch_web,
     "html_patch": _fetch_html_patch,
     "html_forum": _fetch_html_forum,
+    "youtube": _fetch_youtube,
 }
 
 
