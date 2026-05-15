@@ -1,0 +1,60 @@
+name: Traffic News Daily Buffer
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 每日 UTC 22:00 = 台灣 06:00（週一由 weekly.yml 處理）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  buffer:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 寫入 config/sources_traffic.yml（從 GitHub Variable）
+        run: echo "$SOURCES_TRAFFIC_YML" > config/sources_traffic.yml
+        env:
+          SOURCES_TRAFFIC_YML: ${{ vars.SOURCES_TRAFFIC_YML }}
+
+      - name: 寫入 config/categories_traffic.yml（從 GitHub Variable）
+        run: echo "$CATEGORIES_TRAFFIC_YML" > config/categories_traffic.yml
+        env:
+          CATEGORIES_TRAFFIC_YML: ${{ vars.CATEGORIES_TRAFFIC_YML }}
+
+      - name: 寫入 config/pipeline_config.yml（從 GitHub Variable）
+        run: echo "$PIPELINE_CONFIG_YML" > config/pipeline_config.yml
+        env:
+          PIPELINE_CONFIG_YML: ${{ vars.PIPELINE_CONFIG_YML }}
+
+      - name: 寫入 config/jieba_userdict.txt（從 GitHub Variable，選填）
+        if: ${{ vars.JIEBA_USERDICT_TXT != '' }}
+        run: echo "$JIEBA_USERDICT_TXT" > config/jieba_userdict.txt
+        env:
+          JIEBA_USERDICT_TXT: ${{ vars.JIEBA_USERDICT_TXT }}
+
+      - name: 設定 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 收集並 buffer 交通新聞
+        run: python scripts/traffic_buffer.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CATEGORIES_TRAFFIC_YML_PATH: config/categories_traffic.yml
+          PIPELINE_CONFIG_YML_PATH: config/pipeline_config.yml
+          JIEBA_USERDICT_PATH: config/jieba_userdict.txt
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}

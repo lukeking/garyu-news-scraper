@@ -1,0 +1,30 @@
+# jieba Custom User Dictionary — Traffic News Entity Protection
+# Stored as GitHub Environment Variable: JIEBA_USERDICT_TXT
+# Copy to config/jieba_userdict.txt for local development (gitignored).
+#
+# Format: <word> <frequency> <pos_tag>
+#   frequency: higher = jieba prefers this segmentation (5–10 for road names, 10+ for numerals)
+#   pos_tag:   n = noun (place/road names), m = numeral/quantity
+
+# Road names
+台一線 5 n
+台九丙 5 n
+中山高 5 n
+北二高 5 n
+台61線 5 n
+台74線 5 n
+國道一號 5 n
+國道三號 5 n
+新北市 8 n
+台北市 8 n
+
+# Numerical facts (keep as single token for accurate Jaccard matching)
+3死 10 m
+2死 10 m
+1死 10 m
+3傷 10 m
+2傷 10 m
+1傷 10 m
+2死1傷 10 m
+3死2傷 10 m
+57歲 10 m

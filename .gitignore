@@ -253,3 +253,8 @@ pages/ffxiv/.nojekyll
 
 # Runtime logs
 logs/
+
+# Traffic pipeline runtime config (real values, not examples)
+config/categories_traffic.yml
+config/pipeline_config.yml
+config/jieba_userdict.txt

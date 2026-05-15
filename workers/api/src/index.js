@@ -141,6 +141,23 @@ async function handleTags(env, url) {
   return jsonResponse(aggregateTags(rows));
 }
 
+async function handleHotTopics(env, url) {
+  const params = new URLSearchParams();
+  params.set(
+    "select",
+    "week_start_date,topic_label,report_text,source_article_count,source_article_links,cumulative_score,distinct_sources,distinct_days,created_at",
+  );
+  params.set("order", "week_start_date.desc,cumulative_score.desc");
+
+  const week = url.searchParams.get("week");
+  if (week) {
+    params.set("week_start_date", `eq.${week}`);
+  }
+
+  const rows = await supabaseGet(env, "hot_topic_reports", params);
+  return jsonResponse({ reports: rows });
+}
+
 async function handleWeekDetail(env, weekId, url) {
   const params = new URLSearchParams();
   params.set(
@@ -221,6 +238,9 @@ export default {
       }
       if (url.pathname === "/api/tags") {
         return await handleTags(env, url);
+      }
+      if (url.pathname === "/api/hot-topics") {
+        return await handleHotTopics(env, url);
       }
       if (parts.length === 4 && parts[1] === "api" && parts[2] === "weeks") {
         const weekId = decodeURIComponent(parts[3]);

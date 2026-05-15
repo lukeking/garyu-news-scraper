@@ -1,0 +1,23 @@
+# Traffic News Category Taxonomy
+# Stored as GitHub Environment Variable: CATEGORIES_TRAFFIC_YML
+# Copy to config/categories_traffic.yml for local development (gitignored).
+#
+# Rules:
+#   - Categories are matched in definition order; first match wins.
+#   - Keywords are matched case-insensitively against the normalised article title.
+#   - Articles matching no category receive major_category = 'uncategorised'.
+#   - Add new categories here without any code changes.
+
+categories:
+  大型車安全:
+    keywords: [大型車, 聯結車, 貨車, 視野死角, 盲區, 砂石車, 重型車, 大貨車]
+  酒駕:
+    keywords: [酒駕, 酒後駕車, 酒測, 吹氣, 藥駕, 酒後]
+  道路施工:
+    keywords: [施工, 道路工程, 封閉, 改道, 挖掘, 鋪路, 路面]
+  行人事故:
+    keywords: [行人, 斑馬線, 人行道, 行穿線, 路人]
+  路口安全:
+    keywords: [路口, 號誌, 闖紅燈, 轉彎, 交叉路口]
+  機車事故:
+    keywords: [機車, 摩托車, 騎士, 重機, 白牌, 紅牌, 機車事故]

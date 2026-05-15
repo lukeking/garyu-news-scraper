@@ -28,6 +28,22 @@ jobs:
         env:
           SOURCES_FFXIV_YML: ${{ vars.SOURCES_FFXIV_YML }}
 
+      - name: 寫入 config/categories_traffic.yml（從 GitHub Variable）
+        run: echo "$CATEGORIES_TRAFFIC_YML" > config/categories_traffic.yml
+        env:
+          CATEGORIES_TRAFFIC_YML: ${{ vars.CATEGORIES_TRAFFIC_YML }}
+
+      - name: 寫入 config/pipeline_config.yml（從 GitHub Variable）
+        run: echo "$PIPELINE_CONFIG_YML" > config/pipeline_config.yml
+        env:
+          PIPELINE_CONFIG_YML: ${{ vars.PIPELINE_CONFIG_YML }}
+
+      - name: 寫入 config/jieba_userdict.txt（從 GitHub Variable，選填）
+        if: ${{ vars.JIEBA_USERDICT_TXT != '' }}
+        run: echo "$JIEBA_USERDICT_TXT" > config/jieba_userdict.txt
+        env:
+          JIEBA_USERDICT_TXT: ${{ vars.JIEBA_USERDICT_TXT }}
+
       - name: 設定 Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -100,6 +116,30 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
+      - name: 收集週一交通新聞 buffer
+        run: python scripts/traffic_buffer.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CATEGORIES_TRAFFIC_YML_PATH: config/categories_traffic.yml
+          PIPELINE_CONFIG_YML_PATH: config/pipeline_config.yml
+          JIEBA_USERDICT_PATH: config/jieba_userdict.txt
+
+      - name: 週交通熱點分析
+        run: python scripts/traffic_weekly_analysis.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CATEGORIES_TRAFFIC_YML_PATH: config/categories_traffic.yml
+          PIPELINE_CONFIG_YML_PATH: config/pipeline_config.yml
+          JIEBA_USERDICT_PATH: config/jieba_userdict.txt
+          TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
 
       - name: 複製共用靜態資源至各站台目錄
         run: |
