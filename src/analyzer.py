@@ -233,6 +233,20 @@ def generate_embedding(text: str) -> list | None:
         return None
 
 
+def _parse_embedding(val) -> list | None:
+    """Normalize a pgvector string '[x,y,...]' or list to a list of floats."""
+    if val is None:
+        return None
+    if isinstance(val, list):
+        return [float(x) for x in val]
+    if isinstance(val, str):
+        try:
+            return [float(x) for x in val.strip("[] \t\n").split(",")]
+        except Exception:
+            return None
+    return None
+
+
 def _cosine_similarity(a: list, b: list) -> float:
     import math
     dot = sum(x * y for x, y in zip(a, b))
@@ -259,6 +273,8 @@ def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88
         if "embedding" not in a:
             text = (a.get("title") or "") + "\n" + (a.get("summary") or "")[:300]
             a["embedding"] = generate_embedding(text)
+        else:
+            a["embedding"] = _parse_embedding(a["embedding"])
 
     has_embed = [a for a in candidates if a.get("embedding") is not None]
     no_embed = [a for a in candidates if a.get("embedding") is None]
@@ -267,7 +283,10 @@ def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88
         logger.warning("[embed_dedup] 所有候選嵌入生成失敗，保留所有")
         return candidates
 
-    buffer_with_embed = [a for a in buffer_articles if a.get("embedding")]
+    for a in buffer_articles:
+        if a.get("embedding") is not None:
+            a["embedding"] = _parse_embedding(a["embedding"])
+    buffer_with_embed = [a for a in buffer_articles if a.get("embedding") is not None]
 
     # Step 1: drop candidates already covered by the week's buffer
     after_buffer: list = []
