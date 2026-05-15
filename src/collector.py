@@ -458,10 +458,10 @@ def _fetch_youtube(source: dict) -> list:
             # Step 3: attempt transcript extraction; fall back to title + description
             try:
                 from youtube_transcript_api import YouTubeTranscriptApi
-                segments = YouTubeTranscriptApi.get_transcript(
+                segments = YouTubeTranscriptApi().fetch(
                     video_id, languages=["zh-TW", "zh", "en", "ja"]
                 )
-                transcript = " ".join(s["text"] for s in segments)[:4000]
+                transcript = " ".join(s.text for s in segments)[:4000]
                 summary = transcript
             except Exception as e:
                 logger.warning(
