@@ -229,8 +229,14 @@ def filter_and_deduplicate(articles: list, throttle: bool = True) -> list:
             continue
         # FFXIV 來源已由來源設定過濾，跳過機車關鍵字檢查
         is_ffxiv = article.get("content_type") == "ffxiv"
-        if not is_ffxiv and not _is_relevant(article):
+        is_youtube = article.get("source_type") == "youtube"
+        relevant = is_ffxiv or _is_relevant(article)
+        if not relevant:
+            if is_youtube:
+                logger.debug("[youtube] 關鍵字篩選已過濾：%s", article.get("title", "")[:60])
             continue
+        if is_youtube:
+            logger.debug("[youtube] 關鍵字篩選通過：%s", article.get("title", "")[:60])
 
         h = _make_hash(article)
         if h in seen_hashes:

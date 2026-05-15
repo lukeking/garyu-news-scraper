@@ -40,6 +40,47 @@ FFXIV_SYSTEM_PROMPT = (
     "翻譯遊戲術語時，必須以提供的知識庫為準，不得自行發明未收錄的譯名。"
 )
 
+YOUTUBE_SYSTEM_PROMPT = (
+    "你是台灣交通議題影片分析師，專精機車與道路安全相關的 YouTube 評論與觀察內容。"
+    "你的任務是從影片逐字稿或說明中提取核心論點與比較洞察，而非單純摘要新聞事件。"
+    "請用繁體中文回應，語氣客觀專業，適合台灣機車騎士閱讀。"
+    "回應格式務必嚴格按照指示，不要加入任何額外說明或 markdown 符號。"
+)
+
+YOUTUBE_ANALYSIS_PROMPT_TEMPLATE = """以下是一段 YouTube 影片評論或分析的逐字稿（或說明）：
+
+標題：{title}
+頻道：{source}
+逐字稿／說明：{summary}
+連結：{link}
+
+請依照以下格式回應，每個欄位必須在同一行內完成，不可換行：
+
+摘要：用2到3句話說明這段影片的主要論點或觀察是什麼（同一行寫完，句子之間用「。」分隔）
+分析：用4到6句話提取影片的核心比較論點或分析洞察，說明它對台灣機車騎士或交通政策的啟示（同一行寫完，句子之間用「。」分隔）
+重要性：高（或中或低，只填一個字）
+重要性原因：一句話說明為何如此評定（同一行寫完）
+標籤：從以下選項中選2到4個最相關的標籤，用逗號分隔，也可加入未列出但更精確的標籤（同一行寫完）
+可選標籤：{available_tags}
+地區：填入最相關的地理標籤，如「台北市」「全台」「日本」「歐洲」「不明」（只填一個，同一行寫完）
+
+---
+重要性評定標準（請嚴格遵守，預期分布約：高 30%、中 50%、低 20%）：
+
+【高】滿足以下任一條件：
+- 提供台灣交通現況的深度比較分析（如對比日本、歐洲法規或設計）
+- 揭露系統性道路安全問題，對騎士有直接參考價值
+- 影片引發廣泛討論或對政策有實質影響潛力
+
+【中】滿足以下任一條件：
+- 觀點有參考價值但範圍較窄（如單一路段或單一事件的評論）
+- 資訊來源可信但分析深度有限
+
+【低】滿足以下條件：
+- 純娛樂性或與交通安全改善無直接關係
+- 內容重複性高、無新見解
+"""
+
 DEFAULT_TAGS = [
     "法規", "事故", "停車", "路權", "重機", "電動", "考照",
     "國道", "工程", "Gogoro", "白牌", "紅牌", "黃牌", "取締",
@@ -492,7 +533,17 @@ def analyze_article(article, api_key):
     content_type = article.get("content_type", "traffic")
     user_tags = article.get("user_tags", [])
 
-    if content_type == "ffxiv":
+    if article.get("source_type") == "youtube":
+        all_tags = sorted(set(DEFAULT_TAGS) | set(user_tags))
+        prompt = YOUTUBE_ANALYSIS_PROMPT_TEMPLATE.format(
+            title=article.get("title", ""),
+            source=article.get("source", ""),
+            summary=article.get("summary", "（無逐字稿）"),
+            link=article.get("link", ""),
+            available_tags="、".join(all_tags),
+        )
+        raw = _call_gemini(prompt, api_key, system_prompt=YOUTUBE_SYSTEM_PROMPT)
+    elif content_type == "ffxiv":
         kb = load_knowledge_base()
         kb_lines = [
             f"| {jp} | {v['tw']} | {v['en']} | {v['category']} |"

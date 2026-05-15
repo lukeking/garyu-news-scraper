@@ -2,7 +2,7 @@ name: Traffic News Daily Buffer
 
 on:
   schedule:
-    - cron: '0 22 * * *'  # 每日 UTC 22:00 = 台灣 06:00（週一由 weekly.yml 處理）
+    - cron: '0 0 * * 2-7'  # 每日 UTC 00:00 = 台灣 08:00（週一由 weekly.yml 處理）
   workflow_dispatch:
 
 permissions:
@@ -58,3 +58,4 @@ jobs:
           JIEBA_USERDICT_PATH: config/jieba_userdict.txt
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
