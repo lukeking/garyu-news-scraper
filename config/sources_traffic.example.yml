@@ -74,7 +74,8 @@ sources:
   # 選用欄位：enabled（預設 true）、max_items（預設 5）、lookback_days（預設 2）
   # channel_id：接受兩種格式：
   #   UC 開頭的頻道 ID（如 UCxxxxxxxxxxxxxxxxxxxxxxxx）
-  #   @ 開頭的 handle（如 @abcd）→ 程式自動解析為頻道 ID（多用 1 quota unit）
+  #   @ 開頭的 handle → 必須加引號（如 "@abcd"）→ 程式自動解析為頻道 ID（多用 1 quota unit）
+  #   ⚠️  @ 字元在 YAML 中需要引號，否則會 parse error：channel_id: "@abcd" ✓  @abcd ✗
   #   找法：頻道頁面 URL → youtube.com/channel/UC... 或 youtube.com/@handle
   # 前置條件：需在 GitHub Secrets 設定 YOUTUBE_API_KEY（YouTube Data API v3 金鑰）
   #
