@@ -370,6 +370,67 @@ def _fetch_html_forum(source: dict) -> list:
     return articles
 
 
+def _parse_vtt(vtt: str) -> str:
+    """Strip VTT timestamps and tags; return plain space-joined text."""
+    lines = []
+    for line in vtt.splitlines():
+        if "-->" in line or line.startswith("WEBVTT") or line.strip().isdigit():
+            continue
+        line = re.sub(r"<[^>]+>", "", line).strip()
+        if line:
+            lines.append(line)
+    return " ".join(lines)
+
+
+def _fetch_transcript(video_id: str, title: str, description: str) -> str:
+    """
+    Try three strategies in order:
+      1. youtube-transcript-api (fast, works on non-cloud IPs)
+      2. yt-dlp subtitle URL fetch (works on cloud IPs)
+      3. title + description fallback
+    Returns the transcript text (≤4000 chars) or the fallback.
+    """
+    langs = ["zh-TW", "zh", "en", "ja"]
+
+    # Strategy 1: youtube-transcript-api
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        segments = YouTubeTranscriptApi().fetch(video_id, languages=langs)
+        text = " ".join(s.text for s in segments)[:4000]
+        logger.info("[youtube] 逐字稿取得成功（transcript-api）：%s", title[:50])
+        return text
+    except Exception:
+        pass
+
+    # Strategy 2: yt-dlp via subprocess (cloud IPs bypass; subprocess isolates any crash)
+    try:
+        import subprocess, json, sys
+        result = subprocess.run(
+            [sys.executable, "-m", "yt_dlp", "--dump-json", "--quiet", "--no-warnings",
+             f"https://www.youtube.com/watch?v={video_id}"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            info = json.loads(result.stdout)
+            auto_caps = info.get("automatic_captions", {})
+            for lang in langs:
+                if lang not in auto_caps:
+                    continue
+                for fmt in auto_caps[lang]:
+                    if fmt.get("ext") in ("vtt", "srv3"):
+                        resp = requests.get(fmt["url"], timeout=10)
+                        if resp.ok:
+                            text = _parse_vtt(resp.text)[:4000]
+                            if text:
+                                logger.info("[youtube] 逐字稿取得成功（yt-dlp）：%s", title[:50])
+                                return text
+    except Exception:
+        pass
+
+    logger.warning("[youtube] 逐字稿無法取得，使用標題+描述：%s", title[:50])
+    return title + "\n" + description[:500]
+
+
 def _fetch_youtube(source: dict) -> list:
     """Fetch recent uploads from a YouTube channel and return article dicts."""
     name = source["name"]
@@ -456,18 +517,7 @@ def _fetch_youtube(source: dict) -> list:
             video_url = f"https://www.youtube.com/watch?v={video_id}"
 
             # Step 3: attempt transcript extraction; fall back to title + description
-            try:
-                from youtube_transcript_api import YouTubeTranscriptApi
-                segments = YouTubeTranscriptApi().fetch(
-                    video_id, languages=["zh-TW", "zh", "en", "ja"]
-                )
-                transcript = " ".join(s.text for s in segments)[:4000]
-                summary = transcript
-            except Exception as e:
-                logger.warning(
-                    "[youtube] 逐字稿取得失敗，使用標題+描述：%s（%s）", title, e
-                )
-                summary = title + "\n" + description[:500]
+            summary = _fetch_transcript(video_id, title, description)
 
             articles.append({
                 "title": title,
