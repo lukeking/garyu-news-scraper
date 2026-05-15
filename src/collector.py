@@ -391,6 +391,20 @@ def _fetch_youtube(source: dict) -> list:
     try:
         from googleapiclient.errors import HttpError
 
+        # Resolve handle (@name) to a UC... channel ID (1 quota unit)
+        if channel_id.startswith("@"):
+            ch_resp = (
+                youtube.channels()
+                .list(forHandle=channel_id, part="id")
+                .execute()
+            )
+            items_ch = ch_resp.get("items", [])
+            if not items_ch:
+                logger.warning("[youtube] %s: 找不到 handle %s 對應的頻道", name, channel_id)
+                return []
+            channel_id = items_ch[0]["id"]
+            logger.info("[youtube] %s: handle %s → %s", name, source.get("channel_id"), channel_id)
+
         # Uploads playlist ID = "UU" + channel_id[2:]
         playlist_id = "UU" + channel_id[2:]
 
