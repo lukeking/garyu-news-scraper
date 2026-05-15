@@ -370,60 +370,17 @@ def _fetch_html_forum(source: dict) -> list:
     return articles
 
 
-def _parse_vtt(vtt: str) -> str:
-    """Strip VTT timestamps and tags; return plain space-joined text."""
-    lines = []
-    for line in vtt.splitlines():
-        if "-->" in line or line.startswith("WEBVTT") or line.strip().isdigit():
-            continue
-        line = re.sub(r"<[^>]+>", "", line).strip()
-        if line:
-            lines.append(line)
-    return " ".join(lines)
-
-
 def _fetch_transcript(video_id: str, title: str, description: str) -> str:
     """
-    Try three strategies in order:
-      1. youtube-transcript-api (fast, works on non-cloud IPs)
-      2. yt-dlp subtitle URL fetch (works on cloud IPs)
-      3. title + description fallback
-    Returns the transcript text (≤4000 chars) or the fallback.
+    Attempt transcript extraction via youtube-transcript-api; fall back to title+description.
+    Cloud IPs (GitHub Actions) are blocked by YouTube, so the fallback is the normal path there.
     """
-    langs = ["zh-TW", "zh", "en", "ja"]
-
-    # Strategy 1: youtube-transcript-api
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
-        segments = YouTubeTranscriptApi().fetch(video_id, languages=langs)
+        segments = YouTubeTranscriptApi().fetch(video_id, languages=["zh-TW", "zh", "en", "ja"])
         text = " ".join(s.text for s in segments)[:4000]
-        logger.info("[youtube] 逐字稿取得成功（transcript-api）：%s", title[:50])
+        logger.info("[youtube] 逐字稿取得成功：%s", title[:50])
         return text
-    except Exception:
-        pass
-
-    # Strategy 2: yt-dlp via subprocess (cloud IPs bypass; subprocess isolates any crash)
-    try:
-        import subprocess, json, sys
-        result = subprocess.run(
-            [sys.executable, "-m", "yt_dlp", "--dump-json", "--quiet", "--no-warnings",
-             f"https://www.youtube.com/watch?v={video_id}"],
-            capture_output=True, text=True, timeout=60,
-        )
-        if result.returncode == 0 and result.stdout.strip():
-            info = json.loads(result.stdout)
-            auto_caps = info.get("automatic_captions", {})
-            for lang in langs:
-                if lang not in auto_caps:
-                    continue
-                for fmt in auto_caps[lang]:
-                    if fmt.get("ext") in ("vtt", "srv3"):
-                        resp = requests.get(fmt["url"], timeout=10)
-                        if resp.ok:
-                            text = _parse_vtt(resp.text)[:4000]
-                            if text:
-                                logger.info("[youtube] 逐字稿取得成功（yt-dlp）：%s", title[:50])
-                                return text
     except Exception:
         pass
 
