@@ -42,11 +42,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 }
 .stat-box .num { font-size: 22px; font-weight: 700; }
 .stat-box .lbl { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-.stat-high { background: var(--high-bg); border-color: #C0392B30; }
+.stat-high { background: var(--high-bg); border-color: var(--high); }
 .stat-high .num { color: var(--high); }
-.stat-mid  { background: var(--mid-bg);  border-color: #D6891030; }
+.stat-mid  { background: var(--mid-bg);  border-color: var(--mid); }
 .stat-mid .num  { color: var(--mid); }
-.stat-low  { background: var(--low-bg);  border-color: #27AE6030; }
+.stat-low  { background: var(--low-bg);  border-color: var(--low); }
 .stat-low .num  { color: var(--low); }
 
 /* ── Week nav ── */
@@ -76,16 +76,22 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
   transition: transform .15s;
 }
 .card:hover { transform: translateY(-2px); }
-.card-高 { border-color: #C0392B30; background: var(--high-bg); }
-.card-中 { border-color: #D6891030; background: var(--mid-bg); }
-.card-低 { border-color: #27AE6030; background: var(--low-bg); }
+.card-高 { border-color: var(--high); background: var(--high-bg); border-left: 4px solid var(--high); }
+.card-中 { border-color: var(--mid);  background: var(--mid-bg);  border-left: 4px solid var(--mid); }
+.card-低 { border-color: var(--low);  background: var(--low-bg);  border-left: 4px solid var(--low); }
 
 .card-header { padding: 14px 18px 10px; border-bottom: 1px solid var(--border); }
 .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-.importance-badge { font-size: 12px; font-weight: 700; }
-.imp-高 { color: var(--high); }
-.imp-中 { color: var(--mid); }
-.imp-低 { color: var(--low); }
+.importance-badge {
+  font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px;
+  display: inline-block; letter-spacing: 0.3px;
+}
+.imp-高 { background: var(--high); color: #fff; }
+.imp-中 { background: var(--mid); color: #fff; }
+.imp-低 { background: var(--low); color: #fff; }
+[data-theme="dark"] .imp-高,
+[data-theme="dark"] .imp-中,
+[data-theme="dark"] .imp-低 { color: #1a1a2e; }
 .source-badge {
   display: inline-block; padding: 2px 8px; border-radius: 4px;
   font-size: 11px; font-weight: 600; color: #fff;
