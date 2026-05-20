@@ -106,12 +106,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
   font-size: 11px; font-weight: 700; text-decoration: none; padding: 2px 8px;
   border-radius: 4px; background: #06C755; color: #fff; white-space: nowrap;
 }
-.card-title { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; line-height: 1.5; display: block; }
-.card-title:visited { color: var(--text); }
-.card-title:hover { color: var(--accent2); }
-[data-theme="dark"] .card-title,
-[data-theme="dark"] .card-title:visited { color: var(--link-color); }
-[data-theme="dark"] .card-title:hover { color: var(--text); }
+.card-title { font-size: 15px; font-weight: 700; color: var(--link-color, var(--accent2)); text-decoration: none; line-height: 1.5; display: block; }
+.card-title:visited { color: var(--link-color, var(--text-secondary)); }
+.card-title:hover { color: var(--accent); }
 
 .card-body { padding: 12px 18px 0; }
 .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; margin: 0 0 4px; }
@@ -119,7 +116,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 
 .card-footer { padding: 8px 18px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .reason-text { font-size: 12px; color: var(--text-secondary); font-style: italic; }
-.read-more { font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.read-more { font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; color: var(--link-color, var(--accent2)); }
 
 .article-tags { padding: 0 18px 12px; display: flex; gap: 6px; flex-wrap: wrap; }
 .article-tag {
