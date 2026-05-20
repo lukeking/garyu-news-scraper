@@ -95,7 +95,7 @@ function renderHotTopics(reports) {
     ${r.report_text.split('\n').filter(l => l.trim()).map(line => {
       const colon = line.indexOf('：');
       if (colon === -1) return `<p class="section-text">${line}</p>`;
-      return `<p class="section-label" style="color:var(--accent)">${line.slice(0, colon + 1)}</p>` +
+      return `<p class="section-label" style="color:var(--accent2)">${line.slice(0, colon + 1)}</p>` +
              `<p class="section-text">${line.slice(colon + 1)}</p>`;
     }).join('')}
   </div>
@@ -290,10 +290,10 @@ function articleCard(a, idx) {
     <a class="card-title" href="${a.link}" target="_blank" rel="noopener">${idx}. ${a.title}</a>
   </div>
   <div class="card-body">
-    <p class="section-label" style="color:${color}">📋 摘要</p>
-    <p class="section-text">${an.summary || ''}</p>
-    <p class="section-label" style="color:${color}">🔍 深度分析</p>
-    <p class="section-text">${an.analysis || ''}</p>
+    ${an.summary ? `<p class="section-label" style="color:${color}">📋 摘要</p>
+    <p class="section-text">${an.summary}</p>` : ''}
+    ${an.analysis ? `<p class="section-label" style="color:${color}">🔍 深度分析</p>
+    <p class="section-text">${an.analysis}</p>` : ''}
   </div>
   ${tags.length ? `<div class="article-tags">${tagHtml}</div>` : ''}
   <div class="card-footer">

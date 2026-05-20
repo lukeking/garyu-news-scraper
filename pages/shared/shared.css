@@ -80,7 +80,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 .card-中 { border-color: #D6891030; background: var(--mid-bg); }
 .card-低 { border-color: #27AE6030; background: var(--low-bg); }
 
-.card-header { padding: 14px 18px 10px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.card-header { padding: 14px 18px 10px; border-bottom: 1px solid var(--border); }
 .card-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .importance-badge { font-size: 12px; font-weight: 700; }
 .imp-高 { color: var(--high); }
