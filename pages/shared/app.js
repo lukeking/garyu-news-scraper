@@ -247,6 +247,10 @@ function renderTermPool(articles) {
 }
 
 function renderStats(articles) {
+  if (C.contentType === 'traffic') {
+    $('stats').innerHTML = `<div class="stat-box stat-all"><div class="num">${articles.length}</div><div class="lbl">${C.statAllLabel} 本頁顯示</div></div>`;
+    return;
+  }
   const cnt = imp => articles.filter(a => (a.analysis?.importance || '中') === imp).length;
   const show = imp => activeImp === 'all' || cnt(imp) > 0;
   $('stats').innerHTML = [
@@ -281,7 +285,7 @@ function articleCard(a, idx) {
 <div class="card card-${imp}" data-url="${a.link}">
   <div class="card-header">
     <div class="card-meta">
-      <span class="importance-badge imp-${imp}">${IMP_DOT[imp] || ''} ${imp}重要</span>
+      ${C.contentType !== 'traffic' ? `<span class="importance-badge imp-${imp}">${IMP_DOT[imp] || ''} ${imp}重要</span>` : ''}
       <span class="source-badge" style="background:${C.srcColor(src)}">${C.srcLabel(src)}</span>
       ${lang ? `<span class="lang-badge">${lang}</span>` : ''}
       ${an.location && an.location !== '不明' ? `<span class="location-badge">📍 ${an.location}</span>` : ''}
@@ -297,7 +301,7 @@ function articleCard(a, idx) {
   </div>
   ${tags.length ? `<div class="article-tags">${tagHtml}</div>` : ''}
   <div class="card-footer">
-    <span class="reason-text">💡 ${an.importance_reason || ''}</span>
+    ${C.contentType !== 'traffic' ? `<span class="reason-text">💡 ${an.importance_reason || ''}</span>` : ''}
     <div style="display:flex;gap:8px;align-items:center;">
       ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a>` : ''}
       <a class="read-more" href="${a.link}" target="_blank" rel="noopener" style="color:${color}">閱讀原文 →</a>
