@@ -15,7 +15,7 @@ import requests
 logger = logging.getLogger(__name__)
 
 # GitHub Actions 若設定 GEMINI_MODEL_NAME secret 但留空，get 會得到 "" 而非預設值
-GEMINI_MODEL = (os.environ.get("GEMINI_MODEL_NAME") or "").strip() or "gemini-2.5-flash"
+GEMINI_MODEL = (os.environ.get("GEMINI_MODEL_NAME") or "").strip() or "gemini-2.5-pro"
 logger.debug("使用 Gemini 模型：%s", GEMINI_MODEL)
 GEMINI_API_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
