@@ -93,6 +93,12 @@ function renderHotTopics(reports) {
   </div>
   <div class="card-body">
     ${r.report_text.split('\n').filter(l => l.trim()).map(line => {
+      if (line.startsWith('### ')) {
+        return `<p class="section-label" style="color:var(--accent);margin-top:0.75rem;font-size:0.9rem;border-left:3px solid var(--accent2);padding-left:0.5rem">${line.replace(/^###\s*/, '')}</p>`;
+      }
+      if (line.startsWith('□ ')) {
+        return `<p class="section-text" style="padding-left:1rem;color:var(--text-body)">${line}</p>`;
+      }
       const colon = line.indexOf('：');
       if (colon === -1) return `<p class="section-text">${line}</p>`;
       return `<p class="section-label" style="color:var(--accent2)">${line.slice(0, colon + 1)}</p>` +
