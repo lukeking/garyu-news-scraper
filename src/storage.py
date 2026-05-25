@@ -402,7 +402,12 @@ def upsert_hot_topic_report(report: dict) -> None:
         raise
 
     # Mark source articles as analyzed
-    links = report.get("source_article_links", [])
+    raw_links = report.get("source_article_links", [])
+    links = [
+        item["link"] if isinstance(item, dict) else item
+        for item in raw_links
+        if item
+    ]
     if not links:
         return
     try:

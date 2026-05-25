@@ -92,6 +92,15 @@ function renderHotTopics(reports) {
     <div style="font-weight:600;margin-top:0.4rem;color:var(--text)">${r.topic_label}</div>
   </div>
   <div class="card-body">
+    ${(r.source_article_links || []).length ? `
+    <p class="section-label" style="color:var(--accent2)">焦點事件</p>
+    <ol style="margin:0 0 1rem 1.2rem;padding:0">
+      ${(r.source_article_links).map((a, i) => `
+      <li style="margin-bottom:0.5rem">
+        <span style="font-weight:600;color:var(--text)">${typeof a === 'object' ? a.title : a}</span>
+        ${typeof a === 'object' && a.summary ? `<p style="margin:0.2rem 0 0;font-size:0.82rem;color:var(--text-muted);line-height:1.5">${a.summary}</p>` : ''}
+      </li>`).join('')}
+    </ol>` : ''}
     ${r.report_text.split('\n').filter(l => l.trim()).map(line => {
       if (line.startsWith('### ')) {
         return `<p class="section-label" style="color:var(--accent);margin-top:0.75rem;font-size:0.9rem;border-left:3px solid var(--accent2);padding-left:0.5rem">${line.replace(/^###\s*/, '')}</p>`;

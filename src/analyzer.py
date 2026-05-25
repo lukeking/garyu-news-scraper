@@ -693,11 +693,12 @@ HOT_TOPIC_PROMPT_TEMPLATE = """以下是本週「{topic_label}」類別的熱點
 """
 
 
-def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: str) -> str:
+def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: str) -> tuple:
     """
     Generate a deep-analysis report for a hot topic bucket using Gemini.
     Selects top 10 articles by initial_quality_score for the prompt.
-    Returns the report text string, or empty string on failure.
+    Returns (report_text, ordered_links) where ordered_links[i] corresponds to [i+1] in the report.
+    Returns ("", []) on failure.
     Caller is responsible for respecting rate limits (existing 2.5s delay convention).
     """
     api_key = _get_api_key()
@@ -708,10 +709,19 @@ def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: 
         reverse=True,
     )[:10]
 
+    ordered_articles = [
+        {
+            "title": a.get("title", ""),
+            "link": a.get("link", ""),
+            "summary": (a.get("summary", "") or "")[:200],
+        }
+        for a in top_articles
+    ]
+
     lines = []
     for i, a in enumerate(top_articles, 1):
         title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or a.get("content", "") or "")[:200]
+        body = (a.get("summary", "") or a.get("content", "") or "")[:600]
         lines.append(f"[{i}] 標題：{title}\n    摘要：{body}")
 
     article_list = "\n\n".join(lines)
@@ -724,10 +734,10 @@ def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: 
     raw = _call_gemini(prompt, api_key, system_prompt=HOT_TOPIC_SYSTEM_PROMPT)
     if raw:
         logger.info("✓ 熱點分析完成：%s (%s)", topic_label, week_start_date)
-        return raw.strip()
+        return raw.strip(), ordered_articles
 
     logger.warning("✗ 熱點分析失敗：%s (%s)", topic_label, week_start_date)
-    return ""
+    return "", []
 
 
 _DEDUP_SYSTEM_PROMPT = (
