@@ -85,7 +85,7 @@ def main():
 
         logger.info("正在分析熱點：%s (%d 篇文章)", topic_label, len(bucket_articles))
         try:
-            report_text = analyze_hot_topic(bucket_articles, topic_label, week_start)
+            report_text, source_links = analyze_hot_topic(bucket_articles, topic_label, week_start)
         except Exception as e:
             logger.error("Gemini 分析失敗，跳過 %s：%s", topic_label, e)
             continue
@@ -93,8 +93,6 @@ def main():
         if not report_text:
             logger.warning("熱點 %s 分析結果為空，跳過", topic_label)
             continue
-
-        source_links = [a.get("link", "") for a in bucket_articles if a.get("link")]
         distinct_sources = len({a.get("source", "") for a in bucket_articles})
         distinct_days = len({(a.get("published") or "")[:10] for a in bucket_articles if a.get("published")})
 

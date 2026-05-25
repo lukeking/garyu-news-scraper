@@ -17,13 +17,31 @@ sources:
   # 必要欄位：name, type, url
   # 選用欄位：enabled（預設 true）
 
-  - name: Google News 機車交通          # 顯示在 log 與信件來源標籤
+  - name: Google News 機車交通
     type: rss
     enabled: true
     url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E4%BA%A4%E9%80%9A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
-    # 小技巧：Google News RSS 支援 site: 運算子，可鎖定特定媒體
-    # 例如只抓聯合新聞網的機車新聞：
-    # url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+site:udn.com&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 機車事故
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E4%BA%8B%E6%95%85&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 機車法規
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E6%B3%95%E8%A6%8F&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 重機道路
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E9%87%8D%E6%A9%9F+%E9%81%93%E8%B7%AF&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 中央社機車
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+site:cna.com.tw&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    # site: 運算子鎖定中央社（source_weight 0.9），濾掉低品質來源後命中率最高
 
   - name: 聯合新聞網
     type: rss
@@ -31,6 +49,61 @@ sources:
     url: "https://udn.com/rssfeed/news/2/0?ch=news"
     # 主流新聞網的 RSS 會用 MOTORCYCLE_KEYWORDS 再次過濾，
     # Google News 的 RSS 因為 query 已鎖定主題，不需要二次過濾。
+
+  - name: 中央社 政治
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/politics"
+
+  - name: 中央社 國際
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/intworld"
+
+  - name: 中央社 兩岸
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/mainland"
+
+  - name: 中央社 產經
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/finance"
+
+  - name: 中央社 科技
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/technology"
+
+  - name: 中央社 生活
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/lifehealth"
+
+  - name: 中央社 社會
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/social"
+
+  - name: 中央社 地方
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/local"
+
+  - name: 中央社 文化
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/culture"
+
+  - name: 中央社 運動
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/sport"
+
+  - name: 中央社 娛樂
+    type: rss
+    enabled: true
+    url: "https://feeds.feedburner.com/rsscna/stars"
 
   - name: 停用的來源範例
     type: rss
@@ -79,21 +152,13 @@ sources:
   #   找法：頻道頁面 URL → youtube.com/channel/UC... 或 youtube.com/@handle
   # 前置條件：需在 GitHub Secrets 設定 YOUTUBE_API_KEY（YouTube Data API v3 金鑰）
   #
-  # 適合收錄的頻道類型（提供新聞 RSS 沒有的分析視角）：
-  #   1. 台灣交通觀察 — 從騎士視角評論道路設計、執法問題
-  #   2. 外國交通比較 — 對比日本／歐洲／美國與台灣的交通文化、法規
-  #   3. 道路安全倡議 — 深度分析事故原因、政策改革
-
-  - name: 台灣道路觀察頻道範例
-    type: youtube
-    enabled: false                          # ← 填入真實 channel_id 後再改為 true
-    channel_id: UCxxxxxxxxxxxxxxxxxxxxxxxx  # 替換為實際 channel_id（UC 開頭 24 字元）
-    max_items: 5                            # 每次最多抓幾支影片（過濾 Shorts 前）
-    lookback_days: 2                        # 只抓最近幾天發布的影片
+  # ⚠️  中文頻道注意：多數中文 YouTube 頻道不提供逐字稿，transcript API 只能拿到標題＋說明。
+  #   這種情況下分析深度與 RSS 文章無異，不建議收錄。
+  #   建議只啟用有完整逐字稿的頻道（如日文、英文交通分析頻道）。
 
   - name: 外國交通比較頻道範例
     type: youtube
     enabled: false
-    channel_id: UCyyyyyyyyyyyyyyyyyyyyyyyy
-    max_items: 3                            # 更新頻率低的頻道可設低一點
-    # lookback_days 省略時使用預設值 2
+    channel_id: UCxxxxxxxxxxxxxxxxxxxxxxxx  # 替換為實際 channel_id（UC 開頭 24 字元）
+    max_items: 5
+    lookback_days: 2
