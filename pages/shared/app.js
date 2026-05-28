@@ -97,7 +97,7 @@ function renderHotTopics(reports) {
     <ol style="margin:0 0 1rem 1.2rem;padding:0">
       ${(r.source_article_links).map((a, i) => `
       <li style="margin-bottom:0.5rem">
-        <span style="font-weight:600;color:var(--text)">${typeof a === 'object' ? a.title : a}</span>
+        <a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" style="font-weight:600;color:var(--accent);text-decoration:none">${typeof a === 'object' ? (a.title || a.link) : a}</a>
         ${typeof a === 'object' && a.summary ? `<p style="margin:0.2rem 0 0;font-size:0.82rem;color:var(--text-muted);line-height:1.5">${a.summary}</p>` : ''}
       </li>`).join('')}
     </ol>` : ''}
