@@ -167,11 +167,11 @@ function renderHotTopics(reports) {
   <div class="card-body">
     ${(r.source_article_links || []).length ? `
     <p class="section-label" style="color:var(--accent2)">焦點事件</p>
-    <ol style="margin:0 0 1rem 1.2rem;padding:0">
+    <ol class="ht-focus">
       ${(r.source_article_links).map(a => `
-      <li style="margin-bottom:0.5rem">
-        <a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" style="font-weight:600;color:var(--accent);text-decoration:none">${typeof a === 'object' ? (a.title || a.link) : a}</a>
-        ${typeof a === 'object' && a.summary ? `<p style="margin:0.2rem 0 0;font-size:0.82rem;color:var(--text-muted);line-height:1.5">${a.summary}</p>` : ''}
+      <li>
+        <a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" class="ht-focus-link">${typeof a === 'object' ? (a.title || a.link) : a}</a>
+        ${typeof a === 'object' && a.summary ? `<p class="ht-focus-summary">${a.summary}</p>` : ''}
       </li>`).join('')}
     </ol>` : ''}
     <div class="ht-axes">${renderReportBody(r.report_text)}</div>
