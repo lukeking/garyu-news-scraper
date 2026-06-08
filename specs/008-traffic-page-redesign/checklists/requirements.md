@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,9 +31,9 @@
 
 ## Notes
 
-- 3 個 [NEEDS CLARIFICATION] 標記刻意保留，對應使用者明確希望在 clarify 階段才收斂的三個開放決策：
-  - **FR-014**：深度分析去條列化是「僅前端重排」還是「同步放寬內容產出格式」（範圍分岔，牽動後端與既有報告）。
-  - **FR-015**：新聞列表「快速一覽」的版面方向（多個合理選項，使用者尚無定見，需 mockup 比較）。
-  - **FR-016**：歷史報告是否回填/重生新版面，或僅日後生效。
-- 這三項屬 scope/UX 層級且無單一合理預設，符合保留為待釐清的標準；其餘空白皆以合理預設填入並記於 Assumptions。
-- 建議下一步走 `/speckit-clarify` 收斂上述三點（含為 FR-014/FR-015 提供版面 mockup 方案），再進 `/speckit-plan`。
+- 三個待釐清決策已於 Session 2026-06-08 的 `/speckit-clarify` 收斂：
+  - **FR-014** → 純前端重排（結構卡片化），保留現有 prompt 輸出。
+  - **FR-015** → 時間序＋來源色標的精簡密集列。
+  - **FR-016** → 僅日後生效（歷史內容不動，版面隨純前端重排自動更新）。
+- clarify 過程另捕捉一項事實更正：traffic buffer 未經 LLM 個別分析（無重要度／LLM 標籤／LLM 摘要／個別深度分析），已連動修正 FR-009、FR-010、SC-006、Key Entities、Assumptions 與 US3 驗收情境。
+- spec 已就緒，建議下一步 `/speckit-plan`。
