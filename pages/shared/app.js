@@ -141,10 +141,18 @@ function renderReportBody(text) {
     <div class="ht-axis">
       ${ax.title ? `<p class="ht-axis-title">${esc(ax.title)}</p>` : ''}
       ${ax.items.map(it => {
-        if (it.type === 'check') return `<p class="ht-check">☐ ${esc(it.text)}</p>`;
+        if (it.type === 'check') {
+          const ci = it.text.indexOf('：');
+          const cl = ci === -1 ? it.text : it.text.slice(0, ci);
+          const cv = ci === -1 ? '' : it.text.slice(ci + 1).trim();
+          const finding = /^存在/.test(cv);
+          const empty = /^(資訊不足|不存在|不適用)/.test(cv);
+          return `<p class="ht-check${empty ? ' ht-muted' : ''}">${finding ? '⚠' : '☐'} ${esc(cl)}${cv ? '：' + esc(cv) : ''}</p>`;
+        }
         if (it.type === 'text') return `<p class="ht-text">${esc(it.text)}</p>`;
         const cls = /交織度/.test(it.label) ? 'ht-metric' : 'ht-kv';
-        return `<div class="${cls}"><span class="${cls}-label">${esc(it.label)}</span><span class="${cls}-value">${esc(it.value)}</span></div>`;
+        const muted = cls === 'ht-kv' && /^(資訊不足|不存在|不適用|無觸發)/.test(String(it.value).trim());
+        return `<div class="${cls}"><span class="${cls}-label">${esc(it.label)}</span><span class="${cls}-value${muted ? ' ht-muted' : ''}">${esc(it.value)}</span></div>`;
       }).join('')}
     </div>`).join('');
 }
