@@ -97,6 +97,48 @@ function groupHotTopicsByWeek(reports) {
   return map;
 }
 
+// 將 report_text 解析成三軸結構；遇未知格式回傳空陣列（由呼叫端降級）。
+function parseReport(text) {
+  const axes = [];
+  let cur = null;
+  for (const raw of (text || '').split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('### ')) {
+      cur = { title: line.replace(/^###\s*/, ''), items: [] };
+      axes.push(cur);
+      continue;
+    }
+    if (!cur) { cur = { title: '', items: [] }; axes.push(cur); }
+    if (line.startsWith('□')) {
+      cur.items.push({ type: 'check', text: line.replace(/^□\s*/, '') });
+    } else {
+      const i = line.indexOf('：');
+      if (i === -1) cur.items.push({ type: 'text', text: line });
+      else cur.items.push({ type: 'kv', label: line.slice(0, i), value: line.slice(i + 1).trim() });
+    }
+  }
+  return axes;
+}
+
+function renderReportBody(text) {
+  const axes = parseReport(text);
+  if (!axes.length) {  // 降級：非預期格式 → 純文字段落，不破版
+    return (text || '').split('\n').filter(l => l.trim())
+      .map(l => `<p class="section-text">${l}</p>`).join('');
+  }
+  return axes.map(ax => `
+    <div class="ht-axis">
+      ${ax.title ? `<p class="ht-axis-title">${ax.title}</p>` : ''}
+      ${ax.items.map(it => {
+        if (it.type === 'check') return `<p class="ht-check">☐ ${it.text}</p>`;
+        if (it.type === 'text') return `<p class="ht-text">${it.text}</p>`;
+        const cls = /交織度|代表個案/.test(it.label) ? 'ht-metric' : 'ht-kv';
+        return `<div class="${cls}"><span class="${cls}-label">${it.label}</span><span class="${cls}-value">${it.value}</span></div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
 function renderHotTopics(reports) {
   const container = $('hot-topics-list');
   if (!container) return;
@@ -105,37 +147,25 @@ function renderHotTopics(reports) {
     return;
   }
   container.innerHTML = reports.map(r => `
-<div class="card" style="margin-bottom:1rem">
+<div class="card ht-card" style="margin-bottom:1rem">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
-      <span class="source-badge" style="background:var(--accent)">${r.topic_label}</span>
-      <span style="font-size:0.8rem;color:var(--text-muted)">📅 ${r.week_start_date} 當週 · 📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
+      <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
     </div>
-    <div style="font-weight:600;margin-top:0.4rem;color:var(--text)">${r.topic_label}</div>
+    <div class="ht-title">${r.topic_label}</div>
   </div>
   <div class="card-body">
     ${(r.source_article_links || []).length ? `
     <p class="section-label" style="color:var(--accent2)">焦點事件</p>
     <ol style="margin:0 0 1rem 1.2rem;padding:0">
-      ${(r.source_article_links).map((a, i) => `
+      ${(r.source_article_links).map(a => `
       <li style="margin-bottom:0.5rem">
         <a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" style="font-weight:600;color:var(--accent);text-decoration:none">${typeof a === 'object' ? (a.title || a.link) : a}</a>
         ${typeof a === 'object' && a.summary ? `<p style="margin:0.2rem 0 0;font-size:0.82rem;color:var(--text-muted);line-height:1.5">${a.summary}</p>` : ''}
       </li>`).join('')}
     </ol>` : ''}
-    ${r.report_text.split('\n').filter(l => l.trim()).map(line => {
-      if (line.startsWith('### ')) {
-        return `<p class="section-label" style="color:var(--accent);margin-top:0.75rem;font-size:0.9rem;border-left:3px solid var(--accent2);padding-left:0.5rem">${line.replace(/^###\s*/, '')}</p>`;
-      }
-      if (line.startsWith('□ ')) {
-        return `<p class="section-text" style="padding-left:1rem;color:var(--text-body)">${line}</p>`;
-      }
-      const colon = line.indexOf('：');
-      if (colon === -1) return `<p class="section-text">${line}</p>`;
-      return `<p class="section-label" style="color:var(--accent2)">${line.slice(0, colon + 1)}</p>` +
-             `<p class="section-text">${line.slice(colon + 1)}</p>`;
-    }).join('')}
+    ${renderReportBody(r.report_text)}
   </div>
 </div>`).join('');
 }
