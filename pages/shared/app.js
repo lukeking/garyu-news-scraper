@@ -11,6 +11,7 @@ let activeImp = localStorage.getItem('garyu_filter_importance') || 'all';
 let activeTag = '';
 let activeQuery = '';
 let searchTimer = null;
+let hotTopicsByWeek = {};
 
 const $ = id => document.getElementById(id);
 
@@ -74,11 +75,33 @@ function applyDismissed() {
 }
 
 // ── Hot Topics (traffic only) ─────────────────────────────────
+// 把報告的 week_start_date（週一日期）換算成 ISO 週字串，對齊文章 week_id（如 2026-W23）。
+function isoWeekId(dateStr) {
+  const date = new Date(dateStr + 'T00:00:00Z');
+  if (isNaN(date)) return '';
+  const day = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - day + 3);   // 當週週四
+  const isoYear = date.getUTCFullYear();
+  const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+  const week = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+  return `${isoYear}-W${String(week).padStart(2, '0')}`;
+}
+
+function groupHotTopicsByWeek(reports) {
+  const map = {};
+  for (const r of reports) {
+    const wid = isoWeekId(r.week_start_date || '');
+    if (!wid) continue;
+    (map[wid] = map[wid] || []).push(r);
+  }
+  return map;
+}
+
 function renderHotTopics(reports) {
   const container = $('hot-topics-list');
   if (!container) return;
   if (!reports || !reports.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">本週熱點話題尚未產生</p>';
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">這一週尚無熱點話題</p>';
     return;
   }
   container.innerHTML = reports.map(r => `
@@ -125,7 +148,7 @@ async function init() {
     const htRes = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
     if (htRes && htRes.ok) {
       const htData = await htRes.json();
-      renderHotTopics(htData.reports || []);
+      hotTopicsByWeek = groupHotTopicsByWeek(htData.reports || []);
     }
   }
 
@@ -178,6 +201,7 @@ async function loadWeek(weekId) {
   $('site-subtitle').textContent = C.subtitle(weekId, data.article_count, syncLabel);
   renderWeekNav();
   renderAll();
+  if (C.contentType === 'traffic') renderHotTopics(hotTopicsByWeek[weekId] || []);
 }
 
 // ── Tag bar ───────────────────────────────────────────────────
