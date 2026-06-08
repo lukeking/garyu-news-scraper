@@ -87,7 +87,7 @@ function renderHotTopics(reports) {
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
       <span class="source-badge" style="background:var(--accent)">${r.topic_label}</span>
-      <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
+      <span style="font-size:0.8rem;color:var(--text-muted)">📅 ${r.week_start_date} 當週 · 📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
     </div>
     <div style="font-weight:600;margin-top:0.4rem;color:var(--text)">${r.topic_label}</div>
   </div>
