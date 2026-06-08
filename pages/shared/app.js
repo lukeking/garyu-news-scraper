@@ -360,18 +360,18 @@ function renderStats(articles) {
 function trafficRow(a, idx) {
   const src = a.source || '';
   const when = a.published || a.created_at || '';
-  const summary = (a.analysis && a.analysis.summary) || '';
+  const summary = String((a.analysis && a.analysis.summary) || '').replace(/<[^>]*>/g, '').trim();
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
   return `
 <div class="card traffic-row" data-url="${a.link}">
   <div class="tr-main">
-    <span class="tr-src" style="background:${C.srcColor(src)}">${C.srcLabel(src)}</span>
-    <button class="tr-title" onclick="toggleRow(this)">${idx}. ${a.title}</button>
+    <span class="tr-src" style="background:${C.srcColor(src)}">${esc(C.srcLabel(src))}</span>
+    <button class="tr-title" onclick="toggleRow(this)">${idx}. ${esc(a.title)}</button>
     <span class="tr-time">${when ? relativeTime(when) : ''}</span>
     <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
   </div>
   <div class="tr-detail" hidden>
-    ${summary ? `<p class="tr-summary">${summary}</p>` : ''}
+    ${summary ? `<p class="tr-summary">${esc(summary)}</p>` : ''}
     ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a> ` : ''}
     <a class="read-more" href="${a.link}" target="_blank" rel="noopener">閱讀原文 →</a>
   </div>
