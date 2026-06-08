@@ -136,7 +136,7 @@ function renderReportBody(text) {
       ${ax.items.map(it => {
         if (it.type === 'check') return `<p class="ht-check">☐ ${it.text}</p>`;
         if (it.type === 'text') return `<p class="ht-text">${it.text}</p>`;
-        const cls = /交織度|代表個案/.test(it.label) ? 'ht-metric' : 'ht-kv';
+        const cls = /交織度/.test(it.label) ? 'ht-metric' : 'ht-kv';
         return `<div class="${cls}"><span class="${cls}-label">${it.label}</span><span class="${cls}-value">${it.value}</span></div>`;
       }).join('')}
     </div>`).join('');
@@ -174,7 +174,7 @@ function renderHotTopics(reports) {
         ${typeof a === 'object' && a.summary ? `<p style="margin:0.2rem 0 0;font-size:0.82rem;color:var(--text-muted);line-height:1.5">${a.summary}</p>` : ''}
       </li>`).join('')}
     </ol>` : ''}
-    ${renderReportBody(r.report_text)}
+    <div class="ht-axes">${renderReportBody(r.report_text)}</div>
   </div>
 </div>`;
   }).join('');
