@@ -330,12 +330,45 @@ function renderStats(articles) {
   ].join('');
 }
 
+// 交通新聞密集列：來源色標＋標題＋相對時間；點標題展開來源摘要（FR-009/015）
+function trafficRow(a, idx) {
+  const src = a.source || '';
+  const when = a.published || a.created_at || '';
+  const summary = (a.analysis && a.analysis.summary) || '';
+  const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
+  return `
+<div class="card traffic-row" data-url="${a.link}">
+  <div class="tr-main">
+    <span class="tr-src" style="background:${C.srcColor(src)}">${C.srcLabel(src)}</span>
+    <button class="tr-title" onclick="toggleRow(this)">${idx}. ${a.title}</button>
+    <span class="tr-time">${when ? relativeTime(when) : ''}</span>
+    <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
+  </div>
+  <div class="tr-detail" hidden>
+    ${summary ? `<p class="tr-summary">${summary}</p>` : ''}
+    ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a> ` : ''}
+    <a class="read-more" href="${a.link}" target="_blank" rel="noopener">閱讀原文 →</a>
+  </div>
+</div>`;
+}
+
+function toggleRow(btn) {
+  const detail = btn.closest('.traffic-row')?.querySelector('.tr-detail');
+  if (detail) detail.hidden = !detail.hidden;
+}
+
 function renderCards(articles) {
   if (!articles.length) {
     $('article-list').innerHTML = `<div class="empty">${C.emptyHtml}</div>`;
     return;
   }
-  $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
+  if (C.contentType === 'traffic') {
+    const ts = a => { const d = new Date(a.published || a.created_at || 0); return isNaN(d) ? 0 : d.getTime(); };
+    const sorted = [...articles].sort((a, b) => ts(b) - ts(a));   // 時間序，最新在上
+    $('article-list').innerHTML = sorted.map((a, i) => trafficRow(a, i + 1)).join('');
+  } else {
+    $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
+  }
   applyDismissed();
 }
 
