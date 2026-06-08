@@ -11,8 +11,16 @@ let activeImp = localStorage.getItem('garyu_filter_importance') || 'all';
 let activeTag = '';
 let activeQuery = '';
 let searchTimer = null;
+let hotTopicsByWeek = {};
 
 const $ = id => document.getElementById(id);
+
+// HTML 跳脫：報告/摘要等欄位可能含原始 HTML（如 RSS 的 <a>），直接注入會破版。
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 
 // ── Theme ─────────────────────────────────────────────────────
 function toggleTheme() {
@@ -74,47 +82,121 @@ function applyDismissed() {
 }
 
 // ── Hot Topics (traffic only) ─────────────────────────────────
+// 把報告的 week_start_date（週一日期）換算成 ISO 週字串，對齊文章 week_id（如 2026-W23）。
+function isoWeekId(dateStr) {
+  const date = new Date(dateStr + 'T00:00:00Z');
+  if (isNaN(date)) return '';
+  const day = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - day + 3);   // 當週週四
+  const isoYear = date.getUTCFullYear();
+  const yearStart = new Date(Date.UTC(isoYear, 0, 1));
+  const week = Math.ceil(((date - yearStart) / 86400000 + 1) / 7);
+  return `${isoYear}-W${String(week).padStart(2, '0')}`;
+}
+
+function groupHotTopicsByWeek(reports) {
+  const map = {};
+  for (const r of reports) {
+    const wid = isoWeekId(r.week_start_date || '');
+    if (!wid) continue;
+    (map[wid] = map[wid] || []).push(r);
+  }
+  return map;
+}
+
+// 由 topic_label 產生 URL 安全的 slug，作為卡片 id 與 deep-link 錨點。
+function slugify(s) { return encodeURIComponent(String(s || '').trim().replace(/\s+/g, '-')); }
+
+// 將 report_text 解析成三軸結構；遇未知格式回傳空陣列（由呼叫端降級）。
+function parseReport(text) {
+  const axes = [];
+  let cur = null;
+  for (const raw of (text || '').split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('### ')) {
+      cur = { title: line.replace(/^###\s*/, ''), items: [] };
+      axes.push(cur);
+      continue;
+    }
+    if (!cur) { cur = { title: '', items: [] }; axes.push(cur); }
+    if (line.startsWith('□')) {
+      cur.items.push({ type: 'check', text: line.replace(/^□\s*/, '') });
+    } else {
+      const i = line.indexOf('：');
+      if (i === -1) cur.items.push({ type: 'text', text: line });
+      else cur.items.push({ type: 'kv', label: line.slice(0, i), value: line.slice(i + 1).trim() });
+    }
+  }
+  return axes;
+}
+
+function renderReportBody(text) {
+  const axes = parseReport(text);
+  if (!axes.length) {  // 降級：非預期格式 → 純文字段落，不破版
+    return (text || '').split('\n').filter(l => l.trim())
+      .map(l => `<p class="section-text">${esc(l)}</p>`).join('');
+  }
+  return axes.map(ax => `
+    <div class="ht-axis">
+      ${ax.title ? `<p class="ht-axis-title">${esc(ax.title)}</p>` : ''}
+      ${ax.items.map(it => {
+        if (it.type === 'check') {
+          const ci = it.text.indexOf('：');
+          const cl = ci === -1 ? it.text : it.text.slice(0, ci);
+          const cv = ci === -1 ? '' : it.text.slice(ci + 1).trim();
+          const finding = /^存在/.test(cv);
+          const empty = /^(資訊不足|不存在|不適用)/.test(cv);
+          return `<p class="ht-check${empty ? ' ht-muted' : ''}">${finding ? '⚠' : '☐'} ${esc(cl)}${cv ? '：' + esc(cv) : ''}</p>`;
+        }
+        if (it.type === 'text') return `<p class="ht-text">${esc(it.text)}</p>`;
+        const cls = /交織度/.test(it.label) ? 'ht-metric' : 'ht-kv';
+        const muted = cls === 'ht-kv' && /^(資訊不足|不存在|不適用|無觸發)/.test(String(it.value).trim());
+        return `<div class="${cls}"><span class="${cls}-label">${esc(it.label)}</span><span class="${cls}-value${muted ? ' ht-muted' : ''}">${esc(it.value)}</span></div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
 function renderHotTopics(reports) {
   const container = $('hot-topics-list');
   if (!container) return;
   if (!reports || !reports.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">本週熱點話題尚未產生</p>';
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">這一週尚無熱點話題</p>';
     return;
   }
-  container.innerHTML = reports.map(r => `
-<div class="card" style="margin-bottom:1rem">
+  container.innerHTML = reports.map(r => {
+    const slug = slugify(r.topic_label);
+    const wid = isoWeekId(r.week_start_date);
+    const pageUrl = location.origin + location.pathname + '?week=' + encodeURIComponent(wid) + '#topic-' + slug;
+    const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
+    return `
+<div class="card ht-card" id="topic-${slug}" style="margin-bottom:1rem">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
-      <span class="source-badge" style="background:var(--accent)">${r.topic_label}</span>
-      <span style="font-size:0.8rem;color:var(--text-muted)">📅 ${r.week_start_date} 當週 · 📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
+      <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
+      ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享此深度分析至 LINE">LINE</a>` : ''}
     </div>
-    <div style="font-weight:600;margin-top:0.4rem;color:var(--text)">${r.topic_label}</div>
+    <div class="ht-title">${esc(r.topic_label)}</div>
   </div>
   <div class="card-body">
     ${(r.source_article_links || []).length ? `
     <p class="section-label" style="color:var(--accent2)">焦點事件</p>
-    <ol style="margin:0 0 1rem 1.2rem;padding:0">
-      ${(r.source_article_links).map((a, i) => `
-      <li style="margin-bottom:0.5rem">
-        <a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" style="font-weight:600;color:var(--accent);text-decoration:none">${typeof a === 'object' ? (a.title || a.link) : a}</a>
-        ${typeof a === 'object' && a.summary ? `<p style="margin:0.2rem 0 0;font-size:0.82rem;color:var(--text-muted);line-height:1.5">${a.summary}</p>` : ''}
-      </li>`).join('')}
+    <ol class="ht-focus">
+      ${(r.source_article_links).map(a => `
+      <li><a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" class="ht-focus-link">${esc(typeof a === 'object' ? (a.title || a.link) : a)}</a></li>`).join('')}
     </ol>` : ''}
-    ${r.report_text.split('\n').filter(l => l.trim()).map(line => {
-      if (line.startsWith('### ')) {
-        return `<p class="section-label" style="color:var(--accent);margin-top:0.75rem;font-size:0.9rem;border-left:3px solid var(--accent2);padding-left:0.5rem">${line.replace(/^###\s*/, '')}</p>`;
-      }
-      if (line.startsWith('□ ')) {
-        return `<p class="section-text" style="padding-left:1rem;color:var(--text-body)">${line}</p>`;
-      }
-      const colon = line.indexOf('：');
-      if (colon === -1) return `<p class="section-text">${line}</p>`;
-      return `<p class="section-label" style="color:var(--accent2)">${line.slice(0, colon + 1)}</p>` +
-             `<p class="section-text">${line.slice(colon + 1)}</p>`;
-    }).join('')}
+    <div class="ht-axes">${renderReportBody(r.report_text)}</div>
   </div>
-</div>`).join('');
+</div>`;
+  }).join('');
+}
+
+// 深度分析 deep-link：若 URL 有 #topic-<slug> 則捲動定位；找不到則不動作、不報錯。
+function scrollToHashTopic() {
+  if (!location.hash.startsWith('#topic-')) return;
+  const el = document.getElementById(location.hash.slice(1));
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -125,7 +207,7 @@ async function init() {
     const htRes = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
     if (htRes && htRes.ok) {
       const htData = await htRes.json();
-      renderHotTopics(htData.reports || []);
+      hotTopicsByWeek = groupHotTopicsByWeek(htData.reports || []);
     }
   }
 
@@ -136,7 +218,12 @@ async function init() {
   }
   allWeeks = await res.json();
   renderWeekNav();
-  if (allWeeks.length) await loadWeek(allWeeks[0].week_id);
+  if (allWeeks.length) {
+    const wanted = new URLSearchParams(location.search).get('week');
+    const target = (wanted && allWeeks.some(w => w.week_id === wanted)) ? wanted : allWeeks[0].week_id;  // 失效則回退最新週
+    await loadWeek(target);
+    scrollToHashTopic();
+  }
 
   const tRes = await fetch(`${API_BASE}/tags?content_type=${C.contentType}`).catch(() => null);
   if (tRes && tRes.ok) renderTagBar(await tRes.json());
@@ -178,6 +265,7 @@ async function loadWeek(weekId) {
   $('site-subtitle').textContent = C.subtitle(weekId, data.article_count, syncLabel);
   renderWeekNav();
   renderAll();
+  if (C.contentType === 'traffic') renderHotTopics(hotTopicsByWeek[weekId] || []);
 }
 
 // ── Tag bar ───────────────────────────────────────────────────
@@ -276,12 +364,45 @@ function renderStats(articles) {
   ].join('');
 }
 
+// 交通新聞密集列：來源色標＋標題＋相對時間；點標題展開來源摘要（FR-009/015）
+function trafficRow(a, idx) {
+  const src = a.source || '';
+  const when = a.published || a.created_at || '';
+  const summary = String((a.analysis && a.analysis.summary) || '').replace(/<[^>]*>/g, '').trim();
+  const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
+  return `
+<div class="card traffic-row" data-url="${a.link}">
+  <div class="tr-main">
+    <span class="tr-src" style="background:${C.srcColor(src)}">${esc(C.srcLabel(src))}</span>
+    <button class="tr-title" onclick="toggleRow(this)">${idx}. ${esc(a.title)}</button>
+    <span class="tr-time">${when ? relativeTime(when) : ''}</span>
+    <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
+  </div>
+  <div class="tr-detail" hidden>
+    ${summary ? `<p class="tr-summary">${esc(summary)}</p>` : ''}
+    ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a> ` : ''}
+    <a class="read-more" href="${a.link}" target="_blank" rel="noopener">閱讀原文 →</a>
+  </div>
+</div>`;
+}
+
+function toggleRow(btn) {
+  const detail = btn.closest('.traffic-row')?.querySelector('.tr-detail');
+  if (detail) detail.hidden = !detail.hidden;
+}
+
 function renderCards(articles) {
   if (!articles.length) {
     $('article-list').innerHTML = `<div class="empty">${C.emptyHtml}</div>`;
     return;
   }
-  $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
+  if (C.contentType === 'traffic') {
+    const ts = a => { const d = new Date(a.published || a.created_at || 0); return isNaN(d) ? 0 : d.getTime(); };
+    const sorted = [...articles].sort((a, b) => ts(b) - ts(a));   // 時間序，最新在上
+    $('article-list').innerHTML = sorted.map((a, i) => trafficRow(a, i + 1)).join('');
+  } else {
+    $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
+  }
   applyDismissed();
 }
 
