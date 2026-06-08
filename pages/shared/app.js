@@ -97,6 +97,9 @@ function groupHotTopicsByWeek(reports) {
   return map;
 }
 
+// 由 topic_label 產生 URL 安全的 slug，作為卡片 id 與 deep-link 錨點。
+function slugify(s) { return encodeURIComponent(String(s || '').trim().replace(/\s+/g, '-')); }
+
 // 將 report_text 解析成三軸結構；遇未知格式回傳空陣列（由呼叫端降級）。
 function parseReport(text) {
   const axes = [];
@@ -146,12 +149,18 @@ function renderHotTopics(reports) {
     container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">這一週尚無熱點話題</p>';
     return;
   }
-  container.innerHTML = reports.map(r => `
-<div class="card ht-card" style="margin-bottom:1rem">
+  container.innerHTML = reports.map(r => {
+    const slug = slugify(r.topic_label);
+    const wid = isoWeekId(r.week_start_date);
+    const pageUrl = location.origin + location.pathname + '?week=' + encodeURIComponent(wid) + '#topic-' + slug;
+    const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
+    return `
+<div class="card ht-card" id="topic-${slug}" style="margin-bottom:1rem">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
       <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
+      ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享此深度分析至 LINE">LINE</a>` : ''}
     </div>
     <div class="ht-title">${r.topic_label}</div>
   </div>
@@ -167,7 +176,15 @@ function renderHotTopics(reports) {
     </ol>` : ''}
     ${renderReportBody(r.report_text)}
   </div>
-</div>`).join('');
+</div>`;
+  }).join('');
+}
+
+// 深度分析 deep-link：若 URL 有 #topic-<slug> 則捲動定位；找不到則不動作、不報錯。
+function scrollToHashTopic() {
+  if (!location.hash.startsWith('#topic-')) return;
+  const el = document.getElementById(location.hash.slice(1));
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -189,7 +206,12 @@ async function init() {
   }
   allWeeks = await res.json();
   renderWeekNav();
-  if (allWeeks.length) await loadWeek(allWeeks[0].week_id);
+  if (allWeeks.length) {
+    const wanted = new URLSearchParams(location.search).get('week');
+    const target = (wanted && allWeeks.some(w => w.week_id === wanted)) ? wanted : allWeeks[0].week_id;  // 失效則回退最新週
+    await loadWeek(target);
+    scrollToHashTopic();
+  }
 
   const tRes = await fetch(`${API_BASE}/tags?content_type=${C.contentType}`).catch(() => null);
   if (tRes && tRes.ok) renderTagBar(await tRes.json());
