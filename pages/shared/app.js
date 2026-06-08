@@ -15,6 +15,13 @@ let hotTopicsByWeek = {};
 
 const $ = id => document.getElementById(id);
 
+// HTML 跳脫：報告/摘要等欄位可能含原始 HTML（如 RSS 的 <a>），直接注入會破版。
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // ── Theme ─────────────────────────────────────────────────────
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -128,16 +135,16 @@ function renderReportBody(text) {
   const axes = parseReport(text);
   if (!axes.length) {  // 降級：非預期格式 → 純文字段落，不破版
     return (text || '').split('\n').filter(l => l.trim())
-      .map(l => `<p class="section-text">${l}</p>`).join('');
+      .map(l => `<p class="section-text">${esc(l)}</p>`).join('');
   }
   return axes.map(ax => `
     <div class="ht-axis">
-      ${ax.title ? `<p class="ht-axis-title">${ax.title}</p>` : ''}
+      ${ax.title ? `<p class="ht-axis-title">${esc(ax.title)}</p>` : ''}
       ${ax.items.map(it => {
-        if (it.type === 'check') return `<p class="ht-check">☐ ${it.text}</p>`;
-        if (it.type === 'text') return `<p class="ht-text">${it.text}</p>`;
+        if (it.type === 'check') return `<p class="ht-check">☐ ${esc(it.text)}</p>`;
+        if (it.type === 'text') return `<p class="ht-text">${esc(it.text)}</p>`;
         const cls = /交織度/.test(it.label) ? 'ht-metric' : 'ht-kv';
-        return `<div class="${cls}"><span class="${cls}-label">${it.label}</span><span class="${cls}-value">${it.value}</span></div>`;
+        return `<div class="${cls}"><span class="${cls}-label">${esc(it.label)}</span><span class="${cls}-value">${esc(it.value)}</span></div>`;
       }).join('')}
     </div>`).join('');
 }
@@ -162,17 +169,14 @@ function renderHotTopics(reports) {
       <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
       ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享此深度分析至 LINE">LINE</a>` : ''}
     </div>
-    <div class="ht-title">${r.topic_label}</div>
+    <div class="ht-title">${esc(r.topic_label)}</div>
   </div>
   <div class="card-body">
     ${(r.source_article_links || []).length ? `
     <p class="section-label" style="color:var(--accent2)">焦點事件</p>
     <ol class="ht-focus">
       ${(r.source_article_links).map(a => `
-      <li>
-        <a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" class="ht-focus-link">${typeof a === 'object' ? (a.title || a.link) : a}</a>
-        ${typeof a === 'object' && a.summary ? `<p class="ht-focus-summary">${a.summary}</p>` : ''}
-      </li>`).join('')}
+      <li><a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" class="ht-focus-link">${esc(typeof a === 'object' ? (a.title || a.link) : a)}</a></li>`).join('')}
     </ol>` : ''}
     <div class="ht-axes">${renderReportBody(r.report_text)}</div>
   </div>
