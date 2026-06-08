@@ -4,13 +4,20 @@
 
 ## 起站
 
+⚠️ `pages/traffic/index.html` 以相對路徑引用 `app.js`、`shared.css`，但兩者的正本在 `pages/shared/`。正式部署會把它們**攤平**到站台根目錄（見 `.github/workflows/deploy-pages-traffic.yml`：`cp pages/shared/app.js …/app.js`）。本地預覽必須比照攤平，否則 `app.js`/`shared.css` 會 404（頁面只剩空殼）。這四個檔已在 `.gitignore`，不會進版控：
+
 ```bash
-# 於 repo 根目錄，用任一靜態伺服器服務 pages/
-python3 -m http.server 8000 --directory pages
-# 瀏覽 http://localhost:8000/traffic/
+# 在 repo 根目錄，用 symlink 把共用資源接進站台目錄（改 shared 即時反映）
+ln -sf ../shared/app.js     pages/traffic/app.js
+ln -sf ../shared/shared.css pages/traffic/shared.css
+# 起站並瀏覽
+python3 -m http.server 8000 --directory pages/traffic
+# 開 http://localhost:8000/
 ```
 
-`pages/traffic/index.html` 內 `window.__API_BASE__` 指向線上 Worker（`https://garyu-news-scraper.lukeking0325.workers.dev/api`），故本地頁面讀的是線上資料，無需起後端。
+VS Code Live Server 也可：先建上面的 symlink，再開 `http://localhost:5500/pages/traffic/`（注意是資料夾路徑，非 `traffic.html`）。
+
+`index.html` 內 `window.__API_BASE__` 指向線上 Worker，故本地頁面讀的是線上資料，無需起後端。
 
 ## 逐項驗證（對應 FR / 使用者故事）
 
