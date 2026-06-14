@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 _pipeline_config_cache: dict | None = None
 _category_taxonomy_cache: dict | None = None
+_source_defaults_cache: dict | None = None
 
 _DEFAULTS = {
     "jaccard": {
@@ -25,6 +26,10 @@ _DEFAULTS = {
     "topic_scoring": {
         "min_threshold": 1.5,
         "max_hot_topics": 3,
+        "novelty_growth_pct": 0.5,
+    },
+    "topic_identity": {
+        "similarity_threshold": 0.3,
     },
     "buffer": {
         "max_age_weeks": 8,
@@ -89,6 +94,16 @@ def _validate_pipeline_config(config: dict, path: str) -> None:
             raise RuntimeError(
                 f"[pipeline_config] jaccard.{key} 必須在 [0, 1]，目前為 {val}（路徑：{path}）"
             )
+    npct = config.get("topic_scoring", {}).get("novelty_growth_pct", 0)
+    if npct < 0:
+        raise RuntimeError(
+            f"[pipeline_config] topic_scoring.novelty_growth_pct 必須 ≥ 0，目前為 {npct}（路徑：{path}）"
+        )
+    sim = config.get("topic_identity", {}).get("similarity_threshold", 0)
+    if not (0.0 <= sim <= 1.0):
+        raise RuntimeError(
+            f"[pipeline_config] topic_identity.similarity_threshold 必須在 [0, 1]，目前為 {sim}（路徑：{path}）"
+        )
 
 
 def load_category_taxonomy(path: str | None = None) -> dict:
@@ -126,8 +141,36 @@ def load_category_taxonomy(path: str | None = None) -> dict:
     return taxonomy
 
 
+def load_source_default_categories(path: str | None = None) -> dict:
+    """
+    Returns {source_name_substring: major_category} from categories_traffic.yml's
+    optional `source_defaults` key. Used as a fallback when title-token category
+    assignment yields 'uncategorised'. Missing key or file → {} (feature off).
+    """
+    global _source_defaults_cache
+    if _source_defaults_cache is not None:
+        return _source_defaults_cache
+
+    if path is None:
+        path = os.environ.get("CATEGORIES_TRAFFIC_YML_PATH", "config/categories_traffic.yml")
+
+    mapping: dict = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            raw = yaml.safe_load(f) or {}
+        mapping = {str(k): str(v) for k, v in (raw.get("source_defaults") or {}).items()}
+        if mapping:
+            logger.info("[pipeline_config] source_defaults 載入：%d 條", len(mapping))
+    else:
+        logger.warning("[pipeline_config] source_defaults 略過，分類檔不存在：%s", path)
+
+    _source_defaults_cache = mapping
+    return mapping
+
+
 def reset_caches() -> None:
     """Reset module-level caches. Used in tests to reload config between test cases."""
-    global _pipeline_config_cache, _category_taxonomy_cache
+    global _pipeline_config_cache, _category_taxonomy_cache, _source_defaults_cache
     _pipeline_config_cache = None
     _category_taxonomy_cache = None
+    _source_defaults_cache = None

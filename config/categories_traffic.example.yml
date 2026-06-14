@@ -21,3 +21,16 @@ categories:
     keywords: [路口, 號誌, 闖紅燈, 轉彎, 交叉路口]
   機車事故:
     keywords: [機車, 摩托車, 騎士, 重機, 白牌, 紅牌, 機車事故]
+
+# Source-default fallback (optional):
+#   When title-token assignment yields 'uncategorised', the article's source is
+#   matched (substring) against these keys; first match wins and sets the
+#   major_category. Only applied as a fallback — never overrides a title hit.
+#   Lets low-frequency deep sources (whose editorial titles carry no category
+#   token) aggregate into a policy bucket instead of scattering as singletons.
+source_defaults:
+  報導者: 道安政策
+  天下: 道安政策
+  道安統計: 道安政策
+  行人地獄: 行人事故
+  區間測速: 科技執法

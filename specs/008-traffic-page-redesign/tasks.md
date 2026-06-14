@@ -26,7 +26,7 @@ description: "Task list for 交通頁可讀性重設計"
 
 **Purpose**: 建立驗證基線
 
-- [ ] T001 依 `quickstart.md` 起本地靜態站（`python3 -m http.server 8000 --directory pages`）開 `/traffic/`，記錄改動前行為（全週堆疊、nav 在中間）作為回歸基線
+- [x] T001 依 `quickstart.md` 起本地靜態站（`python3 -m http.server 8000 --directory pages`）開 `/traffic/`，記錄改動前行為（全週堆疊、nav 在中間）作為回歸基線
 
 ---
 
@@ -36,7 +36,7 @@ description: "Task list for 交通頁可讀性重設計"
 
 **⚠️ CRITICAL**: T002 完成前，US1／US4 的選週邏輯無法正確運作
 
-- [ ] T002 在 `pages/shared/app.js` 新增純函式 `isoWeekId(dateStr)`：把 `YYYY-MM-DD`（週一日期）換算為 ISO 週字串 `YYYY-Www`，用於將 `hot_topic_reports.week_start_date` 對齊文章 `week_id`（research D1；不改後端）
+- [x] T002 在 `pages/shared/app.js` 新增純函式 `isoWeekId(dateStr)`：把 `YYYY-MM-DD`（週一日期）換算為 ISO 週字串 `YYYY-Www`，用於將 `hot_topic_reports.week_start_date` 對齊文章 `week_id`（research D1；不改後端）
 
 **Checkpoint**: 週鍵可在前端對齊，US1 可開工
 
@@ -48,12 +48,12 @@ description: "Task list for 交通頁可讀性重設計"
 
 **Independent Test**: 開 `/traffic/` 僅顯示最新一週兩區；切較舊週 → 兩區同步切換；nav 在深度分析之上（quickstart US1）
 
-- [ ] T003 [US1] 在 `pages/traffic/index.html` 將 `week-nav` 容器移到 `hot-topics-list` 之上（FR-002）
-- [ ] T004 [US1] 在 `pages/shared/app.js` `init()`：traffic 時先載入並快取 `/api/hot-topics`（一次），改為由 `loadWeek` 驅動深度分析；預設選最新一週（`allWeeks[0].week_id`）（FR-003）
-- [ ] T005 [US1] 在 `pages/shared/app.js` `loadWeek(weekId)`：用 T002 `isoWeekId` 將快取 reports 的 `week_start_date` 換算後過濾出該週子集，呼叫 `renderHotTopics(subset)`，與新聞列表一起更新（FR-001）
-- [ ] T006 [US1] 在 `pages/shared/app.js` `renderHotTopics()`：接受「某週 reports 子集」；該週無報告時顯示明確空狀態，且新聞列表既有空狀態沿用，跨區不一致不報錯（FR-005）
-- [ ] T007 [US1] 在 `pages/shared/app.js`／`pages/traffic/index.html` 明確標示目前檢視的週（複用 `site-subtitle` 或 nav active 態）（FR-004）
-- [ ] T008 [US1] 依 quickstart US1（步驟 1–4）人工驗證
+- [x] T003 [US1] 在 `pages/traffic/index.html` 將 `week-nav` 容器移到 `hot-topics-list` 之上（FR-002）
+- [x] T004 [US1] 在 `pages/shared/app.js` `init()`：traffic 時先載入並快取 `/api/hot-topics`（一次），改為由 `loadWeek` 驅動深度分析；預設選最新一週（`allWeeks[0].week_id`）（FR-003）
+- [x] T005 [US1] 在 `pages/shared/app.js` `loadWeek(weekId)`：用 T002 `isoWeekId` 將快取 reports 的 `week_start_date` 換算後過濾出該週子集，呼叫 `renderHotTopics(subset)`，與新聞列表一起更新（FR-001）
+- [x] T006 [US1] 在 `pages/shared/app.js` `renderHotTopics()`：接受「某週 reports 子集」；該週無報告時顯示明確空狀態，且新聞列表既有空狀態沿用，跨區不一致不報錯（FR-005）
+- [x] T007 [US1] 在 `pages/shared/app.js`／`pages/traffic/index.html` 明確標示目前檢視的週（複用 `site-subtitle` 或 nav active 態）（FR-004）
+- [x] T008 [US1] 依 quickstart US1（步驟 1–4）人工驗證
 
 **Checkpoint**: US1 可獨立運作 — 累積閱讀問題已解決（MVP）
 
@@ -65,10 +65,10 @@ description: "Task list for 交通頁可讀性重設計"
 
 **Independent Test**: 任一深度分析 → 三軸分區清楚、關鍵指標凸顯、焦點事件與 `[n]` 引用可用（quickstart US2）
 
-- [ ] T009 [US2] 在 `pages/shared/app.js` 新增 `report_text` 解析器：將 `### 一/二/三` 三軸切為結構資料；遇非預期格式降級為純文字段落（FR-008 穩健降級、FR-014 純前端）
-- [ ] T010 [US2] 在 `pages/shared/app.js` 改寫 `renderHotTopics()` 卡片內文為結構分區：三軸分區、凸顯「交織度分布／代表個案」等關鍵指標，焦點事件連結與報告內 `[1][2]` 引用維持可用（FR-006/007/008）
-- [ ] T011 [P] [US2] 在 `pages/shared/shared.css` 新增深度分析卡片樣式（分區、指標徽章、視覺層次）
-- [ ] T012 [US2] 依 quickstart US2（步驟 5）人工驗證
+- [x] T009 [US2] 在 `pages/shared/app.js` 新增 `report_text` 解析器：將 `### 一/二/三` 三軸切為結構資料；遇非預期格式降級為純文字段落（FR-008 穩健降級、FR-014 純前端）
+- [x] T010 [US2] 在 `pages/shared/app.js` 改寫 `renderHotTopics()` 卡片內文為結構分區：三軸分區、凸顯「交織度分布／代表個案」等關鍵指標，焦點事件連結與報告內 `[1][2]` 引用維持可用（FR-006/007/008）
+- [x] T011 [P] [US2] 在 `pages/shared/shared.css` 新增深度分析卡片樣式（分區、指標徽章、視覺層次）
+- [x] T012 [US2] 依 quickstart US2（步驟 5）人工驗證
 
 **Checkpoint**: US1＋US2 各自可獨立運作；歷史報告自動套用新卡片版面（FR-016）
 
@@ -80,10 +80,10 @@ description: "Task list for 交通頁可讀性重設計"
 
 **Independent Test**: 新聞列表為一行一則（來源色標＋標題＋相對時間），點標題展開來源摘要／前往原文；搜尋與標記過時仍可用（quickstart US3）
 
-- [ ] T013 [US3] 在 `pages/shared/app.js` 為 traffic 新增密集列渲染（改寫 `articleCard` 的 traffic 分支或新增 `renderTrafficList`）：來源色標＋標題＋相對時間、時間序最新在上、來源 `summary` 收於展開；不依賴 importance/tags（FR-009/015）
-- [ ] T014 [P] [US3] 在 `pages/shared/shared.css` 新增密集列與展開樣式
-- [ ] T015 [US3] 在 `pages/shared/app.js` 確認密集列下關鍵字搜尋、標記過時（dismiss）仍可用（FR-010/SC-006）
-- [ ] T016 [US3] 依 quickstart US3（步驟 6–7）人工驗證
+- [x] T013 [US3] 在 `pages/shared/app.js` 為 traffic 新增密集列渲染（改寫 `articleCard` 的 traffic 分支或新增 `renderTrafficList`）：來源色標＋標題＋相對時間、時間序最新在上、來源 `summary` 收於展開；不依賴 importance/tags（FR-009/015）
+- [x] T014 [P] [US3] 在 `pages/shared/shared.css` 新增密集列與展開樣式
+- [x] T015 [US3] 在 `pages/shared/app.js` 確認密集列下關鍵字搜尋、標記過時（dismiss）仍可用（FR-010/SC-006）
+- [x] T016 [US3] 依 quickstart US3（步驟 6–7）人工驗證
 
 **Checkpoint**: US1–US3 各自可獨立運作
 
@@ -97,10 +97,10 @@ description: "Task list for 交通頁可讀性重設計"
 
 **Depends on**: US1（選週機制）、T002
 
-- [ ] T017 [US4] 在 `pages/shared/app.js` `renderHotTopics()` 為每張卡片加 `id="topic-<slug>"`，並實作 `slugify(topic_label)`（contract B / data-model）
-- [ ] T018 [US4] 在 `pages/shared/app.js` 為熱點卡片加分享動作：建構 `<origin+path>?week=<week_id>#topic-<slug>` → 交既有 LINE 分享端點（沿用 `C.shareToLine`；ffxiv 不顯示）（FR-011/013）
-- [ ] T019 [US4] 在 `pages/shared/app.js` `init()` 載入時解析 `?week=`（選週、複用 US1 機制）與 `#topic-`（捲動定位）；週/主題不存在則回退最新週且不報錯（FR-012、contract B）
-- [ ] T020 [US4] 依 quickstart US4（步驟 8–10，含失效連結回退）人工驗證
+- [x] T017 [US4] 在 `pages/shared/app.js` `renderHotTopics()` 為每張卡片加 `id="topic-<slug>"`，並實作 `slugify(topic_label)`（contract B / data-model）
+- [x] T018 [US4] 在 `pages/shared/app.js` 為熱點卡片加分享動作：建構 `<origin+path>?week=<week_id>#topic-<slug>` → 交既有 LINE 分享端點（沿用 `C.shareToLine`；ffxiv 不顯示）（FR-011/013）
+- [x] T019 [US4] 在 `pages/shared/app.js` `init()` 載入時解析 `?week=`（選週、複用 US1 機制）與 `#topic-`（捲動定位）；週/主題不存在則回退最新週且不報錯（FR-012、contract B）
+- [x] T020 [US4] 依 quickstart US4（步驟 8–10，含失效連結回退）人工驗證
 
 **Checkpoint**: 四個使用者故事皆可獨立運作
 
@@ -110,10 +110,10 @@ description: "Task list for 交通頁可讀性重設計"
 
 **Purpose**: 防回歸與收尾
 
-- [ ] T021 [P] 不回歸驗證：開 `/ffxiv/`，確認重要度徽章、tags、分享等行為與改版前一致（`pages/ffxiv/`，contract D）
-- [ ] T022 [P] 執行 `pytest` 確認 Python pipeline 測試不受本前端改動影響
-- [ ] T023 跨 US2/US3 視覺收尾：深色模式與窄螢幕（RWD）下的卡片與密集列（`pages/shared/shared.css`）
-- [ ] T024 完整跑一遍 `quickstart.md`，逐項對照 FR 與 SC
+- [x] T021 [P] 不回歸驗證：開 `/ffxiv/`，確認重要度徽章、tags、分享等行為與改版前一致（`pages/ffxiv/`，contract D）
+- [x] T022 [P] 執行 `pytest` 確認 Python pipeline 測試不受本前端改動影響
+- [x] T023 跨 US2/US3 視覺收尾：深色模式與窄螢幕（RWD）下的卡片與密集列（`pages/shared/shared.css`）
+- [x] T024 完整跑一遍 `quickstart.md`，逐項對照 FR 與 SC
 
 ---
 

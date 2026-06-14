@@ -370,6 +370,42 @@ def expire_buffer_articles() -> int:
         raise
 
 
+def get_recent_hot_topic_reports(max_age_weeks: int = 8, exclude_week: str | None = None) -> list:
+    """
+    Return hot_topic_reports from the last max_age_weeks weeks for the novelty gate
+    (feature 009). Excludes exclude_week (the current run's own week) so re-running
+    the same week stays idempotent. Selects only the fields needed for comparison.
+    Raises on read failure — caller decides fail-open behaviour.
+    """
+    from datetime import datetime, timezone, timedelta
+
+    client = _get_client()
+    cutoff = (datetime.now(timezone.utc) - timedelta(weeks=max_age_weeks)).date().isoformat()
+
+    try:
+        query = (
+            client.table("hot_topic_reports")
+            .select(
+                "week_start_date, topic_label, cumulative_score, distinct_days, "
+                "topic_token_signature, latest_source_date"
+            )
+            .gte("week_start_date", cutoff)
+            .order("week_start_date", desc=True)
+        )
+        if exclude_week:
+            query = query.neq("week_start_date", exclude_week)
+        resp = query.execute()
+        rows = resp.data or []
+        logger.info(
+            "get_recent_hot_topic_reports：取得 %d 筆（cutoff=%s, exclude=%s）",
+            len(rows), cutoff, exclude_week,
+        )
+        return rows
+    except Exception as e:
+        logger.error("get_recent_hot_topic_reports 失敗：%s", e)
+        raise
+
+
 def upsert_hot_topic_report(report: dict) -> None:
     """
     Upsert one row to hot_topic_reports using (week_start_date, topic_label) as conflict key.
@@ -386,6 +422,8 @@ def upsert_hot_topic_report(report: dict) -> None:
         "cumulative_score": float(report.get("cumulative_score", 0)),
         "distinct_sources": report.get("distinct_sources", 0),
         "distinct_days": report.get("distinct_days", 0),
+        "topic_token_signature": report.get("topic_token_signature", []),
+        "latest_source_date": report.get("latest_source_date"),
     }
 
     try:

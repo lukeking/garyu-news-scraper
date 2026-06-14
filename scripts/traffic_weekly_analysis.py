@@ -34,8 +34,14 @@ def _week_start_date() -> str:
 
 def main():
     from src.pipeline_config import load_pipeline_config
-    from src.storage import expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report
-    from src.analyzer import cluster_traffic_articles, score_topic_buckets, select_hot_topics, analyze_hot_topic
+    from src.storage import (
+        expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report,
+        get_recent_hot_topic_reports,
+    )
+    from src.analyzer import (
+        cluster_traffic_articles, score_topic_buckets, analyze_hot_topic,
+        select_hot_topics_with_novelty, topic_token_signature,
+    )
     from src.publisher import publish_hot_topic_reports
 
     logger.info("=== 週交通熱點分析開始 ===")
@@ -68,9 +74,15 @@ def main():
     for bid, score in sorted(bucket_scores.items(), key=lambda x: x[1], reverse=True):
         logger.info("  %s: score=%.3f (%d 篇)", bid, score, len(buckets[bid]))
 
-    # 6. Select hot topics
-    hot_topic_ids = select_hot_topics(bucket_scores, config)
-    logger.info("本週熱點 topic：%s", hot_topic_ids)
+    # 6. Select hot topics with novelty gate (gate-then-cap).
+    #    Fetch prior reports for comparison; fail-open (treat all as novel) on read error.
+    try:
+        prior_reports = get_recent_hot_topic_reports(max_age_weeks, exclude_week=week_start)
+    except Exception as e:
+        logger.warning("讀取 prior reports 失敗，novelty 退化為全部視為新：%s", e)
+        prior_reports = []
+    hot_topic_ids = select_hot_topics_with_novelty(buckets, bucket_scores, prior_reports, config)
+    logger.info("本週熱點 topic（通過 novelty gate）：%s", hot_topic_ids)
 
     if not hot_topic_ids:
         logger.info("無 bucket 達到 min_threshold，跳過本週熱點發布")
@@ -80,8 +92,11 @@ def main():
     published_reports = []
     for bid in hot_topic_ids:
         bucket_articles = buckets[bid]
-        # Use the major_category of the first article as topic label, or bucket_id as fallback
-        topic_label = bucket_articles[0].get("major_category", bid) if bucket_articles else bid
+        # Topic label = "<major_category> · <top representative term>" so distinct
+        # buckets within a category don't collide on the (week, topic_label) key.
+        major_category = bucket_articles[0].get("major_category", bid) if bucket_articles else bid
+        signature = topic_token_signature(bucket_articles)
+        topic_label = f"{major_category} · {signature[0]}" if signature else major_category
 
         logger.info("正在分析熱點：%s (%d 篇文章)", topic_label, len(bucket_articles))
         try:
@@ -94,7 +109,9 @@ def main():
             logger.warning("熱點 %s 分析結果為空，跳過", topic_label)
             continue
         distinct_sources = len({a.get("source", "") for a in bucket_articles})
-        distinct_days = len({(a.get("published") or "")[:10] for a in bucket_articles if a.get("published")})
+        day_set = {(a.get("published") or "")[:10] for a in bucket_articles if a.get("published")}
+        distinct_days = len(day_set)
+        latest_source_date = max(day_set) if day_set else None
 
         report = {
             "week_start_date": week_start,
@@ -105,6 +122,8 @@ def main():
             "cumulative_score": bucket_scores[bid],
             "distinct_sources": distinct_sources,
             "distinct_days": distinct_days,
+            "topic_token_signature": signature,
+            "latest_source_date": latest_source_date,
         }
 
         try:

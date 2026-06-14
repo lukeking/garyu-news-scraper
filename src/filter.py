@@ -350,6 +350,20 @@ def assign_category(title_tokens: frozenset, taxonomy: dict) -> str:
     return "uncategorised"
 
 
+def resolve_source_default(source: str, mapping: dict) -> str:
+    """
+    Fallback category for an article whose title matched no category.
+    The first mapping key found as a substring of `source` wins; otherwise
+    'uncategorised'. Lets low-frequency deep sources (e.g. 報導者/天下), whose
+    editorial titles carry no category token, aggregate into a policy bucket.
+    """
+    src = source or ""
+    for key, category in mapping.items():
+        if key and key in src:
+            return category
+    return "uncategorised"
+
+
 def compute_quality_score(article: dict, category_keywords: list, config: dict) -> float:
     """
     計算文章初始品質分數（0.0–1.0），不使用 AI。
