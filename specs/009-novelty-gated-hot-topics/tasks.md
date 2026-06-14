@@ -91,7 +91,7 @@ description: "Task list for 節奏觸發式深度分析 + 深度來源分類補�
 **Purpose**: 部署設定、回歸、驗收
 
 - [ ] T015 [P] 部署設定：把 `source_defaults`（報導者/天下/道安統計→道安政策、行人地獄→行人事故、區間測速→科技執法）加入 GitHub Variable `CATEGORIES_TRAFFIC_YML`；把 `novelty_growth_pct`/`similarity_threshold` 加入 `PIPELINE_CONFIG_YML`；於 Supabase SQL Editor 套用 `004_hot_topic_novelty.sql`
-- [ ] T016 跑全套 `pytest`（unit+integration）全綠；確認 `tests/unit/test_category_assign.py`、`tests/unit/test_topic_scoring.py` 無回歸（SC-005）
+- [x] T016 跑全套 `pytest`（unit+integration）全綠；確認 `tests/unit/test_category_assign.py`、`tests/unit/test_topic_scoring.py` 無回歸（SC-005）— 2026-06-14：66 passed, 4 skipped
 - [ ] T017 依 `quickstart.md` 逐項對照 SC-001~005 完成驗收
 
 ---
