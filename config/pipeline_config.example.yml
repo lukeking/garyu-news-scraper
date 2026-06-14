@@ -12,6 +12,10 @@ jaccard:
 topic_scoring:
   min_threshold: 1.5         # Cumulative score must meet/exceed this to qualify as hot topic
   max_hot_topics: 3          # Maximum hot-topic reports generated per weekly run
+  novelty_growth_pct: 0.5    # Novelty gate: re-report only if score ≥ last_reported × (1 + this)
+
+topic_identity:
+  similarity_threshold: 0.3  # Same-topic match: Jaccard of representative tokens ≥ this (within same category)
 
 buffer:
   max_age_weeks: 8           # Articles older than this are expired from the buffer

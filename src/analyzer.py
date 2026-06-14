@@ -964,3 +964,101 @@ def select_hot_topics(bucket_scores: dict, config: dict) -> list:
     ]
     qualified.sort(key=lambda x: x[1], reverse=True)
     return [bid for bid, _ in qualified[:max_hot_topics]]
+
+
+# ── Novelty gate (feature 009) ────────────────────────────────────────────────
+
+_TOPIC_LABEL_SEP = " · "
+
+
+def topic_token_signature(bucket_articles: list, top_k: int = 8) -> list:
+    """Representative tokens for a bucket: the most frequent normalise_title tokens
+    across its articles (up to top_k). Used for cross-week topic identity matching."""
+    from collections import Counter
+    from src.filter import normalise_title
+
+    counter: Counter = Counter()
+    for a in bucket_articles:
+        counter.update(normalise_title(a.get("title", "")))
+    return [tok for tok, _ in counter.most_common(top_k)]
+
+
+def _bucket_latest_date(bucket_articles: list) -> str:
+    """Latest published date (YYYY-MM-DD) among bucket articles; '' if none."""
+    dates = [_date_part(a.get("published", "")) for a in bucket_articles if a.get("published")]
+    return max(dates) if dates else ""
+
+
+def _topic_label_category(topic_label: str) -> str:
+    """Extract the major_category prefix from a topic_label ("<category> · <term>").
+    Pre-009 reports stored the bare category, so a label without the separator is
+    returned as-is."""
+    return topic_label.split(_TOPIC_LABEL_SEP, 1)[0] if _TOPIC_LABEL_SEP in topic_label else topic_label
+
+
+def _match_prior_basis(major_category: str, signature: list, prior_reports: list,
+                       similarity_threshold: float) -> dict | None:
+    """Most recent prior report of the same major_category whose
+    topic_token_signature has Jaccard ≥ threshold with `signature`.
+    prior_reports are assumed ordered week_start_date DESC. Returns basis or None."""
+    from src.filter import compute_jaccard
+
+    sig_set = frozenset(signature)
+    for r in prior_reports:
+        if _topic_label_category(r.get("topic_label", "")) != major_category:
+            continue
+        prior_sig = frozenset(r.get("topic_token_signature") or [])
+        if compute_jaccard(sig_set, prior_sig) >= similarity_threshold:
+            return r
+    return None
+
+
+def passes_novelty(bucket_score: float, bucket_latest_date: str,
+                   prior_basis: dict | None, config: dict) -> bool:
+    """No prior basis → novel (first-time, FR-003). Otherwise require BOTH:
+       (a) bucket_score ≥ prior.cumulative_score × (1 + novelty_growth_pct), and
+       (b) bucket_latest_date strictly later than prior.latest_source_date
+           (a new publication day since the last report)."""
+    if prior_basis is None:
+        return True
+    p = float(config.get("topic_scoring", {}).get("novelty_growth_pct", 0.5))
+    last_score = float(prior_basis.get("cumulative_score") or 0)
+    if bucket_score < last_score * (1 + p):
+        return False
+    last_date = prior_basis.get("latest_source_date") or ""
+    return bool(bucket_latest_date) and bucket_latest_date > last_date
+
+
+def select_hot_topics_with_novelty(buckets: dict, bucket_scores: dict,
+                                   prior_reports: list, config: dict) -> list:
+    """Gate-then-cap (feature 009): gate every bucket scoring ≥ min_threshold through
+    the novelty check (matched against same-category prior reports by signature
+    similarity), then take the top max_hot_topics survivors by score.
+    Returns bucket_ids. prior_reports=[] → behaves like first-time (all novel)."""
+    topic_cfg = config.get("topic_scoring", {})
+    min_threshold = float(topic_cfg.get("min_threshold", 1.5))
+    max_hot_topics = int(topic_cfg.get("max_hot_topics", 3))
+    sim_threshold = float(config.get("topic_identity", {}).get("similarity_threshold", 0.3))
+
+    survivors: list = []
+    for bid, score in bucket_scores.items():
+        if score < min_threshold:
+            continue
+        articles = buckets.get(bid, [])
+        major_category = articles[0].get("major_category", bid) if articles else bid
+        signature = topic_token_signature(articles)
+        latest_date = _bucket_latest_date(articles)
+        prior = _match_prior_basis(major_category, signature, prior_reports, sim_threshold)
+        is_novel = passes_novelty(score, latest_date, prior, config)
+        logger.info(
+            "  novelty[%s] cat=%s score=%.3f prior=%s newer_than=%s → %s",
+            bid, major_category, score,
+            "yes" if prior else "none",
+            (prior.get("latest_source_date") if prior else "-"),
+            "PASS" if is_novel else "suppress",
+        )
+        if is_novel:
+            survivors.append((bid, score))
+
+    survivors.sort(key=lambda x: x[1], reverse=True)
+    return [bid for bid, _ in survivors[:max_hot_topics]]

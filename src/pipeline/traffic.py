@@ -26,8 +26,8 @@ class TrafficCategory:
         return collect_sources(load_sources())
 
     def filter(self, raw: list) -> list:
-        from src.filter import freshness_filter, filter_and_deduplicate, normalise_title, assign_category, compute_quality_score, compute_jaccard
-        from src.pipeline_config import load_pipeline_config, load_category_taxonomy
+        from src.filter import freshness_filter, filter_and_deduplicate, normalise_title, assign_category, resolve_source_default, compute_quality_score, compute_jaccard
+        from src.pipeline_config import load_pipeline_config, load_category_taxonomy, load_source_default_categories
         from src.storage import get_existing_title_fingerprints, is_configured
 
         existing_fps: set = set()
@@ -44,6 +44,7 @@ class TrafficCategory:
         try:
             config = load_pipeline_config()
             taxonomy = load_category_taxonomy()
+            source_defaults = load_source_default_categories()
         except Exception as e:
             logger.warning("[%s] 分類設定載入失敗，略過分類步驟：%s", self.name, e)
             return candidates[:self.max_articles]
@@ -77,6 +78,8 @@ class TrafficCategory:
             tokens = normalise_title(article.get("title") or "")
             article["token_set"] = tokens
             cat = assign_category(tokens, taxonomy)
+            if cat == "uncategorised" and source_defaults:
+                cat = resolve_source_default(article.get("source", ""), source_defaults)
             article["major_category"] = cat
             article["initial_quality_score"] = compute_quality_score(
                 article, taxonomy.get(cat, []), config
