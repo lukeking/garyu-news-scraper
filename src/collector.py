@@ -112,6 +112,14 @@ def _is_recent(entry) -> bool:
     return False
 
 
+def _clean_summary(raw: str) -> str:
+    """RSS summaries (notably Google News) wrap text in <a> tags and use entities
+    like &nbsp;. Strip tags and decode entities before truncating, so the stored
+    summary is plain text and a 500-char cut can't leave a half-open tag behind."""
+    text = BeautifulSoup(raw or "", "html.parser").get_text(" ")
+    return re.sub(r"\s+", " ", text).strip()[:500]
+
+
 def _entry_to_dict(entry, source_name: str, content_type: str = "traffic") -> dict:
     pub = ""
     if entry.get("published_parsed"):
@@ -122,7 +130,7 @@ def _entry_to_dict(entry, source_name: str, content_type: str = "traffic") -> di
     return {
         "title": entry.get("title", "").strip(),
         "link": entry.get("link", "").strip(),
-        "summary": entry.get("summary", "").strip()[:500],
+        "summary": _clean_summary(entry.get("summary", "")),
         "source": source_name,
         "published": pub,
         "content_type": content_type,
