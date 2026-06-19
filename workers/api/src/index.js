@@ -40,6 +40,7 @@ function normalizeRow(row) {
     published: row.published || "",
     created_at: row.created_at || "",
     content_type: row.content_type || "traffic",
+    major_category: row.major_category || "uncategorised",
     analysis: {
       importance: analysis.importance || "中",
       importance_reason: analysis.importance_reason || "",
@@ -162,7 +163,7 @@ async function handleWeekDetail(env, weekId, url) {
   const params = new URLSearchParams();
   params.set(
     "select",
-    "week_id,title,link,source,published,summary,analysis,content_type,created_at",
+    "week_id,title,link,source,published,summary,analysis,content_type,created_at,major_category",
   );
   params.set("week_id", `eq.${weekId}`);
   params.set("order", "created_at.asc");
