@@ -19,6 +19,9 @@ topic_identity:
 
 buffer:
   max_age_weeks: 8           # Articles older than this are expired from the buffer
+  max_daily_articles: 100    # Safety ceiling on articles buffered per daily run (dedup runs first).
+                             # Generative cost is bounded at the weekly stage (min_threshold + max_hot_topics
+                             # + novelty gate), so this only guards against a feed-flood anomaly.
 
 embed_dedup:
   threshold: 0.88            # Cosine similarity ≥ this → same event (Gemini Embedding 2, 768d)
