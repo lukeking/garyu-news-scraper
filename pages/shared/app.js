@@ -399,15 +399,60 @@ function toggleRow(btn) {
   if (detail) detail.hidden = !detail.hidden;
 }
 
+function catLabel(cat) {
+  return (!cat || cat === 'uncategorised') ? '未分類' : cat;
+}
+
+// 依 major_category 分組（filter.py 已指派，零 AI）：較大的類別在前，未分類永遠墊底；
+// 預設展開前三組，其餘收合，讓變大的緩衝池一眼可掃。
+function trafficGroups(articles) {
+  const ts = a => { const d = new Date(a.published || a.created_at || 0); return isNaN(d) ? 0 : d.getTime(); };
+  const groups = new Map();
+  for (const a of articles) {
+    const cat = a.major_category || 'uncategorised';
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat).push(a);
+  }
+  const ordered = [...groups.entries()].sort((x, y) => {
+    const xu = x[0] === 'uncategorised', yu = y[0] === 'uncategorised';
+    if (xu !== yu) return xu ? 1 : -1;          // 未分類永遠最後
+    return y[1].length - x[1].length;           // 其餘依數量降冪
+  });
+  return ordered.map(([cat, items], gi) => {
+    items.sort((a, b) => ts(b) - ts(a));        // 組內時間序，最新在上
+    const open = gi < 3;
+    const rows = items.map((a, i) => trafficRow(a, i + 1)).join('');
+    return `
+<section class="tr-group${open ? '' : ' collapsed'}">
+  <button class="tr-group-head" onclick="toggleGroup(this)" aria-expanded="${open}">
+    <span class="tr-group-caret">${open ? '▼' : '▶'}</span>
+    <span class="tr-group-name">${esc(catLabel(cat))}</span>
+    <span class="tr-group-count">${items.length}</span>
+  </button>
+  <div class="tr-group-body"${open ? '' : ' hidden'}>${rows}</div>
+</section>`;
+  }).join('');
+}
+
+function toggleGroup(btn) {
+  const sec = btn.closest('.tr-group');
+  const body = sec?.querySelector('.tr-group-body');
+  if (!body) return;
+  const willOpen = body.hidden;
+  body.hidden = !willOpen;
+  sec.classList.toggle('collapsed', !willOpen);
+  btn.setAttribute('aria-expanded', String(willOpen));
+  const caret = btn.querySelector('.tr-group-caret');
+  if (caret) caret.textContent = willOpen ? '▼' : '▶';
+}
+
 function renderCards(articles) {
   if (!articles.length) {
     $('article-list').innerHTML = `<div class="empty">${C.emptyHtml}</div>`;
     return;
   }
   if (C.contentType === 'traffic') {
-    const ts = a => { const d = new Date(a.published || a.created_at || 0); return isNaN(d) ? 0 : d.getTime(); };
-    const sorted = [...articles].sort((a, b) => ts(b) - ts(a));   // 時間序，最新在上
-    $('article-list').innerHTML = sorted.map((a, i) => trafficRow(a, i + 1)).join('');
+    $('article-list').innerHTML = trafficGroups(articles);
   } else {
     $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
   }
