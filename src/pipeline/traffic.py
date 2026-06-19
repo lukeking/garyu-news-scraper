@@ -10,7 +10,7 @@ _TW_TZ = timezone(timedelta(hours=8))
 class TrafficCategory:
     name = "traffic"
     content_type = "traffic"
-    max_articles = 20
+    max_articles = 20  # degraded fallback only (config-load failure); buffer cap is buffer.max_daily_articles
     output_dir = "pages/traffic"
     site_url = (os.environ.get("TRAFFIC_SITE_URL") or
                 os.environ.get("SITE_URL") or
@@ -122,7 +122,11 @@ class TrafficCategory:
                 logger.warning("[%s] 嵌入去重複失敗，略過：%s", self.name, e)
 
         deduped.sort(key=lambda a: float(a.get("initial_quality_score") or 0), reverse=True)
-        return deduped[:self.max_articles]
+        # Buffer cap is a feed-flood safety ceiling, not a cost control: generative
+        # spend is bounded at the weekly stage (min_threshold + max_hot_topics + novelty
+        # gate), so low-frequency deep sources are no longer starved by a tight daily cap.
+        max_daily = config.get("buffer", {}).get("max_daily_articles", 100)
+        return deduped[:max_daily]
 
     def analyze(self, articles: list) -> list:
         # Traffic analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py)
