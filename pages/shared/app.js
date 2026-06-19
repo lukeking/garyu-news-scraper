@@ -22,6 +22,14 @@ function esc(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// Strip HTML tags and decode entities from RSS summaries (Google News wraps text
+// in <a> and uses &nbsp;). DOMParser yields an inert document — no script execution
+// or resource loading — and tolerates truncated/half-open tags.
+function stripHtml(s) {
+  const doc = new DOMParser().parseFromString(String(s == null ? '' : s), 'text/html');
+  return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
 // ── Theme ─────────────────────────────────────────────────────
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -368,7 +376,7 @@ function renderStats(articles) {
 function trafficRow(a, idx) {
   const src = a.source || '';
   const when = a.published || a.created_at || '';
-  const summary = String((a.analysis && a.analysis.summary) || '').replace(/<[^>]*>/g, '').trim();
+  const summary = stripHtml((a.analysis && a.analysis.summary) || '');
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
   return `
 <div class="card traffic-row" data-url="${a.link}">
