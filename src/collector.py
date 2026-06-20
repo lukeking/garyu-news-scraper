@@ -120,6 +120,34 @@ def _clean_summary(raw: str) -> str:
     return re.sub(r"\s+", " ", text).strip()[:500]
 
 
+def _extract_image(entry) -> str:
+    """Best-effort image URL from a feedparser entry. Checks Media RSS fields and
+    enclosures first, then falls back to the first <img> in the summary/content HTML.
+    Returns "" when the feed carries no image (e.g. Google News)."""
+    for key in ("media_thumbnail", "media_content"):
+        for m in entry.get(key, []) or []:
+            url = (m.get("url") or "").strip()
+            if url.startswith("http"):
+                return url
+    for enc in entry.get("enclosures", []) or []:
+        if str(enc.get("type", "")).startswith("image"):
+            url = (enc.get("href") or enc.get("url") or "").strip()
+            if url.startswith("http"):
+                return url
+    html = entry.get("summary", "") or ""
+    if not html:
+        try:
+            html = (entry.get("content") or [{}])[0].get("value", "")
+        except (IndexError, AttributeError):
+            html = ""
+    if html:
+        img = BeautifulSoup(html, "html.parser").find("img")
+        src = (img.get("src", "").strip() if img else "")
+        if src.startswith("http"):
+            return src
+    return ""
+
+
 def _entry_to_dict(entry, source_name: str, content_type: str = "traffic") -> dict:
     pub = ""
     if entry.get("published_parsed"):
@@ -134,6 +162,7 @@ def _entry_to_dict(entry, source_name: str, content_type: str = "traffic") -> di
         "source": source_name,
         "published": pub,
         "content_type": content_type,
+        "image": _extract_image(entry),
     }
 
 

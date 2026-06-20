@@ -144,6 +144,7 @@ def upsert_articles(articles: list, week_id: str) -> int:
             "analysis": analysis,
             "content_fingerprint": _title_fingerprint(a.get("title", "")),
             "content_type": a.get("content_type", "traffic"),
+            "image_url": a.get("image") or None,
         })
 
     try:
@@ -297,6 +298,7 @@ def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) 
             "buffer_expires_at": expires_at.isoformat(),
             "hot_topic_analyzed": False,
             "embedding": a.get("embedding"),
+            "image_url": a.get("image") or None,
         })
 
     try:
