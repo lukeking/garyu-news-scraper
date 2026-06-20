@@ -8,6 +8,20 @@ const IMPORTANCE_ORDER = { "高": 0, "中": 1, "低": 2 };
 const IMPORTANCE_VALUES = new Set(["高", "中", "低"]);
 const CONTENT_TYPE_VALUES = new Set(["traffic", "ffxiv"]);
 const MAX_LIMIT = 100;
+const FEED_ITEM_LIMIT = 60;
+
+const FEED_META = {
+  traffic: {
+    title: "台灣機車交通週報",
+    description: "每週自動彙整台灣機車交通相關新聞，含 AI 摘要與深度分析",
+    siteUrl: "https://garyu-traffic-news.pages.dev",
+  },
+  ffxiv: {
+    title: "最終幻想XIV 週報",
+    description: "每週自動彙整 FFXIV 遊戲相關資訊，含 AI 摘要與重點分析",
+    siteUrl: "https://garyu-ffxiv-news.pages.dev",
+  },
+};
 
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -216,6 +230,90 @@ async function handleWeekDetail(env, weekId, url) {
   });
 }
 
+function xmlEscape(text) {
+  return String(text || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function rssDate(value) {
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? new Date(ms).toUTCString() : "";
+}
+
+function feedItem(row) {
+  const analysis = row.analysis || {};
+  const summary = analysis.summary || row.summary || "";
+  const analysisText = analysis.analysis || "";
+  const description = [summary, analysisText].filter(Boolean).join("\n\n");
+  const importance = analysis.importance;
+  const title = importance ? `[${importance}重要] ${row.title || ""}` : row.title || "";
+  const link = xmlEscape(row.link || "");
+  const pubDate = rssDate(row.published || row.created_at);
+  const categories = (Array.isArray(analysis.tags) ? analysis.tags : [])
+    .map((t) => `    <category>${xmlEscape(t)}</category>`)
+    .join("\n");
+  const image = (row.image_url || "").trim();
+  const media = image
+    ? `    <media:content url="${xmlEscape(image)}" medium="image"/>\n` +
+      `    <media:thumbnail url="${xmlEscape(image)}"/>\n`
+    : "";
+
+  return (
+    `  <item>\n` +
+    `    <title>${xmlEscape(title)}</title>\n` +
+    `    <link>${link}</link>\n` +
+    `    <description><![CDATA[${description}]]></description>\n` +
+    (pubDate ? `    <pubDate>${pubDate}</pubDate>\n` : "") +
+    `    <guid isPermaLink="true">${link}</guid>\n` +
+    media +
+    (categories ? `${categories}\n` : "") +
+    `  </item>`
+  );
+}
+
+async function handleFeed(env, url) {
+  const requested = url.searchParams.get("content_type");
+  const contentType = CONTENT_TYPE_VALUES.has(requested) ? requested : "traffic";
+  const meta = FEED_META[contentType];
+
+  const params = new URLSearchParams();
+  params.set(
+    "select",
+    "week_id,title,link,source,published,summary,analysis,content_type,created_at,image_url",
+  );
+  params.set("content_type", `eq.${contentType}`);
+  params.set("order", "created_at.desc");
+  params.set("limit", String(FEED_ITEM_LIMIT));
+  const rows = await supabaseGet(env, "articles", params);
+
+  const selfUrl = `${url.origin}/api/feed.xml?content_type=${contentType}`;
+  const items = rows.map(feedItem).join("\n");
+  const feed =
+    `<?xml version="1.0" encoding="UTF-8"?>\n` +
+    `<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">\n` +
+    `<channel>\n` +
+    `  <title>${xmlEscape(meta.title)}</title>\n` +
+    `  <link>${meta.siteUrl}</link>\n` +
+    `  <description>${xmlEscape(meta.description)}</description>\n` +
+    `  <language>zh-tw</language>\n` +
+    `  <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n` +
+    `  <atom:link href="${xmlEscape(selfUrl)}" rel="self" type="application/rss+xml"/>\n` +
+    `${items}\n` +
+    `</channel>\n` +
+    `</rss>`;
+
+  return new Response(feed, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/rss+xml; charset=utf-8",
+      ...CORS_HEADERS,
+    },
+  });
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
@@ -242,6 +340,9 @@ export default {
       }
       if (url.pathname === "/api/hot-topics") {
         return await handleHotTopics(env, url);
+      }
+      if (url.pathname === "/api/feed.xml") {
+        return await handleFeed(env, url);
       }
       if (parts.length === 4 && parts[1] === "api" && parts[2] === "weeks") {
         const weekId = decodeURIComponent(parts[3]);
