@@ -100,13 +100,16 @@ def load_ffxiv_sources() -> list:
 
 # ── 共用工具 ──────────────────────────────────────────────────
 
-def _is_recent(entry) -> bool:
+def _is_recent(entry, days_back: int | None = None) -> bool:
+    cutoff = CUTOFF if days_back is None else (
+        datetime.now(timezone.utc) - timedelta(days=days_back)
+    )
     for attr in ("published_parsed", "updated_parsed"):
         t = getattr(entry, attr, None)
         if t:
             try:
                 dt = datetime(*t[:6], tzinfo=timezone.utc)
-                return dt >= CUTOFF
+                return dt >= cutoff
             except Exception:
                 pass
     return False
@@ -231,8 +234,9 @@ def _fetch_rss(source: dict) -> list:
     try:
         raw = _fetch_rss_bytes(url)
         feed = feedparser.parse(raw)
+        lookback_days = source.get("lookback_days")
         for entry in feed.entries:
-            if content_type == "traffic" and not _is_recent(entry):
+            if content_type == "traffic" and not _is_recent(entry, lookback_days):
                 continue
             title = entry.get("title", "")
             summary = entry.get("summary", "")

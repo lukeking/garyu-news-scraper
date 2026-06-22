@@ -16,11 +16,21 @@ sources:
   # ── type: rss ──────────────────────────────────────────────
   # 必要欄位：name, type, url
   # 選用欄位：enabled（預設 true）
+  #          lookback_days（預設 7）— 放寬該來源的新鮮度視窗。
+  #          低頻政策來源（道安、基本法…）月發數則，7 天視窗幾乎抓不到；
+  #          設 30 可納入近一個月的政策報導，讓 道安政策 bucket 累積足量。
 
   - name: Google News 機車交通
     type: rss
     enabled: true
     url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E4%BA%A4%E9%80%9A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  # 低頻政策來源範例：用 lookback_days 放寬視窗
+  - name: Google News 道安會報
+    type: rss
+    enabled: true
+    lookback_days: 30
+    url: "https://news.google.com/rss/search?q=%E9%81%93%E5%AE%89%E6%9C%83%E5%A0%B1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
   - name: Google News 機車事故
     type: rss
