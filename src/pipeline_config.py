@@ -27,6 +27,7 @@ _DEFAULTS = {
         "min_threshold": 1.5,
         "max_hot_topics": 3,
         "novelty_growth_pct": 0.5,
+        "category_min_threshold": {},
     },
     "topic_identity": {
         "similarity_threshold": 0.3,
@@ -99,6 +100,12 @@ def _validate_pipeline_config(config: dict, path: str) -> None:
         raise RuntimeError(
             f"[pipeline_config] topic_scoring.novelty_growth_pct 必須 ≥ 0，目前為 {npct}（路徑：{path}）"
         )
+    for cat, val in (config.get("topic_scoring", {}).get("category_min_threshold") or {}).items():
+        if not isinstance(val, (int, float)) or val < 0:
+            raise RuntimeError(
+                f"[pipeline_config] topic_scoring.category_min_threshold['{cat}'] 必須為 ≥ 0 的數值，"
+                f"目前為 {val!r}（路徑：{path}）"
+            )
     sim = config.get("topic_identity", {}).get("similarity_threshold", 0)
     if not (0.0 <= sim <= 1.0):
         raise RuntimeError(

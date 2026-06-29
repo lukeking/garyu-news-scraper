@@ -121,3 +121,41 @@ def test_all_first_time_pass_capped_at_max():
         result = select_hot_topics_with_novelty(buckets, scores, [], _CONFIG)
     assert len(result) == 3      # capped at max_hot_topics
     assert result[0] == "b4"     # highest score first
+
+
+# ── per-category min_threshold override ───────────────────────────────────────
+
+_CONFIG_CAT_OVERRIDE = {
+    "topic_scoring": {
+        "min_threshold": 1.5, "max_hot_topics": 3, "novelty_growth_pct": 0.5,
+        "category_min_threshold": {"道安政策": 1.0},
+    },
+    "topic_identity": {"similarity_threshold": 0.3},
+}
+
+
+def test_category_override_admits_sub_global_bucket():
+    """A 道安政策 bucket at 1.4 (< global 1.5) passes via its 1.0 override; first-time → novel."""
+    buckets = {"b0": [_art("道安政策", "2026-06-10")]}
+    scores = {"b0": 1.4}
+    with patch("src.filter.normalise_title", side_effect=lambda t: frozenset([t.split("-")[0]])):
+        result = select_hot_topics_with_novelty(buckets, scores, [], _CONFIG_CAT_OVERRIDE)
+    assert result == ["b0"]
+
+
+def test_non_overridden_category_still_uses_global_threshold():
+    """A non-overridden category at 1.4 stays blocked by the global 1.5 threshold."""
+    buckets = {"b0": [_art("機車事故", "2026-06-10")]}
+    scores = {"b0": 1.4}
+    with patch("src.filter.normalise_title", side_effect=lambda t: frozenset([t.split("-")[0]])):
+        result = select_hot_topics_with_novelty(buckets, scores, [], _CONFIG_CAT_OVERRIDE)
+    assert result == []
+
+
+def test_no_override_map_behaves_as_global():
+    """Without category_min_threshold, the 1.4 道安政策 bucket is blocked by global 1.5."""
+    buckets = {"b0": [_art("道安政策", "2026-06-10")]}
+    scores = {"b0": 1.4}
+    with patch("src.filter.normalise_title", side_effect=lambda t: frozenset([t.split("-")[0]])):
+        result = select_hot_topics_with_novelty(buckets, scores, [], _CONFIG)
+    assert result == []

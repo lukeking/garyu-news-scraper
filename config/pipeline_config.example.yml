@@ -13,6 +13,10 @@ topic_scoring:
   min_threshold: 1.5         # Cumulative score must meet/exceed this to qualify as hot topic
   max_hot_topics: 3          # Maximum hot-topic reports generated per weekly run
   novelty_growth_pct: 0.5    # Novelty gate: re-report only if score ≥ last_reported × (1 + this)
+  category_min_threshold:    # Per-category override of min_threshold (falls back to min_threshold).
+                             # Lets low-cadence categories surface despite small buckets; novelty
+                             # gate and max_hot_topics still apply on top.
+    道安政策: 1.0            # Policy news is sparse & topically diverse; best bucket ~1.4 < 1.5
 
 topic_identity:
   similarity_threshold: 0.3  # Same-topic match: Jaccard of representative tokens ≥ this (within same category)
