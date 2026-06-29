@@ -1036,23 +1036,28 @@ def select_hot_topics_with_novelty(buckets: dict, bucket_scores: dict,
     similarity), then take the top max_hot_topics survivors by score.
     Returns bucket_ids. prior_reports=[] → behaves like first-time (all novel)."""
     topic_cfg = config.get("topic_scoring", {})
-    min_threshold = float(topic_cfg.get("min_threshold", 1.5))
+    default_min = float(topic_cfg.get("min_threshold", 1.5))
+    category_min = topic_cfg.get("category_min_threshold") or {}
     max_hot_topics = int(topic_cfg.get("max_hot_topics", 3))
     sim_threshold = float(config.get("topic_identity", {}).get("similarity_threshold", 0.3))
 
     survivors: list = []
     for bid, score in bucket_scores.items():
-        if score < min_threshold:
-            continue
         articles = buckets.get(bid, [])
         major_category = articles[0].get("major_category", bid) if articles else bid
+        # Low-cadence categories (e.g. 道安政策) can carry a lower per-category
+        # threshold so their small buckets aren't blocked by the global bar tuned
+        # for high-volume categories; falls back to the global min_threshold.
+        threshold = float(category_min.get(major_category, default_min))
+        if score < threshold:
+            continue
         signature = topic_token_signature(articles)
         latest_date = _bucket_latest_date(articles)
         prior = _match_prior_basis(major_category, signature, prior_reports, sim_threshold)
         is_novel = passes_novelty(score, latest_date, prior, config)
         logger.info(
-            "  novelty[%s] cat=%s score=%.3f prior=%s newer_than=%s → %s",
-            bid, major_category, score,
+            "  novelty[%s] cat=%s score=%.3f thr=%.2f prior=%s newer_than=%s → %s",
+            bid, major_category, score, threshold,
             "yes" if prior else "none",
             (prior.get("latest_source_date") if prior else "-"),
             "PASS" if is_novel else "suppress",
