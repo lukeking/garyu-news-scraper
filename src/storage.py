@@ -259,10 +259,10 @@ def is_configured() -> bool:
 
 def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) -> int:
     """
-    Upsert traffic articles into the buffer (articles table with content_type='traffic').
+    Insert traffic articles into the buffer (articles table with content_type='traffic').
     Sets major_category, initial_quality_score, buffered_at, buffer_expires_at,
-    hot_topic_analyzed=FALSE. Uses link as the conflict key.
-    Returns count of rows written.
+    hot_topic_analyzed=FALSE. Link is the conflict key; rows whose link already
+    exists are skipped, never overwritten. Returns count of newly inserted rows.
     """
     from datetime import datetime, timezone, timedelta
 
@@ -290,7 +290,10 @@ def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) 
             "published": a.get("published") or None,
             "summary": a.get("summary", ""),
             "analysis": {},
-            "content_fingerprint": content_fingerprint_for_article(a),
+            # Title-only fingerprint — must match what freshness_filter compares
+            # (filter.title_fingerprint); the composite title|source|published
+            # variant made cross-week dedup a silent no-op for traffic.
+            "content_fingerprint": _title_fingerprint(a.get("title", "")),
             "content_type": "traffic",
             "major_category": a.get("major_category"),
             "initial_quality_score": a.get("initial_quality_score"),
@@ -302,13 +305,16 @@ def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) 
         })
 
     try:
+        # ignore_duplicates: a re-fetched link must not overwrite the existing
+        # row — the plain upsert was resetting hot_topic_analyzed to False,
+        # re-weeking the row and extending its expiry on every re-collection.
         resp = (
             client.table("articles")
-            .upsert(rows, on_conflict="link")
+            .upsert(rows, on_conflict="link", ignore_duplicates=True)
             .execute()
         )
         count = len(resp.data) if resp.data else 0
-        logger.info("✓ traffic buffer upsert 完成：%d 筆（week_id=%s）", count, week_id)
+        logger.info("✓ traffic buffer upsert 完成：%d 筆新增（week_id=%s）", count, week_id)
         return count
     except Exception as e:
         logger.error("✗ traffic buffer upsert 失敗：%s", e)

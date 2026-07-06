@@ -563,6 +563,16 @@ def collect_sources(sources: list) -> list:
             logger.warning("未知的 type: %s（來源：%s），跳過", stype, source.get("name"))
             continue
         articles = fetcher(source)
+        # Stamp per-source config onto articles so downstream filters can honor
+        # them: relevance_exempt bypasses the MUST_INCLUDE keyword gate, and
+        # lookback_days tells the stale gate this source is already
+        # freshness-gated at collection (_is_recent).
+        if source.get("relevance_exempt"):
+            for a in articles:
+                a["relevance_exempt"] = True
+        if source.get("lookback_days"):
+            for a in articles:
+                a["lookback_days"] = source["lookback_days"]
         all_articles.extend(articles)
         time.sleep(1)
     logger.info("收集完成，共 %d 筆（去重前）", len(all_articles))

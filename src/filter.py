@@ -111,9 +111,11 @@ def _is_stale_article(article: dict) -> bool:
     if year and year < current_year - 1:
         return True
 
-    # 信號 2：published 欄位解析後超過 14 天
+    # 信號 2：published 欄位解析後超過 14 天。
+    # 帶 lookback_days 的來源已在收集端以自身視窗做過新鮮度閘（_is_recent），
+    # 14 天啟發式不適用，否則會抵銷 per-source lookback（15–30 天文章收了又丟）。
     published = article.get("published", "")
-    if published:
+    if published and not article.get("lookback_days"):
         try:
             pub_dt = _parse_published(published)
             cutoff = datetime.now(pub_dt.tzinfo) - timedelta(days=14)
@@ -227,10 +229,11 @@ def filter_and_deduplicate(articles: list, throttle: bool = True) -> list:
             stale_count += 1
             logger.debug("舊聞跳過：%s", article.get("title", "")[:40])
             continue
-        # FFXIV 來源已由來源設定過濾，跳過機車關鍵字檢查
+        # FFXIV 來源已由來源設定過濾，跳過機車關鍵字檢查；
+        # relevance_exempt 來源（政策/深度來源，來源本身即主題篩選）亦豁免
         is_ffxiv = article.get("content_type") == "ffxiv"
         is_youtube = article.get("source_type") == "youtube"
-        relevant = is_ffxiv or _is_relevant(article)
+        relevant = is_ffxiv or article.get("relevance_exempt") or _is_relevant(article)
         if not relevant:
             if is_youtube:
                 logger.debug("[youtube] 關鍵字篩選已過濾：%s", article.get("title", "")[:60])
