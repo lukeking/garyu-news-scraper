@@ -260,3 +260,4 @@ config/pipeline_config.yml
 config/jieba_userdict.txt
 
 STATE.md
+ds-bundle/

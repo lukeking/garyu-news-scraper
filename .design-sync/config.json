@@ -1,0 +1,7 @@
+{
+  "projectId": "4ff6ac19-4371-4f01-b39f-822c5e8e1b1c",
+  "projectName": "Garyu-Traffic-News",
+  "shape": "style-foundation (off-script)",
+  "notes": "pages/ is a vanilla static site — no component bundle. Hand-authored layout: tokens extracted from pages/traffic/index.html inline <style>, _ds_bundle.css = pages/shared/shared.css verbatim + .stat-all block, previews reuse production markup from pages/shared/app.js render functions.",
+  "readmeHeader": ".design-sync/conventions.md"
+}
