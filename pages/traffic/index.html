@@ -35,9 +35,11 @@
     --link-color-visited: #9AB8C4;
     --shadow: 0 2px 8px rgba(0,0,0,0.3);
   }
-  .stat-all { background: #F0F4FF; border-color: #2980B930; }
+  .stat-all {
+    background: color-mix(in srgb, var(--accent2) 10%, var(--card-bg));
+    border-color: color-mix(in srgb, var(--accent2) 25%, transparent);
+  }
   .stat-all .num { color: var(--accent2); }
-  [data-theme="dark"] .stat-all { background: #1f2d44; }
 </style>
 <link rel="stylesheet" href="shared.css">
 </head>

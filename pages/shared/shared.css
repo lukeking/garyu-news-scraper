@@ -1,5 +1,10 @@
 body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', Arial, sans-serif; }
 
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent2);
+  outline-offset: 2px;
+}
+
 /* ── Header ── */
 .site-header {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
@@ -11,7 +16,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 .header-actions { display: flex; gap: 8px; align-items: center; }
 .rss-link { color: #fff; font-size: 12px; opacity: 0.8; text-decoration: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
 .rss-link:hover { opacity: 1; }
-#theme-toggle { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
+#theme-toggle { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
 #theme-toggle:hover { border-color: rgba(255,255,255,0.8); }
 
 /* ── Layout ── */
@@ -73,9 +78,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 .card {
   background: var(--card-bg); border-radius: var(--radius); margin-bottom: 20px;
   box-shadow: var(--shadow); border: 1.5px solid transparent; overflow: hidden;
-  transition: transform .15s;
+  transition: box-shadow .15s, border-color .15s;
 }
-.card:hover { transform: translateY(-2px); }
+.card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.10); }
 .card-高 { border-color: var(--high); background: var(--high-bg); border-left: 4px solid var(--high); }
 .card-中 { border-color: var(--mid);  background: var(--mid-bg);  border-left: 4px solid var(--mid); }
 .card-低 { border-color: var(--low);  background: var(--low-bg);  border-left: 4px solid var(--low); }
@@ -95,7 +100,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 .source-badge {
   display: inline-block; padding: 2px 8px; border-radius: 4px;
   font-size: 11px; font-weight: 600; color: #fff;
+  border: 1.5px solid rgba(255,255,255,.55);
 }
+[data-theme="dark"] .source-badge { border-color: rgba(0,0,0,.25); }
 .pub-date { color: var(--text-muted); font-size: 12px; }
 .lang-badge {
   font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
@@ -103,7 +110,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 }
 .location-badge { color: var(--text-secondary); font-size: 12px; }
 .line-share {
-  font-size: 11px; font-weight: 700; text-decoration: none; padding: 2px 8px;
+  font-size: 11px; font-weight: 700; text-decoration: none; padding: 4px 10px;
   border-radius: 4px; background: #06C755; color: #fff; white-space: nowrap;
 }
 .card-title { font-size: 15px; font-weight: 700; color: var(--link-color, var(--accent2)); text-decoration: none; line-height: 1.5; display: block; }
@@ -116,7 +123,11 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 
 .card-footer { padding: 8px 18px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .reason-text { font-size: 12px; color: var(--text-secondary); font-style: italic; }
-.read-more { font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; color: var(--link-color, var(--accent2)); }
+.read-more {
+  display: inline-block; font-size: 12px; font-weight: 600; text-decoration: none;
+  white-space: nowrap; color: var(--link-color, var(--accent2));
+  padding: 4px 2px; margin: -4px -2px;
+}
 [data-theme="dark"] .section-text a { color: var(--link-color, var(--accent2)); }
 [data-theme="dark"] .section-text a:visited { color: var(--link-color-visited, var(--text-secondary)); }
 
@@ -130,7 +141,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 
 .dismiss-btn {
   font-size: 11px; cursor: pointer; color: var(--text-muted); background: none;
-  border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px;
+  border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px;
   transition: all .15s;
 }
 .dismiss-btn:hover { color: var(--text); border-color: var(--text-secondary); }
@@ -181,7 +192,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 .tr-title:hover { color: var(--accent2); }
 .tr-time { flex: 0 0 auto; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .tr-dismiss { flex: 0 0 auto; padding: 0 7px; line-height: 1.4; }
-.tr-detail { padding: 0 6px 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.tr-detail { padding: 0 6px 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .tr-detail[hidden] { display: none; }   /* author display 會蓋過 UA 的 [hidden]，需顯式覆寫 */
 .tr-summary { font-size: 12.5px; line-height: 1.7; color: var(--text-body); margin: 0; }
 
@@ -189,7 +200,7 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 .tr-group { margin-top: 14px; }
 .tr-group-head {
   display: flex; align-items: center; gap: 8px; width: 100%; cursor: pointer;
-  background: none; border: none; padding: 6px 6px; text-align: left;
+  background: none; border: none; padding: 10px 6px; text-align: left;
   border-bottom: 2px solid var(--border);
 }
 .tr-group-caret { flex: 0 0 auto; font-size: 11px; color: var(--text-muted); }
@@ -203,3 +214,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue',
 
 /* ── Footer ── */
 .site-footer { text-align: center; padding: 20px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border); margin-top: 16px; }
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .tr-title { white-space: normal; overflow: visible; text-overflow: clip; }
+  .card-meta { gap: 6px; }
+}
