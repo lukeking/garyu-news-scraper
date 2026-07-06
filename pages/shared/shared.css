@@ -194,6 +194,9 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .tr-dismiss { flex: 0 0 auto; padding: 0 7px; line-height: 1.4; }
 .tr-detail { padding: 0 6px 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .tr-detail[hidden] { display: none; }   /* author display 會蓋過 UA 的 [hidden]，需顯式覆寫 */
+.tr-actions { display: flex; align-items: center; gap: 20px; }   /* 動作列水平排列＋加大觸控目標，避免手機誤觸 */
+.tr-actions .line-share { padding: 8px 16px; }
+.tr-actions .read-more { padding: 8px 6px; margin: 0; }
 .tr-summary { font-size: 12.5px; line-height: 1.7; color: var(--text-body); margin: 0; }
 
 /* ── Category groups (traffic list) ── */

@@ -388,8 +388,10 @@ function trafficRow(a, idx) {
   </div>
   <div class="tr-detail" hidden>
     ${summary ? `<p class="tr-summary">${esc(summary)}</p>` : ''}
-    ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a> ` : ''}
-    <a class="read-more" href="${a.link}" target="_blank" rel="noopener">閱讀原文 →</a>
+    <div class="tr-actions">
+      ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a>` : ''}
+      <a class="read-more" href="${a.link}" target="_blank" rel="noopener">閱讀原文 →</a>
+    </div>
   </div>
 </div>`;
 }
