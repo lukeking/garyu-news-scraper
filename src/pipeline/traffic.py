@@ -129,7 +129,14 @@ class TrafficCategory:
         return deduped[:max_daily]
 
     def analyze(self, articles: list) -> list:
-        # Traffic analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py)
+        # LLM analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py).
+        # Here we only enrich Google News items post-dedup, so the per-item HTTP cost
+        # is spent solely on articles that will actually be buffered.
+        try:
+            from src.gn_resolver import enrich_articles
+            enrich_articles(articles)
+        except Exception as e:
+            logger.warning("[%s] GN 充實整批失敗，文章維持原樣：%s", self.name, e)
         return articles
 
     def publish(self, articles: list) -> str:

@@ -376,7 +376,15 @@ function renderStats(articles) {
 function trafficRow(a, idx) {
   const src = a.source || '';
   const when = a.published || a.created_at || '';
-  const summary = stripHtml((a.analysis && a.analysis.summary) || '');
+  // 摘要優先用 LLM 分析，否則退回來源 summary；GN 充實前的舊資料 summary 只是
+  // 標題複讀＋來源名（長度 ≈ 標題），展開只會再看一次標題 — 視為無摘要。
+  // 比對需去掉標點：GN 標題帶「 - 來源」尾碼、summary 只有「 來源」，剩個 '-' 會讓包含判斷失效
+  const norm = s => (s || '').replace(/[^\p{L}\p{N}]+/gu, '');
+  const rawSummary = stripHtml((a.analysis && a.analysis.summary) || a.summary || '');
+  const normT = norm(a.title);
+  const normS = norm(rawSummary);
+  const isEcho = normS.length <= normT.length + 24 && (normT.includes(normS) || normS.includes(normT));
+  const summary = isEcho ? '' : rawSummary;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
   return `
 <div class="card traffic-row" data-url="${a.link}">
