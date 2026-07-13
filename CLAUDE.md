@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan
-at `specs/009-novelty-gated-hot-topics/plan.md`
+at `specs/010-category-digest/plan.md`
 <!-- SPECKIT END -->
