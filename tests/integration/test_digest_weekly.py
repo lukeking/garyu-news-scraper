@@ -245,3 +245,19 @@ def test_junk_never_in_digest_sources_but_still_consumed():
     assert junk["link"] not in digest_links          # SC-003：不進選材
     assert all(l != junk["link"] for l in digest_links)
     assert marks and junk["link"] in marks[0]        # 但隨清池被標記 analyzed
+
+
+# ── SC-004: feature off → 行為與現狀零差異 ───────────────────────────────────
+
+def test_feature_off_zero_behaviour_change(caplog):
+    """category_digest 空 → 無 digest 路徑痕跡，一般選取／發布與 010 之前完全相同。"""
+    articles = [_policy(i) for i in range(12)] + _moto_buckets()  # 政策池達門檻量也一樣
+
+    with caplog.at_level(logging.INFO):
+        upserts, marks, published = _run(_config(digest=None), articles)
+
+    labels = [r["topic_label"] for r in upserts]
+    assert labels == ["機車事故 · m1", "機車事故 · m2", "機車事故 · m3"]  # 滿席、無擠位
+    assert all("彙整" not in l for l in labels)
+    assert marks == []
+    assert "digest[" not in caplog.text  # 連 log 都不出現

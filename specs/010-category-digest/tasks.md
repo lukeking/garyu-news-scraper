@@ -104,8 +104,8 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T018 [P] SC-004 回歸：在 `tests/integration/test_digest_weekly.py` 增測「`category_digest` 空／缺 → 週跑選取與發布行為與 T001 基線等價」，並跑全 suite `pytest` 確認零回歸
-- [ ] T019 quickstart §2 read-only 重放（真實 buffer，零寫入、不打 Gemini）：驗證 `select_digest_pool` 對實池的觸發統計（15 篇 → effective 排除「友善列印」→ TRIGGER）與選材排序
+- [X] T018 [P] SC-004 回歸：在 `tests/integration/test_digest_weekly.py` 增測「`category_digest` 空／缺 → 週跑選取與發布行為與 T001 基線等價」，並跑全 suite `pytest` 確認零回歸
+- [X] T019 quickstart §2 read-only 重放（真實 buffer，零寫入、不打 Gemini）：驗證 `select_digest_pool` 對實池的觸發統計（15 篇 → effective 排除「友善列印」→ TRIGGER）與選材排序
 - [ ] T020 Post-merge ops（不在本 branch）：prod `PIPELINE_CONFIG_YML` 補 `category_digest` 區塊＋read-back 用 repo loader 驗證（比照 #59 部署慣例）；首次真實週跑後從 Actions log 驗 SC-001（`✓ hot_topic_report upserted: ... / 道安政策 · 彙整`）與 SC-005（pool/effective/threshold/consumed 可直讀）
 
 ---
