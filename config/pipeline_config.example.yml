@@ -27,6 +27,18 @@ buffer:
                              # Generative cost is bounded at the weekly stage (min_threshold + max_hot_topics
                              # + novelty gate), so this only guards against a feed-flood anomaly.
 
+# Category digest (feature 010) — aggregation path for event-diverse, low-cadence
+# categories whose articles never cluster (all singletons, score ceiling ~0.22).
+# When a listed category accumulates enough effective articles in the buffer, one
+# multi-event digest report ("<category> · 彙整") is published and the whole pool
+# is consumed (marked analyzed). Empty/missing = feature off. Sub-keys optional.
+category_digest:
+  道安政策:
+    trigger_count: 10        # Effective-article count that fires a digest (~every 2-3 weeks at 3-4/wk inflow)
+    quality_floor: 0.18      # Articles below this quality neither count nor get selected
+                             # (known junk "友善列印" = 0.165; weakest real article = 0.193)
+    max_articles: 15         # Max articles fed into the digest prompt (quality desc)
+
 embed_dedup:
   threshold: 0.88            # Cosine similarity ≥ this → same event (Gemini Embedding 2, 768d)
 

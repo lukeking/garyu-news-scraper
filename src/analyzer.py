@@ -1067,3 +1067,114 @@ def select_hot_topics_with_novelty(buckets: dict, bucket_scores: dict,
 
     survivors.sort(key=lambda x: x[1], reverse=True)
     return [bid for bid, _ in survivors[:max_hot_topics]]
+
+
+# ── Category digest (feature 010) ─────────────────────────────────────────────
+
+DIGEST_SYSTEM_PROMPT = (
+    "你是台灣交通政策動態彙整編輯，專精道路安全政策、法規與治理議題。"
+    "彙整原則：各事件互相獨立，禁止在無文本依據下建立事件間的因果、趨勢或風向連結；"
+    "所有敘述必須標註文本依據（Article ID，如 [1]）。"
+    "請用繁體中文回應，格式務必嚴格按照指示，不要加入任何額外說明。"
+)
+
+DIGEST_PROMPT_TEMPLATE = """以下是「{topic_label}」在 {date_start} 至 {date_end} 期間累積的 {article_count} 篇報導。
+這些是多個互相獨立的事件，請產出一份動態總覽（digest），不是單一事件深挖。
+
+{article_list}
+
+【彙整指令】
+- 依主題相近度將文章分組（例：地方道安會報動態／中央政策與法規／民間倡議與研究），每組一節。
+- 每節逐事件一短段：時間、行為者、決策或訴求內容，段末標注 [Article ID]。
+- 多篇報導同一事件時合併為一段，並列出全部 Article ID。
+- 不同事件之間沒有文本依據時，禁止寫成趨勢、因果或「顯示…風向」的連結語。
+
+【輸出格式】（嚴格照以下格式輸出）
+
+### 本期概覽
+（2-3 句：本期共幾個獨立事件、涵蓋哪些面向。不做趨勢推論。）
+
+### 分節彙整
+（依分組逐節逐事件輸出，每段結尾標 [Article ID]）
+
+### 待追蹤
+（列出文本中明示「後續將…」「預計…」的未完成事項，各附 [Article ID]；無則填「本期無」）
+"""
+
+
+def select_digest_pool(articles: list, category: str, digest_cfg: dict,
+                       excluded_links: set) -> tuple:
+    """
+    組出某低頻類別的 digest 池（純函數、零 I/O）。
+
+    Returns (selected, pool_all, effective_count):
+    - pool_all: 該類別全部未排除文章（含低於品質下限者）——消耗（清池）用。
+    - selected: quality ≥ quality_floor 者依 quality 降冪取前 max_articles 篇——選材。
+    - effective_count: quality ≥ quality_floor 的篇數——觸發判斷用（呼叫端比對 trigger_count）。
+    """
+    quality_floor = float(digest_cfg.get("quality_floor", 0.18))
+    max_articles = int(digest_cfg.get("max_articles", 15))
+
+    pool_all = [
+        a for a in articles
+        if a.get("major_category") == category
+        and (a.get("link") or "") not in excluded_links
+    ]
+    effective = [
+        a for a in pool_all
+        if float(a.get("initial_quality_score") or 0) >= quality_floor
+    ]
+    effective.sort(key=lambda a: float(a.get("initial_quality_score") or 0), reverse=True)
+    return effective[:max_articles], pool_all, len(effective)
+
+
+def analyze_category_digest(pool_articles: list, topic_label: str,
+                            week_start_date: str, max_articles: int = 15) -> tuple:
+    """
+    Generate a multi-event digest report for a low-cadence category using Gemini.
+    Same return contract as analyze_hot_topic: (report_text, ordered_links);
+    ("", []) on failure. Caller is responsible for the 2.5s inter-request delay.
+    """
+    api_key = _get_api_key()
+
+    top_articles = sorted(
+        pool_articles,
+        key=lambda a: float(a.get("initial_quality_score") or 0),
+        reverse=True,
+    )[:max_articles]
+    if not top_articles:
+        return "", []
+
+    ordered_articles = [
+        {
+            "title": a.get("title", ""),
+            "link": a.get("link", ""),
+            "summary": (a.get("summary", "") or "")[:200],
+        }
+        for a in top_articles
+    ]
+
+    dates = sorted({(a.get("published") or "")[:10] for a in top_articles if a.get("published")})
+    date_start, date_end = (dates[0], dates[-1]) if dates else (week_start_date, week_start_date)
+
+    lines = []
+    for i, a in enumerate(top_articles, 1):
+        title = a.get("title", "（無標題）")
+        body = (a.get("summary", "") or a.get("content", "") or "")[:400]
+        lines.append(f"[{i}] 日期：{(a.get('published') or '')[:10]}\n    標題：{title}\n    摘要：{body}")
+
+    prompt = DIGEST_PROMPT_TEMPLATE.format(
+        topic_label=topic_label,
+        article_count=len(top_articles),
+        date_start=date_start,
+        date_end=date_end,
+        article_list="\n\n".join(lines),
+    )
+
+    raw = _call_gemini(prompt, api_key, system_prompt=DIGEST_SYSTEM_PROMPT)
+    if raw:
+        logger.info("✓ 彙整分析完成：%s (%s)", topic_label, week_start_date)
+        return raw.strip(), ordered_articles
+
+    logger.warning("✗ 彙整分析失敗：%s (%s)", topic_label, week_start_date)
+    return "", []

@@ -35,6 +35,9 @@ _DEFAULTS = {
     "buffer": {
         "max_age_weeks": 8,
     },
+    # 低頻類別聚合（feature 010）：{major_category: {trigger_count, quality_floor,
+    # max_articles}}。空 = feature off。子鍵可省略，於驗證時補預設值。
+    "category_digest": {},
     "embed_dedup": {
         "threshold": 0.88,
     },
@@ -111,6 +114,33 @@ def _validate_pipeline_config(config: dict, path: str) -> None:
         raise RuntimeError(
             f"[pipeline_config] topic_identity.similarity_threshold 必須在 [0, 1]，目前為 {sim}（路徑：{path}）"
         )
+    # category_digest：驗證並補齊 per-category 預設值。_deep_merge 只合併頂層
+    # 結構、不會替各類別缺的子鍵補值，故補齊的 owner 在這裡（010 contracts U2）。
+    digest_defaults = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}
+    digests = config.get("category_digest") or {}
+    for cat, raw_cfg in digests.items():
+        if raw_cfg is None:
+            raw_cfg = {}
+        if not isinstance(raw_cfg, dict):
+            raise RuntimeError(
+                f"[pipeline_config] category_digest['{cat}'] 必須為 map，目前為 {raw_cfg!r}（路徑：{path}）"
+            )
+        merged = {**digest_defaults, **raw_cfg}
+        for key in ("trigger_count", "max_articles"):
+            val = merged[key]
+            if isinstance(val, bool) or not isinstance(val, int) or val <= 0:
+                raise RuntimeError(
+                    f"[pipeline_config] category_digest['{cat}'].{key} 必須為正整數，"
+                    f"目前為 {val!r}（路徑：{path}）"
+                )
+        floor = merged["quality_floor"]
+        if isinstance(floor, bool) or not isinstance(floor, (int, float)) or not (0.0 <= floor <= 1.0):
+            raise RuntimeError(
+                f"[pipeline_config] category_digest['{cat}'].quality_floor 必須在 [0, 1]，"
+                f"目前為 {floor!r}（路徑：{path}）"
+            )
+        digests[cat] = merged
+    config["category_digest"] = digests
 
 
 def load_category_taxonomy(path: str | None = None) -> dict:

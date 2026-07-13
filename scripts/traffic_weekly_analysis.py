@@ -36,11 +36,12 @@ def main():
     from src.pipeline_config import load_pipeline_config
     from src.storage import (
         expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report,
-        get_recent_hot_topic_reports,
+        get_recent_hot_topic_reports, mark_articles_analyzed,
     )
     from src.analyzer import (
         cluster_traffic_articles, score_topic_buckets, analyze_hot_topic,
         select_hot_topics_with_novelty, topic_token_signature,
+        select_digest_pool, analyze_category_digest,
     )
     from src.publisher import publish_hot_topic_reports
 
@@ -84,7 +85,37 @@ def main():
     hot_topic_ids = select_hot_topics_with_novelty(buckets, bucket_scores, prior_reports, config)
     logger.info("本週熱點 topic（通過 novelty gate）：%s", hot_topic_ids)
 
-    if not hot_topic_ids:
+    # 6b. Category digest（feature 010）：量觸發＋消耗。
+    #     排除名單以「未扣席次前」的 gate 入選為準——決定性、單一 pass，
+    #     被 digest 擠掉的尾名 bucket 文章留在 buffer（未標 analyzed）下週再競爭。
+    digest_cfgs = config.get("category_digest") or {}
+    max_hot_topics = int(config.get("topic_scoring", {}).get("max_hot_topics", 3))
+    excluded_links = {
+        a.get("link")
+        for bid in hot_topic_ids
+        for a in buckets.get(bid, [])
+        if a.get("link")
+    }
+    triggered_digests = []
+    for cat in sorted(digest_cfgs):
+        dcfg = digest_cfgs[cat]
+        selected, pool_all, effective = select_digest_pool(articles, cat, dcfg, excluded_links)
+        trigger_count = int(dcfg.get("trigger_count", 10))
+        is_trigger = effective >= trigger_count and selected
+        logger.info(
+            "digest[%s] pool=%d effective=%d threshold=%d → %s",
+            cat, len(pool_all), effective, trigger_count,
+            "TRIGGER" if is_trigger else "accumulate",
+        )
+        if is_trigger:
+            triggered_digests.append((cat, selected, pool_all, effective))
+    # 同週多 digest 超額：依有效篇數降冪取足；落選 digest 不消耗、留待下週
+    triggered_digests.sort(key=lambda t: t[3], reverse=True)
+    triggered_digests = triggered_digests[:max_hot_topics]
+    # digest 先佔席次，一般 bucket 取剩餘（FR-007：反餓死，不與 bucket 比分數）
+    hot_topic_ids = hot_topic_ids[:max_hot_topics - len(triggered_digests)]
+
+    if not hot_topic_ids and not triggered_digests:
         logger.info("無 bucket 達到 min_threshold，跳過本週熱點發布")
         return
 
@@ -136,6 +167,56 @@ def main():
         # Respect Gemini rate limits between calls
         if bid != hot_topic_ids[-1]:
             time.sleep(_GEMINI_DELAY)
+
+    # 7b. Digest 發布（feature 010）：多事件彙整，失敗即跳過該類（池不消耗）
+    for idx, (cat, selected, pool_all, _effective) in enumerate(triggered_digests):
+        # Respect Gemini rate limits across regular + digest calls
+        if hot_topic_ids or idx > 0:
+            time.sleep(_GEMINI_DELAY)
+        dcfg = digest_cfgs[cat]
+        topic_label = f"{cat} · 彙整"
+        logger.info("正在彙整：%s（選材 %d 篇／池 %d 篇）", topic_label, len(selected), len(pool_all))
+        try:
+            report_text, source_links = analyze_category_digest(
+                selected, topic_label, week_start, int(dcfg.get("max_articles", 15)),
+            )
+        except Exception as e:
+            logger.error("Gemini 彙整失敗，跳過 %s（池不消耗）：%s", topic_label, e)
+            continue
+        if not report_text:
+            logger.warning("彙整 %s 分析結果為空，跳過（池不消耗）", topic_label)
+            continue
+
+        day_set = {(a.get("published") or "")[:10] for a in selected if a.get("published")}
+        report = {
+            "week_start_date": week_start,
+            "topic_label": topic_label,
+            "report_text": report_text,
+            "source_article_count": len(selected),
+            "source_article_links": source_links,
+            "cumulative_score": sum(float(a.get("initial_quality_score") or 0) for a in selected),
+            "distinct_sources": len({a.get("source", "") for a in selected}),
+            "distinct_days": len(day_set),
+            # 空簽章：digest 永不成為 novelty prior basis（010 research D2）
+            "topic_token_signature": [],
+            "latest_source_date": max(day_set) if day_set else None,
+        }
+        try:
+            upsert_hot_topic_report(report)
+            published_reports.append(report)
+        except Exception as e:
+            logger.error("持久化 digest 失敗，跳過 %s（池不消耗）：%s", topic_label, e)
+            continue
+
+        # 消耗：upsert 已標記選材 links，這裡補標池內殘餘（含低品質文），池歸零。
+        # mark 失敗時 helper 記 ERROR 回 0——殘餘下週重入池，同鍵 upsert 冪等。
+        selected_links = {a.get("link") for a in selected if a.get("link")}
+        residual = [
+            a.get("link") for a in pool_all
+            if a.get("link") and a.get("link") not in selected_links
+        ]
+        marked = mark_articles_analyzed(residual)
+        logger.info("digest[%s] consumed=%d", cat, len(selected_links) + marked)
 
     # 8. Publish
     if published_reports:
