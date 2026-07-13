@@ -26,7 +26,7 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 **Purpose**: 建立回歸基線
 
-- [ ] T001 跑 `pytest` 確認既有測試全綠，並記錄 `scripts/traffic_weekly_analysis.py` 現行行為（cluster→score→novelty 選取→發布迴圈）作為 SC-004 回歸基線
+- [X] T001 跑 `pytest` 確認既有測試全綠，並記錄 `scripts/traffic_weekly_analysis.py` 現行行為（cluster→score→novelty 選取→發布迴圈）作為 SC-004 回歸基線
 
 ---
 
@@ -36,9 +36,9 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 **⚠️ CRITICAL**: `category_digest` 設定鍵與驗證未就緒前，任何故事的觸發／下限／選材參數都讀不到
 
-- [ ] T002 在 `src/pipeline_config.py` 的 `_DEFAULTS` 加頂層鍵 `category_digest: {}`，並在 `_validate_pipeline_config` 加逐類別驗證（`trigger_count`／`max_articles` 為正整數、`quality_floor` ∈ [0,1]、子鍵可省略套預設 10／0.18／15——contracts 設定鍵契約）
-- [ ] T003 [P] 在 `config/pipeline_config.example.yml` 加 `category_digest` 範例區塊（道安政策：trigger_count 10、quality_floor 0.18、max_articles 15，附註解）
-- [ ] T004 [P] 單元測試 `tests/unit/test_pipeline_config.py`（既有檔增測或新建）：`category_digest` 合法值通過、非法值（負數、>1 的 floor、非整數）raise、空設定回 `{}`
+- [X] T002 在 `src/pipeline_config.py` 的 `_DEFAULTS` 加頂層鍵 `category_digest: {}`，並在 `_validate_pipeline_config` 加逐類別驗證（`trigger_count`／`max_articles` 為正整數、`quality_floor` ∈ [0,1]、子鍵可省略套預設 10／0.18／15——contracts 設定鍵契約）
+- [X] T003 [P] 在 `config/pipeline_config.example.yml` 加 `category_digest` 範例區塊（道安政策：trigger_count 10、quality_floor 0.18、max_articles 15，附註解）
+- [X] T004 [P] 單元測試 `tests/unit/test_pipeline_config.py`（既有檔增測或新建）：`category_digest` 合法值通過、非法值（負數、>1 的 floor、非整數）raise、空設定回 `{}`
 
 **Checkpoint**: 設定層就緒，故事可開工
 
