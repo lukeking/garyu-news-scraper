@@ -14,7 +14,9 @@ def select_digest_pool(articles: list, category: str, digest_cfg: dict,
     Args:
       articles: get_traffic_buffer() 的完整回傳。
       category: 啟用 digest 的 major_category。
-      digest_cfg: category_digest[category]（已補預設值）。
+      digest_cfg: category_digest[category]（已補預設值——補齊 owner 為 pipeline_config 層：
+        `_validate_pipeline_config` 驗證時顯式填入預設 10／0.18／15，呼叫端不再補；
+        `_deep_merge` 不會替 per-category 子鍵補值，勿依賴）。
       excluded_links: 本週已入選一般 bucket 的文章 link 集合（FR-006）。
 
     Returns:
@@ -48,11 +50,12 @@ def mark_articles_analyzed(links: list) -> int:
 ### `scripts/traffic_weekly_analysis.py` — `main()` 串接順序契約
 
 ```text
-1. cluster → score → select_hot_topics_with_novelty        # 既有，行為不變
-2. for 每個 category_digest 啟用類別：
-     select_digest_pool(...)                                # 排除名單 = 步驟 3 前的入選 bucket 成員…
+1. cluster → score → select_hot_topics_with_novelty → gate_ids   # 既有，行為不變
+2. 排除名單 = gate_ids（未扣 digest 席次的過閘入選名單）之 bucket 成員 links
+   for 每個 category_digest 啟用類別：
+     select_digest_pool(articles, cat, cfg, excluded_links=排除名單)
      log: "digest[<cat>] pool=<n> effective=<m> threshold=<t> → TRIGGER|accumulate"   # FR-009，無論觸發與否
-3. 席次分配：regular_ids = 入選[:max_hot_topics - len(triggered_digests)]
+3. 席次分配：regular_ids = gate_ids[:max_hot_topics - len(triggered_digests)]
    （多 digest 超額：依 effective_count 降冪取足，落選 digest 不消耗）
 4. 發布迴圈（regular + digest 同迴圈，2.5s delay）：
    digest 分支：analyze_category_digest → upsert_hot_topic_report
@@ -61,7 +64,7 @@ def mark_articles_analyzed(links: list) -> int:
    任一步失敗 → 該 digest 本週放棄、池不消耗（不影響其他報告）
 ```
 
-註：步驟 2 的排除名單依步驟 3 定案的 `regular_ids` 計算——實作上先算席次再組池（FR-006 以最終發布名單為準）。
+註（analyze I1 定案）：排除名單以**未扣席次前**的 `gate_ids` 為準——決定性、單一 pass，無「觸發↔席次↔排除」循環。代價：digest 觸發擠掉的尾名 bucket，其文章本週既不發布也不入 digest 池，留在 buffer（未標 analyzed，零損失，下週再競爭）。同週同類過閘 bucket 機率趨近零（結構天花板即本 feature 動機），此代價可接受。
 
 ## 不變式（違反即 bug）
 

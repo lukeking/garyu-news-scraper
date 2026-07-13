@@ -75,7 +75,7 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 ### Tests for User Story 2 ⚠️（先寫、先失敗）
 
 - [ ] T011 [P] [US2] 單元測試 `tests/unit/test_digest_consume.py`（mock Supabase client）：`mark_articles_analyzed` 標記筆數回傳、失敗回 0 且 log ERROR 不 raise；runner digest 分支順序語意——Gemini 失敗→不 upsert 不 mark、upsert raise→不 mark、成功→mark 池殘餘（pool_all − 選材 links）
-- [ ] T012 [US2] 在 `tests/integration/test_digest_weekly.py` 增測：兩跑序列（第一跑觸發＋`consumed=<k>` log＋全池標記 → 第二跑 `pool=0 → accumulate` 不重觸發）；同週重跑 upsert 冪等（同 conflict key 不產生第二筆）
+- [ ] T012 [US2] 在 `tests/integration/test_digest_weekly.py` 增測：兩跑序列（第一跑觸發＋`consumed=<k>` log＋全池標記 → 第二跑 `pool=0 → accumulate` 不重觸發）；失敗-重跑變體：mock `mark_articles_analyzed` 失敗（驗 ERROR log，research D3）→ 池殘餘未清 → 重跑再觸發 → 同 `(week_start_date, topic_label)` upsert 冪等不產生第二筆
 
 ### Implementation for User Story 2
 
