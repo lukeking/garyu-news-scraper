@@ -74,13 +74,13 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 ### Tests for User Story 2 ⚠️（先寫、先失敗）
 
-- [ ] T011 [P] [US2] 單元測試 `tests/unit/test_digest_consume.py`（mock Supabase client）：`mark_articles_analyzed` 標記筆數回傳、失敗回 0 且 log ERROR 不 raise；runner digest 分支順序語意——Gemini 失敗→不 upsert 不 mark、upsert raise→不 mark、成功→mark 池殘餘（pool_all − 選材 links）
-- [ ] T012 [US2] 在 `tests/integration/test_digest_weekly.py` 增測：兩跑序列（第一跑觸發＋`consumed=<k>` log＋全池標記 → 第二跑 `pool=0 → accumulate` 不重觸發）；失敗-重跑變體：mock `mark_articles_analyzed` 失敗（驗 ERROR log，research D3）→ 池殘餘未清 → 重跑再觸發 → 同 `(week_start_date, topic_label)` upsert 冪等不產生第二筆
+- [X] T011 [P] [US2] 單元測試 `tests/unit/test_digest_consume.py`（mock Supabase client）：`mark_articles_analyzed` 標記筆數回傳、失敗回 0 且 log ERROR 不 raise；runner digest 分支順序語意——Gemini 失敗→不 upsert 不 mark、upsert raise→不 mark、成功→mark 池殘餘（pool_all − 選材 links）
+- [X] T012 [US2] 在 `tests/integration/test_digest_weekly.py` 增測：兩跑序列（第一跑觸發＋`consumed=<k>` log＋全池標記 → 第二跑 `pool=0 → accumulate` 不重觸發）；失敗-重跑變體：mock `mark_articles_analyzed` 失敗（驗 ERROR log，research D3）→ 池殘餘未清 → 重跑再觸發 → 同 `(week_start_date, topic_label)` upsert 冪等不產生第二筆
 
 ### Implementation for User Story 2
 
-- [ ] T013 [P] [US2] `src/storage.py`：新增 `mark_articles_analyzed(links) -> int`（contracts 簽章；fail-soft：例外時 log ERROR 回 0）
-- [ ] T014 [US2] `scripts/traffic_weekly_analysis.py`：digest 分支補消耗——`upsert_hot_topic_report` 成功後呼叫 `mark_articles_analyzed(池殘餘 links)`＋`digest[<cat>] consumed=<k>` log；任一步失敗該 digest 本週放棄、池不消耗、不影響其他報告（research D3 順序與失敗語意）
+- [X] T013 [P] [US2] `src/storage.py`：新增 `mark_articles_analyzed(links) -> int`（contracts 簽章；fail-soft：例外時 log ERROR 回 0）
+- [X] T014 [US2] `scripts/traffic_weekly_analysis.py`：digest 分支補消耗——`upsert_hot_topic_report` 成功後呼叫 `mark_articles_analyzed(池殘餘 links)`＋`digest[<cat>] consumed=<k>` log；任一步失敗該 digest 本週放棄、池不消耗、不影響其他報告（research D3 順序與失敗語意）
 
 **Checkpoint**: US1+US2——「累積→觸發→清空」完整閉環
 

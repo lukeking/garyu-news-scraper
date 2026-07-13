@@ -36,7 +36,7 @@ def main():
     from src.pipeline_config import load_pipeline_config
     from src.storage import (
         expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report,
-        get_recent_hot_topic_reports,
+        get_recent_hot_topic_reports, mark_articles_analyzed,
     )
     from src.analyzer import (
         cluster_traffic_articles, score_topic_buckets, analyze_hot_topic,
@@ -207,6 +207,16 @@ def main():
         except Exception as e:
             logger.error("持久化 digest 失敗，跳過 %s（池不消耗）：%s", topic_label, e)
             continue
+
+        # 消耗：upsert 已標記選材 links，這裡補標池內殘餘（含低品質文），池歸零。
+        # mark 失敗時 helper 記 ERROR 回 0——殘餘下週重入池，同鍵 upsert 冪等。
+        selected_links = {a.get("link") for a in selected if a.get("link")}
+        residual = [
+            a.get("link") for a in pool_all
+            if a.get("link") and a.get("link") not in selected_links
+        ]
+        marked = mark_articles_analyzed(residual)
+        logger.info("digest[%s] consumed=%d", cat, len(selected_links) + marked)
 
     # 8. Publish
     if published_reports:

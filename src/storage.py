@@ -378,6 +378,28 @@ def expire_buffer_articles() -> int:
         raise
 
 
+def mark_articles_analyzed(links: list) -> int:
+    """
+    Mark the given article links hot_topic_analyzed=TRUE — digest pool consumption
+    (feature 010). Returns the number of links marked. Fail-soft: consumption is
+    the digest's core semantics, so failures log at ERROR (loud in Actions log),
+    but must not fail the rest of the weekly run; the un-marked residual simply
+    re-enters the pool next week.
+    """
+    if not links:
+        return 0
+    client = _get_client()
+    try:
+        client.table("articles").update({"hot_topic_analyzed": True}).in_(
+            "link", links
+        ).execute()
+        logger.info("mark_articles_analyzed：已標記 %d 篇", len(links))
+        return len(links)
+    except Exception as e:
+        logger.error("mark_articles_analyzed 失敗（池未完全消耗，下次週跑重試）：%s", e)
+        return 0
+
+
 def get_recent_hot_topic_reports(max_age_weeks: int = 8, exclude_week: str | None = None) -> list:
     """
     Return hot_topic_reports from the last max_age_weeks weeks for the novelty gate

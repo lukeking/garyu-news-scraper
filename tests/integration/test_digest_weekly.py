@@ -152,3 +152,80 @@ def test_below_threshold_accumulates_with_log(caplog):
     assert labels == ["機車事故 · m1", "機車事故 · m2", "機車事故 · m3"]
     assert marks == []  # nothing consumed
     assert "digest[道安政策] pool=5 effective=5 threshold=10 → accumulate" in caplog.text
+
+
+# ── US2: consume-on-success, zero overlap, failure semantics ──────────────────
+
+def test_consume_marks_residual_and_logs(caplog):
+    """成功發布後：殘餘（垃圾文）被 mark，consumed = 選材＋殘餘。"""
+    digest_cfg = {"道安政策": {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}}
+    articles = [_policy(i) for i in range(12)] + \
+               [_policy(100 + i, q=0.05) for i in range(3)]  # 垃圾文（低於 floor）
+
+    with caplog.at_level(logging.INFO):
+        upserts, marks, _ = _run(_config(digest_cfg), articles)
+
+    assert [r["topic_label"] for r in upserts] == ["道安政策 · 彙整"]
+    # 殘餘 = 3 篇垃圾文的 links（選材 12 篇由既有 upsert 路徑標記）
+    assert len(marks) == 1
+    assert sorted(marks[0]) == sorted(f"https://p/{100 + i}" for i in range(3))
+    assert "digest[道安政策] consumed=15" in caplog.text
+
+
+def test_two_runs_zero_overlap_and_empty_pool_accumulates(caplog):
+    """第二跑（池已消耗、新批文章）→ 新 digest 與第一跑零交集；池空跑 → accumulate。"""
+    digest_cfg = {"道安政策": {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}}
+
+    run1_arts = [_policy(i) for i in range(12)]
+    upserts1, _, _ = _run(_config(digest_cfg), run1_arts)
+
+    run2_arts = [_policy(200 + i) for i in range(10)]  # 消耗後的新累積批
+    upserts2, _, _ = _run(_config(digest_cfg), run2_arts)
+
+    links1 = {a["link"] for a in upserts1[0]["source_article_links"]}
+    links2 = {a["link"] for a in upserts2[0]["source_article_links"]}
+    assert links1 and links2 and not (links1 & links2)  # SC-002
+
+    # 池空（僅剩非政策文避開 <3 早退）→ accumulate、無 digest
+    with caplog.at_level(logging.INFO):
+        upserts3, marks3, _ = _run(_config(digest_cfg), _moto_buckets())
+    assert "道安政策 · 彙整" not in [r["topic_label"] for r in upserts3]
+    assert marks3 == []
+    assert "digest[道安政策] pool=0 effective=0 threshold=10 → accumulate" in caplog.text
+
+
+def test_gemini_empty_skips_without_consume(caplog):
+    """Gemini 回空 → 不 upsert、不消耗（池下週重試）。"""
+    digest_cfg = {"道安政策": {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}}
+    articles = [_policy(i) for i in range(12)]
+
+    with caplog.at_level(logging.INFO):
+        upserts, marks, _ = _run(
+            _config(digest_cfg), articles,
+            digest_stub=lambda pool, label, ws, k: ("", []),
+        )
+    assert upserts == [] and marks == []
+    assert "池不消耗" in caplog.text
+
+
+def test_upsert_failure_skips_consume():
+    """持久化 raise → 不消耗，run 正常結束不炸。"""
+    digest_cfg = {"道安政策": {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}}
+    articles = [_policy(i) for i in range(12)]
+
+    upserts, marks, _ = _run(_config(digest_cfg), articles,
+                             upsert_raises=RuntimeError("db down"))
+    assert upserts == [] and marks == []
+
+
+def test_mark_failure_rerun_same_conflict_key():
+    """殘餘標記失敗 → 重跑（池未清）再觸發，同 (week, label) 鍵 → upsert 冪等。"""
+    digest_cfg = {"道安政策": {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}}
+    articles = [_policy(i) for i in range(12)] + [_policy(100, q=0.05)]
+
+    upserts1, _, _ = _run(_config(digest_cfg), articles, mark_returns_len=False)
+    upserts2, _, _ = _run(_config(digest_cfg), articles, mark_returns_len=False)
+
+    key1 = (upserts1[0]["week_start_date"], upserts1[0]["topic_label"])
+    key2 = (upserts2[0]["week_start_date"], upserts2[0]["topic_label"])
+    assert key1 == key2  # 同 conflict key → DB 端 on_conflict 冪等，不產生第二筆
