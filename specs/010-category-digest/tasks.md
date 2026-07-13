@@ -52,15 +52,15 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 ### Tests for User Story 1 ⚠️（先寫、先失敗）
 
-- [ ] T005 [P] [US1] 單元測試 `tests/unit/test_digest_pool.py`：`select_digest_pool` 純函數——觸發計數（有效篇數 vs trigger_count）、選材 quality 降冪至多 `max_articles`、`excluded_links` 排除（FR-006）、`pool_all` 含未選材文章、空池／全排除邊界
-- [ ] T006 [P] [US1] 在 `tests/unit/test_novelty_gate.py` 增測：`topic_token_signature=[]` 的 digest 列永不被 `_match_prior_basis` 匹配（空簽章 Jaccard=0，research D2）——一般 bucket 的 novelty 行為不因 digest 列存在而改變
-- [ ] T007 [P] [US1] 整合測試 `tests/integration/test_digest_weekly.py`（Gemini stub/mock）：(a) 池達門檻 → 週跑發布「道安政策 · 彙整」報告（空簽章、score=選材 quality 和、latest_source_date 正確），且一般 bucket 席次 = `max_hot_topics - 1`；(b) 池未達門檻 → 無 digest、一般選取與現狀 bit-for-bit 相同、log 含 `digest[道安政策] pool=.. effective=.. threshold=.. → accumulate`（FR-009）
+- [X] T005 [P] [US1] 單元測試 `tests/unit/test_digest_pool.py`：`select_digest_pool` 純函數——觸發計數（有效篇數 vs trigger_count）、選材 quality 降冪至多 `max_articles`、`excluded_links` 排除（FR-006）、`pool_all` 含未選材文章、空池／全排除邊界
+- [X] T006 [P] [US1] 在 `tests/unit/test_novelty_gate.py` 增測：`topic_token_signature=[]` 的 digest 列永不被 `_match_prior_basis` 匹配（空簽章 Jaccard=0，research D2）——一般 bucket 的 novelty 行為不因 digest 列存在而改變
+- [X] T007 [P] [US1] 整合測試 `tests/integration/test_digest_weekly.py`（Gemini stub/mock）：(a) 池達門檻 → 週跑發布「道安政策 · 彙整」報告（空簽章、score=選材 quality 和、latest_source_date 正確），且一般 bucket 席次 = `max_hot_topics - 1`；(b) 池未達門檻 → 無 digest、一般選取與現狀 bit-for-bit 相同、log 含 `digest[道安政策] pool=.. effective=.. threshold=.. → accumulate`（FR-009）
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] `src/analyzer.py`：實作 `select_digest_pool(articles, category, digest_cfg, excluded_links) -> (selected, pool_all, effective_count)`（純函數，contracts 簽章；含 quality_floor 過濾與降冪選材）
-- [ ] T009 [US1] `src/analyzer.py`：新增 `DIGEST_SYSTEM_PROMPT`／`DIGEST_PROMPT_TEMPLATE`（多事件動態總覽：逐事件短段、不硬湊因果、期間跨度明示、`[n]` 引用對應）與 `analyze_category_digest(pool_articles, topic_label, week_start_date, max_articles) -> (report_text, ordered_links)`（沿用 `_call_gemini`，失敗回 `("", [])`）
-- [ ] T010 [US1] `scripts/traffic_weekly_analysis.py`：串接 digest 路徑（contracts 串接順序契約）——一般選取後對每個啟用類別跑觸發統計＋FR-009 log（無論觸發與否）；席次分配 `regular_ids = 入選[:max_hot_topics - len(triggered)]`（多 digest 超額依 effective_count 降冪取足）；發布迴圈加 digest 分支（report dict：label「<類別> · 彙整」、`topic_token_signature: []`、`cumulative_score`=選材 quality 和、其餘欄位按選材計算——data-model 表）；維持 2.5s delay
+- [X] T008 [US1] `src/analyzer.py`：實作 `select_digest_pool(articles, category, digest_cfg, excluded_links) -> (selected, pool_all, effective_count)`（純函數，contracts 簽章；含 quality_floor 過濾與降冪選材）
+- [X] T009 [US1] `src/analyzer.py`：新增 `DIGEST_SYSTEM_PROMPT`／`DIGEST_PROMPT_TEMPLATE`（多事件動態總覽：逐事件短段、不硬湊因果、期間跨度明示、`[n]` 引用對應）與 `analyze_category_digest(pool_articles, topic_label, week_start_date, max_articles) -> (report_text, ordered_links)`（沿用 `_call_gemini`，失敗回 `("", [])`）
+- [X] T010 [US1] `scripts/traffic_weekly_analysis.py`：串接 digest 路徑（contracts 串接順序契約）——一般選取後對每個啟用類別跑觸發統計＋FR-009 log（無論觸發與否）；席次分配 `regular_ids = 入選[:max_hot_topics - len(triggered)]`（多 digest 超額依 effective_count 降冪取足）；發布迴圈加 digest 分支（report dict：label「<類別> · 彙整」、`topic_token_signature: []`、`cumulative_score`=選材 quality 和、其餘欄位按選材計算——data-model 表）；維持 2.5s delay
 
 **Checkpoint**: US1 獨立可測——道安政策首份報告可產出（MVP）。註：此時消耗僅及選材 links（既有 upsert 路徑），全池消耗在 US2 補完。
 

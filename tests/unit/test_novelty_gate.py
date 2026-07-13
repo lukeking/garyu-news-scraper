@@ -159,3 +159,25 @@ def test_no_override_map_behaves_as_global():
     with patch("src.filter.normalise_title", side_effect=lambda t: frozenset([t.split("-")[0]])):
         result = select_hot_topics_with_novelty(buckets, scores, [], _CONFIG)
     assert result == []
+
+# ── Digest rows must never act as novelty prior bases — 010 D2 ────────────────
+
+def test_empty_signature_digest_never_matches_prior():
+    """Digest rows store topic_token_signature=[] → Jaccard 0 → never a prior basis."""
+    digest_prior = {
+        "topic_label": "道安政策 · 彙整", "topic_token_signature": [],
+        "cumulative_score": 3.0, "latest_source_date": "2026-07-06",
+    }
+    assert _match_prior_basis("道安政策", ["道安", "會報"], [digest_prior], 0.3) is None
+
+
+def test_digest_rows_do_not_shadow_regular_priors():
+    """A newer digest row must not shadow an older regular prior of the same category."""
+    priors = [
+        {"topic_label": "道安政策 · 彙整", "topic_token_signature": [],
+         "cumulative_score": 99.0, "latest_source_date": "2026-07-06"},
+        {"topic_label": "道安政策 · 道安", "topic_token_signature": ["道安", "會報"],
+         "cumulative_score": 2.0, "latest_source_date": "2026-06-29"},
+    ]
+    basis = _match_prior_basis("道安政策", ["道安", "會報"], priors, 0.3)
+    assert basis is not None and basis["cumulative_score"] == 2.0
