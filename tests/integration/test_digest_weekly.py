@@ -229,3 +229,19 @@ def test_mark_failure_rerun_same_conflict_key():
     key1 = (upserts1[0]["week_start_date"], upserts1[0]["topic_label"])
     key2 = (upserts2[0]["week_start_date"], upserts2[0]["topic_label"])
     assert key1 == key2  # 同 conflict key → DB 端 on_conflict 冪等，不產生第二筆
+
+
+# ── US3: SC-003 — 垃圾不進選材、但被消耗 ─────────────────────────────────────
+
+def test_junk_never_in_digest_sources_but_still_consumed():
+    digest_cfg = {"道安政策": {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}}
+    junk = _policy(999, q=0.165)  # 實案 quality
+    articles = [_policy(i) for i in range(11)] + [junk]
+
+    upserts, marks, _ = _run(_config(digest_cfg), articles)
+
+    digest = next(r for r in upserts if r["topic_label"] == "道安政策 · 彙整")
+    digest_links = {a["link"] for a in digest["source_article_links"]}
+    assert junk["link"] not in digest_links          # SC-003：不進選材
+    assert all(l != junk["link"] for l in digest_links)
+    assert marks and junk["link"] in marks[0]        # 但隨清池被標記 analyzed

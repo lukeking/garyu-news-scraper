@@ -94,9 +94,9 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T015 [P] [US3] 在 `tests/unit/test_digest_pool.py` 增測邊界：q=0.165 排除於 effective_count 與 selected、q=0.193 納入（floor=0.18 預設）；floor 自訂值生效；垃圾文仍在 `pool_all`（消耗涵蓋）
-- [ ] T016 [US3] 在 `tests/integration/test_digest_weekly.py` 增測 SC-003：觸發跑後 digest 的 `source_article_links` 無任何 quality < floor 者；被排除的垃圾文仍被標記 analyzed
-- [ ] T017 [US3] 依 T015/T016 結果修正 `src/analyzer.py` `select_digest_pool` 的 floor 邊界處理（若測試全綠則記錄 no-op，不改碼——誠實省略）
+- [X] T015 [P] [US3] 在 `tests/unit/test_digest_pool.py` 增測邊界：q=0.165 排除於 effective_count 與 selected、q=0.193 納入（floor=0.18 預設）；floor 自訂值生效；垃圾文仍在 `pool_all`（消耗涵蓋）
+- [X] T016 [US3] 在 `tests/integration/test_digest_weekly.py` 增測 SC-003：觸發跑後 digest 的 `source_article_links` 無任何 quality < floor 者；被排除的垃圾文仍被標記 analyzed
+- [X] T017 [US3] 依 T015/T016 結果修正 `src/analyzer.py` `select_digest_pool` 的 floor 邊界處理（若測試全綠則記錄 no-op，不改碼——誠實省略）
 
 **Checkpoint**: 三故事各自獨立可驗
 

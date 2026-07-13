@@ -70,3 +70,29 @@ def test_empty_pool_and_fully_excluded():
     arts = [_art(1), _art(2)]
     excluded = {a["link"] for a in arts}
     assert select_digest_pool(arts, "道安政策", _CFG, excluded) == ([], [], 0)
+
+
+# ── US3: quality-floor boundaries（真實邊界值：垃圾 0.165 vs 最弱實文 0.193）────
+
+def test_floor_excludes_known_junk_includes_weakest_real():
+    junk = _art(1, q=0.165)      # 實案：「友善列印 - 新竹市政府交通處」
+    weakest = _art(2, q=0.193)   # 實案：最弱的真實政策文
+    selected, pool_all, eff = select_digest_pool([junk, weakest], "道安政策", _CFG, set())
+    assert eff == 1
+    assert {a["link"] for a in selected} == {weakest["link"]}
+    assert len(pool_all) == 2    # 垃圾文仍在池內，會隨清池被消耗
+
+
+def test_floor_exact_boundary_is_inclusive():
+    at_floor = _art(1, q=0.18)
+    selected, _, eff = select_digest_pool([at_floor], "道安政策", _CFG, set())
+    assert eff == 1 and selected == [at_floor]
+
+
+def test_custom_floor_applies():
+    cfg = {**_CFG, "quality_floor": 0.30}
+    arts = [_art(1, q=0.25), _art(2, q=0.35)]
+    selected, pool_all, eff = select_digest_pool(arts, "道安政策", cfg, set())
+    assert eff == 1
+    assert {a["link"] for a in selected} == {arts[1]["link"]}
+    assert len(pool_all) == 2
