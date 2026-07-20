@@ -1,0 +1,39 @@
+name: 正文抓取可行性測量（診斷，唯讀）
+
+# 手動觸發專用。回答一個問題：從 Actions 的 IP 抓新聞正文，會不會被大規模擋？
+# spec 009 把全文抓取列 Out of Scope 時有這個疑慮但沒有實測數字。
+# 本 workflow 不寫任何資料、不需要憑證——文章清單走公開的 Worker API。
+
+on:
+  workflow_dispatch:
+    inputs:
+      week_id:
+        description: '要測的週次（例 2026-W30）；留空＝最新一週'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 設定 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 測量正文抓取成功率
+        # 經 env 傳遞並加引號：不要把 workflow 輸入直接插進 shell 指令
+        run: python scripts/measure_body_fetch.py "$WEEK_ID"
+        env:
+          WEEK_ID: ${{ inputs.week_id }}
