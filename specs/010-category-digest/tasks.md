@@ -106,7 +106,9 @@ description: "Task list for 低頻類別聚合式深度分析（category digest�
 
 - [X] T018 [P] SC-004 回歸：在 `tests/integration/test_digest_weekly.py` 增測「`category_digest` 空／缺 → 週跑選取與發布行為與 T001 基線等價」，並跑全 suite `pytest` 確認零回歸
 - [X] T019 quickstart §2 read-only 重放（真實 buffer，零寫入、不打 Gemini）：驗證 `select_digest_pool` 對實池的觸發統計（15 篇 → effective 排除「友善列印」→ TRIGGER）與選材排序
-- [ ] T020 Post-merge ops（不在本 branch）：prod `PIPELINE_CONFIG_YML` 補 `category_digest` 區塊＋read-back 用 repo loader 驗證（比照 #59 部署慣例）；首次真實週跑後從 Actions log 驗 SC-001（`✓ hot_topic_report upserted: ... / 道安政策 · 彙整`）與 SC-005（pool/effective/threshold/consumed 可直讀）
+- [X] T020 Post-merge ops（不在本 branch）：prod `PIPELINE_CONFIG_YML` 補 `category_digest` 區塊＋read-back 用 repo loader 驗證（比照 #59 部署慣例）；首次真實週跑後從 Actions log 驗 SC-001（`✓ hot_topic_report upserted: ... / 道安政策 · 彙整`）與 SC-005（pool/effective/threshold/consumed 可直讀）
+  - 部署 2026-07-13：prod config 已補，read-back diff 一致＋loader 驗證通過。
+  - 驗收 2026-07-20（run `29710997282`）：`digest[道安政策] pool=25 effective=24 threshold=10 → TRIGGER`／`✓ hot_topic_report upserted: 2026-07-20 / 道安政策 · 彙整`／`digest[道安政策] consumed=25`（選材 15＋殘餘 10＝池全清）。**SC-001／SC-005 皆達成**，道安政策 首次產出報告。
 
 ---
 
