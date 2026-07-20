@@ -55,6 +55,11 @@ function normalizeRow(row) {
     created_at: row.created_at || "",
     content_type: row.content_type || "traffic",
     major_category: row.major_category || "uncategorised",
+    image_url: row.image_url || "",
+    // null ≠ 0：未評分的列（非 buffer 路徑寫入）必須和真的 0 分區分開
+    initial_quality_score:
+      typeof row.initial_quality_score === "number" ? row.initial_quality_score : null,
+    hot_topic_analyzed: row.hot_topic_analyzed === true,
     analysis: {
       importance: analysis.importance || "中",
       importance_reason: analysis.importance_reason || "",
@@ -177,7 +182,8 @@ async function handleWeekDetail(env, weekId, url) {
   const params = new URLSearchParams();
   params.set(
     "select",
-    "week_id,title,link,source,published,summary,analysis,content_type,created_at,major_category",
+    "week_id,title,link,source,published,summary,analysis,content_type,created_at,major_category," +
+      "image_url,initial_quality_score,hot_topic_analyzed",
   );
   params.set("week_id", `eq.${weekId}`);
   params.set("order", "created_at.asc");
