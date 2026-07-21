@@ -63,7 +63,7 @@ JS 端刻意不引入測試框架——見 plan.md 的 Complexity Tracking 與 `
 - [X] T007 [US2] 在 `trafficRow()` 的來源色標籤加上收起入口，使收起為單一動作且不隨該來源篇數增加（`pages/shared/app.js`，對應 SC-004）
 - [X] T008 [US2] 實作已收起來源的管理與還原 UI，含全部收起時的空狀態與一鍵還原（`pages/shared/app.js`，FR-014）
 - [X] T009 [P] [US2] 在 `pages/shared/shared.css` 加入收起入口與空狀態的樣式
-- [ ] T010 [US2] 依 `quickstart.md` 前端驗收表跑 US2 相關列（FR-012～FR-015、SC-004），兩個週次各一次
+- [X] T010 [US2] 依 `quickstart.md` 前端驗收表跑 US2 相關列（FR-012～FR-015、SC-004），兩個週次各一次
 
 **Checkpoint**: US2 可獨立部署。此時列表已具備手動篩選能力。
 
@@ -92,7 +92,7 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 - [X] T016 [US1] 在 `workers/api/src/index.js` 新增純函式，依 data-model.md 的公式推導 `noise_downgrade` 與 `source_multiple`；來源名稱**必須完全相等比對**，不得子字串比對（多個來源共用 `Google News ` 前綴）
 - [X] T017 [US1] 在 `handleWeekDetail()` 的回應組裝套用 T016；確認新欄位**不進入任何 `select=` 子句**（contracts 不變式 1）
 - [X] T018 [US1] 在 `.github/workflows/deploy-worker.yml` 的 `vars:` 與 `env:` 區塊各加入 `SOURCE_UPTAKE_JSON`
-- [ ] T019 [US1] 依 `contracts/week-detail-api.md` 的驗證方式跑 4 項契約檢查（含 W20 舊週、FFXIV 路徑、設定損毀退化）
+- [X] T019 [US1] 依 `contracts/week-detail-api.md` 的驗證方式跑 4 項契約檢查（含 W20 舊週、FFXIV 路徑、設定損毀退化）
 
 ### 前端（呈現）
 
@@ -100,11 +100,11 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 - [X] T021 [US1] 在 `trafficGroups()` 為每組渲染降級提示行（標示收合篇數），並實作點擊就地展開／再收合；展開狀態**不持久化**（`pages/shared/app.js`，FR-008a／FR-008b）
 - [X] T022 [US1] 修改分組標頭同時顯示總篇數與降級篇數（`pages/shared/app.js`，FR-011）；確認分組收合時降級提示行一併隱藏（FR-011a）
 - [X] T023 [P] [US1] 在 `pages/shared/shared.css` 加入降級提示行與展開後淡化列的樣式
-- [ ] T024 [US1] 依 `quickstart.md` 前端驗收表跑 US1 相關列（FR-008～FR-011a），兩個週次各一次
+- [X] T024 [US1] 依 `quickstart.md` 前端驗收表跑 US1 相關列（FR-008～FR-011a），兩個週次各一次
 
 ### 設定部署
 
-- [ ] T025 [US1] 跑 T013 產生設定 JSON，交由**使用者本人**執行 `gh variable set SOURCE_UPTAKE_JSON --env production`（助理端會被權限擋），注意 CRLF 與尾端空行；**`火花羅` 不列入設定**——使用者已決定該來源由自己在 `sources_traffic.yml` 手動控制去留，不交由演算法降級
+- [X] T025 [US1] 跑 T013 產生設定 JSON，交由**使用者本人**執行 `gh variable set SOURCE_UPTAKE_JSON --env production`（助理端會被權限擋），注意 CRLF 與尾端空行；**`火花羅` 不列入設定**——使用者已決定該來源由自己在 `sources_traffic.yml` 手動控制去留，不交由演算法降級
 
 **Checkpoint**: US1 + US2 = 完整 MVP。
 
@@ -129,6 +129,38 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 - [X] T031 [P] 確認 FFXIV 路徑未退化：以 `content_type=ffxiv` 檢查列表渲染與 `noise_downgrade` 恆為 false
 - [X] T032 [P] 在 `specs/011-buffer-noise-triage/research.md` 的「待辦」勾除已完成項，並記錄 07-27 週報後需重跑 T011 補六個新來源
 - [X] T033 更新 `STATE.md`：記錄交付範圍、SC-001／SC-002 為「未量測」的原因與補記條件
+
+---
+
+## 驗收紀錄（2026-07-21）
+
+**已部署**：PR #67 merged（`9f27e66`）→ Worker、Pages Traffic、Pages FFXIV 三個部署皆 success。
+prod 變數 `SOURCE_UPTAKE_JSON` 已設定並讀回確認（window `2026-W22..2026-W29`、baseline 0.1954）。
+
+**T019 API 契約**：五個週次逐一檢查，**零缺欄位**，含量測窗口之外的 W20（不變式 4 成立）。
+只有設定中低於門檻的兩個來源被降級，FFXIV 路徑全 false（不變式 5）。
+
+| 週次 | 篇數 | 降級 | 降級來源 |
+|---|---|---|---|
+| W20 | 50 | 4 | 機車交通 4 |
+| W22 | 80 | 21 | 機車交通 21 |
+| W28 | 100 | 37 | 機車交通 29、重機 8 |
+| W29 | 100 | 37 | 機車交通 31、重機 6 |
+| W30 | 100 | 16 | 機車交通 14、重機 2 |
+
+不變式 3（設定損毀退化）**未在正式環境實測**——那需要故意把變數設成無效值。
+該路徑已對 Worker 原始碼逐項驗證（缺變數／非 JSON／`null`／缺 `sources` 鍵，四種皆回
+`false`+`null`）。代價效益不划算，刻意不做。
+
+**實際效果（W28，零圖片舊週）**：100 篇中 37 篇收進提示行，版面剩 63 列。
+最大的 `機車事故` 由 55 列縮到 34 列。
+
+**使用者瀏覽器驗收**：降級收合正常、來源收整個 feed 正常、圖片有出現（比例不高，
+符合 W29 33%／W30 23% 的資料現況）。
+
+**未完成**：
+- T029 的零圖片舊週（W28）版面確認——使用者回報的是有圖的週次，最容易破版的情境未經確認
+- T030 的 SC-003 計時——需使用者本人實測，在此之前 SC-003 階數比照 SC-001／SC-002 記為「未量測」
 
 ---
 
