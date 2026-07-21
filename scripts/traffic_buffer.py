@@ -1,7 +1,18 @@
 """
 scripts/traffic_buffer.py
-Daily runner : collect traffic articles, filter + enrich, write to Supabase buffer.
+Daily runner : collect traffic articles, filter, write to Supabase buffer.
 No AI calls; exits non-zero on exception.
+
+Runs collect -> filter -> publish and skips the analyze stage on purpose. The
+project originally ran the LLM daily on freshly scraped articles, which proved
+wasteful while article quality and sources were still unvalidated; hence the
+split into a daily buffer and a weekly bucket analysis. Do not wire analyze()
+in here on the assumption it was forgotten.
+
+Known consequence: TrafficCategory.analyze() no longer holds any LLM work, only
+the Google News link resolution and og: enrichment, so that enrichment runs on
+Mondays only. Tracked in specs/BACKLOG.md — the fix is to separate the prefetch
+rather than to call analyze() from here.
 """
 import logging
 import sys
