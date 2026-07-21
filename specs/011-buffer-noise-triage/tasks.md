@@ -128,7 +128,7 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 - [ ] T030 量測 SC-003（掃描成本）與 SC-004（操作成本），對照 T001 的基線，記錄爬到第幾階
 - [X] T031 [P] 確認 FFXIV 路徑未退化：以 `content_type=ffxiv` 檢查列表渲染與 `noise_downgrade` 恆為 false
 - [X] T032 [P] 在 `specs/011-buffer-noise-triage/research.md` 的「待辦」勾除已完成項，並記錄 07-27 週報後需重跑 T011 補六個新來源
-- [ ] T033 更新 `STATE.md`：記錄交付範圍、SC-001／SC-002 為「未量測」的原因與補記條件
+- [X] T033 更新 `STATE.md`：記錄交付範圍、SC-001／SC-002 為「未量測」的原因與補記條件
 
 ---
 
