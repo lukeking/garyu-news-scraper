@@ -81,10 +81,10 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 
 ### 量測（產出設定值）
 
-- [ ] T011 [US1] 建立 `scripts/measure_source_uptake.py`：分頁查詢 `articles` 全表（單次上限 1000 列），計算各來源的週報採用率與相對基準倍率。**不得使用 `get_traffic_buffer()`**——它內建 `hot_topic_analyzed=False` 過濾會讓分子恆為 0
-- [ ] T012 [US1] 在 T011 的腳本實作**自動窗口界定**（FR-005c，不得寫死週次）：排除「未分析數為 0」的已清除舊週（生存者偏差），排除週報尚未執行的當週
-- [ ] T013 [US1] 為 T011 的腳本加上 `--json` 輸出模式，產生 data-model.md 所定義的設定形狀，並套用 n≥15 樣本門檻（FR-005d，低於門檻者不得出現在輸出中）
-- [ ] T014 [P] [US1] 建立 `tests/unit/test_source_uptake.py`：覆蓋窗口界定的兩個排除規則與 n≥15 門檻，以合成資料驗證（不觸及真實資料庫）
+- [X] T011 [US1] 建立 `scripts/measure_source_uptake.py`：分頁查詢 `articles` 全表（單次上限 1000 列），計算各來源的週報採用率與相對基準倍率。**不得使用 `get_traffic_buffer()`**——它內建 `hot_topic_analyzed=False` 過濾會讓分子恆為 0
+- [X] T012 [US1] 在 T011 的腳本實作**自動窗口界定**（FR-005c，不得寫死週次）：排除「未分析數為 0」的已清除舊週（生存者偏差），排除週報尚未執行的當週
+- [X] T013 [US1] 為 T011 的腳本加上 `--json` 輸出模式，產生 data-model.md 所定義的設定形狀，並套用 n≥15 樣本門檻（FR-005d，低於門檻者不得出現在輸出中）
+- [X] T014 [P] [US1] 建立 `tests/unit/test_source_uptake.py`：覆蓋窗口界定的兩個排除規則與 n≥15 門檻，以合成資料驗證（不觸及真實資料庫）
 
 ### Worker API（推導）
 
