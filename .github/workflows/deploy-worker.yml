@@ -28,6 +28,7 @@ jobs:
           # Define public variables here
           vars: |
             SUPABASE_URL
+            SOURCE_UPTAKE_JSON
           # Define encrypted secrets here
           secrets: |
             SUPABASE_SERVICE_ROLE_KEY
@@ -35,3 +36,7 @@ jobs:
           # These MUST be in the env block so the action can read them
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Per-source noise ratings (spec 011). Not a secret — it is only
+          # source names and measured multiples. Absent or malformed leaves
+          # every article un-downgraded, so a missing variable is safe.
+          SOURCE_UPTAKE_JSON: ${{ vars.SOURCE_UPTAKE_JSON }}

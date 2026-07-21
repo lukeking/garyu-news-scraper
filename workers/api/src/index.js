@@ -44,6 +44,44 @@ function parseLimit(value, defaultValue = 50) {
   return Math.min(parsed, MAX_LIMIT);
 }
 
+// ── 來源雜訊分級（spec 011） ──────────────────────────────────
+// 分級是「推導」不是「儲存」：資料庫沒有這兩個欄位，也不需要回填，
+// 因此設定一改，連最早的週次都立刻跟著變。
+//
+// 設定形狀見 specs/011-buffer-noise-triage/data-model.md。
+// 缺失或壞掉時一律退化成「全部非雜訊」——降級是增益功能，
+// 不該因為設定出問題就讓內容從列表上消失。
+function parseNoiseConfig(env) {
+  const empty = { threshold: 0, sources: {} };
+  try {
+    const parsed = JSON.parse(env.SOURCE_UPTAKE_JSON || "");
+    if (!parsed || typeof parsed !== "object" || typeof parsed.sources !== "object") {
+      return empty;
+    }
+    return {
+      threshold: typeof parsed.threshold === "number" ? parsed.threshold : 0,
+      sources: parsed.sources || {},
+    };
+  } catch (e) {
+    return empty;
+  }
+}
+
+// 來源名必須「完全相等」比對。多個來源共用 "Google News " 前綴，
+// 子字串比對會讓一個 feed 的評級汙染到其他 feed。
+function noiseSignal(source, config) {
+  const entry = Object.prototype.hasOwnProperty.call(config.sources, source)
+    ? config.sources[source]
+    : null;
+  if (!entry || typeof entry.multiple !== "number") {
+    return { noise_downgrade: false, source_multiple: null };
+  }
+  return {
+    noise_downgrade: entry.multiple < config.threshold,
+    source_multiple: entry.multiple,
+  };
+}
+
 function normalizeRow(row) {
   const analysis = row.analysis || {};
   return {
@@ -188,7 +226,13 @@ async function handleWeekDetail(env, weekId, url) {
   params.set("week_id", `eq.${weekId}`);
   params.set("order", "created_at.asc");
   const rows = await supabaseGet(env, "articles", params);
-  let normalized = rows.map(normalizeRow);
+  // 推導欄位在回應組裝時加上——注意上面的 select 子句刻意不含這兩欄，
+  // 它們不存在於資料庫（contracts 不變式 1）。
+  const noiseConfig = parseNoiseConfig(env);
+  let normalized = rows.map((row) => ({
+    ...normalizeRow(row),
+    ...noiseSignal(row.source || "", noiseConfig),
+  }));
 
   const contentType = url.searchParams.get("content_type");
   if (contentType && CONTENT_TYPE_VALUES.has(contentType)) {

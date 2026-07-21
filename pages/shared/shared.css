@@ -183,7 +183,65 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .traffic-row:first-child { border-top: 1px solid var(--border); }
 .traffic-row:hover { transform: none; background: var(--bg); }
 .tr-main { display: flex; align-items: center; gap: 8px; padding: 8px 6px; }
-.tr-src { flex: 0 0 auto; font-size: 10px; font-weight: 700; color: #fff; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
+/* 來源色標同時是「收起整個來源」的入口（spec 011 / US2）。
+   保持與原本 span 相同的視覺，只在 hover 時提示可點。 */
+.tr-src {
+  flex: 0 0 auto; font-size: 10px; font-weight: 700; color: #fff; padding: 2px 6px;
+  border-radius: 4px; white-space: nowrap; border: none; cursor: pointer; font-family: inherit;
+}
+.tr-src:hover { outline: 2px solid var(--text-muted); outline-offset: 1px; }
+
+/* ── 高價值突顯（spec 011 / US3） ── */
+/* 加強靠邊框與標記，不靠圖片：舊週圖片覆蓋率 0%，靠圖的設計在那裡會全部失效。 */
+.tr-strong { border-left: 3px solid var(--accent2); }
+.tr-strong .tr-title { font-weight: 700; }
+.tr-badge { flex: 0 0 auto; font-size: 11px; color: var(--accent2); line-height: 1; }
+/* 縮圖只在展開後、且真的有摘要時出現；載入失敗會自我移除，不留破圖空位。 */
+.tr-thumb {
+  display: block; max-width: 100%; width: 220px; height: auto;
+  border-radius: 6px; margin: 0 0 8px; object-fit: cover;
+}
+
+/* ── 雜訊降級（spec 011 / US1） ── */
+/* 分組標頭的降級計數：與總篇數並列，讓組內實際可讀量一眼可見（FR-011） */
+.tr-group-noise {
+  font-size: 10.5px; font-weight: 600; color: var(--text-muted);
+  background: var(--tag-bg); border-radius: 10px; padding: 1px 7px; margin-left: 4px;
+}
+/* 降級提示行：整批雜訊收合成的單一入口 */
+.tr-noise { border-top: 1px dashed var(--border); }
+.tr-noise-head {
+  display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 6px;
+  background: none; border: none; cursor: pointer; font-family: inherit; text-align: left;
+  font-size: 12px; color: var(--text-muted);
+}
+.tr-noise-head:hover { background: var(--bg); color: var(--text-secondary); }
+.tr-noise-caret { font-size: 9px; }
+.tr-noise-label { font-weight: 600; }
+/* 展開後的降級列：視覺弱化，但功能完全不減（FR-009） */
+.tr-dimmed { opacity: 0.55; }
+.tr-dimmed:hover { opacity: 1; }
+.tr-dimmed .tr-title { font-size: 12.5px; }
+
+/* ── 已收起來源的還原列（spec 011 / US2） ── */
+.hidden-sources-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  padding: 8px 10px; margin-bottom: 10px;
+  background: var(--tag-bg); border: 1px solid var(--border); border-radius: 8px;
+}
+.hs-label { font-size: 11.5px; font-weight: 700; color: var(--text-secondary); margin-right: 2px; }
+.hs-chip {
+  font-size: 11px; padding: 3px 8px; border-radius: 12px; cursor: pointer;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--border);
+  font-family: inherit; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.hs-chip:hover { border-color: var(--accent); }
+.hs-x { color: var(--text-muted); font-weight: 700; }
+.hs-clear {
+  margin-left: auto; font-size: 11px; padding: 3px 10px; border-radius: 6px; cursor: pointer;
+  background: none; color: var(--text-secondary); border: 1px solid var(--border); font-family: inherit;
+}
+.hs-clear:hover { color: var(--text); border-color: var(--accent); }
 .tr-title {
   flex: 1; min-width: 0; text-align: left; background: none; border: none; cursor: pointer;
   padding: 0; font-size: 13.5px; line-height: 1.4; color: var(--text);

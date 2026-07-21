@@ -44,7 +44,10 @@ fi
 
 # Read per-command config from git-config.yml
 _config_file="$REPO_ROOT/.specify/extensions/git/git-config.yml"
-_enabled=false
+# Tri-state: "" = the event did not specify `enabled`, so the default applies.
+# Distinguishing "unspecified" from "false" is what makes the default reachable
+# for events that declare only a `message`.
+_enabled=""
 _commit_msg=""
 
 if [ -f "$_config_file" ]; then
@@ -100,13 +103,12 @@ if [ -f "$_config_file" ]; then
         fi
     done < "$_config_file"
 
-    # If event-specific key not found, use default
-    if [ "$_enabled" = "false" ] && [ "$_default_enabled" = "true" ]; then
-        # Only use default if the event wasn't explicitly set to false
-        # Check if event section existed at all
-        if ! grep -q "^[[:space:]]*${EVENT_NAME}:" "$_config_file" 2>/dev/null; then
-            _enabled=true
-        fi
+    # The event only overrides the default when it sets `enabled` explicitly.
+    # An event subsection carrying just a `message` leaves _enabled unset, so
+    # the default still applies — previously such events were treated as
+    # disabled, which silently switched auto-commit off for every event.
+    if [ -z "$_enabled" ]; then
+        _enabled=$_default_enabled
     fi
 else
     # No config file — auto-commit disabled by default
