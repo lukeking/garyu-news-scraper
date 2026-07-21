@@ -4,6 +4,36 @@
 
 ---
 
+## 整合測試指向本機 Supabase
+
+**提出**: 2026-07-21，在實際造成正式資料汙染之後
+**優先度**: 高於下方的前端測試框架——那項是**缺乏保護**，這項是會**主動造成損害**
+
+**問題**：`tests/integration` 在 `.env` 有憑證時直接寫進**正式** Supabase 的 `articles` 表。
+沒有任何防護把它擋下來，也沒有任何提示告訴執行者這件事正在發生。
+
+**已發生的實害**：2026-07-21 為驗證 spec 011 而跑整合測試，插進 16 列測試資料
+（`2025-W01-test` 等 week_id、`example.com` 連結）。汙染不只停在資料表——
+`scripts/measure_source_uptake.py` 把它們納入統計，baseline 由 0.1954 位移到 0.1914，
+每個來源倍率跟著偏，依此設定的 prod 變數 `SOURCE_UPTAKE_JSON` 整份是錯的，必須重設。
+16 列已刪除，量測腳本已加 ISO week_id 過濾作為第二道防線——**但那只擋統計汙染，
+擋不住資料被寫進去**。
+
+**已知可用資源**：本機 Docker 已常駐一套 Supabase（容器 `supabase_*_backend`），
+API `http://localhost:54321`、Postgres `localhost:54322`，金鑰由 `supabase status` 取得。
+所以不需要新建基礎設施，只需要讓測試指過去。
+
+**範圍草稿**（開 spec 時再確認）：
+- conftest fixture：整合測試啟動時強制覆寫連線設定指向本機，**並在指向正式環境時直接 fail**
+  而非放行。預設要安全，不能靠執行者記得。
+- schema 建立／清理：本機實例是跨專案共用的，需要確認 `articles` 等表的建立方式。
+- 唯讀診斷腳本**不在此範圍**——那些指向正式環境是正確且必要的，本 session 大量使用未造成影響。
+  界線在「寫入」，不在「連線」。
+- 順帶處理 `test_traffic_buffer::test_filter_attaches_category_and_score`：
+  它在有憑證環境會 fail，長期被 skip 蓋住，實質上是同一個根因的徵兆。
+
+---
+
 ## 前端測試框架（Storybook / E2E）
 
 **提出**: 2026-07-21，從 011-buffer-noise-triage 的 Constitution Check 帶出
