@@ -459,16 +459,24 @@ function trafficRow(a, idx, dimmed) {
   const isEcho = normS.length <= normT.length + 24 && (normT.includes(normS) || normS.includes(normT));
   const summary = isEcho ? '' : rawSummary;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
+  // 高信號標記（spec 011 / US3）。刻意不依賴圖片：早期週次圖片覆蓋率為 0%，
+  // 以圖為主的加強在那些週會完全失效（FR-017）。圖片只是額外加分。
+  const analyzed = a.hot_topic_analyzed === true;
+  const hasImage = !!(a.image_url || '').trim();
+  const strong = !dimmed && analyzed;
   return `
-<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}" data-url="${a.link}">
+<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}${strong ? ' tr-strong' : ''}" data-url="${a.link}">
   <div class="tr-main">
     <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
             onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
+    ${analyzed ? '<span class="tr-badge" title="已納入本週熱點報告">★</span>' : ''}
     <button class="tr-title" onclick="toggleRow(this)">${idx}. ${esc(a.title)}</button>
     <span class="tr-time">${when ? relativeTime(when) : ''}</span>
     <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
   </div>
   <div class="tr-detail" hidden>
+    ${summary && hasImage ? `<img class="tr-thumb" src="${esc(a.image_url)}" alt=""
+         loading="lazy" onerror="this.remove()">` : ''}
     ${summary ? `<p class="tr-summary">${esc(summary)}</p>` : ''}
     <div class="tr-actions">
       ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享至 LINE">LINE</a>` : ''}

@@ -191,6 +191,17 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .tr-src:hover { outline: 2px solid var(--text-muted); outline-offset: 1px; }
 
+/* ── 高價值突顯（spec 011 / US3） ── */
+/* 加強靠邊框與標記，不靠圖片：舊週圖片覆蓋率 0%，靠圖的設計在那裡會全部失效。 */
+.tr-strong { border-left: 3px solid var(--accent2); }
+.tr-strong .tr-title { font-weight: 700; }
+.tr-badge { flex: 0 0 auto; font-size: 11px; color: var(--accent2); line-height: 1; }
+/* 縮圖只在展開後、且真的有摘要時出現；載入失敗會自我移除，不留破圖空位。 */
+.tr-thumb {
+  display: block; max-width: 100%; width: 220px; height: auto;
+  border-radius: 6px; margin: 0 0 8px; object-fit: cover;
+}
+
 /* ── 雜訊降級（spec 011 / US1） ── */
 /* 分組標頭的降級計數：與總篇數並列，讓組內實際可讀量一眼可見（FR-011） */
 .tr-group-noise {

@@ -116,9 +116,9 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 
 **Independent Test**: 有圖片的近期週確認高信號文章先被注意到；零圖片舊週確認版面不破損。
 
-- [ ] T026 [US3] 在 `trafficRow()` 為 `hot_topic_analyzed === true` 的文章加上可辨識標記，使用者無須展開即知（`pages/shared/app.js`，FR-016）
-- [ ] T027 [US3] 為同時具備 `image_url` 與可用摘要的文章提高視覺重量；**缺圖時必須優雅退化**，不得出現破圖或版面塌陷（`pages/shared/app.js`，FR-017）
-- [ ] T028 [P] [US3] 在 `pages/shared/shared.css` 加入突顯樣式，含無圖時的退化樣式
+- [X] T026 [US3] 在 `trafficRow()` 為 `hot_topic_analyzed === true` 的文章加上可辨識標記，使用者無須展開即知（`pages/shared/app.js`，FR-016）
+- [X] T027 [US3] 為同時具備 `image_url` 與可用摘要的文章提高視覺重量；**缺圖時必須優雅退化**，不得出現破圖或版面塌陷（`pages/shared/app.js`，FR-017）
+- [X] T028 [P] [US3] 在 `pages/shared/shared.css` 加入突顯樣式，含無圖時的退化樣式
 - [ ] T029 [US3] 依 `quickstart.md` 驗收 FR-016／FR-017，**必須在圖片覆蓋率 0% 的舊週實測一次**（SC-005）
 
 ---
@@ -126,8 +126,8 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 ## Phase 6: Polish & Cross-Cutting
 
 - [ ] T030 量測 SC-003（掃描成本）與 SC-004（操作成本），對照 T001 的基線，記錄爬到第幾階
-- [ ] T031 [P] 確認 FFXIV 路徑未退化：以 `content_type=ffxiv` 檢查列表渲染與 `noise_downgrade` 恆為 false
-- [ ] T032 [P] 在 `specs/011-buffer-noise-triage/research.md` 的「待辦」勾除已完成項，並記錄 07-27 週報後需重跑 T011 補六個新來源
+- [X] T031 [P] 確認 FFXIV 路徑未退化：以 `content_type=ffxiv` 檢查列表渲染與 `noise_downgrade` 恆為 false
+- [X] T032 [P] 在 `specs/011-buffer-noise-triage/research.md` 的「待辦」勾除已完成項，並記錄 07-27 週報後需重跑 T011 補六個新來源
 - [ ] T033 更新 `STATE.md`：記錄交付範圍、SC-001／SC-002 為「未量測」的原因與補記條件
 
 ---
