@@ -89,6 +89,45 @@ function applyDismissed() {
   checkEmptyDismissed();
 }
 
+// ── 來源收起（spec 011 / US2） ────────────────────────────────
+// 與逐條 dismiss 共用 localStorage，但用獨立的鍵，兩者互不覆寫（FR-015）。
+// 鍵由 contentType 推導，避免為了單一功能去改各頁的 SITE_CONFIG。
+//
+// 收起的單位是「收集來源」（feed），不是發稿媒體（FR-012a）。注意 srcLabel 會把
+// 所有 Google News feed 顯示成同一個標籤，因此一切操作都必須用 a.source 原值，
+// 顯示給使用者看的也必須是原值，否則使用者不知道自己收掉的是哪個 feed。
+function hiddenSourcesKey() {
+  return 'hidden-sources-' + (C.contentType || 'traffic');
+}
+function getHiddenSources() {
+  try { return new Set(JSON.parse(localStorage.getItem(hiddenSourcesKey()) || '[]')); }
+  catch(e) { return new Set(); }
+}
+function saveHiddenSources(set) {
+  try { localStorage.setItem(hiddenSourcesKey(), JSON.stringify([...set])); } catch(e) {}
+}
+function isSourceHidden(src) {
+  return getHiddenSources().has(src || '');
+}
+function hideSource(btn) {
+  const src = btn.dataset.source || '';
+  if (!src) return;
+  const set = getHiddenSources();
+  set.add(src);
+  saveHiddenSources(set);
+  renderAll();
+}
+function unhideSource(btn) {
+  const set = getHiddenSources();
+  set.delete(btn.dataset.source || '');
+  saveHiddenSources(set);
+  renderAll();
+}
+function clearHiddenSources() {
+  saveHiddenSources(new Set());
+  renderAll();
+}
+
 // ── Hot Topics (traffic only) ─────────────────────────────────
 // 把報告的 week_start_date（週一日期）換算成 ISO 週字串，對齊文章 week_id（如 2026-W23）。
 function isoWeekId(dateStr) {
@@ -321,9 +360,14 @@ function relativeTime(isoStr) {
 
 // ── Render ────────────────────────────────────────────────────
 function renderAll() {
-  renderStats(currentArticles);
+  // 使用者收起的來源不計入統計——「完全不出現」也包含篇數（spec 011 / US2）。
+  // 自動降級的雜訊仍計入：那些文章還在頁面上，只是收合起來。
+  const visible = C.contentType === 'traffic'
+    ? currentArticles.filter(a => articleDisplayState(a) !== 'hidden')
+    : currentArticles;
+  renderStats(visible);
   renderCards(currentArticles);
-  renderTermPool(currentArticles);
+  renderTermPool(visible);
 }
 
 function renderTermPool(articles) {
@@ -372,6 +416,20 @@ function renderStats(articles) {
   ].join('');
 }
 
+// ── 顯示狀態決策（spec 011） ──────────────────────────────────
+// 三個 story 都會改這條渲染路徑，所以每篇文章的顯示狀態只在這裡決定一次，
+// 避免各自在 trafficGroups/trafficRow 裡散插判斷式。
+//
+//   hidden    使用者明示收起該來源 — 完全不出現
+//   collapsed 自動判為雜訊 — 收進分組的降級提示行，可就地展開
+//   normal    照常呈現
+//
+// 使用者的明示選擇優先於自動判定：已收起的來源不再顯示降級提示行。
+function articleDisplayState(a) {
+  if (isSourceHidden(a.source)) return 'hidden';
+  return 'normal';
+}
+
 // 交通新聞密集列：來源色標＋標題＋相對時間；點標題展開來源摘要（FR-009/015）
 function trafficRow(a, idx) {
   const src = a.source || '';
@@ -389,7 +447,8 @@ function trafficRow(a, idx) {
   return `
 <div class="card traffic-row" data-url="${a.link}">
   <div class="tr-main">
-    <span class="tr-src" style="background:${C.srcColor(src)}">${esc(C.srcLabel(src))}</span>
+    <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
+            onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
     <button class="tr-title" onclick="toggleRow(this)">${idx}. ${esc(a.title)}</button>
     <span class="tr-time">${when ? relativeTime(when) : ''}</span>
     <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
@@ -431,13 +490,23 @@ function trafficGroups(articles) {
   return ordered.map(([cat, items], gi) => {
     items.sort((a, b) => ts(b) - ts(a));        // 組內時間序，最新在上
     const open = gi < 3;
-    const rows = items.map((a, i) => trafficRow(a, i + 1)).join('');
+    // 每篇的顯示狀態只在 articleDisplayState 決定一次；分組內依狀態分派渲染。
+    // 編號沿用「可見列的序號」，所以先分派再編號，被收起的列不佔號碼。
+    const shown = [], collapsed = [];
+    for (const a of items) {
+      const state = articleDisplayState(a);
+      if (state === 'hidden') continue;
+      (state === 'collapsed' ? collapsed : shown).push(a);
+    }
+    // 整組都被使用者收起 → 該組不出現（明示選擇＝完全不出現）
+    if (!shown.length && !collapsed.length) return '';
+    const rows = shown.map((a, i) => trafficRow(a, i + 1)).join('');
     return `
 <section class="tr-group${open ? '' : ' collapsed'}">
   <button class="tr-group-head" onclick="toggleGroup(this)" aria-expanded="${open}">
     <span class="tr-group-caret">${open ? '▼' : '▶'}</span>
     <span class="tr-group-name">${esc(catLabel(cat))}</span>
-    <span class="tr-group-count">${items.length}</span>
+    <span class="tr-group-count">${shown.length + collapsed.length}</span>
   </button>
   <div class="tr-group-body"${open ? '' : ' hidden'}>${rows}</div>
 </section>`;
@@ -456,13 +525,33 @@ function toggleGroup(btn) {
   if (caret) caret.textContent = willOpen ? '▼' : '▶';
 }
 
+// 已收起來源的還原列。永遠顯示（只要有收起項），使誤點單一動作即可救回。
+function hiddenSourcesBar() {
+  const hidden = [...getHiddenSources()];
+  if (!hidden.length) return '';
+  const chips = hidden.map(s =>
+    `<button class="hs-chip" data-source="${esc(s)}" onclick="unhideSource(this)"
+             title="放回列表：${esc(s)}">${esc(s)} <span class="hs-x">↩</span></button>`).join('');
+  return `
+<div class="hidden-sources-bar">
+  <span class="hs-label">已收起 ${hidden.length} 個來源</span>
+  ${chips}
+  <button class="hs-clear" onclick="clearHiddenSources()">全部還原</button>
+</div>`;
+}
+
 function renderCards(articles) {
   if (!articles.length) {
     $('article-list').innerHTML = `<div class="empty">${C.emptyHtml}</div>`;
     return;
   }
   if (C.contentType === 'traffic') {
-    $('article-list').innerHTML = trafficGroups(articles);
+    const bar = hiddenSourcesBar();
+    const groups = trafficGroups(articles);
+    // 全部被收起時仍須給出可理解的出口（FR-014）
+    $('article-list').innerHTML = bar + (groups ||
+      `<div class="empty"><h3>本週文章都來自已收起的來源。</h3>
+       <p>用上方的還原鈕把來源放回列表。</p></div>`);
   } else {
     $('article-list').innerHTML = articles.map((a, i) => articleCard(a, i + 1)).join('');
   }

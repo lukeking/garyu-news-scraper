@@ -39,6 +39,47 @@ gh variable set SOURCE_UPTAKE_JSON --env production --body "$(python scripts/mea
 gh api repos/lukeking/garyu-news-scraper/environments/production/variables/SOURCE_UPTAKE_JSON --jq '.value'
 ```
 
+## 本地預覽（T002）
+
+部署會把三處檔案攤平成一個目錄（見 `deploy-pages-traffic.yml`）。本地必須複製同樣的佈局，
+否則 `index.html` 的 `src="app.js"` 找不到檔案。用 **symlink** 而非 `cp`，改動才會即時反映，
+不會測到過期副本：
+
+```bash
+P=/tmp/preview-traffic
+rm -rf "$P" && mkdir -p "$P" && cp -r pages/traffic/. "$P"/
+ln -sf "$PWD/pages/shared/app.js"     "$P/app.js"
+ln -sf "$PWD/pages/shared/shared.css" "$P/shared.css"
+python -m http.server -d "$P" 8788   # → http://localhost:8788/
+```
+
+`index.html` 內建 `window.__API_BASE__` 指向正式 Worker，因此預覽讀的是**線上資料**——
+前端改動可即時驗證，無須本地後端。
+
+## 基線（T001）
+
+驗收週次固定為以下兩週，涵蓋 SC-005 要求的兩種極端：
+
+| 週次 | 篇數 | 圖片覆蓋率 | 分組數 | 角色 |
+|---|---|---|---|---|
+| **2026-W28** | 119 | **0%** | 10 | 零圖片舊週；篇數最多，版面壓力最大 |
+| **2026-W29** | 87 | **33%** | 9 | 圖片覆蓋率最高的一週 |
+
+**注意**：STATE.md 舊記「圖覆蓋率逐週 0%→74%」與實測不符。2026-07-21 全表實測結果為
+W20–W28 皆 0%、W29 = 33%、W30 = 23%，**最高值是 33% 而非 74%**。以此處實測為準。
+
+分組篇數基線（T004 改寫渲染分派後必須完全一致）：
+
+```
+W28 (n=119): 機車事故 66 / 路權政策 7 / 道安政策 7 / 路口安全 6 / 行人事故 3 /
+             道路施工 1 / 科技執法 1 / 酒駕 1 / 大型車安全 1 / uncategorised 26
+W29 (n=87):  機車事故 50 / 道安政策 10 / 路權政策 6 / 大型車安全 3 / 路口安全 3 /
+             行人事故 2 / 道路施工 2 / 酒駕 1 / uncategorised 10
+```
+
+**SC-003 的人工計時基線待補**——「從載入到指出第一篇想讀的文章」需由使用者本人實測，
+無法由助理代測。在該數字取得前，SC-003 的階數比照 SC-001／SC-002 記為「未量測」。
+
 ## 3. 驗證
 
 ### API 契約（4 項，見 contracts/week-detail-api.md）

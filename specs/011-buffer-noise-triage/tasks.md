@@ -30,8 +30,8 @@ JS 端刻意不引入測試框架——見 plan.md 的 Complexity Tracking 與 `
 
 **Purpose**: 建立可比對的基線。無相依套件需安裝——本功能零新增依賴。
 
-- [ ] T001 記錄現況基線：挑一個近期週與一個圖片覆蓋率 0% 的舊週，截圖並記下各分組篇數與「找到第一篇想讀文章」的秒數，寫入 `specs/011-buffer-noise-triage/quickstart.md` 的驗證段作為 SC-003 的前後對照
-- [ ] T002 [P] 確認 `pages/traffic/index.html` 與 `pages/shared/app.js` 的本地預覽方式可用，並記錄於 `specs/011-buffer-noise-triage/quickstart.md`（前端無建置步驟，直接開檔或起靜態伺服器）
+- [X] T001 記錄現況基線：挑一個近期週與一個圖片覆蓋率 0% 的舊週，截圖並記下各分組篇數與「找到第一篇想讀文章」的秒數，寫入 `specs/011-buffer-noise-triage/quickstart.md` 的驗證段作為 SC-003 的前後對照
+- [X] T002 [P] 確認 `pages/traffic/index.html` 與 `pages/shared/app.js` 的本地預覽方式可用，並記錄於 `specs/011-buffer-noise-triage/quickstart.md`（前端無建置步驟，直接開檔或起靜態伺服器）
 
 ---
 
@@ -43,8 +43,8 @@ JS 端刻意不引入測試框架——見 plan.md 的 Complexity Tracking 與 `
 
 **⚠️ 完成後才可開始任何 user story**
 
-- [ ] T003 在 `pages/shared/app.js` 新增純函式 `articleDisplayState(article)`，回傳 `'hidden' | 'collapsed' | 'normal'`，實作 data-model.md「狀態轉換」一節的決策樹；此階段僅實作 `'normal'` 分支，其餘由各 story 填入
-- [ ] T004 修改 `pages/shared/app.js` 的 `trafficGroups()`，改為經 `articleDisplayState()` 分派渲染，取代目前直接 map 成 `trafficRow` 的寫法；行為必須與現況完全一致（回歸檢查：對照 T001 的分組篇數）
+- [X] T003 在 `pages/shared/app.js` 新增純函式 `articleDisplayState(article)`，回傳 `'hidden' | 'collapsed' | 'normal'`，實作 data-model.md「狀態轉換」一節的決策樹；此階段僅實作 `'normal'` 分支，其餘由各 story 填入
+- [X] T004 修改 `pages/shared/app.js` 的 `trafficGroups()`，改為經 `articleDisplayState()` 分派渲染，取代目前直接 map 成 `trafficRow` 的寫法；行為必須與現況完全一致（回歸檢查：對照 T001 的分組篇數）
 
 ---
 
@@ -58,11 +58,11 @@ JS 端刻意不引入測試框架——見 plan.md 的 Complexity Tracking 與 `
 **Independent Test**: 任一週頁選一個來源收起 → 該來源文章全部消失、篇數統計更新、
 重新載入後仍為收起、可還原。不需要 Worker 變更，不需要量測資料。
 
-- [ ] T005 [US2] 在 `pages/shared/app.js` 新增收起清單的持久化讀寫，沿用既有 dismiss 機制的同一儲存後端但**獨立的鍵**（FR-015 要求不互相覆寫）
-- [ ] T006 [US2] 在 `articleDisplayState()` 補上 `'hidden'` 分支：來源在收起清單中即回傳 hidden（`pages/shared/app.js`）
-- [ ] T007 [US2] 在 `trafficRow()` 的來源色標籤加上收起入口，使收起為單一動作且不隨該來源篇數增加（`pages/shared/app.js`，對應 SC-004）
-- [ ] T008 [US2] 實作已收起來源的管理與還原 UI，含全部收起時的空狀態與一鍵還原（`pages/shared/app.js`，FR-014）
-- [ ] T009 [P] [US2] 在 `pages/shared/shared.css` 加入收起入口與空狀態的樣式
+- [X] T005 [US2] 在 `pages/shared/app.js` 新增收起清單的持久化讀寫，沿用既有 dismiss 機制的同一儲存後端但**獨立的鍵**（FR-015 要求不互相覆寫）
+- [X] T006 [US2] 在 `articleDisplayState()` 補上 `'hidden'` 分支：來源在收起清單中即回傳 hidden（`pages/shared/app.js`）
+- [X] T007 [US2] 在 `trafficRow()` 的來源色標籤加上收起入口，使收起為單一動作且不隨該來源篇數增加（`pages/shared/app.js`，對應 SC-004）
+- [X] T008 [US2] 實作已收起來源的管理與還原 UI，含全部收起時的空狀態與一鍵還原（`pages/shared/app.js`，FR-014）
+- [X] T009 [P] [US2] 在 `pages/shared/shared.css` 加入收起入口與空狀態的樣式
 - [ ] T010 [US2] 依 `quickstart.md` 前端驗收表跑 US2 相關列（FR-012～FR-015、SC-004），兩個週次各一次
 
 **Checkpoint**: US2 可獨立部署。此時列表已具備手動篩選能力。
