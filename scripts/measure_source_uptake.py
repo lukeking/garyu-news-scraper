@@ -20,6 +20,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import sys
 from collections import defaultdict
 
@@ -36,6 +37,12 @@ logger = logging.getLogger("measure_source_uptake")
 MIN_SAMPLE = 15          # FR-005d: below this a source gets no configured value
 PAGE_SIZE = 1000         # Supabase caps rows per response
 DEFAULT_THRESHOLD = 0.5  # FR-005a: multiple below this reads as noise
+
+# Only real ISO week ids are measurable. The integration suite writes rows like
+# "2025-W01-test" straight into the articles table whenever .env credentials are
+# present, and those rows shifted the baseline and every multiple when they were
+# picked up. Config values must not be at the mercy of whoever last ran pytest.
+ISO_WEEK = re.compile(r"^\d{4}-W\d{2}$")
 
 
 def fetch_traffic_articles():
@@ -86,8 +93,9 @@ def select_window(rows):
     """
     by_week = defaultdict(list)
     for r in rows:
-        if r.get("week_id"):
-            by_week[r["week_id"]].append(r)
+        week = r.get("week_id") or ""
+        if ISO_WEEK.match(week):        # drop test fixtures and malformed ids
+            by_week[week].append(r)
     if not by_week:
         return set()
 

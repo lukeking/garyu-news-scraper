@@ -89,6 +89,28 @@ class TestSelectWindow:
         """One week of data is always the in-flight week — nothing measurable."""
         assert select_window(rows_for("2026-W22", "s", analysed=1, unanalysed=9)) == set()
 
+    def test_ignores_non_iso_week_ids(self):
+        """Regression: the integration suite writes rows such as "2025-W01-test"
+        into the real articles table when .env credentials are present. Those
+        rows were picked up once and shifted the baseline and every configured
+        multiple. Config values must not depend on who last ran pytest."""
+        rows = (
+            rows_for("2026-W22", "s", analysed=2, unanalysed=8)
+            + rows_for("2026-W23", "s", analysed=1, unanalysed=9)
+            + rows_for("2025-W01-test", "s", analysed=0, unanalysed=9)
+            + rows_for("2025-W99-integration-test", "s", analysed=4, unanalysed=0)
+            + rows_for("", "s", analysed=1, unanalysed=1)
+        )
+        assert select_window(rows) == {"2026-W22"}
+
+    def test_test_rows_do_not_move_the_baseline(self):
+        clean = rows_for("2026-W22", "s", analysed=5, unanalysed=5) + rows_for(
+            "2026-W23", "s", analysed=1, unanalysed=9
+        )
+        polluted = clean + rows_for("2025-W01-test", "s", analysed=0, unanalysed=50)
+        window = select_window(clean)
+        assert measure(clean, window) == measure(polluted, select_window(polluted))
+
     def test_empty_input(self):
         assert select_window([]) == set()
 
