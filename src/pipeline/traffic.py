@@ -132,6 +132,11 @@ class TrafficCategory:
         # LLM analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py).
         # Here we only enrich Google News items post-dedup, so the per-item HTTP cost
         # is spent solely on articles that will actually be buffered.
+        #
+        # Only main.py reaches this stage. The daily runner (scripts/traffic_buffer.py)
+        # skips analyze entirely to stay AI-free, so despite holding no LLM work, this
+        # enrichment currently runs on Mondays only — which is why most Google News rows
+        # keep an unresolved link and no image. See specs/BACKLOG.md.
         try:
             from src.gn_resolver import enrich_articles
             enrich_articles(articles)
