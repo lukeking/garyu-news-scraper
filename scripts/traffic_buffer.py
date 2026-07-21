@@ -43,6 +43,22 @@ def main():
     filtered = cat.filter(raw)
     logger.info("過濾後 %d 篇", len(filtered))
 
+    # Say out loud what is being skipped. Silence here reads exactly like
+    # "enrichment ran and had nothing to do", which is how this gap stayed
+    # invisible for weeks: every day except Monday the Google News rows keep an
+    # unresolved link and no og image, and nothing ever mentioned it. Tracked in
+    # specs/BACKLOG.md — this line is evidence, not a fix.
+    from src.gn_resolver import is_gn_article_link
+
+    gn_pending = sum(1 for a in filtered if is_gn_article_link(a.get("link") or ""))
+    if gn_pending:
+        logger.info(
+            "略過 og 充實（每日模式刻意不呼叫 analyze，見本檔 docstring）："
+            "%d/%d 篇 Google News 文章維持未還原連結、無 og 摘要與圖片；"
+            "充實目前僅在週一 main.py 執行",
+            gn_pending, len(filtered),
+        )
+
     result = cat.publish(filtered)
     logger.info("結果：%s", result)
     logger.info("=== 交通新聞每日 buffer 完成 ===")
