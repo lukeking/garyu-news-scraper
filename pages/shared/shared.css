@@ -191,6 +191,27 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .tr-src:hover { outline: 2px solid var(--text-muted); outline-offset: 1px; }
 
+/* ── 雜訊降級（spec 011 / US1） ── */
+/* 分組標頭的降級計數：與總篇數並列，讓組內實際可讀量一眼可見（FR-011） */
+.tr-group-noise {
+  font-size: 10.5px; font-weight: 600; color: var(--text-muted);
+  background: var(--tag-bg); border-radius: 10px; padding: 1px 7px; margin-left: 4px;
+}
+/* 降級提示行：整批雜訊收合成的單一入口 */
+.tr-noise { border-top: 1px dashed var(--border); }
+.tr-noise-head {
+  display: flex; align-items: center; gap: 6px; width: 100%; padding: 7px 6px;
+  background: none; border: none; cursor: pointer; font-family: inherit; text-align: left;
+  font-size: 12px; color: var(--text-muted);
+}
+.tr-noise-head:hover { background: var(--bg); color: var(--text-secondary); }
+.tr-noise-caret { font-size: 9px; }
+.tr-noise-label { font-weight: 600; }
+/* 展開後的降級列：視覺弱化，但功能完全不減（FR-009） */
+.tr-dimmed { opacity: 0.55; }
+.tr-dimmed:hover { opacity: 1; }
+.tr-dimmed .tr-title { font-size: 12.5px; }
+
 /* ── 已收起來源的還原列（spec 011 / US2） ── */
 .hidden-sources-bar {
   display: flex; flex-wrap: wrap; align-items: center; gap: 6px;

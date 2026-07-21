@@ -427,11 +427,26 @@ function renderStats(articles) {
 // 使用者的明示選擇優先於自動判定：已收起的來源不再顯示降級提示行。
 function articleDisplayState(a) {
   if (isSourceHidden(a.source)) return 'hidden';
+  if (a.noise_downgrade === true) return 'collapsed';
   return 'normal';
 }
 
+// 降級列的展開是一次性檢視（FR-008b）：不寫入 localStorage，
+// 每次重繪都回到「雜訊已收起」的預設視圖。
+function toggleNoise(btn) {
+  const wrap = btn.closest('.tr-noise');
+  const body = wrap?.querySelector('.tr-noise-body');
+  if (!body) return;
+  const willOpen = body.hidden;
+  body.hidden = !willOpen;
+  btn.setAttribute('aria-expanded', String(willOpen));
+  const caret = btn.querySelector('.tr-noise-caret');
+  if (caret) caret.textContent = willOpen ? '▼' : '▶';
+}
+
 // 交通新聞密集列：來源色標＋標題＋相對時間；點標題展開來源摘要（FR-009/015）
-function trafficRow(a, idx) {
+// dimmed=true 用於降級列展開後的淡化呈現，功能完全不減（FR-009）。
+function trafficRow(a, idx, dimmed) {
   const src = a.source || '';
   const when = a.published || a.created_at || '';
   // 摘要優先用 LLM 分析，否則退回來源 summary；GN 充實前的舊資料 summary 只是
@@ -445,7 +460,7 @@ function trafficRow(a, idx) {
   const summary = isEcho ? '' : rawSummary;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
   return `
-<div class="card traffic-row" data-url="${a.link}">
+<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}" data-url="${a.link}">
   <div class="tr-main">
     <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
             onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
@@ -501,14 +516,26 @@ function trafficGroups(articles) {
     // 整組都被使用者收起 → 該組不出現（明示選擇＝完全不出現）
     if (!shown.length && !collapsed.length) return '';
     const rows = shown.map((a, i) => trafficRow(a, i + 1)).join('');
+    // 雜訊列預設收合成一行，不逐條佔版面（FR-008）。提示行永遠可見，
+    // 是被降級內容唯一且不可關閉的檢視路徑（FR-010）。
+    const noiseBlock = collapsed.length ? `
+    <div class="tr-noise">
+      <button class="tr-noise-head" onclick="toggleNoise(this)" aria-expanded="false">
+        <span class="tr-noise-caret">▶</span>
+        <span class="tr-noise-label">${collapsed.length} 篇已降級</span>
+      </button>
+      <div class="tr-noise-body" hidden>${
+        collapsed.map((a, i) => trafficRow(a, i + 1, true)).join('')}</div>
+    </div>` : '';
     return `
 <section class="tr-group${open ? '' : ' collapsed'}">
   <button class="tr-group-head" onclick="toggleGroup(this)" aria-expanded="${open}">
     <span class="tr-group-caret">${open ? '▼' : '▶'}</span>
     <span class="tr-group-name">${esc(catLabel(cat))}</span>
     <span class="tr-group-count">${shown.length + collapsed.length}</span>
+    ${collapsed.length ? `<span class="tr-group-noise">${collapsed.length} 已降級</span>` : ''}
   </button>
-  <div class="tr-group-body"${open ? '' : ' hidden'}>${rows}</div>
+  <div class="tr-group-body"${open ? '' : ' hidden'}>${rows}${noiseBlock}</div>
 </section>`;
   }).join('');
 }

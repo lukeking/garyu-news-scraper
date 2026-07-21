@@ -88,18 +88,18 @@ FR-018a 明訂不阻擋交付，且**禁止以主觀印象或 `initial_quality_s
 
 ### Worker API（推導）
 
-- [ ] T015 [US1] 在 `workers/api/src/index.js` 新增設定解析：讀取 `env.SOURCE_UPTAKE_JSON`，解析失敗或缺失時回傳空設定而**不得拋錯**（contracts 不變式 3）
-- [ ] T016 [US1] 在 `workers/api/src/index.js` 新增純函式，依 data-model.md 的公式推導 `noise_downgrade` 與 `source_multiple`；來源名稱**必須完全相等比對**，不得子字串比對（多個來源共用 `Google News ` 前綴）
-- [ ] T017 [US1] 在 `handleWeekDetail()` 的回應組裝套用 T016；確認新欄位**不進入任何 `select=` 子句**（contracts 不變式 1）
-- [ ] T018 [US1] 在 `.github/workflows/deploy-worker.yml` 的 `vars:` 與 `env:` 區塊各加入 `SOURCE_UPTAKE_JSON`
+- [X] T015 [US1] 在 `workers/api/src/index.js` 新增設定解析：讀取 `env.SOURCE_UPTAKE_JSON`，解析失敗或缺失時回傳空設定而**不得拋錯**（contracts 不變式 3）
+- [X] T016 [US1] 在 `workers/api/src/index.js` 新增純函式，依 data-model.md 的公式推導 `noise_downgrade` 與 `source_multiple`；來源名稱**必須完全相等比對**，不得子字串比對（多個來源共用 `Google News ` 前綴）
+- [X] T017 [US1] 在 `handleWeekDetail()` 的回應組裝套用 T016；確認新欄位**不進入任何 `select=` 子句**（contracts 不變式 1）
+- [X] T018 [US1] 在 `.github/workflows/deploy-worker.yml` 的 `vars:` 與 `env:` 區塊各加入 `SOURCE_UPTAKE_JSON`
 - [ ] T019 [US1] 依 `contracts/week-detail-api.md` 的驗證方式跑 4 項契約檢查（含 W20 舊週、FFXIV 路徑、設定損毀退化）
 
 ### 前端（呈現）
 
-- [ ] T020 [US1] 在 `articleDisplayState()` 補上 `'collapsed'` 分支：`noise_downgrade === true` 且未被使用者收起（`pages/shared/app.js`）
-- [ ] T021 [US1] 在 `trafficGroups()` 為每組渲染降級提示行（標示收合篇數），並實作點擊就地展開／再收合；展開狀態**不持久化**（`pages/shared/app.js`，FR-008a／FR-008b）
-- [ ] T022 [US1] 修改分組標頭同時顯示總篇數與降級篇數（`pages/shared/app.js`，FR-011）；確認分組收合時降級提示行一併隱藏（FR-011a）
-- [ ] T023 [P] [US1] 在 `pages/shared/shared.css` 加入降級提示行與展開後淡化列的樣式
+- [X] T020 [US1] 在 `articleDisplayState()` 補上 `'collapsed'` 分支：`noise_downgrade === true` 且未被使用者收起（`pages/shared/app.js`）
+- [X] T021 [US1] 在 `trafficGroups()` 為每組渲染降級提示行（標示收合篇數），並實作點擊就地展開／再收合；展開狀態**不持久化**（`pages/shared/app.js`，FR-008a／FR-008b）
+- [X] T022 [US1] 修改分組標頭同時顯示總篇數與降級篇數（`pages/shared/app.js`，FR-011）；確認分組收合時降級提示行一併隱藏（FR-011a）
+- [X] T023 [P] [US1] 在 `pages/shared/shared.css` 加入降級提示行與展開後淡化列的樣式
 - [ ] T024 [US1] 依 `quickstart.md` 前端驗收表跑 US1 相關列（FR-008～FR-011a），兩個週次各一次
 
 ### 設定部署
