@@ -2,6 +2,22 @@
 
 未編號的 spec 候選。有餘裕時再挑一個開 `/speckit-specify`，屆時才配 `NNN-` 編號。
 
+## 建議順序
+
+排序依據是**依賴關係與是否正在造成損害**，不是單純的重要性。
+
+| # | 項目 | 為什麼排這裡 | 可否現在動 |
+|---|---|---|---|
+| 1 | **CI gating** | 其他「可執行約束」的前置；沒有它，寫成測試的決策等於加了步驟的註解。L0 只跑 unit，零依賴、約 1 分鐘 | ✅ L0 隨時 |
+| 2 | **整合測試指向本機 Supabase** | 唯一**正在主動造成損害**的一項（已汙染過正式庫一次）；同時是 CI 的 L2 前置 | ✅ 隨時 |
+| 3 | **每日管線跳過 og 充實** | 影響多數文章；已排入 07-27 盤點 | ⏸ 等 07-27 |
+| 4 | **評分核心純化與分離** | 本身是結構問題（憲章 V）；順帶讓核心能離線測（回饋 #1）與蒸餾學習產出 | ⏳ 下次動 `analyzer.py` 時順手 |
+| 5 | **Buffer list 列模型重新設計** | 依賴 #3 的結果才知道值不值得做 | ⛔ 被 #3 擋 |
+| 6 | **前端測試框架** | 缺乏保護但未造成損害；成本最高（會改變部署模型） | ✅ 隨時，但最低 |
+
+「可否現在動」與優先度是兩個維度：#3 排第三但被日期擋住，#6 排最後卻隨時能做。
+有零碎時間時挑 #1 的 L0 或 #2。
+
 ---
 
 ## CI gating（PR 自動跑測試）
@@ -168,6 +184,57 @@ US3 的另一半（`hot_topic_analyzed` 星號標記）有做到，圖片這條�
 Feedly 實測確認有圖的項目正常顯示**。也就是說 `image_url` 的內容是可用的、呈現管道是通的——
 唯一的問題是覆蓋率，以及網頁列表的掃描視圖用不到它。這條證據縮小了本題的範圍：
 不需要重新檢討圖片抓取或資料品質。
+
+---
+
+## 評分核心純化與分離
+
+**提出**: 2026-07-21，助理主動提出的重構建議
+**優先度**: 建議順序 #4
+**時機**: **下次要動 `src/analyzer.py` 時順手做最自然**，不建議現在專門開一題
+
+**問題**：`src/analyzer.py` 裡「決定性的評分邏輯」與「會打外部服務的呼叫」住在同一個檔案。
+`_call_gemini`、`analyze_hot_topic` 與 `score_topic_buckets`、`cluster_traffic_articles` 混在一起，
+從模組結構看不出哪些函式是純的、哪些會產生成本與網路相依。
+
+**現況比預期好很多**（2026-07-21 實測，這是重構而非重寫的理由）：評分路徑**幾乎全是純函數**——
+
+```
+normalise_title(title) -> frozenset                                    src/filter.py
+compute_jaccard(set_a, set_b) -> float                                 src/filter.py
+assign_category(title_tokens, taxonomy) -> str                         src/filter.py
+compute_quality_score(article, category_keywords, config) -> float     src/filter.py
+cluster_traffic_articles(articles, config) -> dict                     src/analyzer.py
+score_topic_buckets(buckets, config) -> dict                           src/analyzer.py
+select_hot_topics_with_novelty(buckets, scores, prior_reports, config) src/analyzer.py
+select_digest_pool(articles, category, digest_cfg, excluded_links)     src/analyzer.py
+```
+
+**每一個都把 config 當參數注入、不讀全域狀態**，連新穎度閘要比對的 `prior_reports` 都是傳進去的。
+同輸入必同輸出，本來就可重播。
+
+**唯一的雜質是 `embed_dedup`**（呼叫 Gemini 算 embedding）。但 embedding **已經存進
+`articles` 表**，改成接受預先算好的向量即可讓整條評分路徑 100% 純。
+
+**為什麼值得做（依重要性）**：
+1. **憲章 V 單一職責**——純運算與外部呼叫不該共處一個模組。
+2. **讓核心能離線測**——目前測評分邏輯需要憑證與活資料，這正是整合測試會寫進正式庫的成因之一；
+   純核心 + 凍結語料可完全離線跑，直接回饋 CI gating（建議順序 #1）。
+3. **附帶效果**：分乾淨之後，「凍結語料 → 重播 → 觀察中間過程」幾乎是免費的。
+
+**⚠️ 因果方向**：本項的正當理由是上面 1 與 2 的結構問題。學習產出是**副產品，不是理由**——
+不可為了產生學習題材而擴大這項的範圍（見 memory `feedback_learning_integration_model`）。
+
+**若要一併蒸餾學習產出，缺的三件事**：
+- 純／不純分離（本項）
+- 一份凍結的 fixture 語料（讓核心離線可跑）
+- 中間過程的視覺化輸出——依 `learning-style` 這屬於**學習基礎建設，不得推遲到末期**
+
+**已識別的學習線索**：這條評分路徑（正規化 → 分類 → 品質分數 → Jaccard 分群 → bucket 動能計分
+→ 新穎度閘 → 選材）是 **Topic Detection and Tracking** 領域的一個實例。白話：「一串不斷流進來的
+新聞，怎麼自動判斷哪些在講同一件事、哪件事是新出現的、哪件事已經報導過」。對應關係：
+分群＝topic clustering、新穎度閘＝novelty detection / first story detection、跨週去重＝event tracking。
+價值在於**已有能跑的系統可以反推理論**，不在於技術新穎。
 
 ---
 
