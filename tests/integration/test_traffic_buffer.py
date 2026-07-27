@@ -1,7 +1,8 @@
 """
 Integration test for the traffic buffer pipeline — T041.
 Tests TrafficCategory.filter() enrichment and upsert_traffic_buffer() storage.
-Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to be set; skips otherwise.
+Connection settings are forced to the local test Supabase by
+tests/integration/conftest.py — this module never touches production.
 """
 import os
 import sys
@@ -39,7 +40,12 @@ def test_filter_attaches_category_and_score(monkeypatch):
     import tempfile
     import yaml
 
-    taxonomy = {"機車事故": ["機車", "事故", "碰撞"]}
+    # 形狀必須是 {label: {"keywords": [...]}}——load_category_taxonomy 對每個 entry
+    # 呼叫 .get("keywords")。這裡原本寫成 {label: [...]}，載入時噴
+    # 'list' object has no attribute 'get'，被 filter() 的 try/except 吞掉變成
+    # 「略過分類步驟」，於是 major_category 從未被附加，斷言必定失敗。
+    # 之所以沒人發現：無憑證環境整個模組會被 skip，而有憑證的環境它一直是紅的。
+    taxonomy = {"機車事故": {"keywords": ["機車", "事故", "碰撞"]}}
     with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False, encoding="utf-8") as f:
         yaml.dump({"categories": taxonomy}, f, allow_unicode=True)
         cat_path = f.name

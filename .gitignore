@@ -152,8 +152,13 @@ activemq-data/
 # SageMath parsed files
 *.sage.py
 
+# 在地開發筆記（分支保護、prod 設定流程、測試 runner、delegated-tdd 接線）
+CLAUDE.local.md
+
 # Environments
 .env
+# 本機整合測試的連線設定，由 scripts/setup_test_db.sh 產生（含 service role key）
+.env.test.local
 .envrc
 .venv
 env/
