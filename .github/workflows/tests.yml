@@ -1,0 +1,39 @@
+name: Tests (unit)
+
+# CI gating L0（specs/BACKLOG.md「CI gating」）。
+# 只跑 tests/unit：零外部依賴，不需要 config GitHub Variables，也不需要任何憑證。
+#
+# ⚠️ tests/integration 是「刻意」不在這裡跑的，不是漏掉。
+# 那些測試在有 Supabase 憑證時會直接寫進「正式」資料庫（2026-07-21 已實際汙染過一次，
+# 16 列測試資料連帶讓 measure_source_uptake.py 的 baseline 偏移）。在 CI 打開它只有兩條爛路：
+#   不給憑證 → 測試 skip → 拿到假綠燈；給憑證 → 每個 PR 汙染正式庫。
+# 重開條件：等 specs/BACKLOG.md「整合測試指向本機 Supabase」完成後，才加 L2。
+#
+# 這個 job 也刻意不設 `environment: production` —— 它不該拿得到任何 secret。
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 設定 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements-dev.txt
+
+      - name: 跑單元測試
+        run: python -m pytest tests/unit -q
