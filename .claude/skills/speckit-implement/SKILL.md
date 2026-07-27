@@ -153,6 +153,13 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Task details**: ID, description, file paths, parallel markers [P]
    - **Execution flow**: Order and dependency requirements
 
+5a. **Delegation gate** — before executing, apply § 0 of the user-level `delegated-tdd` skill and
+   announce the rung. This repo's test runners, per layer:
+   - Python (`src/`, `scripts/`): `python -m pytest tests/unit` (127 tests, no credentials needed)
+     and `python -m pytest tests/integration` (needs the local Supabase — see CLAUDE.local.md)
+   - JS (`pages/`, `workers/api/`): **no runner** → those layers gate to L3 (inline, degraded);
+     say the verification arm is missing rather than pretending otherwise.
+
 6. Execute implementation following the task plan:
    - **Phase-by-phase execution**: Complete each phase before moving to the next
    - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
@@ -173,7 +180,10 @@ You **MUST** consider the user input before proceeding (if not empty).
    - For parallel tasks [P], continue with successful tasks, report failed ones
    - Provide clear error messages with context for debugging
    - Suggest next steps if implementation cannot proceed
-   - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
+   - **IMPORTANT** Task markers are three-state: `[ ]` not started → `[-]` implemented, awaiting
+     review → `[X]` reviewed **and** main-verified. Mark `[-]` when the implementation commit
+     lands; only promote to `[X]` in a separate post-approval commit. Never write `[X]` in the
+     same commit as the implementation — that claims "done" before review has happened.
 
 9. Completion validation:
    - Verify all required tasks are completed
