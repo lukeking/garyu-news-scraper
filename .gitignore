@@ -229,7 +229,14 @@ __marimo__/
 
 sources_traffic.yml
 sources_ffxiv.yml
-.claude/
+
+# .claude/ 只忽略「真的因人而異」的部分。skills/ 底下的 spec-kit 工具鏈要進版控——
+# 其餘四個 spec-kit repo（expense-tracker / mapf-router / slot-allocator /
+# assertion-engine）都是 14/14 追蹤的。追蹤的意義在於：對 vendored 檔案的在地修改
+# 會出現在 git diff 裡，而不是只活在某一台機器上。
+.claude/plans/
+.claude/worktrees/
+.claude/settings.local.json
 
 # wrangler files
 .wrangler
