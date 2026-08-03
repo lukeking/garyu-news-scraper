@@ -128,21 +128,25 @@ class TrafficCategory:
         max_daily = config.get("buffer", {}).get("max_daily_articles", 100)
         return deduped[:max_daily]
 
-    def analyze(self, articles: list) -> list:
-        # LLM analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py).
-        # Here we only enrich Google News items post-dedup, so the per-item HTTP cost
-        # is spent solely on articles that will actually be buffered.
-        #
-        # Only main.py reaches this stage. The daily runner (scripts/traffic_buffer.py)
-        # skips analyze entirely to stay AI-free, so despite holding no LLM work, this
-        # enrichment currently runs on Mondays only — which is why most Google News rows
-        # keep an unresolved link and no image. See specs/BACKLOG.md.
+    def prefetch(self, articles: list) -> list:
+        # Google News link resolution + og:description/og:image enrichment. No LLM —
+        # HTTP-only, ~1.7s/article — so this belongs on both the weekly path (via
+        # analyze) and the daily runner (scripts/traffic_buffer.py). Extracted out of
+        # analyze() so daily enrichment no longer runs on Mondays only, which is why
+        # most Google News rows used to keep an unresolved link and no image.
+        # See specs/BACKLOG.md.
         try:
             from src.gn_resolver import enrich_articles
             enrich_articles(articles)
         except Exception as e:
             logger.warning("[%s] GN 充實整批失敗，文章維持原樣：%s", self.name, e)
         return articles
+
+    def analyze(self, articles: list) -> list:
+        # LLM analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py).
+        # For traffic, analyze() carries no LLM work itself — it is the pipeline entry
+        # point (main.py) that runs the HTTP-only prefetch on post-dedup articles.
+        return self.prefetch(articles)
 
     def publish(self, articles: list) -> str:
         from src.storage import upsert_traffic_buffer, is_configured

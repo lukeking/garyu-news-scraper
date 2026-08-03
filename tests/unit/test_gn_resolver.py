@@ -86,7 +86,7 @@ def test_enrich_replaces_link_summary_image(monkeypatch):
     assert a["summary"] == LONG_DESC
     assert a["image"] == "https://udn.com/img.jpg"
     assert stats == {"gn_total": 1, "resolved": 1, "summary_filled": 1,
-                     "image_filled": 1, "errors": 0}
+                     "image_filled": 1, "errors": 0, "error_domains": {}}
 
 
 def test_enrich_skips_non_gn_link(monkeypatch):
@@ -116,6 +116,27 @@ def test_enrich_unresolved_counts_error(monkeypatch):
     stats = enrich_articles([a], throttle=0)
     assert a["link"] == GN_LINK
     assert stats["errors"] == 1
+    # resolve returning None (not raising) must still surface in 失敗網域, under the
+    # GN domain, so a total decode outage isn't masked as "nothing blocked".
+    assert stats["error_domains"] == {"news.google.com": None}
+
+
+def test_error_domains_keeps_403_over_later_none(monkeypatch):
+    """同一 publisher 先 403 後又出現無 status 的失敗，不能把 403 洗掉——
+    403 才是被擋的訊號。"""
+    monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
+    calls = {"n": 0}
+
+    def flaky(session, url):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            e = RuntimeError("blocked")
+            e.response = type("R", (), {"status_code": 403})()
+            raise e
+        raise ConnectionError("transient")
+    monkeypatch.setattr(gn, "fetch_og_meta", flaky)
+    stats = enrich_articles([_article(), _article()], throttle=0)
+    assert stats["error_domains"] == {"udn.com": 403}
 
 
 def test_short_or_echo_desc_keeps_original_summary(monkeypatch):
@@ -154,3 +175,30 @@ def test_og_meta_failure_after_resolve_keeps_summary(monkeypatch):
     assert a["link"] == REAL_URL
     assert a["summary"] == "機車事故占近8成 UDN"
     assert stats["resolved"] == 1 and stats["errors"] == 1
+
+
+def test_enrich_records_failing_publisher_domain(monkeypatch):
+    """og 抓取失敗時，error_domains 記的是 publisher 網域＋HTTP status，
+    而不是 news.google.com 連結——這是觀測被擋名單擴散的唯一訊號。"""
+    monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
+
+    class Blocked(Exception):
+        def __init__(self):
+            self.response = type("R", (), {"status_code": 403})()
+
+    def boom(session, url):
+        raise Blocked()
+    monkeypatch.setattr(gn, "fetch_og_meta", boom)
+    a = _article()
+    stats = enrich_articles([a], throttle=0)
+    assert stats["error_domains"] == {"udn.com": 403}
+
+
+def test_error_domains_falls_back_to_gn_when_resolve_fails(monkeypatch):
+    """resolve 階段就失敗（拿不到 publisher URL）時，網域記成 news.google.com，
+    自然與 publisher 被擋的訊號區分開。"""
+    def boom(session, link):
+        raise RuntimeError("Google changed the API")
+    monkeypatch.setattr(gn, "resolve_gn_link", boom)
+    stats = enrich_articles([_article()], throttle=0)
+    assert list(stats["error_domains"]) == ["news.google.com"]

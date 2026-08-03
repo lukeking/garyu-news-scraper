@@ -16,6 +16,7 @@ import json
 import logging
 import re
 import time
+from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -108,6 +109,16 @@ def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str]:
     return og("og:description"), og("og:image")
 
 
+def _record_error_domain(stats: dict, domain: str, status) -> None:
+    """Record a failing domain→HTTP status, preferring a real status over None so a
+    later transient error (no .response) can't clobber an earlier 403 for the same
+    publisher. Set membership (which domains failed) is preserved either way — this
+    is the block-list-expansion signal the daily runner watches. See specs/BACKLOG.md.
+    """
+    if stats["error_domains"].get(domain) is None:
+        stats["error_domains"][domain] = status
+
+
 def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
     """就地充實 GN 來源的文章：link 換成 publisher URL、summary 換成
     og:description（僅當 ≥_MIN_SUMMARY_LEN 字且非標題複讀）、image 補 og:image。
@@ -117,17 +128,23 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
     供 pipeline log 與 eval harness 共用。
     """
     stats = {"gn_total": 0, "resolved": 0, "summary_filled": 0,
-             "image_filled": 0, "errors": 0}
+             "image_filled": 0, "errors": 0, "error_domains": {}}
     session = requests.Session()
     for a in articles:
         link = (a.get("link") or "").strip()
         if not is_gn_article_link(link):
             continue
         stats["gn_total"] += 1
+        real_url = ""
         try:
             real_url = resolve_gn_link(session, link)
             if not real_url:
                 stats["errors"] += 1
+                # Non-exception resolve failure = GN decode/API breakage, not a
+                # publisher block. Record it under the GN domain so a total resolve
+                # outage surfaces in 失敗網域 rather than an empty list that would
+                # read as "nothing blocked". See specs/BACKLOG.md.
+                _record_error_domain(stats, urlparse(link).netloc, None)
                 continue
             a["link"] = real_url
             stats["resolved"] += 1
@@ -142,14 +159,25 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
                 stats["image_filled"] += 1
         except Exception as e:
             stats["errors"] += 1
-            logger.warning("GN 充實失敗（保留原欄位）：%s：%s", link[:80], e)
+            # Record the *publisher* domain (not the news.google.com link) and the
+            # HTTP status. When the daily runner hits these domains 7x/week, this is
+            # the only way to see WHICH domain blocks us — the block-list expanding
+            # into native media (ltn/cna/udn/chinatimes) is the reopen trigger for
+            # the body-fetch decision. See specs/BACKLOG.md.
+            domain = urlparse(real_url).netloc or urlparse(link).netloc
+            status = getattr(getattr(e, "response", None), "status_code", None)
+            _record_error_domain(stats, domain, status)
+            logger.warning("GN 充實失敗（保留原欄位）：domain=%s status=%s：%s",
+                           domain, status, e)
         finally:
             time.sleep(throttle)
 
     if stats["gn_total"]:
+        blocked = (f"（失敗網域：{', '.join(sorted(stats['error_domains']))}）"
+                   if stats["error_domains"] else "")
         logger.info(
-            "GN 充實：%d 篇中 %d 還原連結、%d 補摘要、%d 補圖、%d 失敗",
+            "GN 充實：%d 篇中 %d 還原連結、%d 補摘要、%d 補圖、%d 失敗%s",
             stats["gn_total"], stats["resolved"], stats["summary_filled"],
-            stats["image_filled"], stats["errors"],
+            stats["image_filled"], stats["errors"], blocked,
         )
     return stats
