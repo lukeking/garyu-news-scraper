@@ -1,18 +1,19 @@
 """
 scripts/traffic_buffer.py
-Daily runner : collect traffic articles, filter, write to Supabase buffer.
+Daily runner : collect traffic articles, filter, prefetch (og:), write to buffer.
 No AI calls; exits non-zero on exception.
 
-Runs collect -> filter -> publish and skips the analyze stage on purpose. The
-project originally ran the LLM daily on freshly scraped articles, which proved
-wasteful while article quality and sources were still unvalidated; hence the
-split into a daily buffer and a weekly bucket analysis. Do not wire analyze()
-in here on the assumption it was forgotten.
+Runs collect -> filter -> prefetch -> publish, skipping the weekly LLM analysis on
+purpose. The project originally ran the LLM daily on freshly scraped articles, which
+proved wasteful while article quality and sources were still unvalidated; hence the
+split into a daily buffer and a weekly bucket analysis. Do NOT wire the weekly LLM
+analysis in here.
 
-Known consequence: TrafficCategory.analyze() no longer holds any LLM work, only
-the Google News link resolution and og: enrichment, so that enrichment runs on
-Mondays only. Tracked in specs/BACKLOG.md — the fix is to separate the prefetch
-rather than to call analyze() from here.
+prefetch() is Google News link resolution + og: enrichment — HTTP-only, no LLM — so
+it belongs on the daily path and keeps this runner AI-free. It used to live only in
+the weekly path, so Google News rows kept an unresolved link and no image until
+Monday (specs/BACKLOG.md). Kill-switch: set buffer.daily_enrich=false to stop hitting
+publisher domains 7x/week if the 403 block-list starts expanding into native media.
 """
 import logging
 import sys
@@ -33,6 +34,7 @@ logger = logging.getLogger("traffic_buffer")
 
 def main():
     from src.pipeline.traffic import TrafficCategory
+    from src.pipeline_config import load_pipeline_config
 
     cat = TrafficCategory()
     logger.info("=== 交通新聞每日 buffer 開始 ===")
@@ -43,19 +45,24 @@ def main():
     filtered = cat.filter(raw)
     logger.info("過濾後 %d 篇", len(filtered))
 
-    # Say out loud what is being skipped. Silence here reads exactly like
-    # "enrichment ran and had nothing to do", which is how this gap stayed
-    # invisible for weeks: every day except Monday the Google News rows keep an
-    # unresolved link and no og image, and nothing ever mentioned it. Tracked in
-    # specs/BACKLOG.md — this line is evidence, not a fix.
-    from src.gn_resolver import is_gn_article_link
+    # og enrichment (HTTP-only, no LLM) used to run on Mondays only, so most Google
+    # News rows kept an unresolved link and no image. Run it daily now. Kill-switch:
+    # buffer.daily_enrich=false to stop hitting publisher domains 7x/week if the 403
+    # block-list starts expanding into native media. See specs/BACKLOG.md.
+    try:
+        daily_enrich = load_pipeline_config().get("buffer", {}).get("daily_enrich", True)
+    except Exception as e:
+        logger.warning("pipeline_config 載入失敗，daily_enrich 預設開啟：%s", e)
+        daily_enrich = True
 
-    gn_pending = sum(1 for a in filtered if is_gn_article_link(a.get("link") or ""))
-    if gn_pending:
+    if daily_enrich:
+        cat.prefetch(filtered)
+    else:
+        from src.gn_resolver import is_gn_article_link
+        gn_pending = sum(1 for a in filtered if is_gn_article_link(a.get("link") or ""))
         logger.info(
-            "略過 og 充實（每日模式刻意不呼叫 analyze，見本檔 docstring）："
-            "%d/%d 篇 Google News 文章維持未還原連結、無 og 摘要與圖片；"
-            "充實目前僅在週一 main.py 執行",
+            "每日 og 充實已關閉（buffer.daily_enrich=false）：%d/%d 篇 Google News "
+            "文章維持未還原連結、無 og 摘要與圖片",
             gn_pending, len(filtered),
         )
 

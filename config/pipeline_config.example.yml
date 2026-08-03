@@ -26,6 +26,10 @@ buffer:
   max_daily_articles: 100    # Safety ceiling on articles buffered per daily run (dedup runs first).
                              # Generative cost is bounded at the weekly stage (min_threshold + max_hot_topics
                              # + novelty gate), so this only guards against a feed-flood anomaly.
+  daily_enrich: true         # Run og: enrichment (GN link resolve + og:description/og:image) on the daily
+                             # buffer, not Mondays only. HTTP-only, no LLM. Kill-switch: set false to stop
+                             # hitting publisher domains 7x/week if the 403 block-list expands into native
+                             # media (watch enrich log's 失敗網域). Default on when key absent.
 
 # Category digest (feature 010) — aggregation path for event-diverse, low-cadence
 # categories whose articles never cluster (all singletons, score ceiling ~0.22).
