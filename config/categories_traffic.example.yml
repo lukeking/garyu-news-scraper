@@ -61,3 +61,21 @@ source_defaults:
   # source_default 精確度為 交通安全教育 ~95%、道安會報 ~80%、Vision Zero 100%，
   # 只有這個是 0%——問題在 feed 精確度，不在 fallback 機制本身。
   # 重開條件：該 feed 改用更限定的 query（例如加上「修法」「草案」）後重測精確度。
+
+# Relevance gate (feature 012) — applied at WEEKLY hot-topic selection, before clustering.
+#   Whitelist-dominant substring match (see specs/012.../data-model.md §1):
+#   - require_any present → on-topic iff the (cleaned, lower-cased) title CONTAINS any
+#     require token as a substring. exclude_any is then INERT — the 肇事逃逸/傷亡型 boundary
+#     is kept precisely because a require token (肇事/撞/死…) hits.
+#   - exclude_any only (no require_any) → pure blacklist: off-topic iff a token hits.
+#   - category absent here → NOT gated (all pass). Malformed rule → fail-open (not gated).
+#   Tokens are substrings, NOT jieba tokens — so single-char accident signals (撞/傷/亡/死)
+#   work (token intersection dropped them and mis-glued 撞死/涉竊; see the §1 replay).
+relevance_rules:
+  機車事故:
+    # 白名單：真事故訊號。機車 桶必須自證是事故；純刑案（涉竊/毒駕羈押，無事故 token）與
+    # 行銷稿（油耗/市佔/銷量，無事故 token）因命不中 require 而落選。市場詞另由
+    # pipeline_config.yml 的 blocked_content_keywords（Tier 1，filter 階段）攔。
+    # seed（2026-08-06），非定案——Phase 5（T012）對人工標記基準集調。
+    require_any:
+      [撞, 追撞, 自撞, 擦撞, 車禍, 事故, 肇事, 送醫, 不治, 傷, 亡, 翻車, 失控, 死]

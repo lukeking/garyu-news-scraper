@@ -13,6 +13,8 @@ description: "Task list for feature 012 相關性選材閘（Relevance-Gated Sel
 **Task markers are three-state** (delegated-TDD wiring): `[ ]` not started → `[-]` implemented,
 awaiting review → `[X]` reviewed **and** main-verified. Never write `[X]` in the implementation commit.
 
+> Markers: `[ ]` not started · `[-]` implemented, awaiting review · `[X]` reviewed + verified · `[~]` dropped
+
 **Organization**: grouped by user story for independent implementation and testing.
 
 ## Format: `[ID] [P?] [Story] Description`
@@ -26,7 +28,7 @@ awaiting review → `[X]` reviewed **and** main-verified. Never write `[X]` in t
 
 **Purpose**: put the new config structure in place (no rules yet)
 
-- [ ] T001 [P] Add a documented, empty `relevance_rules:` block (with a comment explaining
+- [-] T001 [P] Add a documented, empty `relevance_rules:` block (with a comment explaining
   `require_any` / `exclude_any`, per-category, fail-open) to `config/categories_traffic.yml`
   AND `config/categories_traffic.example.yml`
 
@@ -38,7 +40,7 @@ awaiting review → `[X]` reviewed **and** main-verified. Never write `[X]` in t
 
 **⚠️ Blocks the wiring task in every user story.**
 
-- [ ] T002 Add `load_relevance_rules()` to `src/pipeline_config.py` — read `relevance_rules`
+- [-] T002 Add `load_relevance_rules()` to `src/pipeline_config.py` — read `relevance_rules`
   from `categories_traffic.yml`, return `{}` when the key is absent or malformed (fail-open,
   see data-model §1); mirror the shape of the existing `load_source_default_categories()`
 
@@ -75,7 +77,7 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
   非 `normalise_title` token 交集，見 data-model §1 replay 佐證）；**whitelist-dominant**：
   `require_any` 存在時 `on = _hit(require_any)`，`exclude_any` 只在無 `require_any` 時走純黑名單支；
   回傳 (on_topic, off_topic)，每篇附 `_relevance_reason`（log 用）。Makes T003 pass.
-- [ ] T005 [P] [US1] Seed `relevance_rules.機車事故.require_any`（撞／追撞／自撞／擦撞／車禍／
+- [-] T005 [P] [US1] Seed `relevance_rules.機車事故.require_any`（撞／追撞／自撞／擦撞／車禍／
   事故／肇事／送醫／不治／傷／亡／翻車／失控／死）in `config/categories_traffic.yml` +
   `config/categories_traffic.example.yml`（**require-only**；exclude_any 對本類別不生效故不填，
   市場詞由 T008 Tier 1 攔；**seed，非定案**，Phase 5 對基準集調）
