@@ -81,10 +81,10 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
   事故／肇事／送醫／不治／傷／亡／翻車／失控／死）in `config/categories_traffic.yml` +
   `config/categories_traffic.example.yml`（**require-only**；exclude_any 對本類別不生效故不填，
   市場詞由 T008 Tier 1 攔；**seed，非定案**，Phase 5 對基準集調）
-- [ ] T006 [US1] Wire `partition_by_relevance` into `scripts/traffic_weekly_analysis.py` immediately
+- [-] T006 [US1] Wire `partition_by_relevance` into `scripts/traffic_weekly_analysis.py` immediately
   before `cluster_traffic_articles` — off_topic 排除於 scoring/selection，逐篇 log reason。
   依賴 T002（loader）、T004（函數）
-- [ ] T006a [US1] **FR-008 regression**：對一份 fixture 走已接線的每週路徑
+- [-] T006a [US1] **FR-008 regression**：對一份 fixture 走已接線的每週路徑
   （`partition_by_relevance` → `cluster_traffic_articles` → `score_topic_buckets` →
   `select_hot_topics_with_novelty`），assert 既有行為不變——**≤3 席上限維持**、novelty 閘對未被
   gate 動到的桶**仍照常 suppress/pass**、gate **不改** `major_category`（FR-008）。
@@ -104,7 +104,7 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 
 ### Tests for User Story 2 ⚠️ (write first, must FAIL)
 
-- [ ] T007 [P] [US2] Add failing unit tests in `tests/unit/test_relevance_gate.py`:
+- [-] T007 [P] [US2] Add failing unit tests in `tests/unit/test_relevance_gate.py`:
   (a) whole-bucket all-off-topic → `partition_by_relevance` yields empty on_topic → 該類別不成桶
   （feed → partition → `cluster_traffic_articles` → assert no bucket），FR-003；
   (b) **FR-007** — 車媒來源＋事故 token 的文章 survives（來源不參與判定，只看內容 token）

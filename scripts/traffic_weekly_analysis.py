@@ -33,7 +33,8 @@ def _week_start_date() -> str:
 
 
 def main():
-    from src.pipeline_config import load_pipeline_config
+    from src.pipeline_config import load_pipeline_config, load_relevance_rules
+    from src.filter import partition_by_relevance
     from src.storage import (
         expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report,
         get_recent_hot_topic_reports, mark_articles_analyzed,
@@ -61,10 +62,27 @@ def main():
     articles = get_traffic_buffer(max_age_weeks)
     logger.info("buffer 中有 %d 篇待分析文章", len(articles))
 
-    # FR-020: minimum 3 articles required
+    # FR-020: minimum 3 articles required（以原始 buffer 計，維持既有語意，不受相關性閘影響）
     if len(articles) < 3:
         logger.info("buffer 文章不足 3 篇，本週跳過熱點分析（目前 %d 篇）", len(articles))
         return
+
+    # 3b. 相關性選材閘（feature 012）：clustering 前把「含類別關鍵字但主題離題」的文章
+    #     （刑案／車媒行銷）排除，使其不會被發布為事故熱點。per-category whitelist-dominant：
+    #     目前只有 機車事故 有規則，無規則的類別（道安政策…digest 路徑）fail-open 全通過、不受影響。
+    #     off-topic 文章不進 bucket 也不進 digest 池 → 不會被 mark_articles_analyzed → 留在 buffer，
+    #     僅排除於「本週報告」（可逆、可稽核）。
+    relevance_rules = load_relevance_rules()
+    if relevance_rules:
+        on_topic, off_topic = partition_by_relevance(articles, relevance_rules)
+        if off_topic:
+            logger.info("相關性閘：%d 篇通過、%d 篇離題排除於選材（仍留 buffer）",
+                        len(on_topic), len(off_topic))
+            for a in off_topic:
+                logger.info("  [off-topic] %s｜%s｜%s",
+                            (a.get("title") or "")[:50], a.get("major_category", ""),
+                            a.get("_relevance_reason", ""))
+        articles = on_topic
 
     # 4. Cluster
     buckets = cluster_traffic_articles(articles, config)

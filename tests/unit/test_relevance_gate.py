@@ -112,3 +112,41 @@ def test_partition_high_score_offtopic_still_excluded():
     on, off = partition_by_relevance([art], rules)
     assert on == []
     assert len(off) == 1 and off[0]["title"] == "毒駕羈押"
+
+
+# ── US2 (T007): whole-bucket FR-003 + source-independence FR-007 ───────────────
+
+from src.analyzer import cluster_traffic_articles  # noqa: E402
+
+_CLUSTER_CONFIG = {"jaccard": {"merge_threshold": 0.45, "cluster_lower": 0.20}}
+
+
+def test_whole_bucket_all_offtopic_yields_no_bucket():
+    """(T007a / FR-003) 某類別候選全數離題 → on_topic 無該類別 → 不成桶、不發布。
+    金線式整席行銷（油耗/市佔/銷量，無事故 token）錨定。"""
+    rules = {"機車事故": MOTO_RULE}
+    arts = [
+        {"title": "新機車油耗排名出爐", "major_category": "機車事故", "source": "地球黃金線"},
+        {"title": "電動機車市佔率再創新高", "major_category": "機車事故", "source": "地球黃金線"},
+        {"title": "機車銷量戰報 掛牌數第一", "major_category": "機車事故", "source": "地球黃金線"},
+    ]
+    on, off = partition_by_relevance(arts, rules)
+    assert on == [] and len(off) == 3
+    buckets = cluster_traffic_articles(on, _CLUSTER_CONFIG)
+    assert all(
+        a.get("major_category") != "機車事故"
+        for arts_ in buckets.values() for a in arts_
+    )  # 該類別無桶
+
+
+def test_car_media_real_accident_survives_source_ignored():
+    """(T007b / FR-007) 來源是車媒但確為真事故（含事故 token）→ 保留：閘只看內容不看來源。
+    對照組：同一車媒的行銷稿（無事故 token）→ 離題。"""
+    rules = {"機車事故": MOTO_RULE}
+    real = {"title": "機車追撞休旅車 騎士2傷送醫", "major_category": "機車事故", "source": "地球黃金線"}
+    mktg = {"title": "新車油耗市佔戰報", "major_category": "機車事故", "source": "地球黃金線"}
+    assert is_topic_relevant(real, MOTO_RULE) is True   # 車媒的真事故不被連坐
+    assert is_topic_relevant(mktg, MOTO_RULE) is False  # 同源行銷稿仍離題
+    on, off = partition_by_relevance([real, mktg], rules)
+    assert [a["title"] for a in on] == ["機車追撞休旅車 騎士2傷送醫"]
+    assert [a["title"] for a in off] == ["新車油耗市佔戰報"]
