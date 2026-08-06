@@ -56,21 +56,29 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 
 ### Tests for User Story 1 ⚠️ (write first, must FAIL)
 
-- [ ] T003 [P] [US1] Write failing unit tests in `tests/unit/test_relevance_gate.py`:
-  (a) `require_any` pass — 真事故（撞／送醫）kept；(b) `exclude_any` block — 純竊盜／毒駕羈押 excluded；
-  (c) **AND-NOT boundary — 肇事逃逸（刑案∩事故）kept**（require_any 優先，回歸重災區）；
-  (d) fail-open — 缺鍵／格式錯的規則 → 該類別不套閘、不誤殺整類；
-  (e) purity — 閘不呼叫外部服務、不改 `major_category`
+- [ ] T003 [P] [US1] Write failing unit tests in `tests/unit/test_relevance_gate.py`
+  （**substring `_hit` + whitelist-dominant**，2026-08-06 定，見 data-model §1）:
+  (a) `require_any` pass — 真事故（擦撞送醫不治／自撞1死2傷）kept；
+  (b) no-accident-token block — 純竊盜（涉竊機車遭通緝）／毒駕羈押（無撞死傷）excluded（靠 `require`=False，非 exclude）；
+  (c) **boundary — 肇事逃逸／毒駕撞死（刑案∩事故）kept**（require 命中即 on-topic，回歸重災區）；
+  (d) **whitelist-dominant** — 規則同時給 require＋exclude 且文章命中兩者 → kept（exclude 不生效）；
+  (e) **exclude-only 純黑名單支** — 只給 `exclude_any` 的規則：命中即 excluded，未命中即 kept；
+  (f) fail-open — 缺鍵／格式錯／非 list 的規則 → 該類別不套閘、不誤殺整類；
+  (g) purity — 閘不呼叫外部服務、不改 `major_category`；
+  (h) **C2 高分離題仍被擋** — 一則離題（毒駕羈押、無事故 token）即使 `initial_quality_score` 高，
+      仍落 off_topic（相關性早於分數）
 
 ### Implementation for User Story 1
 
 - [ ] T004 [US1] Implement pure `is_topic_relevant(article, rule)` + `partition_by_relevance(articles, rules)`
-  in `src/filter.py` — token 判定沿用 `normalise_title`；`require_any` 命中優先於 `exclude_any`
-  （data-model §1 語意）；回傳 (on_topic, off_topic)，每篇附 `_relevance_reason`（log 用）。Makes T003 pass.
-- [ ] T005 [P] [US1] Seed `relevance_rules.機車事故` — `require_any`（撞／追撞／自撞／擦撞／車禍／
-  事故／肇事／送醫／不治／傷／亡／翻車／失控／死）＋ `exclude_any`（竊／偷／竊盜／羈押／求償／外遇／
-  潑糞／通緝／毒品／毒駕）in `config/categories_traffic.yml` + `config/categories_traffic.example.yml`
-  （**seed，非定案**；Phase 5 對基準集調）
+  in `src/filter.py` — **substring `_hit(title, tokens)`**（`tok.lower() in _clean_html(title).lower()`，
+  非 `normalise_title` token 交集，見 data-model §1 replay 佐證）；**whitelist-dominant**：
+  `require_any` 存在時 `on = _hit(require_any)`，`exclude_any` 只在無 `require_any` 時走純黑名單支；
+  回傳 (on_topic, off_topic)，每篇附 `_relevance_reason`（log 用）。Makes T003 pass.
+- [ ] T005 [P] [US1] Seed `relevance_rules.機車事故.require_any`（撞／追撞／自撞／擦撞／車禍／
+  事故／肇事／送醫／不治／傷／亡／翻車／失控／死）in `config/categories_traffic.yml` +
+  `config/categories_traffic.example.yml`（**require-only**；exclude_any 對本類別不生效故不填，
+  市場詞由 T008 Tier 1 攔；**seed，非定案**，Phase 5 對基準集調）
 - [ ] T006 [US1] Wire `partition_by_relevance` into `scripts/traffic_weekly_analysis.py` immediately
   before `cluster_traffic_articles` — off_topic 排除於 scoring/selection，逐篇 log reason。
   依賴 T002（loader）、T004（函數）
@@ -104,9 +112,10 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 - [ ] T008 [P] [US2] Tier 1（config-only）：extend `blocked_content_keywords` with market tokens
   （油耗／市佔／市占／銷量／戰報／掛牌數）in `config/pipeline_config.yml` +
   `config/pipeline_config.example.yml`（既有 filter 機制，`src/pipeline/traffic.py:66`）
-- [ ] T009 [US2] Add the same market tokens to `relevance_rules.機車事故.exclude_any`
-  （Tier 1 漏網的 backstop）in `config/categories_traffic.yml` + `config/categories_traffic.example.yml`
-  （extends T005，同檔同區塊）
+- [~] T009 [US2] **DROPPED（2026-08-06）** — 原案「把市場詞加入 `relevance_rules.機車事故.exclude_any`
+  作 backstop」在 **whitelist-dominant** 語意下是**死配置**：機車事故 有 `require_any`，`exclude_any`
+  對它恆不生效（見 data-model §1）。市場行銷稿本就因**無事故 token**（`require`=False）被 T004 擋下，
+  無事故 token 的漏網由 T008（Tier 1 `blocked_content_keywords`，filter 階段）攔。故本任務取消，不新增死配置。
 
 **Checkpoint**: US1 + US2 both independently testable — all-marketing slate not published, genuine
 car-media accident survives.

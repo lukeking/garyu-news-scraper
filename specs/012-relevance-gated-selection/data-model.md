@@ -14,25 +14,37 @@ per-category，只需為會離題的類別填（先填 `機車事故`）。
 # 相關性閘規則（feature 012）。key = major_category；缺 key 的類別 = 不套閘（全通過）。
 relevance_rules:
   機車事故:
-    require_any:            # 正面事故 token 白名單：命中任一才算 on-topic
+    require_any:            # 正面事故 token 白名單：命中任一才算 on-topic（本類別的整道閘）
       [撞, 追撞, 自撞, 擦撞, 車禍, 事故, 肇事, 送醫, 不治, 傷, 亡, 翻車, 失控, 死]
-    exclude_any:            # 刑案／市場 token 黑名單：命中任一即 off-topic（除非同時命中 require_any）
-      [竊, 偷, 竊盜, 羈押, 求償, 外遇, 潑糞, 通緝, 毒品, 毒駕, 油耗, 市佔, 市占, 銷量, 戰報, 掛牌數, 規格]
+    # exclude_any 對「有 require_any 的類別」不生效（見下 whitelist-dominant），故 機車事故
+    # 不填；市場／行銷噪音由 §2 的 blocked_content_keywords（filter 階段，Tier 1）攔。
 ```
 
-**判定語意（AND-NOT，見 research D2）**：
+**判定語意（whitelist-dominant；2026-08-06 定，取代原 AND-NOT 公式）**：
 ```
+_hit(title, tokens) = any(tok.lower() in _clean_html(title).lower() for tok in tokens)   # 子字串比對
+
 on_topic(article, rule) :=
-    hit(require_any)  AND  NOT ( hit(exclude_any) AND NOT hit(require_any) )
-  ≡ hit(require_any) AND NOT hit(exclude_any_pure)
-其中 hit(X) = normalise_title(title) 與 X 有交集（沿用 jieba token，與 assign_category 同源）
+    if require_any 存在:  _hit(title, require_any)          # 白名單主導：必須命中事故 token
+    elif exclude_any 存在: not _hit(title, exclude_any)     # 純黑名單（無 require 的類別才走這支）
+    else:                 True                              # 無規則 → 全通過
 ```
-- 「肇事逃逸」：命中 `肇事`（require）→ on-topic，即使另含刑案性質。**邊界由 require_any 優先解掉。**
-- 純竊盜：命中 `竊`（exclude）、無事故 token → off-topic。
-- **欄位皆選填**：只給 `exclude_any` = 純黑名單；只給 `require_any` = 純白名單；本 seed 兩者都給。
+- **為何改掉原公式**：原 `hit(require) AND NOT(hit(exclude) AND NOT hit(require))` 代數化簡即等於
+  `hit(require)`——exclude 在 require 存在時**恆不生效**（degenerate）。且「require 優先解邊界」與
+  「兩名單都生效」數學上不相容：一旦 require 贏邊界，某一名單必然主導。**選 require 主導**
+  （事故桶必須自證是事故，寧缺勿濫）。
+- **為何用子字串不用 jieba token**：`normalise_title` 丟棄長度 <2 的 token 且 jieba 會把
+  「撞死」「涉竊」「醫不治」黏成一詞——實測（2026-08-06 replay）token 交集會**誤殺真事故**
+  （擦撞送醫不治→∅）並**漏抓刑案**（涉竊/通緝→∅）。子字串比對（與既有 `blocked_content_keywords`
+  同法）逐案正確。過度命中風險（撞∈撞球）小且由 §4 基準集調校。
+- 「肇事逃逸」：命中 `肇事`（require）→ on-topic，即使另含刑案性質。**邊界由 require 命中解掉。**
+- 純竊盜：無事故 token → `_hit(require)=False` → off-topic（**不靠 exclude**）。
+- 市場行銷稿（油耗/市佔/銷量，無事故 token）：同理 → off-topic。
+- **欄位皆選填**：只給 `require_any` = 白名單（本 seed）；只給 `exclude_any` = 純黑名單（未來
+  無法列舉正面 token 的類別用）；兩者都給 = require 主導、exclude 不生效（故不建議兩者都給）。
 
-**驗證規則**：token 必須是 jieba 會切出的詞（同 taxonomy 既有註記——複合詞如「機車事故」會被切開）。
-規則載入失敗（缺鍵／格式錯）時該類別**視為不套閘**（fail-open，寧可漏擋不可誤殺整類），並記 log。
+**驗證規則**：規則載入失敗（缺鍵／格式錯／非 list）時該類別**視為不套閘**（fail-open，寧可漏擋
+不可誤殺整類），並記 log。token 為任意子字串，不受 jieba 切詞限制。
 
 ## 2. `blocked_content_keywords` 擴充（config，既有欄位）
 
@@ -87,6 +99,7 @@ blocked_content_keywords:
 ## 不變式（Invariants）
 
 - 閘為**純函數**：同 (articles, rules) 必得同 partition（憲章 III；可重播）。
-- 閘**零外部呼叫**：只讀 config 與 in-memory token（憲章 IV / FR-006）。
+- 閘**零外部呼叫**：只讀 config 與 in-memory 子字串比對（憲章 IV / FR-006）。
 - 閘**不改** `major_category`、不寫 DB、不丟 buffer（§1 路徑）；只有 §2 的全域市場詞封鎖會丟 buffer。
-- `require_any` 命中 **優先於** `exclude_any`（邊界規則，FR 對「肇事逃逸」的要求）。
+- **whitelist-dominant**：類別有 `require_any` 時，`on_topic = _hit(require_any)`，`exclude_any`
+  不生效（邊界「肇事逃逸」由 require 命中解掉）。`exclude_any` 只在無 `require_any` 的類別走純黑名單支。
