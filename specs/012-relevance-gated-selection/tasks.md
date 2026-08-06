@@ -28,7 +28,7 @@ awaiting review → `[X]` reviewed **and** main-verified. Never write `[X]` in t
 
 **Purpose**: put the new config structure in place (no rules yet)
 
-- [-] T001 [P] Add a documented, empty `relevance_rules:` block (with a comment explaining
+- [X] T001 [P] Add a documented, empty `relevance_rules:` block (with a comment explaining
   `require_any` / `exclude_any`, per-category, fail-open) to `config/categories_traffic.yml`
   AND `config/categories_traffic.example.yml`
 
@@ -40,7 +40,7 @@ awaiting review → `[X]` reviewed **and** main-verified. Never write `[X]` in t
 
 **⚠️ Blocks the wiring task in every user story.**
 
-- [-] T002 Add `load_relevance_rules()` to `src/pipeline_config.py` — read `relevance_rules`
+- [X] T002 Add `load_relevance_rules()` to `src/pipeline_config.py` — read `relevance_rules`
   from `categories_traffic.yml`, return `{}` when the key is absent or malformed (fail-open,
   see data-model §1); mirror the shape of the existing `load_source_default_categories()`
 
@@ -77,14 +77,14 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
   非 `normalise_title` token 交集，見 data-model §1 replay 佐證）；**whitelist-dominant**：
   `require_any` 存在時 `on = _hit(require_any)`，`exclude_any` 只在無 `require_any` 時走純黑名單支；
   回傳 (on_topic, off_topic)，每篇附 `_relevance_reason`（log 用）。Makes T003 pass.
-- [-] T005 [P] [US1] Seed `relevance_rules.機車事故.require_any`（撞／追撞／自撞／擦撞／車禍／
+- [X] T005 [P] [US1] Seed `relevance_rules.機車事故.require_any`（撞／追撞／自撞／擦撞／車禍／
   事故／肇事／送醫／不治／傷／亡／翻車／失控／死）in `config/categories_traffic.yml` +
   `config/categories_traffic.example.yml`（**require-only**；exclude_any 對本類別不生效故不填，
   市場詞由 T008 Tier 1 攔；**seed，非定案**，Phase 5 對基準集調）
-- [-] T006 [US1] Wire `partition_by_relevance` into `scripts/traffic_weekly_analysis.py` immediately
+- [X] T006 [US1] Wire `partition_by_relevance` into `scripts/traffic_weekly_analysis.py` immediately
   before `cluster_traffic_articles` — off_topic 排除於 scoring/selection，逐篇 log reason。
   依賴 T002（loader）、T004（函數）
-- [-] T006a [US1] **FR-008 regression**：對一份 fixture 走已接線的每週路徑
+- [X] T006a [US1] **FR-008 regression**：對一份 fixture 走已接線的每週路徑
   （`partition_by_relevance` → `cluster_traffic_articles` → `score_topic_buckets` →
   `select_hot_topics_with_novelty`），assert 既有行為不變——**≤3 席上限維持**、novelty 閘對未被
   gate 動到的桶**仍照常 suppress/pass**、gate **不改** `major_category`（FR-008）。
@@ -104,14 +104,14 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 
 ### Tests for User Story 2 ⚠️ (write first, must FAIL)
 
-- [-] T007 [P] [US2] Add failing unit tests in `tests/unit/test_relevance_gate.py`:
+- [X] T007 [P] [US2] Add failing unit tests in `tests/unit/test_relevance_gate.py`:
   (a) whole-bucket all-off-topic → `partition_by_relevance` yields empty on_topic → 該類別不成桶
   （feed → partition → `cluster_traffic_articles` → assert no bucket），FR-003；
   (b) **FR-007** — 車媒來源＋事故 token 的文章 survives（來源不參與判定，只看內容 token）
 
 ### Implementation for User Story 2
 
-- [-] T008 [P] [US2] Tier 1（config-only）：extend `blocked_content_keywords` with market tokens
+- [X] T008 [P] [US2] Tier 1（config-only）：extend `blocked_content_keywords` with market tokens
   （油耗／市佔／市占／銷量／戰報／掛牌數）in `config/pipeline_config.yml` +
   `config/pipeline_config.example.yml`（既有 filter 機制，`src/pipeline/traffic.py:66`）
 - [~] T009 [US2] **DROPPED（2026-08-06）** — 原案「把市場詞加入 `relevance_rules.機車事故.exclude_any`
