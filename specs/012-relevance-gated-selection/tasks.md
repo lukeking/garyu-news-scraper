@@ -58,7 +58,7 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 
 ### Tests for User Story 1 ⚠️ (write first, must FAIL)
 
-- [ ] T003 [P] [US1] Write failing unit tests in `tests/unit/test_relevance_gate.py`
+- [-] T003 [P] [US1] Write failing unit tests in `tests/unit/test_relevance_gate.py`
   （**substring `_hit` + whitelist-dominant**，2026-08-06 定，見 data-model §1）:
   (a) `require_any` pass — 真事故（擦撞送醫不治／自撞1死2傷）kept；
   (b) no-accident-token block — 純竊盜（涉竊機車遭通緝）／毒駕羈押（無撞死傷）excluded（靠 `require`=False，非 exclude）；
@@ -72,7 +72,7 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Implement pure `is_topic_relevant(article, rule)` + `partition_by_relevance(articles, rules)`
+- [-] T004 [US1] Implement pure `is_topic_relevant(article, rule)` + `partition_by_relevance(articles, rules)`
   in `src/filter.py` — **substring `_hit(title, tokens)`**（`tok.lower() in _clean_html(title).lower()`，
   非 `normalise_title` token 交集，見 data-model §1 replay 佐證）；**whitelist-dominant**：
   `require_any` 存在時 `on = _hit(require_any)`，`exclude_any` 只在無 `require_any` 時走純黑名單支；
