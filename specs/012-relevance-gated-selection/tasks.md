@@ -111,7 +111,7 @@ excluded, accidents kept; a high-quality-score crime story does NOT outrank a pl
 
 ### Implementation for User Story 2
 
-- [ ] T008 [P] [US2] Tier 1（config-only）：extend `blocked_content_keywords` with market tokens
+- [-] T008 [P] [US2] Tier 1（config-only）：extend `blocked_content_keywords` with market tokens
   （油耗／市佔／市占／銷量／戰報／掛牌數）in `config/pipeline_config.yml` +
   `config/pipeline_config.example.yml`（既有 filter 機制，`src/pipeline/traffic.py:66`）
 - [~] T009 [US2] **DROPPED（2026-08-06）** — 原案「把市場詞加入 `relevance_rules.機車事故.exclude_any`
