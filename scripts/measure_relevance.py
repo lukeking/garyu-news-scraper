@@ -360,6 +360,89 @@ def measure(slates, labels):
     }
 
 
+def _rules_with(rules, category, tokens):
+    """Copy `rules` with one category's `require_any` swapped out."""
+    out = {k: dict(v) for k, v in rules.items()}
+    out[category] = dict(out.get(category, {}))
+    out[category]["require_any"] = list(tokens)
+    return out
+
+
+def ladder(slates, rules, config, labels):
+    """Replay under `rules` and return just the ladder headline numbers.
+
+    `replay()` overwrites every derived key on each slate, so calling it repeatedly
+    with different rule sets is safe and gives a real counterfactual — the world is
+    rebuilt and re-measured, not reasoned about.
+    """
+    replay(slates, rules, config)
+    _, summary = measure(slates, labels)
+    return summary
+
+
+def ablate(slates, rules, config, labels, category, extra=()):
+    """Per-token accounting plus leave-one-out / leave-one-in ladders.
+
+    Two questions a flat hit-count cannot answer, and this can:
+      - is a token load-bearing? (`on 獨撐` — articles nothing else would keep)
+      - would removing it actually move the rung? (the token's own re-measured ladder)
+
+    Unclear hits are shown because they still change bucket scores, and a bucket that
+    slips under `min_threshold` takes its on-topic articles down with it — that lands
+    on SC-004 even though unclear rows never enter a ratio.
+    """
+    from src.filter import _clean_html, _hit
+
+    base = list(rules[category].get("require_any") or [])
+    # Unique titles across every gated slate, so a story published twice is counted once.
+    seen, arts = set(), []
+    for s in slates:
+        for a in s["published"]:
+            t = a.get("title")
+            if t and t not in seen:
+                seen.add(t)
+                arts.append(a)
+
+    def hits(token):
+        return [a for a in arts if _hit(_clean_html(a.get("title", "")), [token])]
+
+    def label_split(subset):
+        on = sum(1 for a in subset if labels.get(a.get("title")) == "on")
+        off = sum(1 for a in subset if labels.get(a.get("title")) == "off")
+        return on, off, len(subset) - on - off
+
+    rows = []
+    for tok in base:
+        others = [t for t in base if t != tok]
+        mine = hits(tok)
+        on, off, unc = label_split(mine)
+        solo = [a for a in mine if not _hit(_clean_html(a.get("title", "")), others)]
+        s_on, s_off, s_unc = label_split(solo)
+        loo = ladder(slates, _rules_with(rules, category, others), config, labels)
+        rows.append({"token": tok, "on": on, "off": off, "unclear": unc,
+                     "solo_on": s_on, "solo_off": s_off, "solo_unclear": s_unc,
+                     "loo": loo})
+
+    adds = []
+    for tok in extra:
+        mine = [a for a in hits(tok) if not _hit(_clean_html(a.get("title", "")), base)]
+        on, off, unc = label_split(mine)
+        lai = ladder(slates, _rules_with(rules, category, base + [tok]), config, labels)
+        adds.append({"token": tok, "new_on": on, "new_off": off, "new_unclear": unc,
+                     "lai": lai})
+
+    baseline = ladder(slates, rules, config, labels)      # leave the slates as they were
+    return baseline, rows, adds
+
+
+def _rung_short(summary):
+    r = summary["rung"]
+    for tag in ("SC-003", "SC-002", "SC-001"):
+        if r.startswith(tag):
+            return tag
+    return "未達"
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -368,6 +451,13 @@ def main():
     ap.add_argument("--emit-labels", metavar="PATH",
                     help="write the unlabelled skeleton for T010 and exit; refuses to overwrite")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    ap.add_argument("--ablate", action="store_true",
+                    help="per-token accounting + leave-one-out ladders (T012 tuning)")
+    ap.add_argument("--add", default="", metavar="TOK,TOK",
+                    help="candidate tokens to evaluate as leave-one-in under --ablate")
+    ap.add_argument("--tokens", default="", metavar="TOK,TOK",
+                    help="try a whole replacement require_any without touching config; "
+                         "the only way to measure a swap (drop X, add Y) as one change")
     args = ap.parse_args()
 
     logging.basicConfig(level=logging.WARNING)
@@ -379,6 +469,12 @@ def main():
         print("no relevance_rules configured — nothing is gated, nothing to measure")
         return
     config = load_pipeline_config()
+
+    if args.tokens:
+        cat = sorted(rules)[0]
+        proposed = [t.strip() for t in args.tokens.split(",") if t.strip()]
+        print(f"※ 覆寫 {cat}.require_any（未動 config）：{len(proposed)} 個 token → {proposed}\n")
+        rules = _rules_with(rules, cat, proposed)
 
     slates = gated_slates(fetch_reports(), fetch_articles(), rules)
     if not slates:
@@ -402,6 +498,53 @@ def main():
         return
 
     labels, conflicts, untouched = load_baseline(args.baseline)
+
+    if args.ablate:
+        cat = sorted(rules)[0] if len(rules) == 1 else sorted(rules)[0]
+        extra = [t.strip() for t in args.add.split(",") if t.strip()]
+        baseline, tok_rows, adds = ablate(slates, rules, config, labels, cat, extra)
+        b_worst = baseline["worst_after_ratio"]
+        print(f"消融基準（{cat}，{len(tok_rows)} 個 require token）："
+              f"最差存活離題 {b_worst:.0%}／{_rung_short(baseline)}／"
+              f"on-topic {baseline['before_on_total']}→{baseline['after_on_total']}"
+              if b_worst is not None else f"消融基準（{cat}）：無可量名單")
+        print("\n【留下每個 token 命中什麼】唯一標題計；『獨撐』＝其他 token 都抓不到")
+        print(f"{'token':<8}{'on':>4}{'off':>5}{'unc':>5}   {'獨撐on':>7}{'獨撐off':>8}{'獨撐unc':>8}")
+        print("-" * 56)
+        for r in sorted(tok_rows, key=lambda x: (-x["solo_on"], x["solo_off"])):
+            print(f"{r['token']:<8}{r['on']:>4}{r['off']:>5}{r['unclear']:>5}   "
+                  f"{r['solo_on']:>7}{r['solo_off']:>8}{r['solo_unclear']:>8}")
+        print("\n【拿掉這個 token 後，整個階梯真的重跑一次】")
+        print(f"{'移除':<8}{'最差離題':>9}{'階數':>9}{'on-topic 發布':>14}  與基準相比")
+        print("-" * 62)
+        for r in sorted(tok_rows, key=lambda x: (x["loo"]["worst_after_ratio"] is None,
+                                                 x["loo"]["worst_after_ratio"] or 0)):
+            L = r["loo"]
+            w = f"{L['worst_after_ratio']:.0%}" if L["worst_after_ratio"] is not None else "n/a"
+            delta = L["after_on_total"] - baseline["after_on_total"]
+            note = "同" if (_rung_short(L) == _rung_short(baseline) and delta == 0) else ""
+            if _rung_short(L) != _rung_short(baseline):
+                note = f"階數 {_rung_short(baseline)} → {_rung_short(L)}"
+            if delta:
+                note = (note + "，" if note else "") + f"on-topic {delta:+d}"
+            print(f"{r['token']:<8}{w:>9}{_rung_short(L):>9}{L['after_on_total']:>14}  {note}")
+        if adds:
+            print("\n【加入候選 token 後，整個階梯真的重跑一次】"
+                  "『新收』＝目前所有 token 都抓不到、只有它抓到的")
+            print(f"{'加入':<8}{'新收on':>7}{'新收off':>8}{'新收unc':>8}"
+                  f"{'最差離題':>9}{'階數':>9}{'on-topic':>10}")
+            print("-" * 62)
+            for r in adds:
+                L = r["lai"]
+                w = f"{L['worst_after_ratio']:.0%}" if L["worst_after_ratio"] is not None else "n/a"
+                print(f"{r['token']:<8}{r['new_on']:>7}{r['new_off']:>8}{r['new_unclear']:>8}"
+                      f"{w:>9}{_rung_short(L):>9}{L['after_on_total']:>10}")
+        if untouched:
+            print(f"\n⚠ 基準集有 {untouched} 列沒人看過，上面所有數字都只算已判定者")
+        print(f"⚠ 樣本＝{len(slates)} 個名單／{baseline['unclear']} 篇 unclear 排除在比例外。"
+              f"對 87 列調參有過擬合風險：這裡測得的是「在這份基準集上」的效果。")
+        return
+
     rows, summary = measure(slates, labels)
 
     if args.json:
