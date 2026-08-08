@@ -148,7 +148,14 @@ car-media accident survives.
   `config/pipeline_config.yml` (+example) **against the baseline** until an SC rung is reached；
   record the achieved rung（SC-001 Gate 最低；目標 SC-002）。依賴 T010、T011
 - [ ] T013 [P] Deploy config to prod GitHub env vars（`CATEGORIES_TRAFFIC_YML`／`PIPELINE_CONFIG_YML`）
-  per `CLAUDE.local.md` — **使用者執行**（`gh variable set` 交給使用者），完成後 `gh variable get` 逐位元組比對
+  per `CLAUDE.local.md` — **使用者執行**（`gh variable set` 交給使用者），完成後 `gh variable get` 逐位元組比對。
+  **payload 額外夾帶一項（使用者 2026-08-08 決定，與 012 無關）**：`buffer.daily_enrich: true`。
+  行為上是 no-op（`scripts/traffic_buffer.py:53` 是 `.get("daily_enrich", True)`，預設開啟），
+  目的是讓那個 kill-switch 在 prod 設定裡**看得見**——403 封鎖擴散到原生媒體時才需要它，
+  屆時得先知道它存在。本機 `config/pipeline_config.yml`（＝部署 payload）已加。
+  ⚠️ **尾端換行陷阱（已量測）**：prod 現存的值**沒有**尾端換行，`gh variable get` 自己會補一個 `\n`；
+  本機檔以 `\r\n` 結尾。所以 `set < 檔案` 之後逐位元組比對會多出一個換行，那是假警報——
+  用 YAML parse 後比物件（或容忍尾端單一 LF），不要看 byte 數。檔案是 CRLF，維持 CRLF。
 - [ ] T014 Update spec.md Success Criteria with the achieved SC rung (E1 實測值)，並執行 quickstart.md 驗收流程
 - [ ] T015 On merge (spec-closeout ritual): flip `specs/BACKLOG.md`「機車事故選材離題」→ done（PR ref），
   更新 `STATE.md`；#7 仍保留為獨立後續
