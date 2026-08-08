@@ -128,7 +128,7 @@ car-media accident survives.
 
 **Purpose**: 量 SC 階梯、對基準集調規則、上 prod。**沒有基準集就只有主觀印象，不算達標（承 011 之戒）。**
 
-- [-] T010 Build the human-labeled relevance baseline at `tests/fixtures/relevance_baseline_012.jsonl`
+- [X] T010 Build the human-labeled relevance baseline at `tests/fixtures/relevance_baseline_012.jsonl`
   — 取樣數週（含 08-03 `機車事故·中時` 刑案混雜、`機車事故·金線` 行銷整席兩錨案）；逐篇人工標
   `on`/`off`（data-model §4 欄位）；去識別化（title／source／label）。**禁止用閘輸出回填 label。**
   **骨架已由 T011 `--emit-labels` 產出（87 列、label 全空，涵蓋 16 個 `機車事故 ·` 桶、
@@ -138,7 +138,7 @@ car-media accident survives.
   標記協定＝**只看標題、三態**（明顯是事故 on／明顯不是 off／看不出來 unclear），
   尺規見 `labeling-rubric.md`，工具＝`scripts/label_baseline.py`。`unclear` 是判定不是待辦
   （標題殺人普遍，硬逼二選一會把猜測寫成 ground truth），不計入 SC 比例分母。
-- [-] T011 [P] Add read-only `scripts/measure_relevance.py` — 對基準集重播「套閘前 vs 套閘後」發布名單，
+- [X] T011 [P] Add read-only `scripts/measure_relevance.py` — 對基準集重播「套閘前 vs 套閘後」發布名單，
   輸出 SC 階梯：SC-001（任一熱點多數離題？）／SC-002（≤20%？）／SC-004（on-topic 數不降？）
   **重播是精確的而非估計**：發布名單不是 LLM 選的，`analyze_hot_topic()` 取
   `sorted(bucket, initial_quality_score desc)[:10]`，純函數、可重算。三個已載明的限制：
@@ -148,7 +148,7 @@ car-media accident survives.
   （實測漂移 4.9%），故貼近 `min_threshold` 的發布判定印為「未定」。內建 `replay 保真度` 自檢
   （現況 11/12 個精確名單重算出報告紀錄的 `cumulative_score`）。
   驗證＝重播實跑＋保真度自檢，**無 unit RED**（tasks.md Lane C：measurement 不走 unit RED）。
-- [-] T012 Tune the token tables in `config/categories_traffic.yml` (+example) and
+- [X] T012 Tune the token tables in `config/categories_traffic.yml` (+example) and
   `config/pipeline_config.yml` (+example) **against the baseline** until an SC rung is reached；
   record the achieved rung（SC-001 Gate 最低；目標 SC-002）。依賴 T010、T011
   **達成（2026-08-08，E1 實測）：離題階梯 SC-003（L2 理想，0%）／不回歸階梯 SC-004 L0**
@@ -161,7 +161,7 @@ car-media accident survives.
   **殘餘（刻意不硬湊）**：「3米路樹突倒機車道」標題零事故語彙，純子字串抓不到；
   「毒蟲駕車撞BMW波及機車」真有碰撞故 `撞` 必留但人工判離題——即 spec 所述 LLM 重開條件的語意型殘餘。
   **要上 SC-004 L1 得解門檻互動（`min_threshold` 殺乾淨小桶），不是再調 token** —— 見下方新增後續。
-- [-] T013 [P] Deploy config to prod GitHub env vars（`CATEGORIES_TRAFFIC_YML`／`PIPELINE_CONFIG_YML`）
+- [X] T013 [P] Deploy config to prod GitHub env vars（`CATEGORIES_TRAFFIC_YML`／`PIPELINE_CONFIG_YML`）
   per `CLAUDE.local.md` — **使用者執行**（`gh variable set` 交給使用者），完成後 `gh variable get` 逐位元組比對。
   **payload 額外夾帶一項（使用者 2026-08-08 決定，與 012 無關）**：`buffer.daily_enrich: true`。
   行為上是 no-op（`scripts/traffic_buffer.py:53` 是 `.get("daily_enrich", True)`，預設開啟），
@@ -176,7 +176,7 @@ car-media accident survives.
   `pipeline_config.yml` 的尾端 `\r\n` 被存成單一 `\n`（bytes 3852→3851，−1 而非 +1），
   檔內其餘 90 行 CRLF 完好、YAML 無差異。所以位元組比對的偏移量**方向與大小都不可預測**，
   唯一可靠的驗證仍是 YAML parse 比物件。
-- [-] T014 Update spec.md Success Criteria with the achieved SC rung (E1 實測值)，並執行 quickstart.md 驗收流程
+- [X] T014 Update spec.md Success Criteria with the achieved SC rung (E1 實測值)，並執行 quickstart.md 驗收流程
   SC-004 已於 2026-08-08 由絕對門檻改寫為階梯（L0/L1/L2）——原寫法「on-topic 不下降」經實測
   證明與閘的機制結構性衝突（移除文章必然壓低桶分數 → 跌破 `min_threshold` → 整桶不發布），
   任何 token 組合都不可達，故不是調參問題。
@@ -188,14 +188,24 @@ car-media accident survives.
   `test_no_accident_token_excluded`／邊界肇事逃逸 `test_boundary_crime_and_accident_kept`／
   整桶清空 `test_whole_bucket_all_offtopic_yields_no_bucket`／fail-open
   `test_fail_open_empty_and_malformed_rule`／純度 `test_partition_purity_preserves_major_category`。
-- [ ] T016 **（新增，2026-08-08）** 門檻互動：閘移除離題文後，乾淨的小桶（如 `機車事故 · 中央社`
+- [~] T016 **（新增 2026-08-08，同日移出 012）** 門檻互動：閘移除離題文後，乾淨的小桶（如 `機車事故 · 中央社`
   剩 2 篇乾淨文、分數 0.63）永遠過不了 `min_threshold: 1.5`——門檻是對「未過濾的桶」校準的。
   這與 spec 010 的 道安政策 singleton 天花板是**同一個結構問題**。已量測否決兩條路：
   (a) 全面降 `category_min_threshold` → 掃到 ≤1.0 時離題比例爆到 100%（髒桶一起復活）；
   (b) 桶分數改用「過濾前」計算 → 離題 100%、未達 SC-001（該死的爛桶不再死）。
   同一個門檻同時殺乾淨小桶與髒桶，用分數分不開它們 → 需要比降門檻更聰明的解法。**另開 spec，不在 012 內。**
-- [ ] T015 On merge (spec-closeout ritual): flip `specs/BACKLOG.md`「機車事故選材離題」→ done（PR ref），
+  **已移交（2026-08-08 closeout）**：完整分析（含兩條被否決捷徑的實測表、與 spec 010 singleton
+  天花板的同構關係）已寫進 `specs/BACKLOG.md` 的「桶分數門檻殺乾淨小桶」專節＝建議順序 **#9**。
+  本標記為 `[~]`（移出本 spec），**不是**沒做完的 012 任務。
+- [X] T015 On merge (spec-closeout ritual): flip `specs/BACKLOG.md`「機車事故選材離題」→ done（PR ref），
   更新 `STATE.md`；#7 仍保留為獨立後續
+  **完成（2026-08-08，PR #83 merged `8819142`）**：BACKLOG 動了四處——(1)「機車事故選材離題」專節
+  狀態翻 ✅ 並補達成階梯表／重現指令／「哪些候選解法被採用及為何第三項不需要」；(2) 建議順序表
+  新增 **#9**（門檻互動）並改寫「現在能撈什麼」的導引行（原文指向本項，已 shipped 故失效）；
+  (3) **#7 下游刷新**——它不是被 012 擋住，但前提變了：相關性閘機制已現成且通用，
+  它從「要不要造一個相關性判斷」降級為「要不要填一份政策 token 表」，已在 #7 節內標明
+  其「候選解法」寫於機制不存在的年代；(4) 新增 #9 專節承接 T016。
+  ⚠️ `STATE.md` 是**第二份副本**（由 handoff ritual 維護），與 BACKLOG 各自更新、不連動。
 
 ---
 
