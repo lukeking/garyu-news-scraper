@@ -17,10 +17,10 @@
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "開放機車直接左轉？從台南經驗看被「過度解讀」的交通數據 - 未來城市＠天下", "source": "Google News 機車交通", "label": "off", "note": "政策／路權措施，主體非事故（08-08 裁決：以主體是否為事故切，不以是否為政策切）"}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "民代：可原則開放機車免強制待轉| 民意論壇| 評論 - UDN", "source": "Google News 機車交通", "label": "off", "note": "政策／路權措施，主體非事故（08-08 裁決：以主體是否為事故切，不以是否為政策切）"}
 {"week_id": "2026-W30", "major_category": "機車事故", "title": "張雪機車叩關別讓保護削弱競爭力| 民意論壇| 評論 - UDN", "source": "UDN 聯合報", "label": "off", "note": ""}
-{"week_id": "2026-W30", "major_category": "機車事故", "title": "高雄黑狗突竄出擊落機車騎士 目擊者報案提醒注意「汪汪隊」 - UDN", "source": "UDN 聯合報", "label": "", "note": ""}
+{"week_id": "2026-W30", "major_category": "機車事故", "title": "高雄黑狗突竄出擊落機車騎士 目擊者報案提醒注意「汪汪隊」 - UDN", "source": "UDN 聯合報", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
 {"week_id": "2026-W29", "major_category": "機車事故", "title": "下橋沒打燈直接切！高雄三寶撞飛22歲騎士「腿斷可見骨」命危- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": ""}
-{"week_id": "2026-W27", "major_category": "機車事故", "title": "疑行車糾紛！高雄男竟拉外套害騎士重摔 網驚呼：太誇張 - 中時新聞網", "source": "中時新聞網", "label": "", "note": ""}
-{"week_id": "2026-W31", "major_category": "機車事故", "title": "大黑狗路邊突竄出 高雄男騎士遭擊落慘摔 - 中時新聞網", "source": "中時新聞網", "label": "", "note": ""}
+{"week_id": "2026-W27", "major_category": "機車事故", "title": "疑行車糾紛！高雄男竟拉外套害騎士重摔 網驚呼：太誇張 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
+{"week_id": "2026-W31", "major_category": "機車事故", "title": "大黑狗路邊突竄出 高雄男騎士遭擊落慘摔 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "交通部全面推動機車左轉安全精進措施盼降低機車傷亡事故- 生活 - 華視新聞網", "source": "Google News 機車交通", "label": "on", "note": "政策報導，但主體是機車傷亡事故的降低措施"}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "機車左轉事故致死率為右轉2倍 學者倡道路分級保安全 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": "主體是機車左轉事故致死率數據"}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "台南市晚間突下大雷雨 多處道路淹水 民眾機車騎不動 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": "淹水致機車難行，無事故亦無危害處置"}
@@ -46,10 +46,10 @@
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "銷售戰報／2026年5月大型重機，掛牌跌破千輛靠大羊苦撐 - 地球黃金線", "source": "Google News 重機", "label": "off", "note": ""}
 {"week_id": "2026-W21", "major_category": "機車事故", "title": "銷售戰報／2026年4月大型重機，新勢力進場成買氣支撐 - 地球黃金線", "source": "Google News 重機", "label": "off", "note": ""}
 {"week_id": "2026-W28", "major_category": "機車事故", "title": "銷售戰報／2026年5月台灣250c.c.以下機車市場，銷售持平醞釀暑假購車季廝殺？ - 地球黃金線", "source": "Google News 白牌機車", "label": "off", "note": ""}
-{"week_id": "2026-W25", "major_category": "機車事故", "title": "撞倒機車塞3000元就跑！ 女騎士留紙條道歉警仍追肇逃- 社會 - 中時新聞網", "source": "中時新聞網", "label": "", "note": ""}
+{"week_id": "2026-W25", "major_category": "機車事故", "title": "撞倒機車塞3000元就跑！ 女騎士留紙條道歉警仍追肇逃- 社會 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "板橋車禍！汽車左轉未禮讓直行機車騎士腿部骨折送醫- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": ""}
-{"week_id": "2026-W25", "major_category": "機車事故", "title": "太危險！高雄機車掉落油漆桶 後方騎士「犁田」受傷 - 中時新聞網", "source": "中時新聞網", "label": "", "note": ""}
-{"week_id": "2026-W25", "major_category": "機車事故", "title": "彰化機車騎士離奇劇烈抖動 下秒大雨滂沱中慘摔 - 中時新聞網", "source": "中時新聞網", "label": "", "note": ""}
+{"week_id": "2026-W25", "major_category": "機車事故", "title": "太危險！高雄機車掉落油漆桶 後方騎士「犁田」受傷 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
+{"week_id": "2026-W25", "major_category": "機車事故", "title": "彰化機車騎士離奇劇烈抖動 下秒大雨滂沱中慘摔 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "楠梓騎士逆向遭警攔竟「尿遁、買水、狂奔逃」 一篩又是陽- 社會 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": ""}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "豪雨狂炸！3米路樹突倒機車道烏日警冒雨鋸木神救援- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": "道路危害事件（路樹倒機車道），無人受傷（08-08 裁決，邊界）"}
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "騎士左轉遭BMW猛撞！ 「跳針男」被正義哥出手慘電- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": ""}
@@ -60,11 +60,11 @@
 {"week_id": "2026-W25", "major_category": "機車事故", "title": "台南運豬車衝撞2車「騎士遭爆頭慘死」！豬隻驚恐縮一團- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": ""}
 {"week_id": "2026-W22", "major_category": "機車事故", "title": "北市東區驚現人肉推土機！婦市民大道「沿路推倒機車」畫面曝- 社會 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": ""}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "她一看手機毛了！跳出追蹤器警訊竟是前男友偷藏機車內- 社會 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": ""}
-{"week_id": "2026-W24", "major_category": "機車事故", "title": "台9線無照騎士撞路肩枯枝亡 綠美化承包商獲判無罪 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": "事故＋後續司法（承包商判無罪）；08-08 裁決：事故的司法後續算 on"}
+{"week_id": "2026-W24", "major_category": "機車事故", "title": "台9線無照騎士撞路肩枯枝亡 綠美化承包商獲判無罪 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出／已由使用者按 s 判為 unclear；08-08 協定"}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "涉刺傷等紅燈機車騎士高雄8旬翁遭逮稱認錯人| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "off", "note": "傷害案（刺傷騎士），非道路交通事故"}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "台南機車追撞垃圾車騎士被拋進車斗幸無大礙| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "on", "note": ""}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "北市東區電信業者招牌掉落2女被砸傷3機車受損| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "off", "note": "墜落物傷人，非道路交通事故"}
-{"week_id": "2026-W24", "major_category": "機車事故", "title": "基隆男子機車違停超商前警攔查交出毒煙彈送辦| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "", "note": ""}
+{"week_id": "2026-W24", "major_category": "機車事故", "title": "基隆男子機車違停超商前警攔查交出毒煙彈送辦| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "unclear", "note": "標題看不出是否真有事故（標題殺人可能性高於實際碰撞）；08-08 協定：unclear 不計入分母"}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "新北汐止騎士形跡可疑涉毒駕士檢聲押獲准| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "off", "note": ""}
 {"week_id": "2026-W24", "major_category": "機車事故", "title": "桃園豪雨市區積水機車雙載自摔受傷| 社會 - 中央社 CNA", "source": "Google News 中央社機車", "label": "on", "note": ""}
 {"week_id": "2026-W21", "major_category": "機車事故", "title": "Uber「機車小黃」還沒開跑就GG?交通部：違法最高重罰2500 萬元 - MSN", "source": "Google News 機車交通", "label": "off", "note": "政策／路權措施，主體非事故（08-08 裁決：以主體是否為事故切，不以是否為政策切）"}
@@ -77,8 +77,8 @@
 {"week_id": "2026-W21", "major_category": "機車事故", "title": "交通部長陳世凱駕Jeep上淡江大橋，騎Gogoro實際體驗機車道 - 地球黃金線", "source": "Google News 機車交通", "label": "off", "note": "部長體驗機車道，公關行程"}
 {"week_id": "2026-W20", "major_category": "機車事故", "title": "淡江大橋機車道第一視角曝！後方超車險釀車禍驚險一瞬間 - 地球黃金線", "source": "Google News 機車交通", "label": "off", "note": "險象／驚險畫面，無實際碰撞"}
 {"week_id": "2026-W21", "major_category": "機車事故", "title": "斗六警匪追逐！毒蟲駕車撞BMW波及10餘輛機車 搜出大批毒品 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": ""}
-{"week_id": "2026-W22", "major_category": "機車事故", "title": "快訊》板橋警匪追逐！毒駕男衝撞警用機車2警負傷逮人- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": "刑案∩事故（毒駕衝撞警用機車）；08-08 裁決：有碰撞就算 on"}
-{"week_id": "2026-W21", "major_category": "機車事故", "title": "屏東男酒駕拒檢逃逸 擦撞警用機車下場慘了 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": "刑案∩事故（酒駕拒檢擦撞警用機車）；08-08 裁決：有碰撞就算 on"}
+{"week_id": "2026-W22", "major_category": "機車事故", "title": "快訊》板橋警匪追逐！毒駕男衝撞警用機車2警負傷逮人- 社會 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "毒駕案：標題重點在毒品非交通；08-08 協定：unclear"}
+{"week_id": "2026-W21", "major_category": "機車事故", "title": "屏東男酒駕拒檢逃逸 擦撞警用機車下場慘了 - 中時新聞網", "source": "中時新聞網", "label": "unclear", "note": "標題看不出／已由使用者按 s 判為 unclear；08-08 協定"}
 {"week_id": "2026-W20", "major_category": "機車事故", "title": "屏東 市場內機車逆向挨罰 民代批道路設計不良 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": "政策／路權措施，主體非事故（08-08 裁決：以主體是否為事故切，不以是否為政策切）"}
 {"week_id": "2026-W21", "major_category": "機車事故", "title": "高手在民間！ 新北騎士「奪門而出」畫面曝光網炸鍋- 社會 - 中時新聞網", "source": "中時新聞網", "label": "off", "note": ""}
 {"week_id": "2026-W21", "major_category": "機車事故", "title": "以為要待轉！ 新莊女騎士「鬼切」遭追撞釀2人傷- 社會 - 中時新聞網", "source": "中時新聞網", "label": "on", "note": ""}

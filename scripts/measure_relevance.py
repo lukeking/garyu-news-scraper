@@ -241,14 +241,18 @@ def label_rows(slates):
 
 
 def load_baseline(path):
-    """Return {title: label} plus the titles carrying conflicting labels.
+    """Return {title: label}, conflicting titles, and how many rows are still untouched.
 
     Keyed on title because §4 deliberately keeps no link (de-identification) and
     the title is what the gate reads anyway.
+
+    `unclear` is carried through as a real verdict — "the title does not say" — not
+    dropped like a blank. Blank means nobody has looked yet; the two must not be
+    reported as the same thing (data-model §4).
     """
-    labels, conflicts = {}, set()
+    labels, conflicts, untouched = {}, set(), 0
     if not os.path.exists(path):
-        return labels, conflicts
+        return labels, conflicts, untouched
     with open(path, encoding="utf-8") as fh:
         for line in fh:
             line = line.strip()
@@ -256,22 +260,31 @@ def load_baseline(path):
                 continue
             row = json.loads(line)
             title, label = row.get("title", ""), (row.get("label") or "").strip()
-            if not title or label not in ("on", "off"):
+            if not title:
+                continue
+            if label not in ("on", "off", "unclear"):
+                untouched += 1
                 continue
             if title in labels and labels[title] != label:
                 conflicts.add(title)
             labels[title] = label
-    return labels, conflicts
+    return labels, conflicts, untouched
 
 
 def measure(slates, labels):
     """Score the SC ladder. Returns (per-slate rows, summary dict).
 
-    Off-topic ratios are computed only over labeled articles: an unlabeled slate
-    would otherwise read as clean, which is the exact failure the baseline exists
-    to prevent (spec 011's lesson).
+    Off-topic ratios are computed only over articles labeled `on`/`off`. An
+    unlabeled slate would otherwise read as clean, which is the exact failure the
+    baseline exists to prevent (spec 011's lesson).
+
+    `unclear` rows — the title genuinely does not say whether an accident happened —
+    are excluded from both numerator and denominator, and counted out loud instead.
+    ⚠️ That exclusion flatters the gate: unclear rows are the hardest cases, exactly
+    where a token table is most likely to be wrong. The count is printed with every
+    ratio so the coverage limit travels with the number (data-model §4).
     """
-    rows, unlabeled = [], 0
+    rows, unclear_total = [], 0
     before_on = after_on = 0
     strict_ratios, all_ratios = [], []
     fidelity_ok = fidelity_checked = 0
@@ -283,7 +296,7 @@ def measure(slates, labels):
 
         b_on, b_off, b_un = split(s["published"])
         a_on, a_off, _ = split(s["after"])
-        unlabeled += b_un
+        unclear_total += b_un
         b_total, a_total = b_on + b_off, a_on + a_off
         # Only exact slates can be summed into a regression figure: a `~` slate's
         # after-list is missing the articles that would have been promoted into it.
@@ -310,7 +323,7 @@ def measure(slates, labels):
             "borderline": s["borderline"],
             "after_score": s["after_score"],
             "threshold": s["threshold"],
-            "unlabeled": b_un,
+            "unclear": b_un,
             "on_lost": (b_on - a_on) if s["exact"] else None,
         }
         rows.append(row)
@@ -340,7 +353,7 @@ def measure(slates, labels):
         "before_on_total": before_on,
         "after_on_total": after_on,
         "sc004_pass": (after_on >= before_on) if labels else None,
-        "unlabeled": unlabeled,
+        "unclear": unclear_total,
         "slates": len(rows),
         "exact_slates": sum(1 for r in rows if r["exact"]),
         "replay_fidelity": f"{fidelity_ok}/{fidelity_checked}",
@@ -353,7 +366,7 @@ def main():
     ap.add_argument("--baseline", default=DEFAULT_BASELINE,
                     help=f"labeled baseline JSONL (default {os.path.relpath(DEFAULT_BASELINE, _REPO_ROOT)})")
     ap.add_argument("--emit-labels", metavar="PATH",
-                    help="write the unlabeled skeleton for T010 and exit; refuses to overwrite")
+                    help="write the unlabelled skeleton for T010 and exit; refuses to overwrite")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
     args = ap.parse_args()
 
@@ -388,7 +401,7 @@ def main():
               '(the gate\'s own output must never backfill it), then re-run without --emit-labels')
         return
 
-    labels, conflicts = load_baseline(args.baseline)
+    labels, conflicts, untouched = load_baseline(args.baseline)
     rows, summary = measure(slates, labels)
 
     if args.json:
@@ -436,13 +449,17 @@ def main():
     else:
         print(f"SC-004（on-topic 不回歸）：{'PASS' if summary['sc004_pass'] else 'FAIL'} "
               f"— 精確名單的 on-topic 篇數 {summary['before_on_total']} → {summary['after_on_total']}")
-    if summary["unlabeled"]:
-        print(f"⚠ {summary['unlabeled']} 篇未標記——比例只算已標記者，"
-              f"證據等級 E3 直到基準集標完（T010）")
-    else:
+    if untouched:
+        print(f"⚠ 基準集還有 {untouched} 列沒人看過（label 空白）——比例只算已判定者，"
+              f"證據等級 E3 直到 T010 走完每一列")
+    elif summary["unclear"]:
         # Completeness is all this can check; whether the labels are a human's is a
         # property of how the file was made, not something the script can attest to.
-        print("全部名單皆已標記——若 label 為人工所標，上面的比例即 E1 實測")
+        print(f"名單裡有 {summary['unclear']} 篇為 unclear（標題判不出來），"
+              f"已排除於分母之外——⚠️ 那是最難的案例，排除會讓分數偏好看。")
+        print("其餘皆已判定；若 label 為人工所標，上面的比例即 E1 實測（涵蓋範圍＝可判定者）")
+    else:
+        print("全部名單皆已判定為 on/off——若 label 為人工所標，上面的比例即 E1 實測")
     if conflicts:
         print(f"⚠ {len(conflicts)} 個標題在基準集裡有衝突的 label：{sorted(conflicts)[:3]}")
     unresolved = sum(s["unresolved"] for s in slates)

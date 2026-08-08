@@ -24,10 +24,17 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_PATH = os.path.join(_REPO_ROOT, "tests", "fixtures", "relevance_baseline_012.jsonl")
 
 CRITERION = (
-    "判準：這篇的主體，是不是一件機車事故（含傷亡、肇因、後續司法），\n"
-    "      或一批機車事故的統計／風險？  是 → on，否 → off"
+    "判準（只看標題，三態）：這篇的主體，是不是一件機車事故\n"
+    "（含傷亡、肇因、後續司法），或一批機車事故的統計／風險？\n"
+    "  標題明顯是   → on\n"
+    "  標題明顯不是 → off\n"
+    "  標題看不出來 → s（unclear）。標題殺人很常見，寧可 unclear 不要猜"
 )
-KEYS = {"o": "on", "on": "on", "f": "off", "off": "off"}
+# `s` is a verdict, not a postponement: unclear rows are excluded from the SC ratios
+# rather than left looking unfinished (data-model.md §4).
+KEYS = {"o": "on", "on": "on", "f": "off", "off": "off",
+        "s": "unclear", "skip": "unclear", "u": "unclear"}
+DECIDED = ("on", "off", "unclear")
 
 
 def load(path):
@@ -70,9 +77,16 @@ def wrap(text, width=64, indent=" " * 8):
 
 
 def counts(rows):
+    """(on, off, unclear, untouched) — the last two are different states, not one."""
     on = sum(1 for r in rows if r.get("label") == "on")
     off = sum(1 for r in rows if r.get("label") == "off")
-    return on, off, len(rows) - on - off
+    unclear = sum(1 for r in rows if r.get("label") == "unclear")
+    return on, off, unclear, len(rows) - on - off - unclear
+
+
+def progress(path):
+    on, off, unclear, todo = counts(load(path))
+    return f"on={on} off={off} unclear={unclear} 未走過={todo}"
 
 
 def main():
@@ -85,15 +99,14 @@ def main():
 
     rows = load(args.path)
     todo = [i for i, r in enumerate(rows)
-            if args.relabel or (r.get("label") or "").strip() not in ("on", "off")]
+            if args.relabel or (r.get("label") or "").strip() not in DECIDED]
     if not todo:
-        on, off, un = counts(rows)
-        print(f"全部 {len(rows)} 列都已標記（on={on} off={off}）。"
+        print(f"全部 {len(rows)} 列都已判定（{progress(args.path)}）。"
               f"跑 measure_relevance.py 看 SC 階梯，或用 --relabel 重走一遍。")
         return
 
     print(CRITERION)
-    print("\n輸入：o＝on／f＝off／s＝跳過／q＝存檔離開。"
+    print("\n輸入：o＝on／f＝off／s＝unclear／q＝離開。"
           "理由接在後面即可，例如「f 刑案，無碰撞」。\n")
 
     for n, idx in enumerate(todo, 1):
@@ -103,33 +116,25 @@ def main():
         print(f"        {wrap(row.get('title', ''))}")
         while True:
             try:
-                raw = input("  on/off? ").strip()
+                raw = input("  on/off/s? ").strip()
             except (EOFError, KeyboardInterrupt):
-                on, off, un = counts(load(args.path))
-                print(f"\n離開（每答一列都已即時寫入）。on={on} off={off} 未標={un}")
+                print(f"\n離開（每答一列都已即時寫入）。{progress(args.path)}")
                 return
             if not raw:
                 continue
             key, _, note = raw.partition(" ")
             key = key.lower()
             if key in ("q", "quit"):
-                on, off, un = counts(load(args.path))
-                print(f"離開（每答一列都已即時寫入）。on={on} off={off} 未標={un}")
+                print(f"離開（每答一列都已即時寫入）。{progress(args.path)}")
                 return
-            if key in ("s", "skip"):
-                break
             if key in KEYS:
                 commit_one(args.path, idx, row.get("title", ""), KEYS[key], note.strip())
                 break
             print("  只認 o / f / s / q（理由接在空白後面）")
         print()
 
-    on, off, un = counts(load(args.path))
-    print(f"完成。on={on} off={off} 未標={un}／共 {len(rows)}")
-    if un:
-        print("（未標的是你按 s 跳過的，再跑一次會只問那些）")
-    else:
-        print("接著跑：.venv/bin/python scripts/measure_relevance.py")
+    print(f"完成。{progress(args.path)}／共 {len(rows)}")
+    print("接著跑：.venv/bin/python scripts/measure_relevance.py")
 
 
 if __name__ == "__main__":
