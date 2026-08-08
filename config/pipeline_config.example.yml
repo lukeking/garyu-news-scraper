@@ -41,7 +41,10 @@ category_digest:
     trigger_count: 10        # Effective-article count that fires a digest (~every 2-3 weeks at 3-4/wk inflow)
     quality_floor: 0.18      # Articles below this quality neither count nor get selected
                              # (known junk "友善列印" = 0.165; weakest real article = 0.193)
-    max_articles: 15         # Max articles fed into the digest prompt (quality desc)
+    max_articles: 25         # Max articles fed into the digest prompt (quality desc).
+                             # Raised 15 → 25 on 2026-07-20: after the source expansion the
+                             # pool runs 40-55 articles and is consumed whole, so a cap of 15
+                             # flushed roughly 70% of the new content unread.
 
 embed_dedup:
   threshold: 0.88            # Cosine similarity ≥ this → same event (Gemini Embedding 2, 768d)
@@ -60,6 +63,7 @@ source_weights:              # Credibility weight per outlet (0.0–1.0); defaul
 # Example: ["太報", "TaiSounds", "某媒體"]
 blocked_sources:
   - "三立"
+  - "民視"
   - "自由時報"
   - "ETtoday"
   - "東森"
@@ -67,6 +71,14 @@ blocked_sources:
   - "TaiSounds"
 
 blocked_content_keywords:
+  # 媒體品牌（2026-07-20）：blocked_sources 比對的是 source 欄位＝feed 名，
+  # 經 Google News 關鍵字 feed 進來的文章抓不到（實測洩漏 12% buffer）。
+  # 這裡比對標題，GN 標題帶「 - 媒體名」尾碼故可攔下。
+  - "三立"
+  - "鏡週刊"
+  - "自由時報"
+  - "自由電子報"   # 同一家的線上品牌，只擋「自由時報」會漏
+  - "民視"
   - "汽機車"      # ← catches the Yahoo section tag in titles
   - "優惠"
   - "上市"
