@@ -44,6 +44,25 @@ def save(path, rows):
     os.replace(tmp, path)
 
 
+def commit_one(path, idx, expected_title, label, note):
+    """Persist ONE row by re-reading the file first, then writing it back.
+
+    Writing the startup snapshot after every answer is what an earlier version did,
+    and it silently clobbered rows that had been edited elsewhere while the session
+    was open (a lost-update race — it ate four labels on 2026-08-08). Re-reading
+    means a concurrent edit to any other row survives. The title check guards the
+    case where the file was re-ordered or regenerated underneath us.
+    """
+    disk = load(path)
+    if idx >= len(disk) or disk[idx].get("title") != expected_title:
+        raise SystemExit(f"檔案在標記期間被換成不同的內容（第 {idx + 1} 列對不上），"
+                         f"未寫入任何東西。請重跑本工具。")
+    disk[idx]["label"] = label
+    if note:
+        disk[idx]["note"] = note
+    save(path, disk)
+
+
 def wrap(text, width=64, indent=" " * 8):
     """Break a CJK title on width columns; str.wrap splits on spaces, which CJK lacks."""
     lines = [text[i:i + width] for i in range(0, len(text), width)] or [""]
@@ -86,31 +105,26 @@ def main():
             try:
                 raw = input("  on/off? ").strip()
             except (EOFError, KeyboardInterrupt):
-                save(args.path, rows)
-                on, off, un = counts(rows)
-                print(f"\n已存檔。on={on} off={off} 未標={un}")
+                on, off, un = counts(load(args.path))
+                print(f"\n離開（每答一列都已即時寫入）。on={on} off={off} 未標={un}")
                 return
             if not raw:
                 continue
             key, _, note = raw.partition(" ")
             key = key.lower()
             if key in ("q", "quit"):
-                save(args.path, rows)
-                on, off, un = counts(rows)
-                print(f"存檔離開。on={on} off={off} 未標={un}")
+                on, off, un = counts(load(args.path))
+                print(f"離開（每答一列都已即時寫入）。on={on} off={off} 未標={un}")
                 return
             if key in ("s", "skip"):
                 break
             if key in KEYS:
-                row["label"] = KEYS[key]
-                if note.strip():
-                    row["note"] = note.strip()
-                save(args.path, rows)
+                commit_one(args.path, idx, row.get("title", ""), KEYS[key], note.strip())
                 break
             print("  只認 o / f / s / q（理由接在空白後面）")
         print()
 
-    on, off, un = counts(rows)
+    on, off, un = counts(load(args.path))
     print(f"完成。on={on} off={off} 未標={un}／共 {len(rows)}")
     if un:
         print("（未標的是你按 s 跳過的，再跑一次會只問那些）")
