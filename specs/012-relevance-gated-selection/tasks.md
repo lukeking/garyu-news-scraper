@@ -161,7 +161,7 @@ car-media accident survives.
   **殘餘（刻意不硬湊）**：「3米路樹突倒機車道」標題零事故語彙，純子字串抓不到；
   「毒蟲駕車撞BMW波及機車」真有碰撞故 `撞` 必留但人工判離題——即 spec 所述 LLM 重開條件的語意型殘餘。
   **要上 SC-004 L1 得解門檻互動（`min_threshold` 殺乾淨小桶），不是再調 token** —— 見下方新增後續。
-- [ ] T013 [P] Deploy config to prod GitHub env vars（`CATEGORIES_TRAFFIC_YML`／`PIPELINE_CONFIG_YML`）
+- [-] T013 [P] Deploy config to prod GitHub env vars（`CATEGORIES_TRAFFIC_YML`／`PIPELINE_CONFIG_YML`）
   per `CLAUDE.local.md` — **使用者執行**（`gh variable set` 交給使用者），完成後 `gh variable get` 逐位元組比對。
   **payload 額外夾帶一項（使用者 2026-08-08 決定，與 012 無關）**：`buffer.daily_enrich: true`。
   行為上是 no-op（`scripts/traffic_buffer.py:53` 是 `.get("daily_enrich", True)`，預設開啟），
@@ -170,10 +170,24 @@ car-media accident survives.
   ⚠️ **尾端換行陷阱（已量測）**：prod 現存的值**沒有**尾端換行，`gh variable get` 自己會補一個 `\n`；
   本機檔以 `\r\n` 結尾。所以 `set < 檔案` 之後逐位元組比對會多出一個換行，那是假警報——
   用 YAML parse 後比物件（或容忍尾端單一 LF），不要看 byte 數。檔案是 CRLF，維持 CRLF。
+  **完成（2026-08-08，使用者執行 `gh variable set < 檔案`）**：兩個變數 YAML 物件比對皆
+  `identical=True`；三項預期變更確認到位（`require_any` 19 token／`buffer.daily_enrich: true`／
+  市場詞 6/6），無其他漂移。⚠️ 尾端換行的**實測行為比原先記的更精確**：不是「get 多補一個 `\n`」——
+  `pipeline_config.yml` 的尾端 `\r\n` 被存成單一 `\n`（bytes 3852→3851，−1 而非 +1），
+  檔內其餘 90 行 CRLF 完好、YAML 無差異。所以位元組比對的偏移量**方向與大小都不可預測**，
+  唯一可靠的驗證仍是 YAML parse 比物件。
 - [-] T014 Update spec.md Success Criteria with the achieved SC rung (E1 實測值)，並執行 quickstart.md 驗收流程
   SC-004 已於 2026-08-08 由絕對門檻改寫為階梯（L0/L1/L2）——原寫法「on-topic 不下降」經實測
   證明與閘的機制結構性衝突（移除文章必然壓低桶分數 → 跌破 `min_threshold` → 整桶不發布），
-  任何 token 組合都不可達，故不是調參問題。quickstart 驗收流程仍待跑。
+  任何 token 組合都不可達，故不是調參問題。
+  **完成（2026-08-08）**：(a) spec.md §Success Criteria 已補「達成階數」表（E1 實測：離題 SC-003 ／
+  不回歸 SC-004 L0）＋ 重現指令 ＋ 三項量測偏差的誠實標註；(b) quickstart 四步驟全跑過——
+  前置 `pytest tests/unit -q` **148 passed**、步驟 1 基準集 87 列（T010）、步驟 2 規則已填（T005+T012）、
+  步驟 3 重播印出階梯（最差存活名單離題 **0%**、on-topic 16→12、replay 保真度 11/12）、
+  步驟 4 行為鎖 6 項對應到位：白名單 `test_require_pass_real_accident`／黑名單
+  `test_no_accident_token_excluded`／邊界肇事逃逸 `test_boundary_crime_and_accident_kept`／
+  整桶清空 `test_whole_bucket_all_offtopic_yields_no_bucket`／fail-open
+  `test_fail_open_empty_and_malformed_rule`／純度 `test_partition_purity_preserves_major_category`。
 - [ ] T016 **（新增，2026-08-08）** 門檻互動：閘移除離題文後，乾淨的小桶（如 `機車事故 · 中央社`
   剩 2 篇乾淨文、分數 0.63）永遠過不了 `min_threshold: 1.5`——門檻是對「未過濾的桶」校準的。
   這與 spec 010 的 道安政策 singleton 天花板是**同一個結構問題**。已量測否決兩條路：
