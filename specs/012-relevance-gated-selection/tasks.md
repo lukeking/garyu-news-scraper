@@ -128,12 +128,16 @@ car-media accident survives.
 
 **Purpose**: 量 SC 階梯、對基準集調規則、上 prod。**沒有基準集就只有主觀印象，不算達標（承 011 之戒）。**
 
-- [ ] T010 Build the human-labeled relevance baseline at `tests/fixtures/relevance_baseline_012.jsonl`
+- [-] T010 Build the human-labeled relevance baseline at `tests/fixtures/relevance_baseline_012.jsonl`
   — 取樣數週（含 08-03 `機車事故·中時` 刑案混雜、`機車事故·金線` 行銷整席兩錨案）；逐篇人工標
   `on`/`off`（data-model §4 欄位）；去識別化（title／source／label）。**禁止用閘輸出回填 label。**
   **骨架已由 T011 `--emit-labels` 產出（87 列、label 全空，涵蓋 16 個 `機車事故 ·` 桶、
   2026-05-18→08-03；兩錨案都在內）；本任務剩下的就是逐列填 label。**
   ⚠️ 順序：T011 先跑，因為要先知道「前閘 ∪ 後閘」名單才知道要標哪些（見 T011 的 promotion 限制）。
+  **完成（2026-08-08）：87 列全部判定 — on=35／off=42／unclear=10／未走過 0。**
+  標記協定＝**只看標題、三態**（明顯是事故 on／明顯不是 off／看不出來 unclear），
+  尺規見 `labeling-rubric.md`，工具＝`scripts/label_baseline.py`。`unclear` 是判定不是待辦
+  （標題殺人普遍，硬逼二選一會把猜測寫成 ground truth），不計入 SC 比例分母。
 - [-] T011 [P] Add read-only `scripts/measure_relevance.py` — 對基準集重播「套閘前 vs 套閘後」發布名單，
   輸出 SC 階梯：SC-001（任一熱點多數離題？）／SC-002（≤20%？）／SC-004（on-topic 數不降？）
   **重播是精確的而非估計**：發布名單不是 LLM 選的，`analyze_hot_topic()` 取
@@ -144,9 +148,19 @@ car-media accident survives.
   （實測漂移 4.9%），故貼近 `min_threshold` 的發布判定印為「未定」。內建 `replay 保真度` 自檢
   （現況 11/12 個精確名單重算出報告紀錄的 `cumulative_score`）。
   驗證＝重播實跑＋保真度自檢，**無 unit RED**（tasks.md Lane C：measurement 不走 unit RED）。
-- [ ] T012 Tune the token tables in `config/categories_traffic.yml` (+example) and
+- [-] T012 Tune the token tables in `config/categories_traffic.yml` (+example) and
   `config/pipeline_config.yml` (+example) **against the baseline** until an SC rung is reached；
   record the achieved rung（SC-001 Gate 最低；目標 SC-002）。依賴 T010、T011
+  **達成（2026-08-08，E1 實測）：離題階梯 SC-003（L2 理想，0%）／不回歸階梯 SC-004 L0**
+  （on-topic 16→12，損失 4／25%：桶因門檻而死 3、規則漏抓 1）。超過原定 SC-002 目標。
+  調法是消融導出的，不是猜的（`measure_relevance.py --ablate` 可重現）：移除 `車禍`（獨撐 on=0
+  但獨力製造 2 個 FP）、移除 `追撞/自撞/擦撞`（`撞` 的子字串，可證明冗餘）、`傷` → 六個複合詞
+  （**含 `無傷`**——標題寫「幸運無傷」正因為事故發生了）、新增 `摔/碾/壓/火海`（補 3 篇漏抓）。
+  `pipeline_config.yml` 的市場詞未動：消融顯示行銷類 12 篇 require-only 就全擋掉（獨撐 off=0）。
+  ⚠️ 過擬合風險：樣本 87 列、12 篇 unclear 排除在比例外，測得的是「在這份基準集上」的效果。
+  **殘餘（刻意不硬湊）**：「3米路樹突倒機車道」標題零事故語彙，純子字串抓不到；
+  「毒蟲駕車撞BMW波及機車」真有碰撞故 `撞` 必留但人工判離題——即 spec 所述 LLM 重開條件的語意型殘餘。
+  **要上 SC-004 L1 得解門檻互動（`min_threshold` 殺乾淨小桶），不是再調 token** —— 見下方新增後續。
 - [ ] T013 [P] Deploy config to prod GitHub env vars（`CATEGORIES_TRAFFIC_YML`／`PIPELINE_CONFIG_YML`）
   per `CLAUDE.local.md` — **使用者執行**（`gh variable set` 交給使用者），完成後 `gh variable get` 逐位元組比對。
   **payload 額外夾帶一項（使用者 2026-08-08 決定，與 012 無關）**：`buffer.daily_enrich: true`。
@@ -156,7 +170,16 @@ car-media accident survives.
   ⚠️ **尾端換行陷阱（已量測）**：prod 現存的值**沒有**尾端換行，`gh variable get` 自己會補一個 `\n`；
   本機檔以 `\r\n` 結尾。所以 `set < 檔案` 之後逐位元組比對會多出一個換行，那是假警報——
   用 YAML parse 後比物件（或容忍尾端單一 LF），不要看 byte 數。檔案是 CRLF，維持 CRLF。
-- [ ] T014 Update spec.md Success Criteria with the achieved SC rung (E1 實測值)，並執行 quickstart.md 驗收流程
+- [-] T014 Update spec.md Success Criteria with the achieved SC rung (E1 實測值)，並執行 quickstart.md 驗收流程
+  SC-004 已於 2026-08-08 由絕對門檻改寫為階梯（L0/L1/L2）——原寫法「on-topic 不下降」經實測
+  證明與閘的機制結構性衝突（移除文章必然壓低桶分數 → 跌破 `min_threshold` → 整桶不發布），
+  任何 token 組合都不可達，故不是調參問題。quickstart 驗收流程仍待跑。
+- [ ] T016 **（新增，2026-08-08）** 門檻互動：閘移除離題文後，乾淨的小桶（如 `機車事故 · 中央社`
+  剩 2 篇乾淨文、分數 0.63）永遠過不了 `min_threshold: 1.5`——門檻是對「未過濾的桶」校準的。
+  這與 spec 010 的 道安政策 singleton 天花板是**同一個結構問題**。已量測否決兩條路：
+  (a) 全面降 `category_min_threshold` → 掃到 ≤1.0 時離題比例爆到 100%（髒桶一起復活）；
+  (b) 桶分數改用「過濾前」計算 → 離題 100%、未達 SC-001（該死的爛桶不再死）。
+  同一個門檻同時殺乾淨小桶與髒桶，用分數分不開它們 → 需要比降門檻更聰明的解法。**另開 spec，不在 012 內。**
 - [ ] T015 On merge (spec-closeout ritual): flip `specs/BACKLOG.md`「機車事故選材離題」→ done（PR ref），
   更新 `STATE.md`；#7 仍保留為獨立後續
 

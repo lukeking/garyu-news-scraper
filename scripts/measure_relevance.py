@@ -343,6 +343,26 @@ def measure(slates, labels):
             return "SC-001（L0 Gate）"
         return "未達 SC-001 Gate"
 
+    # SC-004 is itself a ladder (spec.md, re-derived 2026-08-08): the absolute
+    # "must not drop" is unreachable because the gate necessarily shrinks bucket
+    # scores. What carries L0 is attributability — every lost article traced to
+    # either a rule miss (survives, so the gate dropped an on-topic row) or a
+    # bucket death (min_threshold), because those are different diseases.
+    death_loss = sum(r["on_lost"] or 0 for r in rows if r["survives"] is False)
+    fn_loss = sum(r["on_lost"] or 0 for r in rows if r["survives"] is True)
+    loss = death_loss + fn_loss
+    loss_pct = (loss / before_on) if before_on else None
+    if not labels or loss_pct is None:
+        sc004_rung = "n/a"
+    elif loss == 0:
+        sc004_rung = "L2（理想）"
+    elif death_loss == 0 and loss_pct <= 0.10:
+        sc004_rung = "L1"
+    elif loss_pct <= 0.30:
+        sc004_rung = "L0（Gate）"
+    else:
+        sc004_rung = "未達 L0"
+
     strict_worst = max(strict_ratios) if strict_ratios else None
     all_worst = max(all_ratios) if all_ratios else None
     return rows, {
@@ -352,7 +372,11 @@ def measure(slates, labels):
         "worst_after_ratio_including_estimated": all_worst,
         "before_on_total": before_on,
         "after_on_total": after_on,
-        "sc004_pass": (after_on >= before_on) if labels else None,
+        "sc004_rung": sc004_rung,
+        "sc004_loss": loss,
+        "sc004_loss_pct": loss_pct,
+        "sc004_death_loss": death_loss,
+        "sc004_fn_loss": fn_loss,
         "unclear": unclear_total,
         "slates": len(rows),
         "exact_slates": sum(1 for r in rows if r["exact"]),
@@ -587,11 +611,15 @@ def main():
     print(f"達到階數：{summary['rung']}")
     if summary["rung_including_estimated"] != summary["rung"]:
         print(f"（含 `~` 估計名單則為：{summary['rung_including_estimated']}）")
-    if summary["sc004_pass"] is None:
-        print("SC-004（on-topic 不回歸）：n/a — 無標記無法判定")
+    if summary["sc004_rung"] == "n/a":
+        print("SC-004（不回歸階梯）：n/a — 無標記無法判定")
     else:
-        print(f"SC-004（on-topic 不回歸）：{'PASS' if summary['sc004_pass'] else 'FAIL'} "
-              f"— 精確名單的 on-topic 篇數 {summary['before_on_total']} → {summary['after_on_total']}")
+        print(f"SC-004（不回歸階梯）：{summary['sc004_rung']} — on-topic "
+              f"{summary['before_on_total']} → {summary['after_on_total']}"
+              f"（損失 {summary['sc004_loss']}／{summary['sc004_loss_pct']:.0%}："
+              f"桶因門檻而死 {summary['sc004_death_loss']}、規則漏抓 {summary['sc004_fn_loss']}）")
+        if summary["sc004_death_loss"]:
+            print("  → 卡在 L0 的是桶死損失；要上 L1 得解門檻互動，不是再調 token")
     if untouched:
         print(f"⚠ 基準集還有 {untouched} 列沒人看過（label 空白）——比例只算已判定者，"
               f"證據等級 E3 直到 T010 走完每一列")
