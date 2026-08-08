@@ -367,6 +367,76 @@ def resolve_source_default(source: str, mapping: dict) -> str:
     return "uncategorised"
 
 
+def _first_hit(title: str, tokens) -> str:
+    """回傳 tokens 中第一個（小寫）為 _clean_html(title) 子字串的 token；皆未命中回傳 None。"""
+    clean = _clean_html(title or "").lower()
+    for tok in tokens or []:
+        if tok and str(tok).lower() in clean:
+            return tok
+    return None
+
+
+def _hit(title: str, tokens) -> bool:
+    """標題（去 HTML、小寫）是否含 tokens 任一子字串。空 tokens → False。"""
+    return _first_hit(title, tokens) is not None
+
+
+def is_topic_relevant(article: dict, rule: dict) -> bool:
+    """
+    純函數相關性判定（whitelist-dominant，見 data-model §1；feature 012）。
+      - require_any 存在：on-topic = 命中任一 require token（子字串）。
+        **exclude_any 在此不生效**——邊界「肇事逃逸/毒駕撞死」由 require 命中解掉。
+      - 只有 exclude_any：純黑名單支，未命中 exclude 才 on-topic。
+      - 皆無（空 dict / 缺欄）或規則非 dict：fail-open，全通過（不套閘）。
+    子字串比對（與 blocked_content_keywords 同法），不用 jieba 切詞。零外部呼叫。
+    """
+    if not isinstance(rule, dict):
+        return True
+    req = rule.get("require_any") or []
+    exc = rule.get("exclude_any") or []
+    title = article.get("title", "")
+    if req:
+        return _hit(title, req)
+    if exc:
+        return not _hit(title, exc)
+    return True
+
+
+def partition_by_relevance(articles: list, rules: dict) -> tuple:
+    """
+    依 per-category 相關性規則把候選集切成 (on_topic, off_topic)（feature 012，§3）。
+    每篇原地附上診斷用 `_relevance_reason`（僅 log/診斷）；不改 major_category、不動其他欄位、
+    不寫 DB、不呼叫任何網路/AI。各 list 內保留輸入順序。
+    類別缺規則（或規則非 dict）→ fail-open，判 on_topic、reason 'no-rule'。
+    """
+    rules = rules or {}
+    on_topic, off_topic = [], []
+    for article in articles:
+        rule = rules.get(article.get("major_category"))
+        if not isinstance(rule, dict):          # 缺鍵 / 格式錯 → 不套閘
+            article["_relevance_reason"] = "no-rule"
+            on_topic.append(article)
+            continue
+        req = rule.get("require_any") or []
+        exc = rule.get("exclude_any") or []
+        title = article.get("title", "")
+        if is_topic_relevant(article, rule):
+            if req:
+                article["_relevance_reason"] = f"kept:{_first_hit(title, req)}"
+            elif exc:
+                article["_relevance_reason"] = "kept:no-exclude-hit"
+            else:
+                article["_relevance_reason"] = "kept:no-rule-fields"
+            on_topic.append(article)
+        else:
+            if req:
+                article["_relevance_reason"] = "excluded:no-require-hit"
+            else:
+                article["_relevance_reason"] = f"excluded:{_first_hit(title, exc)}"
+            off_topic.append(article)
+    return on_topic, off_topic
+
+
 def compute_quality_score(article: dict, category_keywords: list, config: dict) -> float:
     """
     計算文章初始品質分數（0.0–1.0），不使用 AI。

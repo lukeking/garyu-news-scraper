@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 _pipeline_config_cache: dict | None = None
 _category_taxonomy_cache: dict | None = None
 _source_defaults_cache: dict | None = None
+_relevance_rules_cache: dict | None = None
 
 _DEFAULTS = {
     "jaccard": {
@@ -205,9 +206,60 @@ def load_source_default_categories(path: str | None = None) -> dict:
     return mapping
 
 
+def load_relevance_rules(path: str | None = None) -> dict:
+    """
+    Returns {major_category: {"require_any": [...], "exclude_any": [...]}} from
+    categories_traffic.yml's optional `relevance_rules` key (feature 012). Used by the
+    weekly relevance gate (src/filter.py partition_by_relevance). Mirrors the shape of
+    load_source_default_categories().
+
+    Fail-open (see data-model §1): missing file/key → {}; a category whose spec is not a
+    dict, or whose require/exclude values are not lists, is skipped (that category simply
+    isn't gated) rather than raising — the gate must never kill a whole category on a
+    config typo.
+    """
+    global _relevance_rules_cache
+    if _relevance_rules_cache is not None:
+        return _relevance_rules_cache
+
+    if path is None:
+        path = os.environ.get("CATEGORIES_TRAFFIC_YML_PATH", "config/categories_traffic.yml")
+
+    rules: dict = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            raw = yaml.safe_load(f) or {}
+        raw_rules = raw.get("relevance_rules") or {}
+        if isinstance(raw_rules, dict):
+            for cat, spec in raw_rules.items():
+                if not isinstance(spec, dict):
+                    logger.warning(
+                        "[pipeline_config] relevance_rules.%s 非 dict，略過該類別（fail-open）", cat
+                    )
+                    continue
+                entry: dict = {}
+                for key in ("require_any", "exclude_any"):
+                    vals = spec.get(key)
+                    if isinstance(vals, list):
+                        entry[key] = [str(t) for t in vals if t]
+                if entry:
+                    rules[str(cat)] = entry
+        else:
+            logger.warning("[pipeline_config] relevance_rules 非 dict，整組略過（fail-open）")
+        if rules:
+            logger.info("[pipeline_config] relevance_rules 載入：%d 個類別", len(rules))
+    else:
+        logger.warning("[pipeline_config] relevance_rules 略過，分類檔不存在：%s", path)
+
+    _relevance_rules_cache = rules
+    return rules
+
+
 def reset_caches() -> None:
     """Reset module-level caches. Used in tests to reload config between test cases."""
     global _pipeline_config_cache, _category_taxonomy_cache, _source_defaults_cache
+    global _relevance_rules_cache
     _pipeline_config_cache = None
     _category_taxonomy_cache = None
     _source_defaults_cache = None
+    _relevance_rules_cache = None
