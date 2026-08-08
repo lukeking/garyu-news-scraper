@@ -131,8 +131,19 @@ car-media accident survives.
 - [ ] T010 Build the human-labeled relevance baseline at `tests/fixtures/relevance_baseline_012.jsonl`
   — 取樣數週（含 08-03 `機車事故·中時` 刑案混雜、`機車事故·金線` 行銷整席兩錨案）；逐篇人工標
   `on`/`off`（data-model §4 欄位）；去識別化（title／source／label）。**禁止用閘輸出回填 label。**
-- [ ] T011 [P] Add read-only `scripts/measure_relevance.py` — 對基準集重播「套閘前 vs 套閘後」發布名單，
+  **骨架已由 T011 `--emit-labels` 產出（87 列、label 全空，涵蓋 16 個 `機車事故 ·` 桶、
+  2026-05-18→08-03；兩錨案都在內）；本任務剩下的就是逐列填 label。**
+  ⚠️ 順序：T011 先跑，因為要先知道「前閘 ∪ 後閘」名單才知道要標哪些（見 T011 的 promotion 限制）。
+- [-] T011 [P] Add read-only `scripts/measure_relevance.py` — 對基準集重播「套閘前 vs 套閘後」發布名單，
   輸出 SC 階梯：SC-001（任一熱點多數離題？）／SC-002（≤20%？）／SC-004（on-topic 數不降？）
+  **重播是精確的而非估計**：發布名單不是 LLM 選的，`analyze_hot_topic()` 取
+  `sorted(bucket, initial_quality_score desc)[:10]`，純函數、可重算。三個已載明的限制：
+  (a) 桶 >10 篇時補位者不可知（歷史 pool 無法還原——`articles` 只有 `hot_topic_analyzed` 布林值、
+  無消耗時間戳；重建已嘗試並被不變式證偽：08-03 中時 候選桶 n=107 vs 28、score 187.5 vs 24.69）；
+  (b) novelty／≤3 席的跨桶效應未建模；(c) `initial_quality_score` 會被 og 充實事後改寫
+  （實測漂移 4.9%），故貼近 `min_threshold` 的發布判定印為「未定」。內建 `replay 保真度` 自檢
+  （現況 11/12 個精確名單重算出報告紀錄的 `cumulative_score`）。
+  驗證＝重播實跑＋保真度自檢，**無 unit RED**（tasks.md Lane C：measurement 不走 unit RED）。
 - [ ] T012 Tune the token tables in `config/categories_traffic.yml` (+example) and
   `config/pipeline_config.yml` (+example) **against the baseline** until an SC rung is reached；
   record the achieved rung（SC-001 Gate 最低；目標 SC-002）。依賴 T010、T011
