@@ -514,8 +514,30 @@ python scripts/measure_relevance.py --baseline tests/fixtures/relevance_baseline
 
 **prod 部署已驗證**（2026-08-10，T017）：`PIPELINE_CONFIG_YML` 的 YAML 物件與本機一致，
 `include_categories: [路權政策, 科技執法, 交通工程]` 已生效。
-⚠️ 驗證用 **YAML parse 比物件**——位元組差 **−105**（012 那次是 −1），
-**偏移量不可預測，位元組比對不可用**。
+⚠️ 驗證用 **YAML parse 比物件**。
+
+**`gh variable set` 的真實行為（2026-08-10 binary 模式實測，更正前一版的說法）**：
+它**不做整檔 EOL 正規化**——CRLF 原樣保留，**只把檔尾那個 `\r\n` 存成 `\n`**，
+所以位元組差**恰好是 −1**，且只在來源檔是 CRLF 時發生。
+
+| | bytes | CRLF 行 |
+|---|---|---|
+| 本機（當時，CRLF） | 5400 | 105 |
+| prod（上傳後） | 5399 | 104 ＋ 1 個純 LF（末行） |
+
+**PR #88 的 commit message 與本節前一版寫「−105、prod 已正規化為 LF」，那是錯的**——
+起因是量測時 subprocess 用了 `text=True`，Python 的 universal-newlines 在**讀取階段**
+就把 `\r\n` 摺成 `\n`，於是 prod 看起來像 5295。**壞掉的是尺，不是 `gh` 的行為。**
+（012 記的「−1」從頭到尾都是對的，是這次的複述把它講歪了。）
+
+**結論不變但理由換了**：仍然用 YAML parse 比物件——不是因為偏移量不可預測
+（它其實可預測），而是因為位元組相等**對「設定是否正確」這個問題根本不是必要條件**，
+而且任何一端的編碼／EOL／尾端空白變動都會讓它假失敗。
+
+**同日附帶處理**：`config/pipeline_config.yml` 是本 repo **唯一**還帶 CRLF 的檔（105/105 行），
+已轉為 LF。它是 gitignored，所以 `.gitattributes` 的 `eol=lf` **對它從未生效過**——
+該規則只在 git 自己 checkout／add 時套用，而 git 永不讀寫被忽略的檔。
+其餘 gitignored config 是 LF 屬於**出身運氣**（多半複製自被追蹤的 `.example`），不是有東西在守。
 
 **剩下的唯一問題是「它在正式環境真的有效嗎」**：待 **08-17 首份週報**驗收（T018）——
 log 是否出現池組成行（含零篇的 `交通工程 0`）、`pool` 數字是否與離線重播一致、
