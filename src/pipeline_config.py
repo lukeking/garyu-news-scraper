@@ -63,7 +63,18 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return result
 
 
-def load_pipeline_config(path: str | None = None) -> dict:
+def load_pipeline_config(path: str | None = None,
+                         known_categories: set | None = None) -> dict:
+    """
+    載入並驗證管線設定。
+
+    `known_categories`（013）：分類法中存在的類別集合，供
+    `category_digest.*.include_categories` 做存在性檢查。**刻意用注入而非在此
+    呼叫 `load_category_taxonomy()`** —— 後者在分類檔缺席時會 RuntimeError，而
+    CI 的 `pytest tests/unit` 不寫任何 config 檔（`.github/workflows/tests.yml`），
+    直接耦合會讓單元測試全紅；同時也會讓本函式多背一個職責（憲章 V）。
+    留空 → 跳過存在性檢查，型別檢查照跑。
+    """
     global _pipeline_config_cache
     if _pipeline_config_cache is not None:
         return _pipeline_config_cache
@@ -76,7 +87,7 @@ def load_pipeline_config(path: str | None = None) -> dict:
         with open(path, encoding="utf-8") as f:
             loaded = yaml.safe_load(f) or {}
         config = _deep_merge(_DEFAULTS, loaded)
-        _validate_pipeline_config(config, path)
+        _validate_pipeline_config(config, path, known_categories)
         logger.info("[pipeline_config] 載入：%s", path)
     else:
         logger.warning("[pipeline_config] 設定檔不存在，使用預設值：%s", path)
@@ -85,7 +96,8 @@ def load_pipeline_config(path: str | None = None) -> dict:
     return config
 
 
-def _validate_pipeline_config(config: dict, path: str) -> None:
+def _validate_pipeline_config(config: dict, path: str,
+                              known_categories: set | None = None) -> None:
     weights = config.get("quality_score_weights", {})
     total = sum(weights.get(k, 0) for k in ("keyword_match_ratio", "normalised_word_count", "source_weight"))
     if not math.isclose(total, 1.0, abs_tol=0.001):
@@ -117,7 +129,15 @@ def _validate_pipeline_config(config: dict, path: str) -> None:
         )
     # category_digest：驗證並補齊 per-category 預設值。_deep_merge 只合併頂層
     # 結構、不會替各類別缺的子鍵補值，故補齊的 owner 在這裡（010 contracts U2）。
-    digest_defaults = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}
+    digest_defaults = {
+        "trigger_count": 10,
+        "quality_floor": 0.18,
+        "max_articles": 15,
+        # 013：匯流進本池的其他類別。預設空清單 ⇒ 有效類別集合退化為 {主類別}
+        # ⇒ 行為與本功能不存在時逐篇相同。這是「預設關閉」的結構保證，
+        # 不是需要有人記得的約定。
+        "include_categories": [],
+    }
     digests = config.get("category_digest") or {}
     for cat, raw_cfg in digests.items():
         if raw_cfg is None:
@@ -140,6 +160,24 @@ def _validate_pipeline_config(config: dict, path: str) -> None:
                 f"[pipeline_config] category_digest['{cat}'].quality_floor 必須在 [0, 1]，"
                 f"目前為 {floor!r}（路徑：{path}）"
             )
+        include = merged["include_categories"]
+        if not isinstance(include, list) or any(not isinstance(x, str) for x in include):
+            raise RuntimeError(
+                f"[pipeline_config] category_digest['{cat}'].include_categories 必須為字串 list，"
+                f"目前為 {include!r}（路徑：{path}）"
+            )
+        if known_categories is not None:
+            # 憲章 I：禁止靜默失敗。打錯的類別名若靜默略過，就與「這週剛好零篇」
+            # 無法區分，而缺口能躺數週正是因為沉默不留痕跡。不中止（fail-soft：
+            # 不因一個錯字讓整份週報掛掉），但一定留下腳印。
+            unknown = [x for x in include if x not in known_categories]
+            if unknown:
+                logger.warning(
+                    "[pipeline_config] category_digest['%s'].include_categories "
+                    "含分類法中不存在的類別：%s（可用：%s）。已保留設定值，"
+                    "這些類別將貢獻零篇。",
+                    cat, "、".join(unknown), "、".join(sorted(known_categories)),
+                )
         digests[cat] = merged
     config["category_digest"] = digests
 

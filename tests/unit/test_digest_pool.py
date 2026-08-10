@@ -96,3 +96,132 @@ def test_custom_floor_applies():
     assert eff == 1
     assert {a["link"] for a in selected} == {arts[1]["link"]}
     assert len(pool_all) == 2
+
+
+# ── 013: include_categories（匯流兄弟政策類別）─────────────────────────────
+# 契約見 specs/013-policy-digest-pool-merge/contracts/digest-pool.md C1-5/C1-6、C2-*。
+
+
+def _merge_cfg(cats, **over):
+    return {**_CFG, "include_categories": cats, **over}
+
+
+def test_merged_categories_enter_pool_and_effective():
+    """C2-1／C2-2：兄弟類別文章進入 pool_all 與 effective 計數。"""
+    arts = [
+        _art(1, q=0.30, cat="道安政策"),
+        _art(2, q=0.35, cat="路權政策"),
+        _art(3, q=0.32, cat="科技執法"),
+        _art(4, q=0.31, cat="交通工程"),
+        _art(5, q=0.40, cat="機車事故"),   # 不在清單內 → 不得進池
+    ]
+    cfg = _merge_cfg(["路權政策", "科技執法", "交通工程"])
+    selected, pool_all, effective = select_digest_pool(arts, "道安政策", cfg, set())
+
+    assert {a["major_category"] for a in pool_all} == {
+        "道安政策", "路權政策", "科技執法", "交通工程",
+    }
+    assert len(pool_all) == 4
+    assert effective == 4
+    assert "機車事故" not in {a["major_category"] for a in selected}
+
+
+def test_merged_respects_excluded_links():
+    """C2-4／INV-3：匯流不得繞過既有排除清單。"""
+    arts = [_art(1, cat="道安政策"), _art(2, cat="路權政策")]
+    cfg = _merge_cfg(["路權政策"])
+    selected, pool_all, effective = select_digest_pool(
+        arts, "道安政策", cfg, {"https://example.com/2"}
+    )
+    links = {a["link"] for a in pool_all}
+    assert "https://example.com/2" not in links
+    assert len(pool_all) == 1 and effective == 1
+    assert "https://example.com/2" not in {a["link"] for a in selected}
+
+
+def test_self_inclusion_does_not_double_count():
+    """C1-5／INV-6：清單含主類別自己時去重，同一 link 至多出現一次。"""
+    arts = [_art(1, cat="道安政策"), _art(2, cat="路權政策")]
+    cfg = _merge_cfg(["道安政策", "路權政策"])
+    selected, pool_all, effective = select_digest_pool(arts, "道安政策", cfg, set())
+    assert len(pool_all) == 2
+    assert len({a["link"] for a in pool_all}) == 2
+    assert effective == 2
+    assert len(selected) == 2
+
+
+def test_list_order_does_not_affect_output():
+    """C1-6：清單順序不影響任何輸出（含 selected 的排列）。"""
+    arts = [
+        _art(1, q=0.30, cat="道安政策"),
+        _art(2, q=0.35, cat="路權政策"),
+        _art(3, q=0.32, cat="科技執法"),
+    ]
+    a = select_digest_pool(arts, "道安政策", _merge_cfg(["路權政策", "科技執法"]), set())
+    b = select_digest_pool(arts, "道安政策", _merge_cfg(["科技執法", "路權政策"]), set())
+    assert [x["link"] for x in a[0]] == [x["link"] for x in b[0]]
+    assert [x["link"] for x in a[1]] == [x["link"] for x in b[1]]
+    assert a[2] == b[2]
+
+
+def test_unknown_category_in_list_contributes_nothing():
+    """設定含不存在的類別名時，選材端只是比不到（零篇），不得爆炸。
+    留痕的責任在設定載入端的 WARNING（見 test_pipeline_config）。"""
+    arts = [_art(1, cat="道安政策")]
+    cfg = _merge_cfg(["不存在的類別"])
+    selected, pool_all, effective = select_digest_pool(arts, "道安政策", cfg, set())
+    assert len(pool_all) == 1 and effective == 1 and len(selected) == 1
+
+
+# ── 013 US3: 可逆性（INV-1／INV-2）────────────────────────────────────────
+
+
+def test_absent_include_categories_is_byte_identical_to_before():
+    """INV-1／C2-6 ＝ FR-002「預設關閉」。
+
+    ⚠️ **這條是整個「預設不改變行為」保證的唯一守門員。** 若它是空的，
+    任何人把 include_categories 的預設從 [] 改成非空都不會有東西擋——
+    而那會靜默改變已發布的週報內容。
+    """
+    arts = [
+        _art(1, q=0.30, cat="道安政策"),
+        _art(2, q=0.35, cat="路權政策"),
+        _art(3, q=0.20, cat="道安政策"),
+        _art(4, q=0.10, cat="道安政策"),   # 低於 floor
+    ]
+    without_key = select_digest_pool(arts, "道安政策", _CFG, set())
+    empty_list = select_digest_pool(arts, "道安政策", _merge_cfg([]), set())
+
+    for a, b in zip(without_key, empty_list):
+        assert a == b
+    selected, pool_all, effective = without_key
+    # 逐篇相同 ＝ 兄弟類別文章一篇都不得進來
+    assert [x["link"] for x in pool_all] == [
+        "https://example.com/1", "https://example.com/3", "https://example.com/4",
+    ]
+    assert effective == 2
+    assert [x["link"] for x in selected] == [
+        "https://example.com/1", "https://example.com/3",
+    ]
+
+
+def test_merge_does_not_mutate_major_category():
+    """INV-2 ＝ FR-003：選材不得改寫文章的分類標記。
+
+    012 的 partition_by_relevance 會原地附加 `_relevance_reason`；本功能刻意
+    **不**沿用那個做法——匯流只影響成員判定，buffer list 的細分類必須保留。
+    """
+    arts = [
+        _art(1, cat="道安政策"),
+        _art(2, cat="路權政策"),
+        _art(3, cat="科技執法"),
+    ]
+    before = [a["major_category"] for a in arts]
+    before_keys = [set(a.keys()) for a in arts]
+
+    select_digest_pool(arts, "道安政策", _merge_cfg(["路權政策", "科技執法"]), set())
+
+    assert [a["major_category"] for a in arts] == before == [
+        "道安政策", "路權政策", "科技執法",
+    ]
+    assert [set(a.keys()) for a in arts] == before_keys, "不得在輸入物件上新增欄位"
