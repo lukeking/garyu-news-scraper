@@ -172,7 +172,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 - [X] T016 **SC-003** 雜訊人工判讀（quickstart 步驟 4）：列出匯流新進文章標題逐篇判讀，
       **把哪幾篇離題、為什麼寫進驗收紀錄**。已知一例：「頻變換車道.行駛禁行機車道
       一查又是毒駕」。這個數字是 BACKLOG #7 的校準起點，**不得略過**。
-- [ ] T017 Prod 部署（quickstart 步驟 6）：`gh variable set PIPELINE_CONFIG_YML --env production`
+- [X] T017 Prod 部署（quickstart 步驟 6）：`gh variable set PIPELINE_CONFIG_YML --env production`
       後以 **YAML parse 比物件**確認一致。⚠️ **不可比位元組**——012 實測
       `gh variable set < 檔案` 會把尾端 `\r\n` 存成單一 `\n`，偏移不可預測。
 - [ ] T018 上線後第一份週報驗收（quickstart 步驟 7）：確認 log 出現池組成行（含零篇類別）、
