@@ -32,7 +32,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 **Purpose**: 建立變更前的對照組。**這一步不可跳過**——反事實必須被建構，
 變更後就再也拿不到「未匯流」的數字了。
 
-- [ ] T001 以離線重播記錄變更前基準，寫入 `specs/013-policy-digest-pool-merge/baseline-0810.md`：
+- [-] T001 以離線重播記錄變更前基準，寫入 `specs/013-policy-digest-pool-merge/baseline-0810.md`：
       對 `buffered_at ≥ 2026-08-04` 的窗口，記下 `pool_all`／`effective`／`selected` 三層數量、
       `distinct_sources`、最大來源佔比、抽掉最大來源後的餘量，以及現行 25 篇選材的
       link＋quality 清單（供 **T008** 的擠出歸因比對）。指令見 quickstart 步驟 2。
@@ -47,10 +47,10 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 **⚠️ CRITICAL**: 本階段完成前，任何 user story 都不能開始
 
-- [ ] T002 [P] **RED** 在 `tests/unit/test_pipeline_config.py` 補 `include_categories` 的驗證測試：
+- [-] T002 [P] **RED** 在 `tests/unit/test_pipeline_config.py` 補 `include_categories` 的驗證測試：
       缺鍵補 `[]`（C1-1）、非 list 拋 `RuntimeError`（C1-2）、元素非字串拋 `RuntimeError`（C1-3）、
       未知類別名記 WARNING 但不中止（C1-4）。**先確認這些測試會失敗再往下。**
-- [ ] T003 在 `src/pipeline_config.py` 的 `category_digest` 驗證區塊（約 118–144 行）
+- [-] T003 在 `src/pipeline_config.py` 的 `category_digest` 驗證區塊（約 118–144 行）
       加入 `include_categories`（**FR-006**）：`digest_defaults` 補 `"include_categories": []`，
       並依 C1-2／C1-3 驗證型別、依 C1-4 對未知類別名記 WARNING。
       錯誤訊息沿用既有形式（含類別名與設定檔路徑）。
@@ -71,7 +71,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 > **先寫、先確認會失敗，再實作**
 
-- [ ] T004 [P] [US1] **RED** 在 `tests/unit/test_digest_pool.py` 補匯流測試：
+- [-] T004 [P] [US1] **RED** 在 `tests/unit/test_digest_pool.py` 補匯流測試：
       給含兄弟類別的輸入，斷言它們進入 `pool_all` 與 `effective`（C2-1／C2-2）；
       斷言 `excluded_links` 中的兄弟類別文章**不得**進池（C2-4／INV-3）；
       斷言清單含主類別自己時不重複計數（C1-5／INV-6）；
@@ -79,18 +79,18 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] 在 `src/analyzer.py::select_digest_pool`（約 1105–1128 行）
+- [-] T005 [US1] 在 `src/analyzer.py::select_digest_pool`（約 1105–1128 行）
       把 `major_category` 的單一字串相等比對改為集合成員判定（**FR-001／FR-004／FR-008**）：
       `cats = {category} | set(digest_cfg.get("include_categories") or [])`。
       **簽章不變**（C2）、`quality_floor`／`max_articles`／排序規則**完全不變**（C2-5）、
       **不得在文章上原地附加任何欄位**（C2-3／INV-2）。
-- [ ] T006 [US1] 在 `scripts/traffic_weekly_analysis.py` 的 digest 迴圈（約 118–126 行）
+- [-] T006 [US1] 在 `scripts/traffic_weekly_analysis.py` 的 digest 迴圈（約 118–126 行）
       加入池組成 log（**FR-007**／C3）：逐來源類別各印一項含篇數、**零篇也要印**（C3-1）、
       匯流清單為空時**不印**（C3-2）、印在觸發判定**之前**（C3-3）。
-- [ ] T007 [US1] 離線重播驗收 **SC-001**，結果寫回 spec 的達成階數表：
+- [-] T007 [US1] 離線重播驗收 **SC-001**，結果寫回 spec 的達成階數表：
       L0（`distinct_sources` 嚴格變大）／L1（抽掉最大來源後 ≥ `trigger_count`＝承重解除）／
       L2（最大來源佔比 ≤ 50%，**預期未達成**，如實記錄）。指令見 quickstart 步驟 2。
-- [ ] T008 [US1] 離線重播驗收 **SC-002（內容不流失）**，結果寫回 spec 的達成階數表。
+- [-] T008 [US1] 離線重播驗收 **SC-002（內容不流失）**，結果寫回 spec 的達成階數表。
       以 T001 的基準清單比對匯流前後的 `selected`：
       **L0 / Gate** — 逐筆歸因每一個被擠出者（「被分數更高的匯流文章取代」），
       **不得有無法解釋的消失**，且擠出數 ≤ 新進數；
@@ -115,7 +115,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T009 [P] [US2] **RED→GREEN** 在 `tests/unit/test_digest_consume.py` 補測試（**FR-005**）：
+- [-] T009 [P] [US2] **RED→GREEN** 在 `tests/unit/test_digest_consume.py` 補測試（**FR-005**）：
       斷言匯流進池的兄弟類別文章出現在消耗名單中（INV-7）；
       斷言 `selected ⊆ effective ⊆ pool_all` 在匯流下仍成立（INV-4）；
       順帶確認 `len(selected) ≤ max_articles`（INV-5）在既有測試中已被守住，沒有就補上。
@@ -124,7 +124,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] 驗證「消耗未發布」的差額並記錄：離線比對 `len(pool_all) - len(selected)`
+- [-] T010 [US2] 驗證「消耗未發布」的差額並記錄：離線比對 `len(pool_all) - len(selected)`
       在匯流前後的變化（基準：12/37 → 21/46），並確認擴大的部分**全部落在低分填充稿**、
       兄弟類別文章全數進入 `selected`。**若此前提被推翻**（有兄弟類別文章落在
       `selected` 之外），停下來回報——那會推翻澄清 Q1 的決策依據。
@@ -141,7 +141,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T011 [P] [US3] **RED** 在 `tests/unit/test_digest_pool.py` 補可逆性測試：
+- [-] T011 [P] [US3] **RED** 在 `tests/unit/test_digest_pool.py` 補可逆性測試：
       **INV-1／C2-6**（不給 `include_categories` 時，三層輸出與只含主類別時**逐篇相同**，含順序）＝**FR-002**；
       **INV-2**（匯流前後每篇的 `major_category` 不變）＝**FR-003**。
       INV-1 是「預設關閉」的承重測試——**這條若是空的，整個「預設不改變行為」
@@ -149,7 +149,7 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] 更新設定檔：`config/pipeline_config.yml` 的 `category_digest.道安政策`
+- [-] T012 [US3] 更新設定檔：`config/pipeline_config.yml` 的 `category_digest.道安政策`
       加入 `include_categories: [路權政策, 科技執法, 交通工程]`，
       並**同步** `config/pipeline_config.example.yml`（它是唯一進 git 的副本，
       不同步則此決策在 repo 裡不留痕跡）。附註明 `行人事故`／`路口安全` 為何不納入。
@@ -160,16 +160,16 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T013 **突變驗證**（quickstart 步驟 1）：對 T004／T009／T011 各挑一條，
+- [-] T013 **突變驗證**（quickstart 步驟 1）：對 T004／T009／T011 各挑一條，
       故意把實作改壞（集合改回單一字串比對／預設改成非空／選材時改寫 `major_category`），
       確認對應測試**確實變紅**，再改回來。**沒做這一步，無法分辨「測試通過」與
       「測試根本不可能失敗」**——本 repo 已有 `test_filter_attaches_category_and_score`
       長期失敗被標 latent 繞過的前例。將結果記入 quickstart 驗收欄。
-- [ ] T014 執行 `.venv/bin/python -m pytest tests/unit -q` 全綠（CI 的 required check `unit`）。
-- [ ] T015 設定驗證的負向測試實跑（quickstart 步驟 5）：把 `include_categories` 改成字串
+- [-] T014 執行 `.venv/bin/python -m pytest tests/unit -q` 全綠（CI 的 required check `unit`）。
+- [-] T015 設定驗證的負向測試實跑（quickstart 步驟 5）：把 `include_categories` 改成字串
       確認 `RuntimeError`；放一個不存在的類別名確認 **WARNING 且流程繼續**。
       **這兩條是本功能對憲章 I「禁止靜默失敗」的答覆，沒實跑過就只是宣稱。**
-- [ ] T016 **SC-003** 雜訊人工判讀（quickstart 步驟 4）：列出匯流新進文章標題逐篇判讀，
+- [-] T016 **SC-003** 雜訊人工判讀（quickstart 步驟 4）：列出匯流新進文章標題逐篇判讀，
       **把哪幾篇離題、為什麼寫進驗收紀錄**。已知一例：「頻變換車道.行駛禁行機車道
       一查又是毒駕」。這個數字是 BACKLOG #7 的校準起點，**不得略過**。
 - [ ] T017 Prod 部署（quickstart 步驟 6）：`gh variable set PIPELINE_CONFIG_YML --env production`

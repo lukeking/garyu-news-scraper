@@ -45,6 +45,23 @@ category_digest:
                              # Raised 15 → 25 on 2026-07-20: after the source expansion the
                              # pool runs 40-55 articles and is consumed whole, so a cap of 15
                              # flushed roughly 70% of the new content unread.
+                             # Deliberately kept at 25 for 013: merging raises the pool to 46
+                             # so consumed-but-unpublished goes 12/37 → 21/46, but measurement
+                             # shows the extra consumption is entirely low-score filler from
+                             # the dominant feed (all 9 merged articles land inside the top 25).
+    # 013: merge sibling policy categories into this pool at selection time only.
+    # The taxonomy is NOT changed — articles keep their own major_category, so the
+    # buffer list keeps its fine-grained categories. Default [] = feature off, and
+    # the pool degenerates to {道安政策}, i.e. behaviour identical to before.
+    # Why: pool depth was 68-76% carried by a single feed. The other policy sources
+    # added on 2026-07-20 do produce articles, but their titles carry taxonomy tokens
+    # and get routed to sibling categories that have no digest and sit far below the
+    # hot-topic threshold — so their content was collected, stored, and discarded.
+    # Measured 2026-08-10: pool 37→46, distinct_sources 3→9, and dropping the largest
+    # feed leaves 18 ≥ trigger_count (was 9 < 10, i.e. load-bearing).
+    # 行人事故 / 路口安全 are deliberately excluded: they are accident-heavy and would
+    # turn a policy digest into an accident digest.
+    include_categories: [路權政策, 科技執法, 交通工程]
 
 embed_dedup:
   threshold: 0.88            # Cosine similarity ≥ this → same event (Gemini Embedding 2, 768d)

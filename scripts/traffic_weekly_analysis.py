@@ -7,6 +7,7 @@ import logging
 import sys
 import os
 import time
+from collections import Counter
 from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -33,7 +34,9 @@ def _week_start_date() -> str:
 
 
 def main():
-    from src.pipeline_config import load_pipeline_config, load_relevance_rules
+    from src.pipeline_config import (
+        load_pipeline_config, load_relevance_rules, load_category_taxonomy,
+    )
     from src.filter import partition_by_relevance
     from src.storage import (
         expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report,
@@ -49,7 +52,10 @@ def main():
     logger.info("=== 週交通熱點分析開始 ===")
 
     # 1. Load config
-    config = load_pipeline_config()
+    # 分類法注入設定載入，讓 category_digest.*.include_categories 的存在性檢查
+    # 在正式環境真的生效（013 C1-4）。刻意不在 pipeline_config 內部載分類法——
+    # 見該函式的 docstring。
+    config = load_pipeline_config(known_categories=set(load_category_taxonomy()))
     max_age_weeks = config.get("buffer", {}).get("max_age_weeks", 8)
     week_start = _week_start_date()
     logger.info("分析週次開始日：%s", week_start)
@@ -120,6 +126,16 @@ def main():
         selected, pool_all, effective = select_digest_pool(articles, cat, dcfg, excluded_links)
         trigger_count = int(dcfg.get("trigger_count", 10))
         is_trigger = effective >= trigger_count and selected
+        # 013 C3：池組成逐類別留痕，讓「匯流有沒有效」不必查 DB 就能從 log 判讀。
+        # 零篇的類別**也要印**——沉默與「跑了但沒事可做」無法區分，而缺口能躺數週
+        # 正是因為沉默不留腳印。印在觸發判定之前，故未觸發時仍看得到組成。
+        merged_cats = list(dcfg.get("include_categories") or [])
+        if merged_cats:
+            per_cat = Counter(a.get("major_category") for a in pool_all)
+            parts = " ＋ ".join(
+                f"{c} {per_cat.get(c, 0)}" for c in [cat] + merged_cats
+            )
+            logger.info("digest[%s] 池組成：%s = %d", cat, parts, len(pool_all))
         logger.info(
             "digest[%s] pool=%d effective=%d threshold=%d → %s",
             cat, len(pool_all), effective, trigger_count,

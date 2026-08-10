@@ -1111,13 +1111,20 @@ def select_digest_pool(articles: list, category: str, digest_cfg: dict,
     - pool_all: 該類別全部未排除文章（含低於品質下限者）——消耗（清池）用。
     - selected: quality ≥ quality_floor 者依 quality 降冪取前 max_articles 篇——選材。
     - effective_count: quality ≥ quality_floor 的篇數——觸發判斷用（呼叫端比對 trigger_count）。
+
+    池的成員判定吃**一組**類別（feature 013）：`{category} ∪ include_categories`。
+    用集合而非 list 串接，故清單含主類別自己時自動去重、順序不影響輸出。
+    缺 `include_categories` ⇒ 空清單 ⇒ 集合退化為 `{category}` ⇒ 行為與本功能
+    不存在時逐篇相同。**不改動輸入物件**：匯流只影響成員判定，不寫回
+    `major_category`，buffer list 的細分類因此保留。
     """
     quality_floor = float(digest_cfg.get("quality_floor", 0.18))
     max_articles = int(digest_cfg.get("max_articles", 15))
+    categories = {category} | set(digest_cfg.get("include_categories") or [])
 
     pool_all = [
         a for a in articles
-        if a.get("major_category") == category
+        if a.get("major_category") in categories
         and (a.get("link") or "") not in excluded_links
     ]
     effective = [
