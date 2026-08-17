@@ -175,9 +175,13 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
 - [X] T017 Prod 部署（quickstart 步驟 6）：`gh variable set PIPELINE_CONFIG_YML --env production`
       後以 **YAML parse 比物件**確認一致。⚠️ **不可比位元組**——012 實測
       `gh variable set < 檔案` 會把尾端 `\r\n` 存成單一 `\n`，偏移不可預測。
-- [ ] T018 上線後第一份週報驗收（quickstart 步驟 7）：確認 log 出現池組成行（含零篇類別）、
+- [X] T018 上線後第一份週報驗收（quickstart 步驟 7）：確認 log 出現池組成行（含零篇類別）、
       `pool` 數字與離線重播一致、報告標題仍為「道安政策 · 彙整」（**FR-009**）。
       **此任務需等下一個週一**，不阻擋 PR merge。
+      **✅ 2026-08-17 驗收通過**（run `31982316426`）：池組成行 `道安政策 32 ＋ 路權政策 37
+      ＋ 科技執法 10 ＋ 交通工程 7 = 86`、離線重播 pool/effective/selected 逐項相同且選材集合
+      與已發布報告逐篇相同、標題仍為「道安政策 · 彙整」。**唯一未驗到的是「含零篇類別」**
+      （本週四類皆非零，且無單元測試覆蓋）——完整紀錄與 SC-001/002/003 數字見 quickstart 末節。
 - [ ] T019 Closeout：`specs/BACKLOG.md` 的 #8 由「轉行動」改為 ✅ 已完成（附 PR 編號），
       並更新 `STATE.md` 與 memory `project_digest_single_feed_dependency`。
       ⚠️ **三份是各自獨立的副本**，動一份不會連動另外兩份。
