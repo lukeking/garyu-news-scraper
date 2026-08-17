@@ -182,9 +182,12 @@ quickstart 步驟 1 要求實際跑一次突變驗證。本功能改動面 100% 
       ＋ 科技執法 10 ＋ 交通工程 7 = 86`、離線重播 pool/effective/selected 逐項相同且選材集合
       與已發布報告逐篇相同、標題仍為「道安政策 · 彙整」。**唯一未驗到的是「含零篇類別」**
       （本週四類皆非零，且無單元測試覆蓋）——完整紀錄與 SC-001/002/003 數字見 quickstart 末節。
-- [ ] T019 Closeout：`specs/BACKLOG.md` 的 #8 由「轉行動」改為 ✅ 已完成（附 PR 編號），
+- [X] T019 Closeout：`specs/BACKLOG.md` 的 #8 由「轉行動」改為 ✅ 已完成（附 PR 編號），
       並更新 `STATE.md` 與 memory `project_digest_single_feed_dependency`。
       ⚠️ **三份是各自獨立的副本**，動一份不會連動另外兩份。
+      **✅ 2026-08-18 完成**：BACKLOG #8 改 ✅（並更新表格列、順序敘述、#7 的校準起點）、
+      `STATE.md` 改寫為 013 結案後的快照、memory `project_digest_single_feed_dependency`
+      更新為已驗證（含「86 非穩態」與「零篇類別未驗到」兩個但書）。
 
 ---
 
