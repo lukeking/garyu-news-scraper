@@ -8,7 +8,9 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.analyzer import select_digest_pool
+import logging
+
+from src.analyzer import select_digest_pool, log_digest_pool_composition
 
 _CFG = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}
 
@@ -225,3 +227,45 @@ def test_merge_does_not_mutate_major_category():
         "道安政策", "路權政策", "科技執法",
     ]
     assert [set(a.keys()) for a in arts] == before_keys, "不得在輸入物件上新增欄位"
+
+
+# ── C3：池組成 log 行（013）─────────────────────────────────────────────────
+#
+# 這條 log 是「刻意的省略要發出聲音」那條原則的落地：零篇的類別**也要印**，
+# 否則「跑了但沒事可做」與「根本沒跑」在 log 上長得一模一樣。
+# 2026-08-17 的 prod 首跑四個類別皆非零，**零篇分支因此一直沒被驗到**；
+# 以下三條就是補這個缺口。
+#
+# ⚠️ 誠實標註守備範圍：它們守的是「這個函式怎麼印」，**不是**「週跑腳本有沒有呼叫它」。
+# 有人把 `scripts/traffic_weekly_analysis.py` 裡那一行刪掉，這三條仍會綠。
+# 呼叫點的存在目前只有 prod log 能證明（08-24 那份週報就在看這件事）。
+
+_MERGED = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15,
+           "include_categories": ["路權政策", "科技執法", "交通工程"]}
+
+
+def test_composition_prints_zero_count_category(caplog):
+    """池裡一篇 交通工程 都沒有時，它仍必須以 `交通工程 0` 出現在行內。"""
+    logger = logging.getLogger("test_weekly")
+    pool = [_art(1), _art(2, cat="路權政策"), _art(3, cat="科技執法")]
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_composition(logger, "道安政策", _MERGED, pool)
+    assert "交通工程 0" in caplog.text
+    assert "digest[道安政策] 池組成：道安政策 1 ＋ 路權政策 1 ＋ 科技執法 1 ＋ 交通工程 0 = 3" in caplog.text
+
+
+def test_composition_keeps_configured_order_and_totals(caplog):
+    """順序是 [主類別] + include_categories，且總數等於整池篇數（不是非零類別數）。"""
+    logger = logging.getLogger("test_weekly")
+    pool = [_art(1)] + [_art(i, cat="交通工程") for i in range(2, 5)]
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_composition(logger, "道安政策", _MERGED, pool)
+    assert "道安政策 1 ＋ 路權政策 0 ＋ 科技執法 0 ＋ 交通工程 3 = 4" in caplog.text
+
+
+def test_composition_silent_without_include_categories(caplog):
+    """沒有匯流就沒有這行——行為與本功能不存在時相同。"""
+    logger = logging.getLogger("test_weekly")
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_composition(logger, "道安政策", _CFG, [_art(1)])
+    assert "池組成" not in caplog.text
