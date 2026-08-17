@@ -191,6 +191,15 @@ Actions run `31982316426` success，**7m47s**（前次 10m21s；憲章 IV 的 10
 **反向檢查（避免「重播只是複述 log」）**：查「run 之前入 buffer、未過期、至今仍未消耗」的
 四類文章 → **0 篇**。池若漏抓，殘留物會出現在這裡。
 
+**（2026-08-18）這個方法已收成 `scripts/replay_digest_pool.py`**，任何一週都可直接跑：
+
+```bash
+.venv/bin/python scripts/replay_digest_pool.py <RUN_ID>
+```
+
+它印出重建池組成（**與 log 的池組成行對帳的自我檢查**）、以**整池為分母**的 SC-001 數字、
+以及匯流新進清單供 SC-003 判讀；設定從本機 `config/pipeline_config.yml` 讀，不寫死常數。
+
 ### SC-001（真實 prod 資料）
 
 | 指標 | 現行（不匯流） | 匯流後 | 判準 |
