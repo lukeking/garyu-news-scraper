@@ -1135,6 +1135,28 @@ def select_digest_pool(articles: list, category: str, digest_cfg: dict,
     return effective[:max_articles], pool_all, len(effective)
 
 
+def log_digest_pool_composition(logger, category: str, digest_cfg: dict,
+                                pool_all: list) -> None:
+    """印出 digest 池的逐類別組成（013 C3），讓「匯流有沒有效」不必查 DB 就能從 log 判讀。
+
+    **零篇的類別也要印**——沉默與「跑了但沒事可做」無法區分，而缺口能躺數週
+    正是因為沉默不留腳印。這條規則的誘惑點就在下面那個 join：任何「跳過 0」的
+    寫法（`if n`、`most_common()`、過濾 falsy）都會讓零篇類別整行消失，
+    所以 `test_composition_prints_zero_count_category` 守的是這裡。
+
+    `logger` 由呼叫端傳入，讓這行仍掛在週跑腳本的 logger 名字下（log 輸出逐字不變）。
+    無 `include_categories` ⇒ 不印，與匯流不存在時行為相同。
+    """
+    from collections import Counter
+
+    merged_cats = list(digest_cfg.get("include_categories") or [])
+    if not merged_cats:
+        return
+    per_cat = Counter(a.get("major_category") for a in pool_all)
+    parts = " ＋ ".join(f"{c} {per_cat.get(c, 0)}" for c in [category] + merged_cats)
+    logger.info("digest[%s] 池組成：%s = %d", category, parts, len(pool_all))
+
+
 def analyze_category_digest(pool_articles: list, topic_label: str,
                             week_start_date: str, max_articles: int = 15) -> tuple:
     """

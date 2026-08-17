@@ -7,7 +7,6 @@ import logging
 import sys
 import os
 import time
-from collections import Counter
 from datetime import datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -46,6 +45,7 @@ def main():
         cluster_traffic_articles, score_topic_buckets, analyze_hot_topic,
         select_hot_topics_with_novelty, topic_token_signature,
         select_digest_pool, analyze_category_digest,
+        log_digest_pool_composition,
     )
     from src.publisher import publish_hot_topic_reports
 
@@ -126,16 +126,9 @@ def main():
         selected, pool_all, effective = select_digest_pool(articles, cat, dcfg, excluded_links)
         trigger_count = int(dcfg.get("trigger_count", 10))
         is_trigger = effective >= trigger_count and selected
-        # 013 C3：池組成逐類別留痕，讓「匯流有沒有效」不必查 DB 就能從 log 判讀。
-        # 零篇的類別**也要印**——沉默與「跑了但沒事可做」無法區分，而缺口能躺數週
-        # 正是因為沉默不留腳印。印在觸發判定之前，故未觸發時仍看得到組成。
-        merged_cats = list(dcfg.get("include_categories") or [])
-        if merged_cats:
-            per_cat = Counter(a.get("major_category") for a in pool_all)
-            parts = " ＋ ".join(
-                f"{c} {per_cat.get(c, 0)}" for c in [cat] + merged_cats
-            )
-            logger.info("digest[%s] 池組成：%s = %d", cat, parts, len(pool_all))
+        # 013 C3：池組成逐類別留痕（含零篇類別，理由見該函式 docstring）。
+        # 印在觸發判定之前，故未觸發時仍看得到組成。
+        log_digest_pool_composition(logger, cat, dcfg, pool_all)
         logger.info(
             "digest[%s] pool=%d effective=%d threshold=%d → %s",
             cat, len(pool_all), effective, trigger_count,
