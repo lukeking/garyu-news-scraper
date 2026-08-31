@@ -27,6 +27,23 @@ except ImportError:
 
 MARKER_RE = re.compile(r"\[\[([^\]]+)\]\]")
 
+# 標記了、但查證過**不是遊戲術語**的詞。
+#
+# 為什麼需要這個名單：auto_kb 每輪都會把未知詞送給 Gemini，而 Gemini 每輪都依 prompt
+# 規則 2「沒把握就省略」正確地婉拒——於是這種詞永遠帶著括號留在文章裡，永遠算在
+# 術語池中，**沒有任何出口**。2026-W19 的池子從 5 月躺到 8 月就是這樣來的。
+# 池子的設計假設「未知 ＝ 待收錄」，但實際上有第三種狀態：根本不該被標記。
+#
+# ⚠️ 這裡只放**查證過確實不是術語**的詞，不要拿它當「Gemini 解不出來」的垃圾桶。
+# 真的是術語但查不到譯名的（例如尚未在繁中版上線的任務名）該進 KB，不是進這裡。
+IGNORED_MARKERS = {
+    # 社群對某角色的俚稱，無官方譯名。上下文：「阿莉澤與 spiky boy 將作為夥伴」。
+    "spiky boy",
+    # LLM 用自己的話造的功能名，遊戲裡不存在這個東西。查過 Reddit 原文（1t2x42e）：
+    # 討論到的是 New Game+、去宿屋看過場、Unending Codex 三者，沒有一個叫這個。
+    "冒險筆記",
+}
+
 SYSTEM_PROMPT = "你是 FFXIV 術語翻譯專家，專精繁體中文（台灣）玩家社群用語。"
 
 # 規則 4 的 category 白名單：2026-08-31 對實際資料校準過一次。
@@ -54,7 +71,7 @@ USER_PROMPT_TMPL = """\
 1. 只回傳你有高把握的術語（來源：官方 TW 補丁說明 > TW 維基/社群慣用）
 2. 對沒把握或資訊不足的術語，直接省略，不要猜測
 3. 回傳嚴格 JSON 陣列格式，每個元素包含：jp_term, tw_term, en_term, category, notes
-4. category 必須是以下之一：遊戲、資料片、資料片縮寫、副本、副本縮寫、職能、職業、職業縮寫、技能、道具、裝備、貨幣、地點、系統、功能、功能縮寫、機制、角色、角色縮寫、社交、公告、更新
+4. category 必須是以下之一：遊戲、資料片、資料片縮寫、副本、副本縮寫、職能、職業、職業縮寫、技能、道具、裝備、貨幣、地點、系統、功能、功能縮寫、機制、角色、角色縮寫、任務、社交、公告、更新
 5. 若無任何把握的術語，回傳空陣列 []
 
 待翻譯術語（每行一個）：
@@ -164,7 +181,7 @@ def main() -> None:
         text = json.dumps(row.get("analysis") or {}, ensure_ascii=False)
         for m in MARKER_RE.finditer(text):
             term = m.group(1).strip()
-            if term not in existing_terms:
+            if term not in existing_terms and term not in IGNORED_MARKERS:
                 unknown_terms.add(term)
 
     if not unknown_terms:
@@ -214,7 +231,10 @@ def main() -> None:
     # today resolve to themselves. Letting known_jp win would silently rewrite them,
     # which is a content decision, not part of this fix. Whether 地下城 (a CN term;
     # TW official is 迷宮) *should* be normalised is an open question — ask first.
-    replacement_map: dict[str, str] = {**known_jp, **known_tw, **newly_added}
+    # ignored 排在 known_* 之後：若某個詞同時出現在兩邊那是矛盾，以本檔明示的決定為準。
+    # 值等於鍵 ＝ 只拆括號、保留原文（那些詞都嵌在句子裡，整段移除會讀不通）。
+    ignored_map: dict[str, str] = {t: t for t in IGNORED_MARKERS}
+    replacement_map: dict[str, str] = {**known_jp, **known_tw, **ignored_map, **newly_added}
     all_miss_terms: set[str] = set()
 
     for row in article_rows:
