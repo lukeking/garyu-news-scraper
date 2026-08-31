@@ -131,6 +131,10 @@ def main() -> None:
         logger.error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 未設定，中止")
         sys.exit(0)
     if not gemini_api_key:
+        # ⚠️ 同一個形狀的閘：修補（Step 5）其實不需要 Gemini，所以嚴格說這道閘也會
+        # 連帶擋掉修補。刻意保留 fail-fast——CI 一定會設這個 key，而缺 key 通常
+        # 代表環境配錯，此時「安靜地只做一半」比中止更難察覺。要放寬的話改成
+        # warning + 繼續即可，但那是獨立的決定。
         logger.error("GEMINI_API_KEY 未設定，中止")
         sys.exit(0)
 
@@ -184,14 +188,20 @@ def main() -> None:
             if term not in existing_terms and term not in IGNORED_MARKERS:
                 unknown_terms.add(term)
 
+    # ⚠️ 這裡曾經是 `sys.exit(0)`，而那讓 Step 5 的修補**永遠到不了**。
+    # 起初無害：Step 5 只處理「本輪 Gemini 剛解出來的詞」，沒有未知詞就真的沒事做。
+    # 但 Step 5 後來長出兩個獨立於 Gemini 的職責——修補全 KB 的 jp→tw、拆掉
+    # IGNORED_MARKERS 的括號——而那兩者恰好會把未知集清空，於是它們自己觸發了
+    # 這個早退，把自己關在門外。2026-08-31 實測：三個標記全部「已知或忽略」→
+    # log 印「沒有未知術語需要解析，結束」→ 一列都沒被修補。
+    # 所以未知集為空只該跳過 Gemini（Step 3/4），不該跳過修補（Step 5）。
     if not unknown_terms:
-        logger.info("沒有未知術語需要解析，結束")
-        sys.exit(0)
-
-    logger.info("發現未知術語 %d 個：%s", len(unknown_terms), ", ".join(sorted(unknown_terms)))
-
-    # Step 3 — call Gemini
-    gemini_entries = call_gemini(list(unknown_terms), gemini_api_key, gemini_model)
+        logger.info("沒有未知術語需要解析，跳過 Gemini；Step 5 的修補仍會執行")
+        gemini_entries: list[dict] = []
+    else:
+        logger.info("發現未知術語 %d 個：%s", len(unknown_terms), ", ".join(sorted(unknown_terms)))
+        # Step 3 — call Gemini
+        gemini_entries = call_gemini(list(unknown_terms), gemini_api_key, gemini_model)
 
     # Step 4 — insert valid entries
     newly_added: dict[str, str] = {}  # jp_term -> tw_term
