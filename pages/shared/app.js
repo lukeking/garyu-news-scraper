@@ -394,11 +394,22 @@ function renderTermPool(articles) {
   pool.style.display = '';
   const terms = [...termSet];
   tagsEl.innerHTML = terms.map(t => {
-    const size = (0.85 + Math.random() * 0.7).toFixed(2);
-    const left = (2 + Math.random() * 88).toFixed(1);
-    const top  = (5 + Math.random() * 75).toFixed(1);
-    return `<span class="term-tag" style="font-size:${size}rem;left:${left}%;top:${top}%">${t}</span>`;
+    // 字級與抖動由 term 自身決定，不用 Math.random()：renderTermPool 是從
+    // renderAll() 呼叫的，用隨機數會讓每次切週／切篩選整池位置重新亂跳。
+    const size = (0.9 + termHash(t, 1) * 0.5).toFixed(2);      // 0.90–1.40rem
+    const dy = (termHash(t, 2) * 8 - 4).toFixed(1);            // ±4px，小於 row-gap
+    return `<span class="term-tag" style="font-size:${size}rem;transform:translateY(${dy}px)">${esc(t)}</span>`;
   }).join('');
+}
+
+// FNV-1a → 0–1。salt 讓同一個 term 能取出多個彼此無關的穩定數值。
+function termHash(str, salt) {
+  let h = 2166136261 ^ salt;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967296;
 }
 
 function renderStats(articles) {

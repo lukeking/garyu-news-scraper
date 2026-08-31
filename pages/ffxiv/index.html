@@ -62,18 +62,24 @@
     margin-left: 6px;
     font-size: 0.75rem;
   }
+  /* flex-wrap 讓「不重疊」由建構保證，不靠隨機取樣碰運氣。
+     row-gap 10px > 抖動幅度 ±4px，所以相鄰兩列即使各自往對方偏也不會相碰。
+     高度改為自動：原本固定 100px + overflow:hidden 會把排不下的標籤裁掉。 */
   .term-pool-tags {
-    position: relative;
-    height: 100px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px 8px;
   }
   .term-tag {
-    position: absolute;
     color: var(--tag-text);
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: 2px 8px;
-    white-space: nowrap;
+    /* 長標籤（例：28 字元的任務名）在窄螢幕要能折行，否則會溢出被裁掉 */
+    max-width: 100%;
+    white-space: normal;
     cursor: default;
     user-select: none;
   }
