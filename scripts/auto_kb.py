@@ -130,6 +130,13 @@ def main() -> None:
         # tw_term→tw_term map lets Step 5 strip brackets from [[TW term]] that are
         # already translated; value equals key because no further mapping is needed.
         known_tw: dict[str, str] = {str(r["tw_term"]): str(r["tw_term"]) for r in kb_rows}
+        # jp_term→tw_term for the WHOLE KB, not just this run's Gemini output.
+        # Without this a term added to the KB *after* its [[marker]] was written is
+        # unfixable: Step 2 filters it out as "known" so Gemini never sees it again,
+        # and Step 5 never had it in the map — the marker stays bracketed forever.
+        # (Latent until 2026-08-31, when `ララ` was added by hand and became the first
+        # instance. Measured then: 419 ffxiv articles, 4 bracketed markers, 1 stuck.)
+        known_jp: dict[str, str] = {str(r["jp_term"]): str(r["tw_term"]) for r in kb_rows}
         existing_terms: set[str] = existing_jp | set(known_tw)
         logger.info("知識庫現有術語：%d 個（JP）＋ %d 個（TW）", len(existing_jp), len(known_tw))
     except Exception as exc:
@@ -195,9 +202,19 @@ def main() -> None:
             logger.warning("無法寫入術語 %s：%s", jp, exc)
 
     # Step 5 — inline re-resolution
-    # replacement_map covers: (a) newly Gemini-resolved jp→tw, and
-    # (b) already-known tw→tw so [[TW term]] brackets get stripped.
-    replacement_map: dict[str, str] = {**known_tw, **newly_added}
+    # replacement_map covers: (a) newly Gemini-resolved jp→tw, (b) already-known
+    # tw→tw so [[TW term]] brackets get stripped, and (c) every KB jp→tw, so a
+    # manually-added term repairs markers written before it existed.
+    #
+    # ⚠️ Merge order is load-bearing and deliberately puts known_jp FIRST, i.e.
+    # known_tw still wins on collisions. 25 strings are both some row's jp_term and
+    # another row's tw_term; for 21 of them the jp row's tw_term IS the string, so
+    # order cannot matter. The 4 that would change are CF→隨機任務, FC→部隊,
+    # 地下城→迷宮, 極本→極神 — all "community uses the original as-is" cases that
+    # today resolve to themselves. Letting known_jp win would silently rewrite them,
+    # which is a content decision, not part of this fix. Whether 地下城 (a CN term;
+    # TW official is 迷宮) *should* be normalised is an open question — ask first.
+    replacement_map: dict[str, str] = {**known_jp, **known_tw, **newly_added}
     all_miss_terms: set[str] = set()
 
     for row in article_rows:

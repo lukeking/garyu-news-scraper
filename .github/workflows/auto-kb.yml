@@ -4,13 +4,20 @@ on:
   workflow_run:
     workflows: ["Garyu News Scraper 週報"]
     types: [completed]
+  # 手動重跑：KB 是手工補條目之後唯一能讓既有 [[marker]] 被修補的路徑。
+  # 沒有這個入口的話，補完 DB 只能等下週一的週報跑完才會連帶觸發。
+  workflow_dispatch:
 
 jobs:
   auto-kb:
     name: Auto KB Expansion
     runs-on: ubuntu-latest
     environment: production
-    if: github.event.workflow_run.conclusion == 'success'
+    # ⚠️ workflow_dispatch 事件沒有 `workflow_run` 物件，只留右半邊會讓運算式成
+    # `null == 'success'` → false → job 靜默跳過。加入口就必須同時放寬這個條件。
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4
