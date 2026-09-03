@@ -44,6 +44,44 @@ IGNORED_MARKERS = {
     "冒險筆記",
 }
 
+# 陸服詞／英文縮寫 → **官方繁中**用詞的正規化表。
+#
+# 判準（專案擁有者的決定）：**找得到官方繁中譯名就換過去，找不到就別動。**
+# 所以每一條都附**逐字出處**，且都出自 ffxiv.com.tw 的官方頁面——社群慣用不算數，
+# 陸服維基更不算數。要加新條目，先拿得出同等級的逐字引用。
+#
+# ⚠️ 這張表在 Step 5 的 `replacement_map` 裡**排最後**，也就是刻意贏過 KB 的
+# `known_jp` 與 `known_tw`。因為 KB 有些列把陸服詞當成譯名（`FC`→`部隊`、
+# `極本`→`極神`），照 KB 走等於把陸服詞寫進文章。
+#
+# ⚠️ **不要改成「把 known_jp / known_tw 的合併順序翻過來」**——那個替代方案被提過，
+# 已否決。那批 jp→tw 列多數是 `auto_generated=True`（LLM 寫的），而在正好這批樣本上
+# 它的正確率是 3 取 1（`地下城`→`迷宮` 對，`FC`→`部隊`、`CF`→`隨機任務` 都錯）。
+# 翻順序等於授權 LLM 產生的列全面改寫文章正文；這張人工查證過的明示表才是那個決定。
+#
+# ⚠️ **`極本` 是刻意排除的，不要「順手補完」。** KB 第 144 列把它對到 `極神`，
+# 但查證結果是：官方繁中用的是**前綴構詞**——「極 澤蓮尼亞殲滅戰」、「極 佐拉加殲滅戰」，
+# 而 `極神` 與 `極本` 在官方補丁說明裡**都出現 0 次**。沒有官方的單詞對應，
+# 依上面的判準就不正規化，讓它只拆括號、保留原文。
+TW_NORMALISATION: dict[str, str] = {
+    # 陸服詞。官方繁中補丁說明逐字：「追加全新迷宮挑戰「王城遺跡永護塔底」。」；
+    # 該份補丁說明中「地下城」出現 0 次。
+    # 來源 https://www.ffxiv.com.tw/web/special/patchnote_log/patch_7.2_notes.html
+    "地下城": "迷宮",
+    # 官方繁中新手指南逐字：「這次為大家介紹 FFXIV 中可與夥伴聯繫互動的
+    # 「公會（Free Company, FC）」」，並有公會房屋／公會工坊／公會特效／公會徽章。
+    # 「部隊」在該頁與官方補丁說明皆出現 0 次——部隊是陸服詞。
+    # 來源 https://www.ffxiv.com.tw/web/intro/beginner/page13.html
+    "FC": "公會",
+    # 官方繁中遊戲手冊第 3 章章名即「任務搜尋器」；新手指南逐字：
+    # 「請使用可以隨時申請參加迷宮的「任務搜尋器」！」
+    # ⚠️ 「隨機任務」是任務搜尋器**底下的子功能**（Duty Roulette，手冊小節
+    # 「參加隨機任務」），**不是** Duty Finder 本身——KB 那列 `CF`→`隨機任務` 是錯的。
+    # 來源 https://www.ffxiv.com.tw/web/intro/guide/game_manual/pp/index.html
+    #      與 https://www.ffxiv.com.tw/web/intro/beginner/page05.html
+    "CF": "任務搜尋器",
+}
+
 SYSTEM_PROMPT = "你是 FFXIV 術語翻譯專家，專精繁體中文（台灣）玩家社群用語。"
 
 # 規則 4 的 category 白名單：2026-08-31 對實際資料校準過一次。
@@ -230,21 +268,28 @@ def main() -> None:
 
     # Step 5 — inline re-resolution
     # replacement_map covers: (a) newly Gemini-resolved jp→tw, (b) already-known
-    # tw→tw so [[TW term]] brackets get stripped, and (c) every KB jp→tw, so a
-    # manually-added term repairs markers written before it existed.
+    # tw→tw so [[TW term]] brackets get stripped, (c) every KB jp→tw, so a
+    # manually-added term repairs markers written before it existed, and
+    # (d) TW_NORMALISATION, merged LAST so it outranks every KB-derived entry.
     #
-    # ⚠️ Merge order is load-bearing and deliberately puts known_jp FIRST, i.e.
-    # known_tw still wins on collisions. 25 strings are both some row's jp_term and
-    # another row's tw_term; for 21 of them the jp row's tw_term IS the string, so
-    # order cannot matter. The 4 that would change are CF→隨機任務, FC→部隊,
-    # 地下城→迷宮, 極本→極神 — all "community uses the original as-is" cases that
-    # today resolve to themselves. Letting known_jp win would silently rewrite them,
-    # which is a content decision, not part of this fix. Whether 地下城 (a CN term;
-    # TW official is 迷宮) *should* be normalised is an open question — ask first.
+    # ⚠️ Merge order between known_jp and known_tw is load-bearing and deliberately
+    # keeps known_jp FIRST, i.e. known_tw still wins on collisions. 25 strings are
+    # both some row's jp_term and another row's tw_term; for 21 of them the jp row's
+    # tw_term IS the string, so order cannot matter. The 4 that would change are
+    # CF→隨機任務, FC→部隊, 地下城→迷宮, 極本→極神. Flipping the order was proposed
+    # and is REJECTED: those jp→tw rows are largely auto_generated=True (LLM-written)
+    # and on this very sample only 1 of 3 was correct, so flipping would grant
+    # LLM-generated rows blanket authority to rewrite article text.
+    # The content question those 4 raised is now ANSWERED, by hand and explicitly —
+    # see TW_NORMALISATION at the top of this file: 地下城/FC/CF normalise to the
+    # official TW word (sources cited there) and 極本 is deliberately excluded
+    # because no official single-word equivalent exists. No longer an open question.
     # ignored 排在 known_* 之後：若某個詞同時出現在兩邊那是矛盾，以本檔明示的決定為準。
     # 值等於鍵 ＝ 只拆括號、保留原文（那些詞都嵌在句子裡，整段移除會讀不通）。
     ignored_map: dict[str, str] = {t: t for t in IGNORED_MARKERS}
-    replacement_map: dict[str, str] = {**known_jp, **known_tw, **ignored_map, **newly_added}
+    replacement_map: dict[str, str] = {
+        **known_jp, **known_tw, **ignored_map, **newly_added, **TW_NORMALISATION,
+    }
     all_miss_terms: set[str] = set()
 
     for row in article_rows:

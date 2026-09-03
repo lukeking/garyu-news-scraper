@@ -166,3 +166,66 @@ def test_no_markers_at_all_is_a_noop(run_main):
 
     assert db.updates == []
     assert db.gemini_calls == []
+
+
+# ── 繁中正規化（TW_NORMALISATION）：陸服詞／英文縮寫 → 官方繁中詞 ──────────
+#
+# 這四條測的是 Step 5 `replacement_map` 的**優先序**，不是字典內容本身。
+# KB fixture 都刻意造出撞號：同一個字串既是某列的 `jp_term` 也是另一列的 `tw_term`，
+# 讓 `known_jp` / `known_tw` 都有機會贏——正規化必須贏過兩者。
+
+def test_tw_normalisation_beats_known_tw(run_main):
+    """`地下城`（陸服詞）→ `迷宮`，即使 KB 有一列 jp→`地下城` 讓 known_tw 佔著同一個鍵。"""
+    kb = [{"jp_term": "ダンジョン", "tw_term": "地下城"}]
+    arts = [_article(10, "本次更新追加了 [[地下城]] 挑戰")]
+    db = run_main(kb, arts)
+
+    assert db.gemini_calls == [], "純正規化的一輪不該呼叫 Gemini"
+    assert _summary(db, 10) == "本次更新追加了 迷宮 挑戰"
+
+
+def test_tw_normalisation_beats_known_jp_and_known_tw(run_main):
+    """`FC` → `公會`：既不是原地不動的 `FC`，也不是陸服詞 `部隊`。"""
+    kb = [
+        {"jp_term": "フリーカンパニー", "tw_term": "FC"},
+        {"jp_term": "FC", "tw_term": "部隊"},
+    ]
+    arts = [_article(11, "加入 [[FC]] 之後")]
+    db = run_main(kb, arts)
+
+    assert db.gemini_calls == []
+    summary = _summary(db, 11)
+    assert summary == "加入 公會 之後"
+    assert "部隊" not in summary, "known_jp 的陸服詞不可以贏"
+    assert "FC" not in summary, "不可以只拆括號原地不動"
+
+
+def test_tw_normalisation_cf_beats_known_jp(run_main):
+    """`CF` → `任務搜尋器`；`隨機任務` 是它底下的子功能，不是它本身。"""
+    kb = [{"jp_term": "CF", "tw_term": "隨機任務"}]
+    arts = [_article(12, "請用 [[CF]] 排隊")]
+    db = run_main(kb, arts)
+
+    assert db.gemini_calls == []
+    summary = _summary(db, 12)
+    assert summary == "請用 任務搜尋器 排隊"
+    assert "隨機任務" not in summary, "Duty Roulette 不等於 Duty Finder"
+
+
+def test_excluded_term_keeps_original_word(run_main):
+    """`極本` 刻意不在正規化表裡：官方繁中是前綴構詞（「極 某某殲滅戰」），沒有單詞對應。
+
+    所以它只拆括號、保留原文，**不可以**變成 KB 那列的 `極神`——那是陸服詞。
+    這條是**排除**的守門員：有人日後「順手補完」表格時它會紅。
+    """
+    kb = [
+        {"jp_term": "極討滅戦", "tw_term": "極本"},
+        {"jp_term": "極本", "tw_term": "極神"},
+    ]
+    arts = [_article(13, "打了幾場 [[極本]] 之後")]
+    db = run_main(kb, arts)
+
+    assert db.gemini_calls == []
+    summary = _summary(db, 13)
+    assert summary == "打了幾場 極本 之後"
+    assert "極神" not in summary, "極神 是陸服詞，不該被正規化表帶進來"
