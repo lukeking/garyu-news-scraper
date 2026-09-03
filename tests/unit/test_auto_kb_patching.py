@@ -168,11 +168,13 @@ def test_no_markers_at_all_is_a_noop(run_main):
     assert db.gemini_calls == []
 
 
-# ── 繁中正規化（TW_NORMALISATION）：陸服詞／英文縮寫 → 官方繁中詞 ──────────
+# ── 繁中正規化（TW_NORMALISATION）：陸服詞 → 官方繁中詞 ────────────────────
 #
-# 這四條測的是 Step 5 `replacement_map` 的**優先序**，不是字典內容本身。
+# 判準是兩條：陸服詞換成官方繁中；縮寫不展開。所以這一組有兩種測試——
+# 一種證明**該換的有換**（優先序贏過 KB），一種證明**不該換的沒被換**（守門員）。
+#
 # KB fixture 都刻意造出撞號：同一個字串既是某列的 `jp_term` 也是另一列的 `tw_term`，
-# 讓 `known_jp` / `known_tw` 都有機會贏——正規化必須贏過兩者。
+# 讓 `known_jp` / `known_tw` 都有機會贏。
 
 def test_tw_normalisation_beats_known_tw(run_main):
     """`地下城`（陸服詞）→ `迷宮`，即使 KB 有一列 jp→`地下城` 讓 known_tw 佔著同一個鍵。"""
@@ -184,32 +186,50 @@ def test_tw_normalisation_beats_known_tw(run_main):
     assert _summary(db, 10) == "本次更新追加了 迷宮 挑戰"
 
 
-def test_tw_normalisation_beats_known_jp_and_known_tw(run_main):
-    """`FC` → `公會`：既不是原地不動的 `FC`，也不是陸服詞 `部隊`。"""
+def test_abbreviation_is_not_expanded_fc(run_main):
+    """`FC` **不展開**成官方全稱 `公會`——規則 2，縮寫對玩家往往比全稱好讀。
+
+    KB fixture 照 prod 的實際形狀擺：id=122 `フリーカンパニー→FC` 讓 `known_tw`
+    給出 `FC→FC`，id=147 `FC→公會`（2026-09-03 已更正為官方繁中）讓 `known_jp`
+    給出 `FC→公會`。`known_tw` 贏，所以標記只拆括號、保留 `FC`。
+
+    這條是守門員：有人日後把 `FC` 加進 TW_NORMALISATION，或翻轉合併順序，它會紅。
+    """
     kb = [
         {"jp_term": "フリーカンパニー", "tw_term": "FC"},
-        {"jp_term": "FC", "tw_term": "部隊"},
+        {"jp_term": "FC", "tw_term": "公會"},
     ]
     arts = [_article(11, "加入 [[FC]] 之後")]
     db = run_main(kb, arts)
 
     assert db.gemini_calls == []
     summary = _summary(db, 11)
-    assert summary == "加入 公會 之後"
-    assert "部隊" not in summary, "known_jp 的陸服詞不可以贏"
-    assert "FC" not in summary, "不可以只拆括號原地不動"
+    assert summary == "加入 FC 之後"
+    assert "公會" not in summary, "縮寫不該被展開成官方全稱"
 
 
-def test_tw_normalisation_cf_beats_known_jp(run_main):
-    """`CF` → `任務搜尋器`；`隨機任務` 是它底下的子功能，不是它本身。"""
-    kb = [{"jp_term": "CF", "tw_term": "隨機任務"}]
+def test_abbreviation_is_not_expanded_cf(run_main):
+    """`CF` 同理不展開成 `任務搜尋器`。"""
+    kb = [
+        {"jp_term": "コンテンツファインダー", "tw_term": "CF"},
+        {"jp_term": "CF", "tw_term": "任務搜尋器"},
+    ]
     arts = [_article(12, "請用 [[CF]] 排隊")]
     db = run_main(kb, arts)
 
     assert db.gemini_calls == []
     summary = _summary(db, 12)
-    assert summary == "請用 任務搜尋器 排隊"
-    assert "隨機任務" not in summary, "Duty Roulette 不等於 Duty Finder"
+    assert summary == "請用 CF 排隊"
+    assert "任務搜尋器" not in summary, "縮寫不該被展開成官方全稱"
+
+
+def test_normalisation_table_holds_only_verified_locale_swaps(run_main):
+    """表裡只該有「陸服詞→官方繁中」，不該混進縮寫展開。
+
+    直接斷言內容而非行為：上面兩條守的是**結果**，這條守的是**規則本身**，
+    這樣「為什麼 FC 不在裡面」不需要靠讀註解才知道。
+    """
+    assert auto_kb.TW_NORMALISATION == {"地下城": "迷宮"}
 
 
 def test_excluded_term_keeps_original_word(run_main):
