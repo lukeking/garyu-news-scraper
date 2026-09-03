@@ -196,6 +196,10 @@ def measure(rows):
     flags = {"arrived_as_html": 0, "gn_unresolved_link": 0}
     by_week = defaultdict(lambda: {"n": 0, "non_substantive": 0})
     by_source = defaultdict(lambda: {"n": 0, "non_substantive": 0})
+    # major_category 這一維是 BACKLOG #11 真正要問的東西：digest 匯流的政策四類
+    # （道安政策／路權政策／科技執法／交通工程）入料品質是否系統性差於其他類別。
+    # 首次量到 W32-W36：政策四類 58.9% vs 非政策 84.2%，差 25 個百分點。
+    by_category = defaultdict(lambda: {"n": 0, "non_substantive": 0})
 
     for r in win:
         cls = classify_row(r, keys)
@@ -206,7 +210,8 @@ def measure(rows):
             flags["gn_unresolved_link"] += 1
 
         for bucket, key in ((by_week, r.get("week_id") or "(none)"),
-                            (by_source, r.get("source") or "(none)")):
+                            (by_source, r.get("source") or "(none)"),
+                            (by_category, r.get("major_category") or "(none)")):
             bucket[key]["n"] += 1
             if cls != "substantive":
                 bucket[key]["non_substantive"] += 1
@@ -216,7 +221,7 @@ def measure(rows):
     def share(n):
         return (n / total) if total else 0.0
 
-    for bucket in (by_week, by_source):
+    for bucket in (by_week, by_source, by_category):
         for stat in bucket.values():
             stat["share"] = stat["non_substantive"] / stat["n"]
 
@@ -234,6 +239,7 @@ def measure(rows):
         "flag_share": {k: share(v) for k, v in flags.items()},
         "by_week": dict(by_week),
         "by_source": dict(by_source),
+        "by_category": dict(by_category),
         "boilerplate_prefixes": prefixes,
     }
 
@@ -253,7 +259,7 @@ def fetch_traffic_articles():
     while True:
         resp = (
             client.table("articles")
-            .select("title,summary,link,source,week_id,content_type")
+            .select("title,summary,link,source,week_id,content_type,major_category")
             .eq("content_type", "traffic")
             .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
             .execute()
@@ -301,6 +307,12 @@ def print_report(rep):
     for src, s in sorted(rep["by_source"].items(),
                          key=lambda kv: (-kv[1]["share"], -kv[1]["n"])):
         print(f"{src[:28]:<28}{s['n']:>6}{s['non_substantive']:>10}{s['share']:>8.0%}")
+
+    print(f"\n{'major_category':<16}{'n':>6}{'non-substantive':>18}")
+    print("-" * 40)
+    for cat, s_ in sorted(rep["by_category"].items(),
+                          key=lambda kv: (-kv[1]["share"], -kv[1]["n"])):
+        print(f"{cat[:16]:<16}{s_['n']:>6}{s_['non_substantive']:>10}{s_['share']:>8.0%}")
 
     print("\nboilerplate prefixes found (derived by counting, not hardcoded)")
     for p in rep["boilerplate_prefixes"] or []:
