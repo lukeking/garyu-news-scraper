@@ -49,7 +49,8 @@ GN_LINK = "https://news.google.com/rss/articles/CBMiVWh0dHBzOi8vbmV3cy5jbnll?oc=
 
 
 def row(summary="", title=TITLE, link="https://example.com/a1",
-        source="範例新聞", week_id="2026-W22", content_type="traffic"):
+        source="範例新聞", week_id="2026-W22", content_type="traffic",
+        major_category="道安政策"):
     return {
         "title": title,
         "summary": summary,
@@ -57,6 +58,7 @@ def row(summary="", title=TITLE, link="https://example.com/a1",
         "source": source,
         "week_id": week_id,
         "content_type": content_type,
+        "major_category": major_category,
     }
 
 
@@ -171,13 +173,24 @@ class TestBoilerplateKeys:
     def test_precondition_lead_is_long_enough_to_form_a_prefix(self):
         assert len(BOILER_LEAD) >= PREFIX_LEN
 
-    def test_fires_at_the_minimum_count(self):
-        keys = boilerplate_keys(self._rows(["fcl.example.com"] * MIN_BOILERPLATE))
-        assert keys == {("fcl.example.com", BOILER_LEAD[:PREFIX_LEN])}
+    def test_contract_minimum_is_three_distinct_articles(self):
+        """判準明文是「>= 3 篇不同文章」，這條直接釘住字面值。
 
-    def test_does_not_fire_one_article_below_the_minimum(self):
-        keys = boilerplate_keys(self._rows(["fcl.example.com"] * (MIN_BOILERPLATE - 1)))
-        assert keys == set()
+        其餘 boilerplate 測試都以 MIN_BOILERPLATE **參數化**，所以常數自己漂掉時
+        它們全都看不見——實測把 3 改成 2，本檔 29 條測試全綠。參數化的測試守得住
+        「行為與常數一致」，守不住「常數是對的」，兩者要分開守。
+        """
+        assert MIN_BOILERPLATE == 3
+
+    def test_two_articles_do_not_form_a_template(self):
+        """字面 2 篇：不可以開火。刻意不寫 MIN_BOILERPLATE - 1——那會跟著常數漂。"""
+        assert boilerplate_keys(self._rows(["fcl.example.com"] * 2)) == set()
+
+    def test_three_articles_form_a_template(self):
+        """字面 3 篇：必須開火。"""
+        assert boilerplate_keys(self._rows(["fcl.example.com"] * 3)) == {
+            ("fcl.example.com", BOILER_LEAD[:PREFIX_LEN])
+        }
 
     def test_does_not_fire_across_different_domains(self):
         """同一句話出現在三個不同網域是巧合，不是某一站的版型。"""
@@ -253,6 +266,27 @@ class TestMeasure:
         assert rep["by_week"]["2026-W22"]["non_substantive"] == rep["total"] - 1
         assert rep["by_source"]["新聞雲報"]["non_substantive"] == MIN_BOILERPLATE
         assert rep["boilerplate_prefixes"][0]["domain"] == "fcl.example.com"
+
+    def test_by_category_keys_on_major_category_not_source(self):
+        """by_category 必須以 major_category 分桶，不是 source。
+
+        這一維是 BACKLOG #11 真正要問的東西（政策四類 vs 非政策的落差），而它加進來
+        時沒有任何測試——實測把鍵換成 `r.get("source")`，208 條全綠。那是個很像
+        複製貼上手滑的改動，因為它就緊貼在 by_source 那一行下面。
+
+        所以 fixture 刻意讓兩列**同 source、不同 category**：鍵一換就會塌成一桶。
+        """
+        rows = [
+            row(summary="新" * 200, source="中時新聞網", major_category="機車事故"),
+            row(summary=TITLE + " - 中央社", source="中時新聞網", major_category="道安政策"),
+        ]
+        rep = measure(rows)
+
+        assert set(rep["by_category"]) == {"機車事故", "道安政策"}
+        assert rep["by_category"]["機車事故"]["non_substantive"] == 0
+        assert rep["by_category"]["道安政策"]["non_substantive"] == 1
+        # 判別式：同一個 source 的兩列若被誤用 source 當鍵，會塌成單一桶 n=2
+        assert rep["by_source"]["中時新聞網"]["n"] == 2
 
     def test_empty_population(self):
         rep = measure([])
