@@ -448,7 +448,7 @@ def compute_quality_score(article: dict, category_keywords: list, config: dict) 
     w3 = weights.get("source_weight", 0.3)
 
     title = article.get("title", "")
-    body = article.get("summary", "") or article.get("content", "") or ""
+    body = article.get("summary", "") or ""
     combined = title + " " + body
     word_count = len(combined.replace(" ", ""))
 

@@ -728,7 +728,7 @@ def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: 
     lines = []
     for i, a in enumerate(top_articles, 1):
         title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or a.get("content", "") or "")[:600]
+        body = (a.get("summary", "") or "")[:600]
         lines.append(f"[{i}] 標題：{title}\n    摘要：{body}")
 
     article_list = "\n\n".join(lines)
@@ -845,7 +845,7 @@ def dedup_same_event(candidates: list, buffer_articles: list) -> list:
 # ── Traffic Pipeline: Clustering + Scoring (US3) ─────────────────────────────
 
 def _article_word_count(article: dict) -> int:
-    body = article.get("summary", "") or article.get("content", "") or ""
+    body = article.get("summary", "") or ""
     return len((article.get("title", "") + body).replace(" ", ""))
 
 
@@ -1189,7 +1189,7 @@ def analyze_category_digest(pool_articles: list, topic_label: str,
     lines = []
     for i, a in enumerate(top_articles, 1):
         title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or a.get("content", "") or "")[:400]
+        body = (a.get("summary", "") or "")[:400]
         lines.append(f"[{i}] 日期：{(a.get('published') or '')[:10]}\n    標題：{title}\n    摘要：{body}")
 
     prompt = DIGEST_PROMPT_TEMPLATE.format(
