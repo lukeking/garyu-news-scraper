@@ -10,6 +10,11 @@ Step 2 的「沒有未知術語 → `sys.exit(0)`」讓 Step 5 永遠到不了�
 的邏輯，兩邊都「正確」——但沒有任何東西模擬它們之間的 `sys.exit`。
 所以這裡刻意跑**真正的 `main()`**，用假 client 攔住寫入，而不是重寫一份邏輯：
 重寫的那份不會有早退，於是永遠測不到這個 bug。
+
+2026-09-05 擴充（BACKLOG #12）：同一個 harness 補上 **Step 4（KB 寫入分支）** 與
+**`call_gemini` 的回應解析**——那兩塊在 09-04 逐行查證時是零覆蓋（`call_gemini` 在每條
+測試裡都被 monkeypatch 掉，Step 4 的 `db.inserted` 有被收集但沒有任何測試讀它）。
+Step 4 的測試一律走 `run_main`，理由同上：Step 2 的早退就在它前面。
 """
 import json
 import os
@@ -59,6 +64,9 @@ class _Table:
                 return [dict(r) for r in self.db.kb]
             if q.op == "insert":
                 rows = q.payload if isinstance(q.payload, list) else [q.payload]
+                for r in rows:
+                    if r.get("jp_term") in self.db.insert_fails:
+                        raise RuntimeError(f"模擬寫入失敗：{r.get('jp_term')}")
                 self.db.kb.extend(rows)
                 self.db.inserted.extend(rows)
                 return rows
@@ -76,9 +84,11 @@ class _Table:
 
 
 class _FakeDB:
-    def __init__(self, kb, articles):
+    def __init__(self, kb, articles, insert_fails=None):
         self.kb, self.articles = kb, articles
         self.updates, self.inserted = [], []
+        # 指定的 jp_term 寫入時拋例外，用來咬 Step 4「寫入失敗要吞掉並繼續」那條分支。
+        self.insert_fails = insert_fails or set()
 
     def table(self, name):
         return _Table(self, name)
@@ -86,9 +96,13 @@ class _FakeDB:
 
 @pytest.fixture
 def run_main(monkeypatch):
-    """跑真正的 main()，回傳假 DB 供斷言。gemini_calls 記錄它有沒有呼叫 Gemini。"""
-    def _run(kb, articles):
-        db = _FakeDB(kb, articles)
+    """跑真正的 main()，回傳假 DB 供斷言。gemini_calls 記錄它有沒有呼叫 Gemini。
+
+    `gemini_entries` ＝ 假 `call_gemini` 要回傳的東西（預設空陣列＝原本的行為）；
+    `insert_fails` ＝ 一組 jp_term，假 DB 寫到它們時會拋例外。
+    """
+    def _run(kb, articles, gemini_entries=None, insert_fails=None):
+        db = _FakeDB(kb, articles, insert_fails)
         monkeypatch.setitem(
             sys.modules, "supabase",
             types.SimpleNamespace(create_client=lambda url, key: db),
@@ -100,7 +114,7 @@ def run_main(monkeypatch):
         calls = []
         monkeypatch.setattr(
             auto_kb, "call_gemini",
-            lambda terms, *a, **k: (calls.append(sorted(terms)) or []),
+            lambda terms, *a, **k: (calls.append(sorted(terms)) or list(gemini_entries or [])),
         )
         # main() 正常路徑是直接回傳；早退只發生在錯誤或無事可做的分支，
         # 且依 docstring「Always exits 0」一律是 0。兩種都接受，非零則失敗。
@@ -249,3 +263,175 @@ def test_excluded_term_keeps_original_word(run_main):
     summary = _summary(db, 13)
     assert summary == "打了幾場 極本 之後"
     assert "極神" not in summary, "極神 是陸服詞，不該被正規化表帶進來"
+
+
+# ── Step 4：Gemini 回應 → knowledge_base 寫入 ──────────────────────────────
+#
+# 09-04 逐行查證時這塊是零覆蓋：假 client 一直有收集 `db.inserted`，但沒有任何測試
+# 讀它，所以三條跳過／容錯分支都沒被咬到。以下四條對應 Step 4 的四條路徑。
+
+def test_step4_inserts_valid_entry_and_patches_article(run_main):
+    """正常路徑：寫進 KB，且**同一輪**就把文章裡的標記換掉（`newly_added` 餵進 Step 5）。"""
+    arts = [_article(20, "討伐 [[絶バハムート討滅戦]] 的隊伍")]
+    db = run_main([], arts, gemini_entries=[{
+        "jp_term": "絶バハムート討滅戦", "tw_term": "絕巴哈姆特討滅戰",
+        "en_term": "UCoB", "category": "副本", "notes": "4.11（2018）",
+    }])
+
+    assert db.gemini_calls == [["絶バハムート討滅戦"]]
+    assert db.inserted == [{
+        "jp_term": "絶バハムート討滅戦", "tw_term": "絕巴哈姆特討滅戰",
+        "en_term": "UCoB", "category": "副本", "notes": "4.11（2018）",
+        "auto_generated": True,
+    }], "寫入的欄位要逐字相符，且 auto_generated 必須為 True"
+    assert _summary(db, 20) == "討伐 絕巴哈姆特討滅戰 的隊伍"
+
+
+def test_step4_fills_optional_fields_with_empty_string(run_main):
+    """Gemini 只回必要欄位時，`en_term`／`category`／`notes` 補空字串（`or ""`）而非 None。"""
+    arts = [_article(21, "打完 [[オメガ]] 之後")]
+    db = run_main([], arts, gemini_entries=[{"jp_term": "オメガ", "tw_term": "歐米茄"}])
+
+    assert db.inserted == [{
+        "jp_term": "オメガ", "tw_term": "歐米茄",
+        "en_term": "", "category": "", "notes": "", "auto_generated": True,
+    }]
+
+
+def test_step4_skips_entry_missing_a_required_field(run_main):
+    """缺 `jp_term` 或 `tw_term` 的項目跳過——不寫 KB，也不拿它去改文章。"""
+    arts = [_article(22, "地名 [[グリダニア]] 與 [[ウルダハ]]")]
+    db = run_main([], arts, gemini_entries=[
+        {"jp_term": "グリダニア", "tw_term": ""},   # tw 空字串
+        {"jp_term": "", "tw_term": "烏爾達哈"},      # jp 空字串
+        {"tw_term": "只有繁中"},                     # jp 整個缺席
+    ])
+
+    assert db.inserted == []
+    assert _summary(db, 22) == "地名 [[グリダニア]] 與 [[ウルダハ]]", "跳過的項目不該改到文章"
+    assert db.updates == []
+
+
+def test_step4_skips_term_already_in_kb(run_main):
+    """Gemini 回了一個 KB 已有的 `jp_term` → 跳過，既有譯名不被覆蓋。
+
+    ⚠️ 要走到 Step 4，那個詞得先被送出去——所以文章裡放的是**另一個**未知詞，
+    由 Gemini「順便」多回一筆已存在的。把已存在的詞直接放進文章會被 Step 2 先濾掉，
+    根本到不了 Step 4，那樣測到的是別條分支。
+    """
+    kb = [{"jp_term": "エオルゼア", "tw_term": "艾歐澤亞"}]
+    arts = [_article(23, "從 [[某個未知地名]] 出發")]
+    db = run_main(kb, arts, gemini_entries=[
+        {"jp_term": "エオルゼア", "tw_term": "伊歐澤亞"},   # 已存在，且譯名不同
+        {"jp_term": "某個未知地名", "tw_term": "某個地名"},
+    ])
+
+    assert [r["jp_term"] for r in db.inserted] == ["某個未知地名"]
+    assert _summary(db, 23) == "從 某個地名 出發"
+
+
+def test_step4_insert_failure_is_swallowed_and_loop_continues(run_main):
+    """某一筆寫入拋例外 → 記 warning 並繼續下一筆（Auto-KB 全程 non-blocking）。
+
+    失敗那筆**不可以**進 `newly_added`，否則文章會被改成一個 KB 裡並不存在的譯名。
+    """
+    arts = [_article(24, "[[前一個詞]] 與 [[後一個詞]]")]
+    db = run_main([], arts, gemini_entries=[
+        {"jp_term": "前一個詞", "tw_term": "前譯"},
+        {"jp_term": "後一個詞", "tw_term": "後譯"},
+    ], insert_fails={"前一個詞"})
+
+    assert [r["jp_term"] for r in db.inserted] == ["後一個詞"], "第二筆必須照樣寫入"
+    assert _summary(db, 24) == "[[前一個詞]] 與 後譯", "寫入失敗的詞不該被替換掉"
+
+
+# ── `call_gemini`：回應解析與重試 ──────────────────────────────────────────
+#
+# `call_gemini`（`scripts/auto_kb.py:132`）在上面每一條測試裡都被 monkeypatch 掉，
+# 本體一行都沒被執行過。這一組**不測 HTTP**，只把 `requests` 換掉（替換邊界，不是
+# 重寫邏輯），測「拿到回應之後怎麼解析」與「壞掉時退回什麼」——後者承重，因為它的
+# 失敗模式是**回傳空陣列繼續跑**（non-blocking），不是拋例外，所以壞掉是沉默的。
+
+class _FakeResponse:
+    def __init__(self, text=None, status_code=200):
+        self.status_code = status_code
+        self._text = text
+        self.raise_for_status_called = False
+
+    def raise_for_status(self):
+        self.raise_for_status_called = True
+        if self.status_code >= 400:
+            raise RuntimeError(f"HTTP {self.status_code}")
+
+    def json(self):
+        return {"candidates": [{"content": {"parts": [{"text": self._text}]}}]}
+
+
+@pytest.fixture
+def fake_requests(monkeypatch):
+    """把 `requests` 換成假的。`queue` 依序供應回應，`posts` 記錄送出去的東西。"""
+    calls = types.SimpleNamespace(posts=[], queue=[])
+
+    def _post(url, json=None, timeout=None):
+        calls.posts.append({"url": url, "payload": json})
+        return calls.queue.pop(0)
+
+    monkeypatch.setitem(sys.modules, "requests", types.SimpleNamespace(post=_post))
+    # 重試路徑會 sleep 1 秒與 2 秒；測試不該為此等 3 秒。
+    monkeypatch.setattr(auto_kb.time, "sleep", lambda _s: None)
+    return calls
+
+
+def test_call_gemini_parses_plain_json(fake_requests):
+    fake_requests.queue.append(_FakeResponse(
+        '[{"jp_term": "暁月のフィナーレ", "tw_term": "曉月", "en_term": "Endwalker", '
+        '"category": "資料片", "notes": "6.0（2021）"}]'
+    ))
+
+    out = auto_kb.call_gemini(["暁月のフィナーレ"], "fake-not-a-real-key", "gemini-x-flash")
+
+    assert out == [{"jp_term": "暁月のフィナーレ", "tw_term": "曉月", "en_term": "Endwalker",
+                    "category": "資料片", "notes": "6.0（2021）"}]
+    # prompt 組裝的最小斷言：術語真的有進到送出去的 payload，模型名真的有進 URL。
+    assert "暁月のフィナーレ" in fake_requests.posts[0]["payload"]["contents"][0]["parts"][0]["text"]
+    assert "gemini-x-flash" in fake_requests.posts[0]["url"]
+
+
+def test_call_gemini_strips_markdown_fences(fake_requests):
+    """Gemini 常把 JSON 包在 ```json 圍欄裡；不拆就 `json.loads` 失敗、整輪退回空陣列。"""
+    fake_requests.queue.append(
+        _FakeResponse('```json\n[{"jp_term": "極討滅戦", "tw_term": "極"}]\n```')
+    )
+
+    out = auto_kb.call_gemini(["極討滅戦"], "fake-not-a-real-key", "gemini-x-flash")
+
+    assert out == [{"jp_term": "極討滅戦", "tw_term": "極"}]
+
+
+def test_call_gemini_returns_empty_list_on_unparseable_response(fake_requests):
+    """壞掉的 JSON **不可以**往上拋——Auto-KB 是 non-blocking 的排程工作。
+    三次都壞 → 回空陣列，於是 Step 4 什麼都不寫、Step 5 照樣跑。"""
+    for _ in range(3):
+        fake_requests.queue.append(_FakeResponse("這不是 JSON"))
+
+    out = auto_kb.call_gemini(["某詞"], "fake-not-a-real-key", "gemini-x-flash")
+
+    assert out == []
+    assert len(fake_requests.posts) == 3, "解析失敗要重試滿三次"
+
+
+def test_call_gemini_retries_after_server_error(fake_requests):
+    """5xx 走專屬的 `continue` 重試，**不經** `raise_for_status`；下一次成功就回那次的結果。
+
+    ⚠️ 只斷言「重試了兩次」是分不出來的：泛用 `except` 那條路徑同樣會重試並成功。
+    能把兩者分開的只有一件事——5xx 那個回應的 `raise_for_status` 有沒有被呼叫。
+    """
+    server_error = _FakeResponse(status_code=503)
+    fake_requests.queue.append(server_error)
+    fake_requests.queue.append(_FakeResponse('[{"jp_term": "オメガ", "tw_term": "歐米茄"}]'))
+
+    out = auto_kb.call_gemini(["オメガ"], "fake-not-a-real-key", "gemini-x-flash")
+
+    assert out == [{"jp_term": "オメガ", "tw_term": "歐米茄"}]
+    assert len(fake_requests.posts) == 2
+    assert not server_error.raise_for_status_called, "5xx 應在 raise_for_status 之前就 continue"
