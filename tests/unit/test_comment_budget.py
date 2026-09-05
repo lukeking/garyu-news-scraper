@@ -26,7 +26,7 @@ LEGACY = {
     "scripts/measure_body_fetch.py": (13, 1),
     "scripts/measure_embed_dedup_gap.py": (24, 2),
     "scripts/measure_input_quality.py": (22, 11),
-    "scripts/measure_relevance.py": (43, 12),
+    "scripts/measure_relevance.py": (43, 11),
     "scripts/measure_source_uptake.py": (19, 5),
     "scripts/migrate_kb.py": (13, 1),
     "scripts/replay_digest_pool.py": (33, 1),
