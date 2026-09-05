@@ -126,3 +126,44 @@ test('沒有摘要時 tr-detail 裡不放大圖（現況行為，未動）', () 
   assert.match(html, /tr-slot/);
   assert.match(html, /tr-strip/);
 });
+
+// ── E 把按鈕包深了一層，這幾條守的是「往外找」的處理器還找得到目標 ──────────
+//
+// 新結構把 .tr-src / ★ / .tr-time / × 移進 .tr-top > .tr-body，比原本深兩層。
+// 四個 closest() 都是**往上**走訪所以理論上不受影響——但「理論上」不是證據，
+// 而這種斷裂是沉默的（按鈕還在、點了沒反應）。jsdom 測不了 layout，但測得了這個。
+
+test('toggleRow：從包深兩層的標題仍找得到 tr-detail', () => {
+  const doc = app.window.document;
+  doc.body.innerHTML = app.trafficRow({ ...article(), image_url: 'https://img.test/a.jpg' }, 1, false);
+  const title = doc.querySelector('.tr-title');
+  const detail = doc.querySelector('.tr-detail');
+
+  assert.equal(detail.hidden, true, '預設收合');
+  app.window.toggleRow(title);
+  assert.equal(detail.hidden, false, '點標題要展開');
+  app.window.toggleRow(title);
+  assert.equal(detail.hidden, true, '再點要收回去');
+});
+
+test('dismissArticle：從包深兩層的 × 仍找得到整張 card', () => {
+  const doc = app.window.document;
+  // 放進 #article-list —— dismissArticle 尾端的 checkEmptyDismissed() 需要它。
+  // （第一版沒有這個容器，測試因 null.querySelectorAll 而紅；那是 fixture 不完整，
+  //   不是程式的迴歸。補上之後這條就走完整條路徑，比原本更有價值。）
+  doc.body.innerHTML = `<div id="article-list">${app.trafficRow(article(), 1, false)}</div>`;
+  const row = doc.querySelector('.traffic-row');
+  app.window.dismissArticle(doc.querySelector('.tr-dismiss'));
+
+  assert.equal(row.style.display, 'none', '標記過時要把整列收掉，不是只收掉按鈕那一層');
+  assert.ok(doc.getElementById('empty-dismissed-state'), '整頁都收掉時要出現空狀態');
+});
+
+test('hideSource：來源按鈕帶的是原值不是顯示值', () => {
+  const doc = app.window.document;
+  doc.body.innerHTML = app.trafficRow({ ...article(), source: 'Google News 機車' }, 1, false);
+  const btn = doc.querySelector('.tr-src');
+
+  assert.equal(btn.dataset.source, 'Google News 機車', '收起的單位是 feed，不是顯示標籤');
+  assert.equal(btn.textContent, 'Google News', '顯示的是合併後的標籤');
+});
