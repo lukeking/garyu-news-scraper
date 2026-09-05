@@ -286,6 +286,7 @@ Feedly 實測確認有圖的項目正常顯示**。也就是說 `image_url` 的�
 **提出**: 2026-07-21，助理主動提出的重構建議
 **優先度**: 建議順序 #4
 **時機**: **下次要動 `src/analyzer.py` 時順手做最自然**，不建議現在專門開一題
+**狀態**: 🟡 **一半已完成（2026-09-05）**——雜質已抽掉並補上測試；**搬模組那半未做，見文末**
 
 **問題**：`src/analyzer.py` 裡「決定性的評分邏輯」與「會打外部服務的呼叫」住在同一個檔案。
 `_call_gemini`、`analyze_hot_topic` 與 `score_topic_buckets`、`cluster_traffic_articles` 混在一起，
@@ -310,11 +311,35 @@ select_digest_pool(articles, category, digest_cfg, excluded_links)     src/analy
 **唯一的雜質是 `embed_dedup`**（呼叫 Gemini 算 embedding）。但 embedding **已經存進
 `articles` 表**，改成接受預先算好的向量即可讓整條評分路徑 100% 純。
 
+✅ **這一半已於 2026-09-05 完成**：`generate_embedding` 的呼叫抽成 `analyzer.attach_embeddings()`
+（不純，呼叫端 `src/pipeline/traffic.py` 顯式呼叫），`embed_dedup` 成為純函數。
+**同時補上它從來沒有過的 9 條 unit 測試**——⚠️ **「不純」與「沒有測試」落在同一個函式上不是巧合**：
+另外四個純函式早就有測試，唯獨這個測不了，所以一直沒測。這正是本項理由 1 的具體代價。
+新增一條守門員：呼叫端漏喊 `attach_embeddings()` 時會**指名該函式**發出警告，
+且與「生成失敗（值為 None）」分開報——兩者後果相同（不去重）但成因不同，
+混在一起會讓接線錯誤看起來像 API 故障，而**不去重是沉默的**。
+
 **為什麼值得做（依重要性）**：
 1. **憲章 V 單一職責**——純運算與外部呼叫不該共處一個模組。
-2. **讓核心能離線測**——目前測評分邏輯需要憑證與活資料，這正是整合測試會寫進正式庫的成因之一；
-   純核心 + 凍結語料可完全離線跑，直接回饋 CI gating（建議順序 #1）。
+2. ~~**讓核心能離線測**——目前測評分邏輯需要憑證與活資料，這正是整合測試會寫進正式庫的成因之一；
+   純核心 + 凍結語料可完全離線跑，直接回饋 CI gating（建議順序 #1）。~~
+   ⚠️ **2026-09-05 查證：這條已經過期，而且是最強的那條。** 四個評分函式**早就各有零依賴的
+   unit 測試**（`cluster_traffic_articles`→`test_topic_scoring`／`test_weekly_selection`／
+   `test_relevance_gate`；`score_topic_buckets`→同前二者；`select_hot_topics_with_novelty`→
+   `test_novelty_gate`／`test_weekly_selection`；`select_digest_pool`→`test_digest_pool`／
+   `test_digest_consume`），四個測試檔都不碰 supabase 或網路。應該是 #1 CI gating（PR #77／#78）
+   之後逐步長出來的，沒有人回頭更新這句話。
 3. **附帶效果**：分乾淨之後，「凍結語料 → 重播 → 觀察中間過程」幾乎是免費的。
+
+### 剩下的那一半：把純函式搬進獨立模組（**未做，需要你決定**）
+
+理由只剩 1（憲章 V 單一職責），因為理由 2 已經達成、理由 3 是附帶效果。而成本量過了：
+`cluster_traffic_articles`／`score_topic_buckets`／`select_hot_topics_with_novelty`／
+`select_digest_pool` 四個函式共 **95 處引用**，散在 **~15 個檔**（10 個測試檔、3 支 script、
+pipeline 與 main）。那是**純機械搬家、零行為改變**，但會與任何在途的分支大範圍衝突。
+
+**判斷**：本項原文自己就寫「不建議現在專門開一題」，而現在支撐它的理由從兩條降成一條。
+搬 vs 不搬是取捨（結構清晰度 vs 15 檔的 churn），**不該由我單方面決定**，故留著等你裁示。
 
 **⚠️ 因果方向**：本項的正當理由是上面 1 與 2 的結構問題。學習產出是**副產品，不是理由**——
 不可為了產生學習題材而擴大這項的範圍（見 memory `feedback_learning_integration_model`）。

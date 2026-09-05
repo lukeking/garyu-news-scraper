@@ -108,7 +108,7 @@ class TrafficCategory:
         if is_configured():
             try:
                 from src.storage import get_traffic_buffer
-                from src.analyzer import embed_dedup
+                from src.analyzer import attach_embeddings, embed_dedup
                 from src.pipeline_config import load_pipeline_config as _lpc
                 _cfg = _lpc()
                 _threshold = _cfg.get("embed_dedup", {}).get("threshold", 0.88)
@@ -117,6 +117,8 @@ class TrafficCategory:
                     a for a in get_traffic_buffer(max_age_weeks=1)
                     if a.get("week_id") == week_id
                 ]
+                # 生成向量（不純、會打 Gemini）與去重（純）刻意分成兩步，見 BACKLOG #4。
+                attach_embeddings(deduped)
                 deduped = embed_dedup(deduped, this_week, threshold=_threshold)
             except Exception as e:
                 logger.warning("[%s] 嵌入去重複失敗，略過：%s", self.name, e)
