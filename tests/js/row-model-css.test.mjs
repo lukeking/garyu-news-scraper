@@ -59,3 +59,17 @@ test('容器本身有宣告 container-type，否則 @container 永遠不會生�
   assert.match(CSS, /\.tr-group-body\s*\{[^}]*container-type:\s*inline-size/);
   assert.match(CSS, /\.tr-group-body\s*\{[^}]*container-name:\s*trlist/);
 });
+
+test('寬形：時間欄有寬度下界，否則寬幅條會被時間文字推著左右跑', () => {
+  // .tr-time 貼著內容，而 Intl.RelativeTimeFormat 的字串跟瀏覽器 locale 走
+  // （英文光 "yesterday" 到 "10 minutes ago" 就差 5 個字元）。
+  const block = containerBlock();
+  assert.match(block, /\.tr-time\s*\{[^}]*min-width:/, '沒有下界，寬幅條就會逐列漂移');
+  assert.match(block, /\.tr-time\s*\{[^}]*text-align:\s*right/, '欄變寬後文字要靠右貼齊 ×');
+});
+
+test('方格是定位脈絡，否則疊在它上面的圖會跑掉', () => {
+  // 圖疊在來源色塊上，載入失敗時移掉 img 就露出色塊——這靠的是 relative/absolute 這一對。
+  assert.match(CSS, /\.tr-slot\s*\{[^}]*position:\s*relative/);
+  assert.match(CSS, /\.tr-slot img\s*\{[^}]*position:\s*absolute/);
+});

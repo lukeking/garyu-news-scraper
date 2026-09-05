@@ -195,9 +195,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .tr-main { display: flex; align-items: flex-start; gap: 9px; padding: 6px 10px; }
 .tr-slot {
   flex: 0 0 auto; width: 40px; height: 40px; border-radius: 5px; overflow: hidden;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center; position: relative;
 }
-.tr-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 圖疊在來源色塊上。載入失敗時 onerror 把 img 移掉，露出的就是既有的無圖樣式。 */
+.tr-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .tr-slot-label {
   font-size: 9px; font-weight: 700; color: #fff; text-align: center;
   line-height: 1.15; padding: 2px; overflow: hidden;
@@ -224,7 +225,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
               display: block; white-space: nowrap; text-overflow: ellipsis; }
   .tr-strip { order: 4; display: block; flex: 0 0 auto;
               width: 76px; height: 30px; border-radius: 4px; object-fit: cover; }
-  .tr-time { order: 5; }
+  /* 時間欄給下界，否則 .tr-time 貼著內容、寬幅條就被它推著左右跑（英文 locale 光
+     "yesterday" 到 "10 minutes ago" 就差 5 個字元）。⚠️ 13ch 是推導不是實測（E2）：
+     14 字元裡 2 數字＋10 小寫＋2 空格，小寫約 0.95ch、空格約 0.5ch。 */
+  .tr-time { order: 5; min-width: 13ch; text-align: right; }
   .tr-dismiss { order: 6; }
 }
 /* 來源色標同時是「收起整個來源」的入口（spec 011 / US2）。
