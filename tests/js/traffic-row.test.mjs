@@ -76,23 +76,53 @@ test('標題回音的 summary 視為無摘要', () => {
   assert.match(real, /tr-summary/);
 });
 
-test('⚠️ 現況：縮圖藏在展開後才出現的 tr-detail 裡（BACKLOG #5 要修的就是這個）', () => {
+test('E 窄形：每一列都有 40px 方格，有圖放縮圖', () => {
   const html = app.trafficRow({ ...article(), image_url: 'https://img.test/a.jpg' }, 1, false);
+  const main = html.slice(html.indexOf('class="tr-main"'), html.indexOf('class="tr-detail"'));
 
-  assert.match(html, /tr-thumb/, '有圖有摘要時縮圖存在');
-  const detailAt = html.indexOf('class="tr-detail" hidden');
-  const thumbAt = html.indexOf('tr-thumb');
-  assert.ok(detailAt >= 0, 'tr-detail 預設 hidden');
-  assert.ok(thumbAt > detailAt, '縮圖在 tr-detail 之內 → 掃描視圖看不到它');
-
-  // 掃描時看得到的那一段（tr-main）裡沒有任何圖片
-  const main = html.slice(html.indexOf('class="tr-main"'), detailAt);
-  assert.doesNotMatch(main, /<img/, '這一行就是 #5 的缺陷：列的掃描區完全沒有圖');
+  assert.match(main, /class="tr-slot"/, '窄形的左側方格要在掃描區裡');
+  assert.match(main, /<img[^>]*src="https:\/\/img\.test\/a\.jpg"/, '有圖就放進方格');
 });
 
-test('沒有摘要時不放縮圖（現況行為）', () => {
+test('E 窄形：無圖時方格仍在，用來源色＋縮寫填滿（標題左緣才對得齊）', () => {
+  const html = app.trafficRow({ ...article(), source: '中時新聞網', image_url: '' }, 1, false);
+  const main = html.slice(html.indexOf('class="tr-main"'), html.indexOf('class="tr-detail"'));
+
+  assert.match(main, /class="tr-slot"[^>]*background:#C0392B/, '無圖時方格用來源色填滿');
+  assert.match(main, /tr-slot-label[^>]*>中時新聞網</, '方格裡放來源名縮寫');
+  assert.doesNotMatch(main, /<img/, '沒有圖就不該有 img');
+});
+
+test('E 寬形：有圖時輸出列尾寬幅條，無圖時完全不輸出（不需要佔位物）', () => {
+  const withImg = app.trafficRow({ ...article(), image_url: 'https://img.test/a.jpg' }, 1, false);
+  assert.match(withImg, /class="tr-strip"[^>]*src="https:\/\/img\.test\/a\.jpg"/);
+
+  const noImg = app.trafficRow({ ...article(), image_url: '' }, 1, false);
+  assert.doesNotMatch(noImg, /tr-strip/, '寬形無圖時列自然結束，不放任何佔位物');
+});
+
+test('E：兩種形態的元件同時存在於同一份 DOM，由 CSS 決定顯示哪一個', () => {
+  // 這是 E 的核心契約：不重複 DOM、不用 JS 判斷寬度。
+  // ⚠️ 「CSS 在斷點兩側各自顯示對的那一個」**這個 harness 測不到**（jsdom 無 layout），
+  // 那道缺口留給 BACKLOG #6 的 E2E／視覺回歸，已在 PR 內文與 BACKLOG 明記。
+  const html = app.trafficRow({ ...article(), image_url: 'https://img.test/a.jpg' }, 1, false);
+  assert.match(html, /tr-slot/);
+  assert.match(html, /tr-strip/);
+  assert.doesNotMatch(html, /matchMedia|innerWidth/, '形態切換必須是 CSS 的事，不是 JS 的事');
+});
+
+test('E：三種顯示狀態不受影響——tr-detail 仍預設收合且仍帶摘要', () => {
+  const html = app.trafficRow({ ...article(), image_url: 'https://img.test/a.jpg' }, 1, false);
+  assert.match(html, /class="tr-detail" hidden/);
+  assert.match(html, /tr-summary/);
+});
+
+test('沒有摘要時 tr-detail 裡不放大圖（現況行為，未動）', () => {
   const html = app.trafficRow({
     ...article(), title: 'A', summary: 'A - 來源', image_url: 'https://img.test/a.jpg',
   }, 1, false);
   assert.doesNotMatch(html, /tr-thumb/);
+  // 但掃描區的方格與寬幅條不受摘要有無影響
+  assert.match(html, /tr-slot/);
+  assert.match(html, /tr-strip/);
 });

@@ -182,7 +182,51 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .traffic-row { margin: 0; box-shadow: none; border: none; border-bottom: 1px solid var(--border); border-radius: 0; overflow: visible; }
 .traffic-row:first-child { border-top: 1px solid var(--border); }
 .traffic-row:hover { transform: none; background: var(--bg); }
-.tr-main { display: flex; align-items: center; gap: 8px; padding: 8px 6px; }
+/* ── 列模型 E（spec 011 US3 / BACKLOG #5，2026-09-05 選定） ────────────────
+   同一份 DOM 兩種形態，由 CSS 在斷點切換；**窄形是預設**。
+
+   窄形：左側 40px 方格 ＋ 兩行標題。方格在無圖時填來源色——⚠️ 它買的**不是列高的
+   整齊**（列高由標題折不折行決定，方格只把單行列墊高約 1.5px），是**標題左緣的對齊**：
+   沒有方格時無圖的列會往左跳 49px，在有圖率 31% 那種混合週會變成鋸齒狀左緣。
+   （這一條寫在這裡而不是只寫在 BACKLOG，是因為「這個方格好像沒用，拿掉可以省 49px」
+   正是日後最容易產生的誘惑，而理由要放在誘惑發生的位置。）
+
+   寬形：單行標題 ＋ 列尾 76×30 寬幅條；**無圖時整個不輸出**，不需要佔位物。 */
+.tr-main { display: flex; align-items: flex-start; gap: 9px; padding: 6px 10px; }
+.tr-slot {
+  flex: 0 0 auto; width: 40px; height: 40px; border-radius: 5px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.tr-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tr-slot-label {
+  font-size: 9px; font-weight: 700; color: #fff; text-align: center;
+  line-height: 1.15; padding: 2px; overflow: hidden;
+}
+.tr-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tr-top { display: flex; align-items: center; gap: 6px; }
+.tr-strip { display: none; }
+
+/* 斷點用 @container 而不是 @media：560 指的是**清單的寬度**（列模型比較台量的就是它），
+   而清單住在 .main（max-width 860 − 32 padding ＝ 828）裡，用 viewport 查詢會差 32px。
+   ⚠️ 560 目前是**推導不是實測**（E2）：寬形的列首尾約吃掉 280px，標題要放得下約
+   20 個中文字需要 260px。要改的話只有這一個數字。
+   不支援 container query 的瀏覽器會停在窄形——功能不減，只是桌機看起來像手機。 */
+.tr-group-body { container-type: inline-size; container-name: trlist; }
+@container trlist (min-width: 560px) {
+  .tr-main { align-items: center; gap: 8px; padding: 8px 6px; }
+  .tr-slot { display: none; }
+  /* display:contents 把兩層 wrapper 溶掉，讓元素直接成為 .tr-main 的 flex item，
+     再用 order 排成「來源 ★ 標題 寬幅條 時間 ×」。不需要第二份 DOM。 */
+  .tr-body, .tr-top { display: contents; }
+  .tr-src { order: 1; }
+  .tr-badge { order: 2; }
+  .tr-title { order: 3; flex: 1; min-width: 0;
+              display: block; white-space: nowrap; text-overflow: ellipsis; }
+  .tr-strip { order: 4; display: block; flex: 0 0 auto;
+              width: 76px; height: 30px; border-radius: 4px; object-fit: cover; }
+  .tr-time { order: 5; }
+  .tr-dismiss { order: 6; }
+}
 /* 來源色標同時是「收起整個來源」的入口（spec 011 / US2）。
    保持與原本 span 相同的視覺，只在 hover 時提示可點。 */
 .tr-src {
@@ -243,9 +287,11 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .hs-clear:hover { color: var(--text); border-color: var(--accent); }
 .tr-title {
-  flex: 1; min-width: 0; text-align: left; background: none; border: none; cursor: pointer;
-  padding: 0; font-size: 13.5px; line-height: 1.4; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  min-width: 0; text-align: left; background: none; border: none; cursor: pointer;
+  padding: 0; font-size: 13.5px; line-height: 1.4; color: var(--text); font-family: inherit;
+  /* 窄形夾兩行（寬形在上面的 @container 裡改回單行 ellipsis）。 */
+  white-space: normal; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2;
 }
 .tr-title:hover { color: var(--accent2); }
 .tr-time { flex: 0 0 auto; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
