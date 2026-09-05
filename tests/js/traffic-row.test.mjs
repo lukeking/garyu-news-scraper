@@ -101,6 +101,36 @@ test('E 寬形：有圖時輸出列尾寬幅條，無圖時完全不輸出（不
   assert.doesNotMatch(noImg, /tr-strip/, '寬形無圖時列自然結束，不放任何佔位物');
 });
 
+test('相對時間釘 zh-TW，不跟看的人的 OS locale 走', () => {
+  // 頁面其餘字串都是硬寫的繁中；相對時間曾是唯一跟著瀏覽器跑的一處。
+  const ago = ms => app.relativeTime(new Date(Date.now() - ms).toISOString());
+  assert.equal(ago(10 * 60 * 1000), '10 分鐘前');
+  assert.equal(ago(3 * 3600 * 1000), '3 小時前');
+  assert.equal(ago(26 * 3600 * 1000), '昨天');
+});
+
+test('og:image 載不到時，兩形態都退回「無圖」那個已設計過的狀態', async () => {
+  // 共用 harness 是 runScripts:'outside-only'，那個模式**不編譯** inline handler
+  // （已實測），所以這裡自己開一個 'dangerously' 的 DOM，真的送出 error 事件。
+  const { JSDOM } = await import('jsdom');
+  const dom = new JSDOM('<!doctype html><body></body>', { runScripts: 'dangerously' });
+  const doc = dom.window.document;
+  doc.body.innerHTML = app.trafficRow(
+    { ...article(), source: '中時新聞網', image_url: 'https://img.test/gone.jpg' }, 1, false);
+
+  assert.ok(doc.querySelector('.tr-slot img'), '前提：有圖時方格裡確實有 img');
+  assert.ok(doc.querySelector('.tr-strip'), '前提：有圖時確實有寬幅條');
+  for (const img of doc.querySelectorAll('.tr-slot img, .tr-strip')) {
+    img.dispatchEvent(new dom.window.Event('error'));
+  }
+
+  assert.equal(doc.querySelector('.tr-slot img'), null, '窄形：載不到的圖要自己移掉');
+  assert.match(doc.querySelector('.tr-slot').getAttribute('style'), /background:#C0392B/,
+    '窄形：移掉之後露出的是來源色塊，不是一個透明的洞');
+  assert.match(doc.querySelector('.tr-slot-label').textContent, /中時新聞網/);
+  assert.equal(doc.querySelector('.tr-strip'), null, '寬形：寬幅條整個消失，與 image_url 為空時同形');
+});
+
 test('E：兩種形態的元件同時存在於同一份 DOM，由 CSS 決定顯示哪一個', () => {
   // 這是 E 的核心契約：不重複 DOM、不用 JS 判斷寬度。
   // ⚠️ 「CSS 在斷點兩側各自顯示對的那一個」**這個 harness 測不到**（jsdom 無 layout），

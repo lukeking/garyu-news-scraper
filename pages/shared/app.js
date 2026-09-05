@@ -350,7 +350,9 @@ document.querySelectorAll('.btn-filter').forEach(btn => {
 
 // ── Relative time ─────────────────────────────────────────────
 function relativeTime(isoStr) {
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  // 釘 zh-TW 不跟瀏覽器 locale：頁面其餘字串都是硬寫的繁中，跟著看的人跑只有在做
+  // i18n 時才說得通，而這個站不做 i18n。順帶讓字串集收斂成 5 種字形，欄寬才算得出來。
+  const rtf = new Intl.RelativeTimeFormat('zh-TW', { numeric: 'auto' });
   const diff = (new Date(isoStr) - Date.now()) / 1000;
   const abs = Math.abs(diff);
   if (abs < 3600)  return rtf.format(Math.round(diff / 60), 'minute');
@@ -478,11 +480,15 @@ function trafficRow(a, idx, dimmed) {
   // 列模型 E：同一份 DOM 兩種形態，由 CSS 在斷點切換（BACKLOG #5，2026-09-05 選定）。
   // 刻意不用 matchMedia／innerWidth——形態切換是 CSS 的事，用 JS 判斷會多一份
   // 與 CSS 可能不同步的真相，且每次 resize 都要重繪。
-  const slot = hasImage
-    ? `<span class="tr-slot"><img src="${esc(a.image_url)}" alt="" loading="lazy"></span>`
-    : `<span class="tr-slot" style="background:${C.srcColor(src)}"><span class="tr-slot-label">${esc(C.srcLabel(src))}</span></span>`;
+
+  // image_url 非空 ≠ 圖載得到（og:image 404／防盜連）。兩者都在失敗時自我移除，退回
+  // 「無圖」那個已經設計過的狀態：方格露出底下的來源色塊，寬幅條整個消失。
+  const slot = `<span class="tr-slot" style="background:${C.srcColor(src)}">`
+    + `<span class="tr-slot-label">${esc(C.srcLabel(src))}</span>`
+    + (hasImage ? `<img src="${esc(a.image_url)}" alt="" loading="lazy" onerror="this.remove()">` : '')
+    + `</span>`;
   const strip = hasImage
-    ? `<img class="tr-strip" src="${esc(a.image_url)}" alt="" loading="lazy">`
+    ? `<img class="tr-strip" src="${esc(a.image_url)}" alt="" loading="lazy" onerror="this.remove()">`
     : '';
   return `
 <div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}${strong ? ' tr-strong' : ''}" data-url="${a.link}">
