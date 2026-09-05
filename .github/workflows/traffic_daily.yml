@@ -59,3 +59,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+
+      # 設定漂移檢查刻意排在收集**之後**：文章已經寫進 Supabase，所以這一步失敗
+      # 不影響當天的營運，只讓整個 run 變紅——一個看得見、但弄不壞東西的執行者。
+      # 判準是解析後的值（prod 的 PIPELINE_CONFIG_YML 是 CRLF，逐字比對會天天誤報）。
+      - name: 檢查 config 與 repo 裡的 example 有無漂移
+        run: python scripts/check_config_drift.py

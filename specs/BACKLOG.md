@@ -962,10 +962,24 @@ CRLF 誤判同形。建議把它改成無 `--ablate` 時直接報錯，見下方
 **留下的待辦（都不阻擋本項結案）**：
 
 - `measure_relevance.py --add` 的靜默忽略（上述）——一行 `if extra and not args.ablate: 報錯` 就能修。
-- **沒有任何東西驗 `categories_traffic.example.yml` 與 prod 的 `CATEGORIES_TRAFFIC_YML` 逐字相同。**
-  新增的測試讓 example 從裝飾變成承重（它的 token 表現在被斷言），但 example ↔ prod 的漂移仍然沉默。
+- ~~**沒有任何東西驗 `categories_traffic.example.yml` 與 prod 的 `CATEGORIES_TRAFFIC_YML` 逐字相同。**~~
+  ✅ **已補執行者（2026-09-05）**：`scripts/check_config_drift.py`，掛在 `traffic_daily.yml`
+  的**最後一步**（收集之後，所以失敗不影響營運、只讓 run 變紅）。
+  ⚠️ **判準改成「解析後的值相同」而非「逐字相同」**——當初那句話裡的「逐字」是做不到的：
+  09-05 實測 prod 的 `PIPELINE_CONFIG_YML` 有 **104/105 行是 CRLF**，而 example 是 LF
+  且刻意多 14 行註解。逐字比對會天天誤報，然後被關掉。
+  涵蓋 `categories_traffic` 與 `pipeline_config`（兩者 09-05 實測值皆相符）；
+  **`sources_*` 刻意排除**，理由見下一條。
 - 真實 recall 仍未量：要人工標記那 119 篇通過者（08-10 未做）。**本輪救回的 8 篇是下限，不是全部**
   ——近失詞掃描只抓得到清單裡列出的詞。
+- 🆕 **來源組成在 repo 裡沒有紀錄**（09-05 補上 config 漂移檢查時撞到）。`sources_traffic.example.yml`
+  與 `sources_ffxiv.example.yml` 的檔頭自稱「格式範例，說明所有支援的欄位與 type」，README 也是叫人
+  `cp` 它當起點——**它們是範本，不是 prod 的鏡像**，所以漂移檢查刻意不涵蓋它們。
+  實測落差：prod **33 個** traffic 來源 vs example **24 個**；ffxiv **9** vs **4**。
+  也就是說「現在有哪些來源在餵管線」這件事**只存在於 GitHub 變數裡**，git 沒有副本。
+  這與 #8（政策池的單一 feed 依賴）直接相關——判斷來源結構時，repo 是查不到答案的。
+  **未決定要不要修**：修法是讓 example 變成鏡像（那它就不再是好用的範本），或另外存一份
+  來源清單快照。兩者都不是漂移檢查的工作，故單獨列出。
 
 **與 #9 的關係**：#9 是「乾淨小桶跌破門檻」，本項是「真事故根本沒進桶」。兩者都會吃掉 on-topic
 文章但位置不同——本項在閘，#9 在門檻。修任何一個都不會修到另一個。
