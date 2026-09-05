@@ -10,6 +10,10 @@ name: Tests (unit)
 # 重開條件：等 specs/BACKLOG.md「整合測試指向本機 Supabase」完成後，才加 L2。
 #
 # 這個 job 也刻意不設 `environment: production` —— 它不該拿得到任何 secret。
+#
+# JS 單元測試刻意放在**同一個 job** 而不是另開一個：`unit` 是 ruleset 指名的必要檢查
+# （見 CLAUDE.local.md），另開 job 會得到一個「跑了但擋不住任何東西」的檢查，
+# 而那正是本 repo 一再踩到的「宣告 ≠ 套用」。放這裡它立刻生效，且不必改 ruleset。
 
 on:
   pull_request:
@@ -35,5 +39,17 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements-dev.txt
 
-      - name: 跑單元測試
+      - name: 跑 Python 單元測試
         run: python -m pytest tests/unit -q
+
+      - name: 設定 Node 24
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: 安裝 JS 相依套件
+        run: npm ci
+
+      - name: 跑 JS 單元測試
+        run: npm test
