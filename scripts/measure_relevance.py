@@ -152,10 +152,8 @@ def gated_slates(reports, articles_by_link, rules):
             "recorded_score": rep["cumulative_score"],
             "published": resolved,
             "unresolved": len(links) - len(resolved),
-            # Exact means the whole bucket is in front of us: the slate was not
-            # capped (count > slate ⇒ unseen articles would have been promoted into
-            # the freed slots) AND every published row is still in `articles` (a
-            # pruned row leaves a hole we would silently score as a smaller bucket).
+            # The whole bucket is in front of us: not capped, and nothing pruned
+            # since. Why each half matters: test_measure_relevance.py::test_exact_*
             "exact": rep["source_article_count"] <= len(links) and len(resolved) == len(links),
         })
     return out
@@ -164,18 +162,9 @@ def gated_slates(reports, articles_by_link, rules):
 def replay(slates, rules, config):
     """Apply the gate to each slate and re-derive what would have been published.
 
-    `min_threshold` is re-checked because the gate only removes articles: a bucket
-    that was barely over the line can fall under it and publish nothing at all,
-    which loses its on-topic articles too. That is a real cost of the gate, not a
-    rounding error, so it is measured rather than assumed away.
-
-    The threshold check is only meaningful when the slate IS the bucket. For a
-    28-article bucket that published 10, scoring the gated 10 understates the real
-    bucket score several-fold and would invent a "不發布" verdict out of missing
-    data — so those slates carry `survives=None` and are left unjudged.
-
-    `before_score` re-derives the recorded `cumulative_score` (see the module
-    docstring's limit 3 for why that number gates everything else).
+    Re-checks `min_threshold` (the gate can starve a bucket) and leaves non-exact
+    slates unjudged rather than dead — both contracts live in
+    `tests/unit/test_measure_relevance.py`, which also says why.
     """
     from src.analyzer import score_topic_buckets
     from src.filter import partition_by_relevance
