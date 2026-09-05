@@ -39,8 +39,11 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements-dev.txt
 
+      # 註解預算閘（test_comment_budget.py）刻意排除：它對執行期零影響，
+      # 擋 merge 買不到對應的東西。執行者改成 .githooks/pre-commit，
+      # 判準見 ~/.claude/rules/decision-style.md §三。
       - name: 跑 Python 單元測試
-        run: python -m pytest tests/unit -q
+        run: python -m pytest tests/unit -q --ignore=tests/unit/test_comment_budget.py
 
       - name: 設定 Node 24
         uses: actions/setup-node@v5

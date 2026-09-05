@@ -195,6 +195,9 @@ cp .env.example .env
 cp config/sources_traffic.example.yml config/sources_traffic.yml
 cp config/sources_ffxiv.example.yml config/sources_ffxiv.yml
 
+# 接上本機 git hook（每個 clone 各做一次）——註解預算閘的執行者，刻意不放 CI
+git config core.hooksPath .githooks
+
 # 執行 pipeline
 python main.py
 
