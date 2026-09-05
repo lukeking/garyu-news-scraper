@@ -13,16 +13,14 @@ chosen by the LLM. `analyze_hot_topic()` takes `sorted(bucket, by initial_qualit
 desc)[:10]` and the LLM only writes the prose, so the slate is a pure function of the
 bucket. Re-deriving it needs no model call.
 
-Two honesty limits, both reported in the output rather than hidden:
+Three honesty limits, all reported in the output rather than hidden:
 
 1. **Promotion is unknown for buckets larger than 10 articles.** Only the top 10 are
-   recorded per report, so when the gate frees a slot we cannot say which article rose
-   into it. Recovering the historical bucket was attempted and FALSIFIED: clustering the
-   candidate pool at report time gave 107 articles for the 08-03「機車事故 · 中時」bucket
-   against a recorded 28, and a cumulative_score of 187.5 against 24.69. The pool is not
-   reconstructible because `articles` records only a `hot_topic_analyzed` boolean, never
-   *when* a row was consumed, so every article eaten in an earlier week counts back in.
-   Those buckets are therefore measured on their published slate alone and marked `~`.
+   recorded, so we cannot say which article rose into a freed slot. ⚠️ Reconstructing
+   the historical bucket was tried and FALSIFIED — do not retry it; `articles` has no
+   consumption timestamp, so earlier weeks' rows count back in. Numbers and the full
+   falsification are in `specs/012-relevance-gated-selection/tasks.md` (T011).
+   Those slates are measured on their published slate alone and marked `~`.
 
 2. **Cross-bucket effects are out of scope.** The gate shrinks buckets, so scores only
    fall; a bucket that dips under `min_threshold` is reported as dying (its on-topic
@@ -176,9 +174,8 @@ def replay(slates, rules, config):
     bucket score several-fold and would invent a "不發布" verdict out of missing
     data — so those slates carry `survives=None` and are left unjudged.
 
-    `before_score` re-derives the recorded `cumulative_score` from the same rows.
-    Matching it is the replay's own fidelity test: it proves this script rebuilds
-    what the pipeline actually did before any conclusion is drawn from the delta.
+    `before_score` re-derives the recorded `cumulative_score` (see the module
+    docstring's limit 3 for why that number gates everything else).
     """
     from src.analyzer import score_topic_buckets
     from src.filter import partition_by_relevance
@@ -243,12 +240,9 @@ def label_rows(slates):
 def load_baseline(path):
     """Return {title: label}, conflicting titles, and how many rows are still untouched.
 
-    Keyed on title because §4 deliberately keeps no link (de-identification) and
-    the title is what the gate reads anyway.
-
-    `unclear` is carried through as a real verdict — "the title does not say" — not
-    dropped like a blank. Blank means nobody has looked yet; the two must not be
-    reported as the same thing (data-model §4).
+    Keyed on title: data-model §4 deliberately keeps no link, and the title is what
+    the gate reads anyway. `unclear` is a verdict, blank is "nobody looked yet" — §4
+    explains why they must not collapse into one.
     """
     labels, conflicts, untouched = {}, set(), 0
     if not os.path.exists(path):
@@ -274,15 +268,10 @@ def load_baseline(path):
 def measure(slates, labels):
     """Score the SC ladder. Returns (per-slate rows, summary dict).
 
-    Off-topic ratios are computed only over articles labeled `on`/`off`. An
-    unlabeled slate would otherwise read as clean, which is the exact failure the
-    baseline exists to prevent (spec 011's lesson).
-
-    `unclear` rows — the title genuinely does not say whether an accident happened —
-    are excluded from both numerator and denominator, and counted out loud instead.
-    ⚠️ That exclusion flatters the gate: unclear rows are the hardest cases, exactly
-    where a token table is most likely to be wrong. The count is printed with every
-    ratio so the coverage limit travels with the number (data-model §4).
+    Ratios cover only `on`/`off` rows — an unlabeled slate must not read as clean
+    (spec 011's lesson). `unclear` is excluded and counted out loud instead; that
+    exclusion flatters the gate, which is why the count travels with every ratio.
+    Both the three-state protocol and the bias direction are in data-model §4.
     """
     rows, unclear_total = [], 0
     before_on = after_on = 0
@@ -343,11 +332,9 @@ def measure(slates, labels):
             return "SC-001（L0 Gate）"
         return "未達 SC-001 Gate"
 
-    # SC-004 is itself a ladder (spec.md, re-derived 2026-08-08): the absolute
-    # "must not drop" is unreachable because the gate necessarily shrinks bucket
-    # scores. What carries L0 is attributability — every lost article traced to
-    # either a rule miss (survives, so the gate dropped an on-topic row) or a
-    # bucket death (min_threshold), because those are different diseases.
+    # SC-004 is a ladder, not an absolute "must not drop" (spec.md §SC-004).
+    # L0 is carried by attributability, so split the loss: a rule miss (survives)
+    # and a bucket death (min_threshold) are different diseases.
     death_loss = sum(r["on_lost"] or 0 for r in rows if r["survives"] is False)
     fn_loss = sum(r["on_lost"] or 0 for r in rows if r["survives"] is True)
     loss = death_loss + fn_loss
