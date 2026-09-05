@@ -273,3 +273,6 @@ config/jieba_userdict.txt
 
 STATE.md
 ds-bundle/
+
+# JS 測試工具鏈（只在本機與 CI 用，不進部署）
+node_modules/
