@@ -22,6 +22,7 @@ const APP_JS = path.join(HERE, '..', '..', 'pages', 'shared', 'app.js');
 export const TRAFFIC_CONFIG = {
   contentType: 'traffic',
   shareToLine: true,
+  dismissedKey: 'dismissed-traffic',
   sourceColors: {
     'Google News': '#4285F4', 'PTT/biker': '#FF4500', '聯合新聞網': '#1A3C6E',
     '中時新聞網': '#C0392B', '自由時報': '#27AE60', 'TVBS新聞': '#2980B9',

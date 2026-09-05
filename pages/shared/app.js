@@ -475,15 +475,32 @@ function trafficRow(a, idx, dimmed) {
   const analyzed = a.hot_topic_analyzed === true;
   const hasImage = !!(a.image_url || '').trim();
   const strong = !dimmed && analyzed;
+  // 列模型 E（BACKLOG #5，2026-09-05 選定）：**同一份 DOM 兩種形態**，由 CSS 在斷點切換。
+  //   窄形 → 左側 40px 方格（有圖放縮圖，無圖填來源色）＋ 兩行標題
+  //   寬形 → 單行標題 ＋ 列尾 76×30 寬幅條；無圖時整個不輸出，不需要佔位物
+  // 刻意不用 matchMedia／innerWidth：形態切換是 CSS 的事，用 JS 判斷會在每次
+  // resize 都要重繪，而且會多一份與 CSS 可能不同步的真相。
+  const slot = hasImage
+    ? `<span class="tr-slot"><img src="${esc(a.image_url)}" alt="" loading="lazy"></span>`
+    : `<span class="tr-slot" style="background:${C.srcColor(src)}"><span class="tr-slot-label">${esc(C.srcLabel(src))}</span></span>`;
+  const strip = hasImage
+    ? `<img class="tr-strip" src="${esc(a.image_url)}" alt="" loading="lazy">`
+    : '';
   return `
 <div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}${strong ? ' tr-strong' : ''}" data-url="${a.link}">
   <div class="tr-main">
-    <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
-            onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
-    ${analyzed ? '<span class="tr-badge" title="已納入本週熱點報告">★</span>' : ''}
-    <button class="tr-title" onclick="toggleRow(this)">${idx}. ${esc(a.title)}</button>
-    <span class="tr-time">${when ? relativeTime(when) : ''}</span>
-    <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
+    ${slot}
+    <span class="tr-body">
+      <span class="tr-top">
+        <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
+                onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
+        ${analyzed ? '<span class="tr-badge" title="已納入本週熱點報告">★</span>' : ''}
+        <span class="tr-time">${when ? relativeTime(when) : ''}</span>
+        <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
+      </span>
+      <button class="tr-title" onclick="toggleRow(this)">${idx}. ${esc(a.title)}</button>
+    </span>
+    ${strip}
   </div>
   <div class="tr-detail" hidden>
     ${summary && hasImage ? `<img class="tr-thumb" src="${esc(a.image_url)}" alt=""
