@@ -1,14 +1,6 @@
-/**
- * `pages/shared/shared.css` 的**結構**守門員。
- *
- * ⚠️ **這一批不證明 CSS 渲染正確。** jsdom 沒有 layout（`clientWidth` / `scrollWidth`
- * 永遠是 0），所以「斷點兩側各自顯示對的那一個形態」在這個 harness 裡**測不到**。
- * 那道缺口要 E2E／視覺回歸才補得起來，屬於 BACKLOG #6 的完整解，本輪未做。
- *
- * 這裡守的是一件比較窄、但真的會發生的事：**有人在「簡化 CSS」時把其中一個形態
- * 整段刪掉**。列模型 E 的兩種形態互為對方的隱形依賴——刪掉寬形不會有任何錯誤，
- * 只是桌機悄悄變回手機版面。這幾條讓那個刪除變成紅燈。
- */
+// `pages/shared/shared.css` 的結構守門員：擋「簡化 CSS 時把其中一個形態整段刪掉」。
+// 兩形態互為隱形依賴——刪掉寬形不報錯，只是桌機悄悄變回手機版面。
+// ⚠️ 不證明渲染正確：jsdom 無 layout，斷點兩側顯示對的形態測不到（BACKLOG #6）。
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

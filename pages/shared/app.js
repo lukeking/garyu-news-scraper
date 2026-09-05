@@ -475,11 +475,9 @@ function trafficRow(a, idx, dimmed) {
   const analyzed = a.hot_topic_analyzed === true;
   const hasImage = !!(a.image_url || '').trim();
   const strong = !dimmed && analyzed;
-  // 列模型 E（BACKLOG #5，2026-09-05 選定）：**同一份 DOM 兩種形態**，由 CSS 在斷點切換。
-  //   窄形 → 左側 40px 方格（有圖放縮圖，無圖填來源色）＋ 兩行標題
-  //   寬形 → 單行標題 ＋ 列尾 76×30 寬幅條；無圖時整個不輸出，不需要佔位物
-  // 刻意不用 matchMedia／innerWidth：形態切換是 CSS 的事，用 JS 判斷會在每次
-  // resize 都要重繪，而且會多一份與 CSS 可能不同步的真相。
+  // 列模型 E：同一份 DOM 兩種形態，由 CSS 在斷點切換（BACKLOG #5，2026-09-05 選定）。
+  // 刻意不用 matchMedia／innerWidth——形態切換是 CSS 的事，用 JS 判斷會多一份
+  // 與 CSS 可能不同步的真相，且每次 resize 都要重繪。
   const slot = hasImage
     ? `<span class="tr-slot"><img src="${esc(a.image_url)}" alt="" loading="lazy"></span>`
     : `<span class="tr-slot" style="background:${C.srcColor(src)}"><span class="tr-slot-label">${esc(C.srcLabel(src))}</span></span>`;
