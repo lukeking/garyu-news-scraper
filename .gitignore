@@ -271,7 +271,7 @@ config/categories_traffic.yml
 config/pipeline_config.yml
 config/jieba_userdict.txt
 
-STATE.md
+HANDOFF.md
 ds-bundle/
 
 # JS 測試工具鏈（只在本機與 CI 用，不進部署）
