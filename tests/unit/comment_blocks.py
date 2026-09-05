@@ -2,9 +2,11 @@
 import ast
 import io
 import os
+import subprocess
 import tokenize
 
-SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "data", "experiments", ".claude", "__pycache__"}
+# 政策排除：已封存的 A/B 實驗碼，不再維護，故不納入預算。
+SKIP_PREFIXES = ("experiments/",)
 EXTS = (".py", ".js", ".mjs")
 
 
@@ -71,19 +73,28 @@ def blocks_for(path):
     return _python(path) if path.endswith(".py") else _js(path)
 
 
+def tracked(root):
+    """已版控的原始碼清單。取自 git 而非磁碟，否則本機的 gitignored 產物（symlink、
+    暫存檔）會進債務表，讓同一份 LEGACY 在本機與 CI 算出不同答案。
+    """
+    out = subprocess.run(
+        ["git", "-C", root, "ls-files", "-z"],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    return sorted(
+        p for p in out.split("\0")
+        if p.endswith(EXTS) and not p.startswith(SKIP_PREFIXES)
+    )
+
+
 def walk(root):
     """回傳 {相對路徑: [(起始行, 行數)]}，只含至少有一個區塊的檔案。"""
     found = {}
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
-        for name in filenames:
-            if not name.endswith(EXTS):
-                continue
-            full = os.path.join(dirpath, name)
-            try:
-                b = blocks_for(full)
-            except (UnicodeDecodeError, OSError):
-                continue
-            if b:
-                found[os.path.relpath(full, root).replace(os.sep, "/")] = b
+    for rel in tracked(root):
+        try:
+            b = blocks_for(os.path.join(root, rel))
+        except (UnicodeDecodeError, OSError):
+            continue
+        if b:
+            found[rel] = b
     return found

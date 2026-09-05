@@ -17,9 +17,7 @@ MAX_LINES = 3
 # 還債時把對應那列一起改掉；整個檔清乾淨就把該列刪掉。
 LEGACY = {
     ".design-sync/verify-bundle.mjs": (7, 1),
-    "pages/ffxiv/app.js": (9, 2),
     "pages/shared/app.js": (9, 2),
-    "pages/traffic/app.js": (9, 2),
     "scripts/auto_kb.py": (38, 8),
     "scripts/check_config_drift.py": (21, 2),
     "scripts/debug_dedup.py": (9, 1),
