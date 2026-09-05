@@ -350,7 +350,9 @@ document.querySelectorAll('.btn-filter').forEach(btn => {
 
 // ── Relative time ─────────────────────────────────────────────
 function relativeTime(isoStr) {
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  // 釘 zh-TW 不跟瀏覽器 locale：頁面其餘字串都是硬寫的繁中，跟著看的人跑只有在做
+  // i18n 時才說得通，而這個站不做 i18n。順帶讓字串集收斂成 5 種字形，欄寬才算得出來。
+  const rtf = new Intl.RelativeTimeFormat('zh-TW', { numeric: 'auto' });
   const diff = (new Date(isoStr) - Date.now()) / 1000;
   const abs = Math.abs(diff);
   if (abs < 3600)  return rtf.format(Math.round(diff / 60), 'minute');

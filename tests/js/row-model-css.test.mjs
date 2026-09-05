@@ -61,8 +61,7 @@ test('容器本身有宣告 container-type，否則 @container 永遠不會生�
 });
 
 test('寬形：時間欄有寬度下界，否則寬幅條會被時間文字推著左右跑', () => {
-  // .tr-time 貼著內容，而 Intl.RelativeTimeFormat 的字串跟瀏覽器 locale 走
-  // （英文光 "yesterday" 到 "10 minutes ago" 就差 5 個字元）。
+  // .tr-time 貼著內容，而相對時間的字串長度會變（"昨天" vs "10 分鐘前"）。
   const block = containerBlock();
   assert.match(block, /\.tr-time\s*\{[^}]*min-width:/, '沒有下界，寬幅條就會逐列漂移');
   assert.match(block, /\.tr-time\s*\{[^}]*text-align:\s*right/, '欄變寬後文字要靠右貼齊 ×');

@@ -101,6 +101,14 @@ test('E 寬形：有圖時輸出列尾寬幅條，無圖時完全不輸出（不
   assert.doesNotMatch(noImg, /tr-strip/, '寬形無圖時列自然結束，不放任何佔位物');
 });
 
+test('相對時間釘 zh-TW，不跟看的人的 OS locale 走', () => {
+  // 頁面其餘字串都是硬寫的繁中；相對時間曾是唯一跟著瀏覽器跑的一處。
+  const ago = ms => app.relativeTime(new Date(Date.now() - ms).toISOString());
+  assert.equal(ago(10 * 60 * 1000), '10 分鐘前');
+  assert.equal(ago(3 * 3600 * 1000), '3 小時前');
+  assert.equal(ago(26 * 3600 * 1000), '昨天');
+});
+
 test('og:image 載不到時，兩形態都退回「無圖」那個已設計過的狀態', async () => {
   // 共用 harness 是 runScripts:'outside-only'，那個模式**不編譯** inline handler
   // （已實測），所以這裡自己開一個 'dangerously' 的 DOM，真的送出 error 事件。
