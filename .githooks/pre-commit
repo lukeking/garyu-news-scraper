@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+# 註解預算閘的執行者。**刻意不進 CI**：註解過長影響的是讀者的判斷，不是程式的邏輯執行，
+# 所以它該在寫入時咬，而不是用一個非正確性的理由擋 merge。判準見
+# `~/.claude/rules/decision-style.md` §三。
+#
+# 接線（每個 clone 各做一次，`core.hooksPath` 是本機設定，不隨 repo 走）：
+#     git config core.hooksPath .githooks
+#
+# 已知的洞，是「不進 CI」的代價而非疏漏：`--no-verify` 繞得過、網頁／手機 merge 看不到、
+# 新機器沒接線就沒有閘、判的是工作區而非索引（部分 staged 時會看到未 staged 的內容）。
+set -e
+
+if [ -x .venv/bin/python ]; then
+  PY=.venv/bin/python
+elif command -v python3 >/dev/null 2>&1; then
+  PY=python3
+else
+  echo "pre-commit: 找不到 python，註解預算閘無法執行。" >&2
+  echo "  建 .venv，或用 --no-verify 明確跳過——那要是一個決定，不是預設。" >&2
+  exit 1
+fi
+
+exec "$PY" -m pytest tests/unit/test_comment_budget.py -q
