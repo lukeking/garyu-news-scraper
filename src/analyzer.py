@@ -298,18 +298,13 @@ def _cosine_similarity(a: list, b: list) -> float:
     return dot / (mag_a * mag_b)
 
 
-def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88) -> list:
-    """
-    Deduplicate candidates by cosine similarity of Gemini embeddings.
-    Checks each candidate against: (1) buffer articles already in the weekly DB,
-    (2) other candidates in the same batch.
-    Attaches the embedding to each article dict so publish() can store it.
-    Falls back to returning all candidates if embeddings cannot be generated.
-    """
-    if not candidates:
-        return candidates
+def attach_embeddings(candidates: list) -> None:
+    """**這是評分路徑上唯一不純的一步**：對缺向量的候選呼叫 Gemini（會產生成本與網路相依）。
 
-    # Generate embeddings for all candidates
+    從 `embed_dedup` 抽出來，好讓後者是純函數、能在沒有憑證的情況下離線測
+    （BACKLOG #4：純運算與外部呼叫不該共處，憲章 V）。就地改寫 `candidates`，
+    因為 `publish()` 之後要從同一批 dict 讀 `embedding` 存進 DB。
+    """
     for a in candidates:
         if "embedding" not in a:
             text = (a.get("title") or "") + "\n" + (a.get("summary") or "")[:300]
@@ -317,11 +312,38 @@ def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88
         else:
             a["embedding"] = _parse_embedding(a["embedding"])
 
+
+def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88) -> list:
+    """
+    Deduplicate candidates by cosine similarity of Gemini embeddings.
+    Checks each candidate against: (1) buffer articles already in the weekly DB,
+    (2) other candidates in the same batch.
+    Falls back to returning all candidates if embeddings are unavailable.
+
+    **純函數**——不打任何外部服務。向量要先由 `attach_embeddings()` 補上；
+    呼叫端漏掉那一步時本函式會**明確警告**（見下），不會靜靜地不去重。
+    """
+    if not candidates:
+        return candidates
+
+    # 只做解析（純），不生成。⚠️ 「沒有 embedding 鍵」與「生成失敗（值為 None）」
+    # 必須分開報：前者代表呼叫端漏了 attach_embeddings，後者是 API 掛掉。
+    # 兩者的後果相同（不去重）但成因不同，混在一起會讓接線錯誤看起來像 API 故障。
+    never_attempted = sum(1 for a in candidates if "embedding" not in a)
+    if never_attempted:
+        logger.warning(
+            "[embed_dedup] %d/%d 篇候選沒有 embedding 欄位——呼叫端可能漏了 "
+            "attach_embeddings()，這批不會被去重",
+            never_attempted, len(candidates),
+        )
+    for a in candidates:
+        a["embedding"] = _parse_embedding(a.get("embedding"))
+
     has_embed = [a for a in candidates if a.get("embedding") is not None]
     no_embed = [a for a in candidates if a.get("embedding") is None]
 
     if not has_embed:
-        logger.warning("[embed_dedup] 所有候選嵌入生成失敗，保留所有")
+        logger.warning("[embed_dedup] 所有候選都沒有可用向量，保留所有")
         return candidates
 
     for a in buffer_articles:
