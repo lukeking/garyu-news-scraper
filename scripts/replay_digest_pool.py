@@ -16,10 +16,10 @@ a DIFFERENT denominator and is not comparable — on the 2026-08-17 run the pool
 distinct 13 / largest 29.1% while the published 25 gave distinct 10 / largest 20.0%.
 
 Self-check: the reconstructed per-category composition is printed so it can be
-compared against the log's own `池組成` line. A mismatch means the log carried
-other `PATCH` calls too — a week that publishes regular hot topics also marks
-those buckets — or that policy articles sat in a published bucket, which excludes
-them from the digest pool.
+compared against the log's own `池組成` line. Only the `PATCH` calls between the
+digest's `正在彙整：<category> · 彙整（` line and its `digest[<category>] consumed=`
+line are read: regular hot topics publish earlier in the run with the same `PATCH`
+shape and would inflate the pool. A missing anchor or an empty window exits — no pool to replay.
 
 Effective config (quality_floor / max_articles / include_categories) is read from
 the local pipeline config rather than hardcoded, so the replay follows config
@@ -53,17 +53,27 @@ BATCH = 10               # long Google News links make bigger `in.(...)` filters
 PATCH_LINKS = re.compile(r"/rest/v1/articles\?link=in\.%28(.*?)%29\s")
 
 
-def links_from_log(run_id: str, repo: str) -> list:
-    """Return every article link the run marked, deduplicated."""
+def links_from_log(run_id: str, repo: str, category: str) -> list:
+    """Return the links marked inside `category`'s digest window of the log, deduplicated."""
     log = subprocess.run(
         ["gh", "run", "view", run_id, "--log", "--repo", repo],
         capture_output=True, text=True,
     ).stdout
     if not log:
         sys.exit(f"讀不到 run {run_id} 的 log（gh 失敗，或 log 已過期被清掉）")
+    start = log.find(f"正在彙整：{category} · 彙整（")
+    if start < 0:
+        sys.exit(f"run {run_id} 的 log 沒有「正在彙整：{category} · 彙整（」起點錨"
+                 f"——{category} 這週沒發 digest（或 log 格式變了），沒有被消耗的池可重播")
+    end = log.find(f"digest[{category}] consumed=", start)
+    if end < 0:
+        sys.exit(f"run {run_id} 的 log 在彙整之後沒有「digest[{category}] consumed=」終點錨"
+                 f"——{category} 的 digest 失敗、池沒被消耗，沒有池可重播")
     links = []
-    for m in PATCH_LINKS.finditer(log):
+    for m in PATCH_LINKS.finditer(log, start, end):
         links += [s.strip('"') for s in urllib.parse.unquote(m.group(1)).split('","')]
+    if not links:
+        sys.exit(f"run {run_id} 的 {category} 彙整窗裡沒有任何 PATCH——池沒有被標記，沒有池可重播")
     return sorted({l.strip('"') for l in links})
 
 
@@ -101,7 +111,7 @@ def report(rows: list, category: str, cfg: dict) -> None:
     per = Counter(r["major_category"] for r in rows)
     composition = " ＋ ".join(f"{c} {per.get(c, 0)}" for c in [category] + siblings)
     print(f"重建池組成：{composition} = {len(rows)}")
-    print("↑ 對照 log 的「池組成」行，逐項相同才算重建成功（不同的原因見本檔 docstring）")
+    print("↑ 對照 log 的「池組成」行，逐項相同才算重建成功（不同時先確認本機 pipeline 設定與 prod 一致，見本檔 docstring）")
 
     for tag, conf in [("現行(不匯流)", base), ("匯流", merged)]:
         selected, pool, effective = select_digest_pool(rows, category, conf, set())
@@ -140,7 +150,7 @@ def main():
     print(f"套用設定：quality_floor={cfg.get('quality_floor')} "
           f"max_articles={cfg.get('max_articles')} include_categories={siblings}")
 
-    links = links_from_log(args.run_id, args.repo)
+    links = links_from_log(args.run_id, args.repo, args.category)
     print(f"從 log 還原 {len(links)} 條被標記的連結")
     rows = rows_for(links, [args.category] + siblings)
     print(f"DB 取回 {len(rows)} 篇（已濾掉非本池類別）")

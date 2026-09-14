@@ -32,6 +32,17 @@ def _fake_gh(monkeypatch, stdout):
     )
 
 
+# 產出端（`traffic_weekly_analysis.py` 7b）的 log 格式，逐字抄；最後兩條測試守它沒漂、窗不空
+_START_FMT = "正在彙整：%s（選材 %d 篇／池 %d 篇）"
+_END_FMT = "digest[%s] consumed=%d"
+
+
+def _anchor_lines(category=CATEGORY):
+    """digest 迴圈在標記前後各印的那兩行；池只在兩行之間。"""
+    return ("x INFO " + _START_FMT % (f"{category} · 彙整", 25, 36),
+            "x INFO " + _END_FMT % (category, 36))
+
+
 def test_pool_is_reconstructed_from_every_patch_call_not_just_the_first():
     """池成員散在多次 PATCH 裡；只讀第一次就會靜靜地重建出一個比較小的池。"""
     log = "\n".join([
@@ -54,10 +65,13 @@ def test_pool_is_reconstructed_from_every_patch_call_not_just_the_first():
 
 def test_both_comma_encodings_decode(monkeypatch):
     """log 裡的分隔逗號可能是 %2C 也可能是字面 `,`，兩種都得解得出同一組連結。"""
+    start, end = _anchor_lines()
     for sep in ("%2C", ","):
         inner = sep.join(f"%22https://a.test/{i}%22" for i in (1, 2))
-        _fake_gh(monkeypatch, f'x PATCH /rest/v1/articles?link=in.%28{inner}%29 "HTTP/2 204"')
-        assert rp.links_from_log("1", "o/r") == ["https://a.test/1", "https://a.test/2"]
+        _fake_gh(monkeypatch, "\n".join([
+            start, f'x PATCH /rest/v1/articles?link=in.%28{inner}%29 "HTTP/2 204"', end,
+        ]))
+        assert rp.links_from_log("1", "o/r", CATEGORY) == ["https://a.test/1", "https://a.test/2"]
 
 
 def test_only_the_marking_calls_carry_that_url_shape():
@@ -72,18 +86,80 @@ def test_only_the_marking_calls_carry_that_url_shape():
 
 
 def test_links_from_log_dedupes_and_sorts(monkeypatch):
+    start, end = _anchor_lines()
     _fake_gh(monkeypatch, "\n".join([
+        start,
         _patch_line("https://a.test/2", "https://a.test/1"),
         _patch_line("https://a.test/1"),
+        end,
     ]))
-    assert rp.links_from_log("123", "o/r") == ["https://a.test/1", "https://a.test/2"]
+    assert rp.links_from_log("123", "o/r", CATEGORY) == ["https://a.test/1", "https://a.test/2"]
 
 
 def test_unreadable_log_fails_closed_instead_of_replaying_an_empty_pool(monkeypatch):
     """log 過期被清掉時回空池，會讓 SC-001 讀出一組「全部歸零」而看起來像真的。"""
     _fake_gh(monkeypatch, "")
     with pytest.raises(SystemExit):
-        rp.links_from_log("123", "o/r")
+        rp.links_from_log("123", "o/r", CATEGORY)
+
+
+def test_regular_bucket_patched_before_the_digest_is_not_in_the_pool(monkeypatch):
+    """一般熱門話題先發布、用同一種 PATCH 標記；讀進來池就灌水（09-14 那週 36 變 46）。"""
+    start, end = _anchor_lines()
+    _fake_gh(monkeypatch, "\n".join([
+        "x INFO ✓ hot_topic_report upserted: 2026-09-14 / 道安政策 · 交通安全",
+        _patch_line("https://bucket.test/1"),
+        start,
+        _patch_line("https://a.test/1", "https://a.test/2"),
+        _patch_line("https://a.test/3"),
+        end,
+    ]))
+    assert rp.links_from_log("1", "o/r", CATEGORY) == [
+        "https://a.test/1", "https://a.test/2", "https://a.test/3",
+    ], "起點錨之前的 PATCH 是一般話題的標記，不是池成員"
+
+
+def test_patch_after_the_consumed_line_is_not_in_the_pool(monkeypatch):
+    """`consumed=` 那行之後的 PATCH 已經不屬於這個池。"""
+    start, end = _anchor_lines()
+    _fake_gh(monkeypatch, "\n".join([
+        start, _patch_line("https://a.test/1"), end, _patch_line("https://after.test/1"),
+    ]))
+    assert rp.links_from_log("1", "o/r", CATEGORY) == ["https://a.test/1"]
+
+
+def test_missing_anchor_fails_closed(monkeypatch):
+    """沒觸發（累積中）或 digest 失敗的那週池沒被消耗，重播出來的任何數字都是假的。"""
+    start, end = _anchor_lines()
+    patch = _patch_line("https://a.test/1")
+    for log, missing in (([patch, end], "正在彙整："), ([start, patch], "consumed=")):
+        _fake_gh(monkeypatch, "\n".join(log))
+        with pytest.raises(SystemExit, match=missing):
+            rp.links_from_log("1", "o/r", CATEGORY)
+
+
+def test_another_categorys_window_does_not_open_this_one(monkeypatch):
+    """機車事故的彙整窗不是道安政策的窗；錨點不帶類別名，就會把別人的池當成自己的。"""
+    start, end = _anchor_lines("機車事故")
+    _fake_gh(monkeypatch, "\n".join([start, _patch_line("https://a.test/1"), end]))
+    with pytest.raises(SystemExit):
+        rp.links_from_log("1", "o/r", CATEGORY)
+
+
+def test_empty_window_fails_closed(monkeypatch):
+    """兩個錨都在、中間卻沒有 PATCH：池沒被標記，回空池會讀出一組看起來像真的零。"""
+    start, end = _anchor_lines()
+    _fake_gh(monkeypatch, "\n".join([_patch_line("https://bucket.test/1"), start, end]))
+    with pytest.raises(SystemExit, match="沒有任何 PATCH"):
+        rp.links_from_log("1", "o/r", CATEGORY)
+
+
+def test_anchor_formats_are_still_what_the_weekly_run_logs():
+    """錨點是手抄產出端的 log 格式；產出端改了字，重播要到執行期才發現找不到錨。"""
+    src = io.open(os.path.join(os.path.dirname(__file__), "..", "..", "scripts",
+                               "traffic_weekly_analysis.py"), encoding="utf-8").read()
+    for literal in (f'"{_START_FMT}"', f'"{_END_FMT}"', 'f"{cat} · 彙整"'):
+        assert literal in src, f"traffic_weekly_analysis.py 不再有 {literal}——同步改 links_from_log 的錨點"
 
 
 def test_missing_category_config_fails_closed(monkeypatch):
