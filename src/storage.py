@@ -56,6 +56,24 @@ def _title_fingerprint(title: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
+# PostgREST 每次回應最多 1000 列，超過的讀取必須分頁，否則會靜靜截斷
+PAGE = 1000
+
+
+def _fetch_all_pages(make_query) -> list:
+    """逐頁 .range() 讀完查詢，某頁不足 PAGE 列即停；任一頁失敗直接拋出，不回傳部分結果。
+    make_query 每頁呼叫一次、回傳新 builder：postgrest 的 builder 會就地改參數，不能重用。
+    """
+    rows = []
+    start = 0
+    while True:
+        page = make_query().range(start, start + PAGE - 1).execute().data or []
+        rows.extend(page)
+        if len(page) < PAGE:
+            return rows
+        start += PAGE
+
+
 def get_existing_title_fingerprints() -> set:
     """
     Fetch all title fingerprints from Supabase for cross-week dedup.
@@ -65,13 +83,14 @@ def get_existing_title_fingerprints() -> set:
         return set()
     try:
         client = _get_client()
-        resp = (
+        rows = _fetch_all_pages(lambda: (
             client.table("articles")
             .select("content_fingerprint")
             .not_.is_("content_fingerprint", "null")
-            .execute()
-        )
-        return {row["content_fingerprint"] for row in (resp.data or [])}
+            .order("id")
+        ))
+        logger.info("get_existing_title_fingerprints：取得 %d 筆", len(rows))
+        return {row["content_fingerprint"] for row in rows}
     except Exception as e:
         logger.warning("跨週指紋查詢失敗：%s", e)
         return set()
@@ -198,42 +217,6 @@ def get_week(week_id: str) -> list:
         raise
 
 
-def get_all_weeks() -> list:
-    """
-    取得所有已存在的週別清單（不含文章內容），按週別降冪排序。
-    回傳格式：[{"week_id": "2026-W18", "count": 20, "high_count": 15}, ...]
-    """
-    client = _get_client()
-
-    try:
-        resp = (
-            client.table("articles")
-            .select("week_id, analysis")
-            .execute()
-        )
-        rows = resp.data or []
-
-        # 在 Python 端彙總（Supabase free tier 不支援 GROUP BY via REST）
-        weeks: dict = {}
-        for r in rows:
-            wid = r.get("week_id", "")
-            if not wid:
-                continue
-            if wid not in weeks:
-                weeks[wid] = {"week_id": wid, "count": 0, "high_count": 0}
-            weeks[wid]["count"] += 1
-            importance = (r.get("analysis") or {}).get("importance", "中")
-            if importance == "高":
-                weeks[wid]["high_count"] += 1
-
-        result = sorted(weeks.values(), key=lambda x: x["week_id"], reverse=True)
-        logger.info("get_all_weeks：共 %d 週記錄", len(result))
-        return result
-    except Exception as e:
-        logger.error("get_all_weeks 失敗：%s", e)
-        raise
-
-
 def ping() -> bool:
     """
     向 Supabase 發送輕量請求，防止免費 tier 因閒置暫停。
@@ -333,16 +316,15 @@ def get_traffic_buffer(max_age_weeks: int = 8) -> list:
     now = datetime.now(timezone.utc).isoformat()
 
     try:
-        resp = (
+        rows = _fetch_all_pages(lambda: (
             client.table("articles")
             .select("*")
             .eq("content_type", "traffic")
             .eq("hot_topic_analyzed", False)
             .gt("buffer_expires_at", now)
             .order("published", desc=True)
-            .execute()
-        )
-        rows = resp.data or []
+            .order("id")
+        ))
         logger.info("get_traffic_buffer：取得 %d 筆", len(rows))
         return rows
     except Exception as e:

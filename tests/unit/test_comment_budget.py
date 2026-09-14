@@ -40,7 +40,7 @@ LEGACY = {
     "src/pipeline/traffic.py": (6, 1),
     "src/pipeline_config.py": (11, 5),
     "src/publisher.py": (12, 6),
-    "src/storage.py": (8, 13),
+    "src/storage.py": (8, 12),
     "tests/integration/conftest.py": (16, 7),
     "tests/integration/test_digest_weekly.py": (6, 1),
     "tests/integration/test_game_feed.py": (4, 2),
