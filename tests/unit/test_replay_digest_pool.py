@@ -138,11 +138,26 @@ def test_missing_anchor_fails_closed(monkeypatch):
             rp.links_from_log("1", "o/r", CATEGORY)
 
 
-def test_another_categorys_window_does_not_open_this_one(monkeypatch):
-    """機車事故的彙整窗不是道安政策的窗；錨點不帶類別名，就會把別人的池當成自己的。"""
-    start, end = _anchor_lines("機車事故")
-    _fake_gh(monkeypatch, "\n".join([start, _patch_line("https://a.test/1"), end]))
-    with pytest.raises(SystemExit):
+def test_another_categorys_window_does_not_leak_into_this_one(monkeypatch):
+    """同一次 run 可觸發多個類別的 digest；起點錨不帶類別名，道安政策的池就會吞掉機車事故的連結。"""
+    moto_start, moto_end = _anchor_lines("機車事故")
+    start, end = _anchor_lines()
+    _fake_gh(monkeypatch, "\n".join([
+        moto_start, _patch_line("https://moto.test/1", "https://moto.test/2"), moto_end,
+        start, _patch_line("https://a.test/1"), end,
+    ]))
+    assert rp.links_from_log("1", "o/r", CATEGORY) == ["https://a.test/1"]
+
+
+def test_failed_digest_does_not_borrow_the_next_categorys_end_anchor(monkeypatch):
+    """道安政策彙整失敗就沒有終點錨；終點錨不帶類別名，會把下一個類別的池當成自己的。"""
+    start, _ = _anchor_lines()
+    moto_start, moto_end = _anchor_lines("機車事故")
+    _fake_gh(monkeypatch, "\n".join([
+        start, "x ERROR Gemini 彙整失敗，跳過 道安政策 · 彙整（池不消耗）",
+        moto_start, _patch_line("https://moto.test/1"), moto_end,
+    ]))
+    with pytest.raises(SystemExit, match="consumed="):
         rp.links_from_log("1", "o/r", CATEGORY)
 
 
