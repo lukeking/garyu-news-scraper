@@ -61,6 +61,7 @@
    - `description`：整份報告（直接覆寫原本的 placeholder）
    - `title`：`[驗收] MM-DD 週報 — <一句話結論>`
    - `state`：`In Review`
+3. **寫不進去，或你判斷不該寫**：用 `PushNotification` 說明卡在哪一步、錯誤原文或你的理由。不然使用者要到週一晚上看到 issue 還停在 Todo 才會知道。
 
 ### 報告內容（繁體中文）
 
