@@ -70,6 +70,18 @@ def test_non_transient_error_is_not_retried(monkeypatch):
     assert sleeps == []
 
 
+def test_malformed_200_body_is_not_retried(monkeypatch):
+    class _NoVector(_Resp):
+        def json(self):
+            return {}
+
+    calls, sleeps = _wire(monkeypatch, [_NoVector(200)])
+
+    assert analyzer.generate_embedding("text") is None
+    assert len(calls) == 1
+    assert sleeps == []
+
+
 def test_5xx_and_connection_errors_are_retried(monkeypatch):
     calls, _ = _wire(monkeypatch, [503, requests.ConnectionError("boom"), 200])
 
