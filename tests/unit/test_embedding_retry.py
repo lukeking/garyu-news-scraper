@@ -173,6 +173,20 @@ def test_failure_line_says_budget_ran_out_with_numbers(monkeypatch, caplog):
     assert "預算不足（需 10 秒、剩 0 秒）" in lines[2] and "「t2」" in lines[2]
 
 
+def test_retries_ran_out_wins_over_budget_when_both_hold(monkeypatch, caplog):
+    """連線錯誤等 5/10/15 秒，預算 40 用剩 10；第 4 次要等 20——兩個條件同時成立。"""
+    _wire(monkeypatch, [requests.ConnectionError("boom")])
+    budget = analyzer._new_embed_retry_budget()
+    budget["seconds"] = 40
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.generate_embedding("標題", budget)
+
+    (line,) = _failure_lines(caplog)
+    assert "已重試 3 次" in line and "預算不足" not in line
+    assert budget["skipped"] == 0, "重試用完的那篇不可算進「因預算不足不再重試」"
+
+
 def test_failure_line_title_is_cut_at_30_chars(monkeypatch, caplog):
     _wire(monkeypatch, [400])
 
