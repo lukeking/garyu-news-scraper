@@ -26,6 +26,10 @@ GEMINI_EMBED_URL = (
     "gemini-embedding-2:embedContent"
 )
 EMBED_DIMENSIONS = 768  # MRL truncation from 3072; balances accuracy vs storage
+EMBED_MAX_RETRIES = 3
+# 一次 run 所有 embedding 重試的等待總上限。09-14 週報 workflow 跑 8m39s，
+# 離憲章 IV 的 10 分鐘只剩約 80s（BACKLOG #13）。
+EMBED_RETRY_BUDGET_SECONDS = 60
 
 SYSTEM_PROMPT = (
     "你是台灣交通新聞分析師，專精機車議題（含白牌普通重型機車、紅黃牌大型重型機車）。"
@@ -254,25 +258,44 @@ def _get_api_key():
 
 # ── Embedding Dedup (traffic pipeline) ───────────────────────────────────────
 
-def generate_embedding(text: str) -> list | None:
-    """
-    Call Gemini Embedding 2 to produce a 768-dim vector for the given text.
-    Returns None on any API failure so callers can skip similarity checks gracefully.
-    """
-    api_key = _get_api_key()
-    url = GEMINI_EMBED_URL
-    headers = {"x-goog-api-key": api_key}
+def _new_embed_retry_budget() -> dict:
+    return {"seconds": EMBED_RETRY_BUDGET_SECONDS, "skipped": 0}
+
+
+def generate_embedding(text: str, budget: dict | None = None) -> list | None:
+    """Gemini Embedding 2 → 768 維向量；失敗回 None，呼叫端就跳過相似度比對。
+    429／5xx／連線錯誤會退避重試，等待時間從 `budget` 扣，扣不下就放棄（BACKLOG #13）。"""
+    if budget is None:
+        budget = _new_embed_retry_budget()
+    headers = {"x-goog-api-key": _get_api_key()}
     payload = {
         "content": {"parts": [{"text": f"task: semantic_similarity\n\n{text[:4000]}"}]},
         "outputDimensionality": EMBED_DIMENSIONS,
     }
-    try:
-        resp = requests.post(url, json=payload, headers=headers, timeout=30)
-        resp.raise_for_status()
-        return resp.json()["embedding"]["values"]
-    except Exception as e:
-        logger.warning("[embedding] 生成失敗：%s", e)
-        return None
+    for attempt in range(1, EMBED_MAX_RETRIES + 2):
+        resp = None
+        try:
+            resp = requests.post(GEMINI_EMBED_URL, json=payload, headers=headers, timeout=30)
+            resp.raise_for_status()
+            return resp.json()["embedding"]["values"]
+        except Exception as e:
+            status = resp.status_code if resp is not None else 0
+            transient = status == 429 or status >= 500 or (
+                resp is None and isinstance(e, requests.RequestException)
+            )
+            wait = _retry_after_seconds(resp, attempt, status)
+            over_budget = wait > budget["seconds"]
+            if transient and attempt <= EMBED_MAX_RETRIES and over_budget:
+                budget["skipped"] += 1
+            if not transient or attempt > EMBED_MAX_RETRIES or over_budget:
+                logger.warning("[embedding] 生成失敗：%s", e)
+                return None
+            budget["seconds"] -= wait
+            logger.warning(
+                "[embedding] %s，%.0f 秒後重試（第 %d/%d 次）",
+                status or type(e).__name__, wait, attempt, EMBED_MAX_RETRIES,
+            )
+            time.sleep(wait)
 
 
 def _parse_embedding(val) -> list | None:
@@ -306,12 +329,19 @@ def attach_embeddings(candidates: list) -> None:
     （BACKLOG #4：純運算與外部呼叫不該共處，憲章 V）。就地改寫 `candidates`，
     因為 `publish()` 之後要從同一批 dict 讀 `embedding` 存進 DB。
     """
+    budget = _new_embed_retry_budget()
     for a in candidates:
         if "embedding" not in a:
             text = (a.get("title") or "") + "\n" + (a.get("summary") or "")[:300]
-            a["embedding"] = generate_embedding(text)
+            a["embedding"] = generate_embedding(text, budget)
         else:
             a["embedding"] = _parse_embedding(a["embedding"])
+    waited = EMBED_RETRY_BUDGET_SECONDS - budget["seconds"]
+    if waited or budget["skipped"]:
+        logger.warning(
+            "[embedding] 重試共等待 %.0f/%d 秒%s", waited, EMBED_RETRY_BUDGET_SECONDS,
+            f"，{budget['skipped']} 篇因預算不足不再重試" if budget["skipped"] else "",
+        )
 
 
 def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88) -> list:

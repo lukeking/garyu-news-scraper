@@ -32,7 +32,7 @@ LEGACY = {
     "scripts/replay_digest_pool.py": (33, 1),
     "scripts/traffic_buffer.py": (17, 2),
     "scripts/traffic_weekly_analysis.py": (5, 3),
-    "src/analyzer.py": (14, 19),
+    "src/analyzer.py": (14, 18),
     "src/collector.py": (6, 6),
     "src/filter.py": (9, 11),
     "src/gn_resolver.py": (13, 5),
