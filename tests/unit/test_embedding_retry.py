@@ -109,6 +109,94 @@ def test_final_failure_logs_exactly_one_generation_failure_line(monkeypatch, cap
     assert len(failures) == 1
 
 
+def _failure_lines(caplog):
+    return [r.getMessage() for r in caplog.records if "生成失敗" in r.getMessage()]
+
+
+def test_failure_line_keeps_the_prefix_the_weekly_routine_counts(monkeypatch, caplog):
+    """`routines/weekly-verify/FOCUS.md` 數「`[embedding] 生成失敗：`（含冒號）開頭」的行；改掉開頭會靜靜數成 0。"""
+    _wire(monkeypatch, [400])
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.attach_embeddings(_articles(2))
+
+    lines = _failure_lines(caplog)
+    assert len(lines) == 2
+    assert all(m.startswith("[embedding] 生成失敗：") for m in lines), lines
+
+
+def test_failure_line_says_non_transient_and_exception_type(monkeypatch, caplog):
+    _wire(monkeypatch, [400])
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.generate_embedding("標題\n摘要")
+
+    (line,) = _failure_lines(caplog)
+    assert "非暫時性錯誤，不重試" in line
+    assert "「標題」" in line
+    assert "HTTPError: 400" in line
+
+
+def test_failure_line_names_the_malformed_body(monkeypatch, caplog):
+    class _NoVector(_Resp):
+        def json(self):
+            return {}
+
+    _wire(monkeypatch, [_NoVector(200)])
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.generate_embedding("標題")
+
+    (line,) = _failure_lines(caplog)
+    assert "KeyError: 'embedding'" in line
+
+
+def test_failure_line_says_retries_ran_out(monkeypatch, caplog):
+    _wire(monkeypatch, [_Resp(429, {"Retry-After": "1"})])
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.generate_embedding("標題")
+
+    (line,) = _failure_lines(caplog)
+    assert "已重試 3 次" in line
+
+
+def test_failure_line_says_budget_ran_out_with_numbers(monkeypatch, caplog):
+    _wire(monkeypatch, [429])
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.attach_embeddings(_articles(3))
+
+    lines = _failure_lines(caplog)
+    assert "預算不足（需 40 秒、剩 30 秒）" in lines[0] and "「t0」" in lines[0]
+    assert "預算不足（需 40 秒、剩 0 秒）" in lines[1] and "「t1」" in lines[1]
+    assert "預算不足（需 10 秒、剩 0 秒）" in lines[2] and "「t2」" in lines[2]
+
+
+def test_retries_ran_out_wins_over_budget_when_both_hold(monkeypatch, caplog):
+    """連線錯誤等 5/10/15 秒，預算 40 用剩 10；第 4 次要等 20——兩個條件同時成立。"""
+    _wire(monkeypatch, [requests.ConnectionError("boom")])
+    budget = analyzer._new_embed_retry_budget()
+    budget["seconds"] = 40
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.generate_embedding("標題", budget)
+
+    (line,) = _failure_lines(caplog)
+    assert "已重試 3 次" in line and "預算不足" not in line
+    assert budget["skipped"] == 0, "重試用完的那篇不可算進「因預算不足不再重試」"
+
+
+def test_failure_line_title_is_cut_at_30_chars(monkeypatch, caplog):
+    _wire(monkeypatch, [400])
+
+    with caplog.at_level(logging.WARNING):
+        analyzer.generate_embedding("標" * 40 + "\n摘要")
+
+    (line,) = _failure_lines(caplog)
+    assert "「" + "標" * 30 + "」" in line
+
+
 def test_retry_waits_share_a_60_second_budget_across_the_run(monkeypatch):
     _, sleeps = _wire(monkeypatch, [429])
     candidates = _articles(3)
