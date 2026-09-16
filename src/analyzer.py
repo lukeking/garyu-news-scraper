@@ -284,11 +284,21 @@ def generate_embedding(text: str, budget: dict | None = None) -> list | None:
                 resp is None and isinstance(e, requests.RequestException)
             )
             wait = _retry_after_seconds(resp, attempt, status)
-            over_budget = wait > budget["seconds"]
-            if transient and attempt <= EMBED_MAX_RETRIES and over_budget:
+            if not transient:
+                reason = "非暫時性錯誤，不重試"
+            elif attempt > EMBED_MAX_RETRIES:
+                reason = f"已重試 {EMBED_MAX_RETRIES} 次"
+            elif wait > budget["seconds"]:
                 budget["skipped"] += 1
-            if not transient or attempt > EMBED_MAX_RETRIES or over_budget:
-                logger.warning("[embedding] 生成失敗：%s", e)
+                reason = f"預算不足（需 {wait:.0f} 秒、剩 {budget['seconds']:.0f} 秒）"
+            else:
+                reason = None
+            if reason:
+                # 開頭「[embedding] 生成失敗：」是 routines/weekly-verify/FOCUS.md 計數用的，不可改。
+                logger.warning(
+                    "[embedding] 生成失敗：%s；「%s」；%s: %s",
+                    reason, text.split("\n", 1)[0][:30], type(e).__name__, e,
+                )
                 return None
             budget["seconds"] -= wait
             logger.warning(
