@@ -32,8 +32,9 @@ logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(mes
 import src.analyzer as az
 from src.pipeline_config import load_pipeline_config
 from src.storage import get_traffic_buffer
-from src.analyzer import (
-    cluster_traffic_articles, score_topic_buckets, analyze_hot_topic, topic_token_signature,
+from src.analyzer import analyze_hot_topic
+from src.topic_scoring import (
+    cluster_traffic_articles, score_topic_buckets, topic_token_signature,
 )
 
 TOP_K = 3

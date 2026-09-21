@@ -102,7 +102,7 @@ def digest_config(category: str) -> dict:
 
 
 def report(rows: list, category: str, cfg: dict) -> None:
-    from src.analyzer import select_digest_pool
+    from src.topic_scoring import select_digest_pool
 
     siblings = list(cfg.get("include_categories") or [])
     base = {k: cfg[k] for k in ("quality_floor", "max_articles") if k in cfg}

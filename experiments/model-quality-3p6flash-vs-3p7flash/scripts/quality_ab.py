@@ -35,7 +35,8 @@ import logging; logging.basicConfig(level=logging.ERROR)
 import src.analyzer as az
 from src.pipeline_config import load_pipeline_config
 from src.storage import get_traffic_buffer
-from src.analyzer import cluster_traffic_articles, score_topic_buckets, analyze_hot_topic
+from src.analyzer import analyze_hot_topic
+from src.topic_scoring import cluster_traffic_articles, score_topic_buckets
 
 MODELS = ["gemini-3.6-flash", "gemini-3.7-flash"]   # [incumbent, challenger]
 JUDGE = "gemini-2.5-pro"    # Tier-1 non-contestant, cross-generation. Needs PAID key (free tier 429s).

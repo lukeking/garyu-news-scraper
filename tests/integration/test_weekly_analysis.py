@@ -42,7 +42,8 @@ def test_weekly_analysis_creates_hot_topic_reports():
     from src.storage import upsert_traffic_buffer, get_traffic_buffer
     from src.storage import upsert_hot_topic_report
     from src.pipeline_config import reset_caches, load_pipeline_config
-    from src.analyzer import cluster_traffic_articles, score_topic_buckets, select_hot_topics, analyze_hot_topic
+    from src.analyzer import analyze_hot_topic
+    from src.topic_scoring import cluster_traffic_articles, score_topic_buckets, select_hot_topics
 
     reset_caches()
     week_id = "2025-W99-integration-test"

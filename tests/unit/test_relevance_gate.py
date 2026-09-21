@@ -116,7 +116,7 @@ def test_partition_high_score_offtopic_still_excluded():
 
 # ── US2 (T007): whole-bucket FR-003 + source-independence FR-007 ───────────────
 
-from src.analyzer import cluster_traffic_articles  # noqa: E402
+from src.topic_scoring import cluster_traffic_articles  # noqa: E402
 
 _CLUSTER_CONFIG = {"jaccard": {"merge_threshold": 0.45, "cluster_lower": 0.20}}
 

@@ -8,7 +8,7 @@ load_dotenv(os.path.join(REPO, ".env"), override=True)
 import logging; logging.basicConfig(level=logging.ERROR)
 from src.pipeline_config import load_pipeline_config
 from src.storage import get_traffic_buffer
-from src.analyzer import cluster_traffic_articles, score_topic_buckets, topic_token_signature
+from src.topic_scoring import cluster_traffic_articles, score_topic_buckets, topic_token_signature
 
 POLICY = {"科技執法", "路權政策", "交通工程", "道安政策"}
 SUBSTANTIVE = POLICY | {"行人事故", "路口安全", "大型車安全", "酒駕", "道路施工"}
