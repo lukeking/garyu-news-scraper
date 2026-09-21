@@ -20,8 +20,10 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
+          # v4 預設改裝 wrangler 4；釘在 v3 時期實際用的版本，這次只換 action 的 Node runtime
+          wranglerVersion: "3.90.0"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "workers/api"
