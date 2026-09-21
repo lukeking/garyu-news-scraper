@@ -166,7 +166,7 @@ def replay(slates, rules, config):
     slates unjudged rather than dead — both contracts live in
     `tests/unit/test_measure_relevance.py`, which also says why.
     """
-    from src.analyzer import score_topic_buckets
+    from src.topic_scoring import score_topic_buckets
     from src.filter import partition_by_relevance
 
     scoring = config.get("topic_scoring", {})

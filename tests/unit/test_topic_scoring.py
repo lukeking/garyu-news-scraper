@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.analyzer import cluster_traffic_articles, score_topic_buckets, select_hot_topics
+from src.topic_scoring import cluster_traffic_articles, score_topic_buckets, select_hot_topics
 
 _BASE_CONFIG = {
     "jaccard": {"merge_threshold": 0.45, "cluster_lower": 0.20},

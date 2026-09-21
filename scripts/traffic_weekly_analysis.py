@@ -41,11 +41,11 @@ def main():
         expire_buffer_articles, get_traffic_buffer, upsert_hot_topic_report,
         get_recent_hot_topic_reports, mark_articles_analyzed,
     )
-    from src.analyzer import (
-        cluster_traffic_articles, score_topic_buckets, analyze_hot_topic,
+    from src.analyzer import analyze_hot_topic, analyze_category_digest
+    from src.topic_scoring import (
+        cluster_traffic_articles, score_topic_buckets,
         select_hot_topics_with_novelty, topic_token_signature,
-        select_digest_pool, analyze_category_digest,
-        log_digest_pool_composition,
+        select_digest_pool, log_digest_pool_composition,
     )
     from src.publisher import publish_hot_topic_reports
 

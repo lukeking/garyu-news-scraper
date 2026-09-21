@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.analyzer import (
+from src.topic_scoring import (
     passes_novelty,
     topic_token_signature,
     select_hot_topics_with_novelty,

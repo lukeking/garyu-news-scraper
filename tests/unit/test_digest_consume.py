@@ -42,7 +42,7 @@ def test_mark_failure_logs_error_and_returns_zero(caplog):
 
 # ── 013: 匯流文章的消耗（INV-4／INV-5／INV-7）─────────────────────────────
 
-from src.analyzer import select_digest_pool  # noqa: E402
+from src.topic_scoring import select_digest_pool  # noqa: E402
 
 _CFG = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 3}
 

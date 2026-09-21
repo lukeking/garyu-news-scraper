@@ -18,7 +18,7 @@ from unittest.mock import patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from src.filter import partition_by_relevance
-from src.analyzer import (
+from src.topic_scoring import (
     cluster_traffic_articles,
     score_topic_buckets,
     select_hot_topics_with_novelty,
@@ -122,7 +122,7 @@ def test_cap_and_untouched_category_pass_unchanged_by_gate():
 # ── T006a-3: novelty SUPPRESS on an untouched bucket is unchanged by the gate ──
 
 def test_untouched_bucket_novelty_suppression_unchanged_by_gate():
-    from src.analyzer import topic_token_signature
+    from src.topic_scoring import topic_token_signature
     with patch("src.filter.normalise_title", side_effect=_mock_tokens):
         # Derive a prior that MATCHES the 道安政策 bucket (same category + its real
         # signature), with a huge cumulative_score (current ≪ prior×1.5) and a

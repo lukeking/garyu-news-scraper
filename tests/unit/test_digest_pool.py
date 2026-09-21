@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import logging
 
-from src.analyzer import select_digest_pool, log_digest_pool_composition
+from src.topic_scoring import select_digest_pool, log_digest_pool_composition
 
 _CFG = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}
 
