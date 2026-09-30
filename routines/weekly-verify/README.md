@@ -7,6 +7,7 @@
 |---|---|---|
 | `PROMPT.md` | routine | 常設指示：找 run、INTEGRITY、常設檢查、寫進 Linear |
 | `FOCUS.md` | routine | 本週重點：要追的 issue 與比較基準，每週更新 |
+| `FOCUS-CHECK.md` | 週三 routine | FOCUS 過期時推播＋建日曆事件提醒（每週三 04:00Z） |
 | `README.md` | 人 | 本檔：routine 怎麼接、怎麼維護 |
 
 routine 在執行時從 `main` 讀 `PROMPT.md` 與 `FOCUS.md`——**改它們＝改 routine 的行為，走 PR，且要在週一 07:00Z 前 merge。**
