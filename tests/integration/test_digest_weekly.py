@@ -131,6 +131,8 @@ def test_trigger_publishes_digest_and_reserves_seat(caplog):
     # digest takes one seat: only the top-2 moto buckets publish, m3 is squeezed out
     assert "機車事故 · m1" in labels and "機車事故 · m2" in labels
     assert len(labels) == 3 and "機車事故 · m3" not in labels
+    # GNS-008：守週跑腳本的呼叫點（unit 測試只守函式本身）
+    assert "digest[道安政策] 最大來源：" in caplog.text and "抽掉最大剩 11" in caplog.text
 
     digest = next(r for r in upserts if r["topic_label"] == "道安政策 · 彙整")
     assert digest["topic_token_signature"] == []

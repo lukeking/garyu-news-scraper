@@ -289,3 +289,15 @@ def log_digest_pool_composition(logger, category: str, digest_cfg: dict,
     per_cat = Counter(a.get("major_category") for a in pool_all)
     parts = " ＋ ".join(f"{c} {per_cat.get(c, 0)}" for c in [category] + merged_cats)
     logger.info("digest[%s] 池組成：%s = %d", category, parts, len(pool_all))
+
+
+def log_digest_pool_concentration(logger, category: str, pool_all: list) -> None:
+    """印出池內最大來源與「抽掉最大剩」（SC-001 L1），GNS-008 常設 reopen 條件由週驗收讀這行判定。"""
+    from collections import Counter
+
+    if not pool_all:
+        return
+    top, n = Counter(a.get("source") for a in pool_all).most_common(1)[0]
+    total = len(pool_all)
+    logger.info("digest[%s] 最大來源：%s %d/%d（%.1f%%），抽掉最大剩 %d",
+                category, top, n, total, 100 * n / total, total - n)

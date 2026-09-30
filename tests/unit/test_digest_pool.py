@@ -10,7 +10,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import logging
 
-from src.topic_scoring import select_digest_pool, log_digest_pool_composition
+from src.topic_scoring import (
+    select_digest_pool, log_digest_pool_composition, log_digest_pool_concentration,
+)
 
 _CFG = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}
 
@@ -269,3 +271,30 @@ def test_composition_silent_without_include_categories(caplog):
     with caplog.at_level(logging.INFO, logger="test_weekly"):
         log_digest_pool_composition(logger, "道安政策", _CFG, [_art(1)])
     assert "池組成" not in caplog.text
+
+
+# ── GNS-008 常設 reopen 條件的執行者：L1（抽掉最大剩）要從週報 log 讀得到 ──────
+# 定義與 scripts/replay_digest_pool.py 相同（分母＝整池），log 才接得上 BACKLOG 的逐週紀錄。
+
+def test_concentration_prints_largest_source_and_remainder(caplog):
+    logger = logging.getLogger("test_weekly")
+    pool = [dict(_art(i), source="交通安全教育") for i in range(1, 4)] + [_art(4, cat="路權政策")]
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_concentration(logger, "道安政策", pool)
+    assert "digest[道安政策] 最大來源：交通安全教育 3/4（75.0%），抽掉最大剩 1" in caplog.text
+
+
+def test_concentration_matches_0928_prod_values(caplog):
+    """09-28 prod：池 40、交通安全教育 33 → 82.5%、剩 7（replay 算出的值）。"""
+    logger = logging.getLogger("test_weekly")
+    pool = [dict(_art(i), source="交通安全教育") for i in range(33)] + [_art(i) for i in range(33, 40)]
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_concentration(logger, "道安政策", pool)
+    assert "交通安全教育 33/40（82.5%），抽掉最大剩 7" in caplog.text
+
+
+def test_concentration_silent_on_empty_pool(caplog):
+    logger = logging.getLogger("test_weekly")
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_concentration(logger, "道安政策", [])
+    assert "最大來源" not in caplog.text
