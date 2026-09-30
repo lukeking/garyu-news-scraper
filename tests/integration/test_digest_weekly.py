@@ -97,7 +97,9 @@ def _run(config, articles, digest_stub=_digest_stub, mark_returns_len=True,
         marks.append(list(links))
         return len(links) if mark_returns_len else 0
 
+    # relevance_rules 來自 gitignored 的本機設定；不隔離的話，假標題會被 012 的閘整批排除。
     with patch("src.pipeline_config.load_pipeline_config", return_value=config), \
+         patch("src.pipeline_config.load_relevance_rules", return_value={}), \
          patch("src.storage.expire_buffer_articles", return_value=0), \
          patch("src.storage.get_traffic_buffer", return_value=articles), \
          patch("src.storage.get_recent_hot_topic_reports", return_value=[]), \
