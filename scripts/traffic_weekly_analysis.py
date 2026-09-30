@@ -45,7 +45,7 @@ def main():
     from src.topic_scoring import (
         cluster_traffic_articles, score_topic_buckets,
         select_hot_topics_with_novelty, topic_token_signature,
-        select_digest_pool, log_digest_pool_composition,
+        select_digest_pool, log_digest_pool_composition, log_digest_pool_concentration,
     )
     from src.publisher import publish_hot_topic_reports
 
@@ -129,6 +129,7 @@ def main():
         # 013 C3：池組成逐類別留痕（含零篇類別，理由見該函式 docstring）。
         # 印在觸發判定之前，故未觸發時仍看得到組成。
         log_digest_pool_composition(logger, cat, dcfg, pool_all)
+        log_digest_pool_concentration(logger, cat, pool_all)
         logger.info(
             "digest[%s] pool=%d effective=%d threshold=%d → %s",
             cat, len(pool_all), effective, trigger_count,
