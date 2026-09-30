@@ -33,7 +33,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages (FFXIV)
         working-directory: /tmp/deploy-ffxiv
-        run: npx wrangler@latest pages deploy . --project-name=garyu-ffxiv-news --commit-dirty=true
+        run: npx wrangler@4.144.0 pages deploy . --project-name=garyu-ffxiv-news --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -22,8 +22,9 @@ jobs:
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v4
         with:
-          # v4 預設改裝 wrangler 4；釘在 v3 時期實際用的版本，這次只換 action 的 Node runtime
-          wranglerVersion: "3.90.0"
+          # 釘版本：不釘會跟著上游 major 走（09-21 cloudflare/pages-action 下架同一類風險）。
+          # 3.90.0 → 4.144.0 於 09-30 以 `wrangler deploy --dry-run` 比對，bundle 只差排版。
+          wranglerVersion: "4.144.0"
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: "workers/api"
