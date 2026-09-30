@@ -35,9 +35,13 @@
 
 ## 常設檢查
 
-### (A) #8 digest 只做記錄（判準已結案，不要下 L1／L2 判定）
+### (A) #8 digest：記錄，並判定 L1 常設 reopen 條件（L2 不判）
 
 - 逐字引用 `digest[道安政策] 池組成：…`、`digest[道安政策] pool=… effective=… threshold=… → …`；TRIGGER 時再引 `正在彙整：…`、`mark_articles_analyzed：已標記 N 篇`、`digest[道安政策] consumed=K`，並檢查「選材 + 殘餘 == consumed == pool」（`mark_articles_analyzed` 只算殘餘）。
+- 逐字引用 `digest[道安政策] 最大來源：… 抽掉最大剩 N`。N 小於 pool 那行的 `threshold` → 本週 L1 ❌，否則 ✅。**這行不存在 → FAIL**：它是 GNS-008 常設 reopen 條件唯一的執行者。
+- 拿 `FOCUS.md`「GNS-008 L1 前兩週」的兩個值加上本週，判定常設 reopen 條件（任意連續三週裡 L1 有兩週 ❌ → 開 spec 補來源，出處 `specs/BACKLOG.md` GNS-008 節末）：
+  - **觸發** → 報告第一行寫 `⚠️ GNS-008 reopen 條件觸發`，列出三週的值。
+  - **未觸發** → 在本節寫一行「未觸發（前兩週 ✅／❌、本週 ✅／❌）」。
 - 零篇分支：某類別為 0 且仍在行內 → PASS；為 0 卻從行內消失 → FAIL（回歸）；四類皆非零 → 本週未觸發。
 - 列出所有 `✓ hot_topic_report upserted:` 的 label，席次必須 ≤ 3。
 
