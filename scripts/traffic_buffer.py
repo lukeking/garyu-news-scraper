@@ -68,6 +68,13 @@ def main():
 
     result = cat.publish(filtered)
     logger.info("結果：%s", result)
+
+    # GNS-015：先寫完 buffer 再判定，已收到的文章不丟；超過一半就讓 Actions 標紅。
+    from src.collector import last_collect_failures, too_many_source_failures
+    failed, attempted = last_collect_failures()
+    if too_many_source_failures(len(failed), attempted):
+        logger.error("來源失敗 %d/%d 超過一半，標記本次 run 失敗（GNS-015）", len(failed), attempted)
+        sys.exit(1)
     logger.info("=== 交通新聞每日 buffer 完成 ===")
 
 

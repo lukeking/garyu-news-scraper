@@ -224,6 +224,28 @@ def _build_youtube_client():
         return None
 
 
+# ── 來源失敗統計（GNS-015）────────────────────────────────────
+# 各 fetcher 在「這個來源抓不到」的路徑記一筆；collect_sources 每次開頭清空、收尾印彙總。
+_failed_sources: list = []
+_attempted_sources = 0
+
+SOURCE_FAILURE_LIMIT = 0.5
+
+
+def _mark_failed(name: str) -> None:
+    _failed_sources.append(name)
+
+
+def last_collect_failures() -> tuple:
+    """最近一次 collect_sources 的 (失敗來源名單, 嘗試的來源數)。"""
+    return list(_failed_sources), _attempted_sources
+
+
+def too_many_source_failures(failed: int, attempted: int) -> bool:
+    """失敗比例超過一半（09-30 量 35 個 daily run：平常 0～6.1%，09-13 事故 75.8%）。"""
+    return attempted > 0 and failed / attempted > SOURCE_FAILURE_LIMIT
+
+
 # ── 各 type 抓取函式 ──────────────────────────────────────────
 
 def _fetch_rss(source: dict) -> list:
@@ -247,6 +269,7 @@ def _fetch_rss(source: dict) -> list:
         logger.info("%s: %d 筆", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
+        _mark_failed(name)
     return articles
 
 
@@ -288,6 +311,7 @@ def _fetch_ptt(source: dict) -> list:
         logger.info("%s: %d 筆熱門文章", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
+        _mark_failed(name)
     return articles
 
 
@@ -321,6 +345,7 @@ def _fetch_web(source: dict) -> list:
         logger.info("%s: %d 筆公告", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
+        _mark_failed(name)
     return articles
 
 
@@ -364,6 +389,7 @@ def _fetch_html_patch(source: dict) -> list:
         logger.info("%s: %d 筆", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
+        _mark_failed(name)
     return articles
 
 
@@ -408,6 +434,7 @@ def _fetch_html_forum(source: dict) -> list:
         logger.info("%s: %d 筆討論串", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
+        _mark_failed(name)
     return articles
 
 
@@ -438,10 +465,12 @@ def _fetch_youtube(source: dict) -> list:
 
     if not channel_id:
         logger.warning("[youtube] %s: channel_id 未設定，略過", name)
+        _mark_failed(name)
         return []
 
     youtube = _build_youtube_client()
     if youtube is None:
+        _mark_failed(name)
         return []
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=lookback_days)
@@ -534,10 +563,12 @@ def _fetch_youtube(source: dict) -> list:
             from googleapiclient.errors import HttpError as _HttpError
             if isinstance(e, _HttpError) and e.status_code in (403, 429):
                 logger.error("[youtube] %s: API 配額已耗盡（%s），略過此來源", name, e.status_code)
+                _mark_failed(name)
                 return []
         except ImportError:
             pass
         logger.warning("[youtube] %s 失敗：%s", name, e)
+        _mark_failed(name)
 
     return articles
 
@@ -555,6 +586,9 @@ FETCHERS = {
 
 
 def collect_sources(sources: list) -> list:
+    global _attempted_sources
+    _failed_sources.clear()
+    _attempted_sources = 0
     all_articles = []
     for source in sources:
         stype = source.get("type", "")
@@ -562,6 +596,7 @@ def collect_sources(sources: list) -> list:
         if not fetcher:
             logger.warning("未知的 type: %s（來源：%s），跳過", stype, source.get("name"))
             continue
+        _attempted_sources += 1
         articles = fetcher(source)
         # Stamp per-source config onto articles so downstream filters can honor
         # them: relevance_exempt bypasses the MUST_INCLUDE keyword gate, and
@@ -576,4 +611,6 @@ def collect_sources(sources: list) -> list:
         all_articles.extend(articles)
         time.sleep(1)
     logger.info("收集完成，共 %d 筆（去重前）", len(all_articles))
+    names = "（" + "、".join(_failed_sources) + "）" if _failed_sources else ""
+    logger.info("來源失敗：%d/%d%s", len(_failed_sources), _attempted_sources, names)
     return all_articles
