@@ -34,7 +34,7 @@ test('寬形：@container 區塊存在，且斷點是清單寬度 560px', () => 
   const block = containerBlock();
   assert.ok(block, '@container trlist 區塊不見了 → 桌機會悄悄退回手機版面');
   assert.match(CSS, /@container trlist \(min-width:\s*560px\)/,
-    '斷點改了就要同步更新 BACKLOG #5（那裡記著 560 是推導、待實測）');
+    '斷點改了就要同步更新 BACKLOG GNS-006（那裡記著 560 是推導、待實測）');
 });
 
 test('寬形：方格收起、寬幅條展開、標題改回單行——三件事缺一不可', () => {

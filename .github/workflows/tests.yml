@@ -1,13 +1,14 @@
 name: Tests (unit)
 
-# CI gating L0（specs/BACKLOG.md「CI gating」）。
+# CI gating L0（原 BACKLOG GNS-001，PR #77／#78）。
 # 只跑 tests/unit：零外部依賴，不需要 config GitHub Variables，也不需要任何憑證。
 #
 # ⚠️ tests/integration 是「刻意」不在這裡跑的，不是漏掉。
 # 那些測試在有 Supabase 憑證時會直接寫進「正式」資料庫（2026-07-21 已實際汙染過一次，
 # 16 列測試資料連帶讓 measure_source_uptake.py 的 baseline 偏移）。在 CI 打開它只有兩條爛路：
 #   不給憑證 → 測試 skip → 拿到假綠燈；給憑證 → 每個 PR 汙染正式庫。
-# 重開條件：等 specs/BACKLOG.md「整合測試指向本機 Supabase」完成後，才加 L2。
+# L2 的前置（整合測試指向本機 Supabase）已於 PR #79 完成，L2 仍標「刻意不做」（理由在已不存在的 STATE.md）；
+# 要加之前先讀 docs/standing-cautions.md「不要直接把整合測試加進 CI」。
 #
 # 這個 job 也刻意不設 `environment: production` —— 它不該拿得到任何 secret。
 #
