@@ -7,6 +7,14 @@ logger = logging.getLogger(__name__)
 _TW_TZ = timezone(timedelta(hours=8))
 
 
+
+def dedup_window(buffer_rows: list, now: datetime) -> list:
+    """embed_dedup 比對的 buffer 列：本週與上週、還沒被消耗的（週報池＝全部未消耗的列，最長 8 週）。
+    更早的不放進來：每月一次的同類事件（例如道安會報）餘弦也 ≥ 0.88，會被誤殺（GNS-20261005-nwn）。"""
+    local = now.astimezone(_TW_TZ)
+    weeks = {f"{y}-W{w:02d}" for y, w, _ in (local.isocalendar(), (local - timedelta(days=7)).isocalendar())}
+    return [a for a in buffer_rows if a.get("week_id") in weeks]
+
 class TrafficCategory:
     name = "traffic"
     content_type = "traffic"
@@ -103,23 +111,11 @@ class TrafficCategory:
                 deduped[dup_idx] = article
 
         # LLM same-event dedup: catches same-incident articles that Jaccard misses
-        # (different reporters, different angles, same event). Also checks against
-        # this week's buffer so the daily quota is spent on genuinely new stories.
+        # (different reporters, different angles, same event). Also checks against this and
+        # last week's unconsumed buffer so the daily quota is spent on genuinely new stories.
         if is_configured():
             try:
-                from src.storage import get_traffic_buffer
-                from src.analyzer import attach_embeddings, embed_dedup
-                from src.pipeline_config import load_pipeline_config as _lpc
-                _cfg = _lpc()
-                _threshold = _cfg.get("embed_dedup", {}).get("threshold", 0.88)
-                week_id = self._current_week_id()
-                this_week = [
-                    a for a in get_traffic_buffer(max_age_weeks=1)
-                    if a.get("week_id") == week_id
-                ]
-                # 生成向量（不純、會打 Gemini）與去重（純）刻意分成兩步，見 BACKLOG #4。
-                attach_embeddings(deduped)
-                deduped = embed_dedup(deduped, this_week, threshold=_threshold)
+                deduped = self._embedding_dedup(deduped, config)
             except Exception as e:
                 logger.warning("[%s] 嵌入去重複失敗，略過：%s", self.name, e)
 
@@ -129,6 +125,30 @@ class TrafficCategory:
         # gate), so low-frequency deep sources are no longer starved by a tight daily cap.
         max_daily = config.get("buffer", {}).get("max_daily_articles", 100)
         return deduped[:max_daily]
+
+    def _embedding_dedup(self, deduped: list, config: dict, now=None) -> list:
+        from src.storage import get_traffic_buffer
+        from src.analyzer import attach_embeddings, embed_dedup
+        threshold = config.get("embed_dedup", {}).get("threshold", 0.88)
+        window = dedup_window(get_traffic_buffer(), now or datetime.now(_TW_TZ))
+        # 生成向量（不純、會打 Gemini）與去重（純）刻意分成兩步，見 BACKLOG #4。
+        attach_embeddings(deduped)
+        deduped = embed_dedup(deduped, window, threshold=threshold)
+        try:
+            self._shadow_cross_run(deduped, threshold)
+        except Exception as e:
+            logger.warning("[embed_dedup 影子] 跨期比對失敗，略過（只記錄，不影響去重）：%s", e)
+        return deduped
+
+    def _shadow_cross_run(self, candidates: list, threshold: float) -> None:
+        from src.storage import get_recent_consumed_traffic
+        from src.analyzer import find_cross_run_repeats
+        hits = find_cross_run_repeats(candidates, get_recent_consumed_traffic(), threshold=threshold)
+        for cand, old, cos, gap_h in hits:
+            logger.info("[embed_dedup 影子] 會擋 cos=%.4f 發布差 %.1fh：「%s」↔ 已消耗 id=%s「%s」",
+                        cos, gap_h, cand.get("title"), old.get("id"), old.get("title"))
+        logger.info("[embed_dedup 影子] 跨期重複：%d/%d 篇候選會被擋（發布差 < 24h、餘弦 ≥ %.2f；只記錄、不擋）",
+                    len(hits), len(candidates), threshold)
 
     def prefetch(self, articles: list) -> list:
         # Google News link resolution + og:description/og:image enrichment. No LLM —
