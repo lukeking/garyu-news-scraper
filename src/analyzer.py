@@ -411,8 +411,8 @@ def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88
         )
         if matched:
             logger.info(
-                "[embed_dedup] 已在緩衝區，略過（相似度≥%.2f）：%s",
-                threshold, a.get("title", ""),
+                "[embed_dedup] 已在緩衝區（%s id=%s），略過（相似度≥%.2f）：%s",
+                matched.get("week_id"), matched.get("id"), threshold, a.get("title", ""),
             )
         else:
             after_buffer.append(a)

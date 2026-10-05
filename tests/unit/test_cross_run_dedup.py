@@ -99,10 +99,12 @@ def boundary(monkeypatch):
     return calls
 
 
-def test_last_weeks_leftover_blocks_but_older_does_not(boundary):
-    """W40 的未消耗列擋得到；W39 那篇在窗外，候選 2 留下。"""
-    kept = TrafficCategory()._embedding_dedup([_art(1, BASE), _art(2, OTHER)], {}, now=NOW)
+def test_last_weeks_leftover_blocks_but_older_does_not(boundary, caplog):
+    """W40 的未消耗列擋得到；W39 那篇在窗外，候選 2 留下。log 要說是被哪一週的哪一篇擋的。"""
+    with caplog.at_level(logging.INFO, logger="src.analyzer"):
+        kept = TrafficCategory()._embedding_dedup([_art(1, BASE), _art(2, OTHER)], {}, now=NOW)
     assert [a["id"] for a in kept] == [2]
+    assert "[embed_dedup] 已在緩衝區（2026-W40 id=91），略過（相似度≥0.88）：標題1" in caplog.text
 
 
 def test_shadow_logs_but_never_drops(boundary, caplog):
