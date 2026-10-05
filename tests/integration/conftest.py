@@ -96,7 +96,7 @@ def force_local_supabase():
         # 這裡 skip 而不是 fail：沒有本機 stack 的環境（例如只想跑 unit 的人）
         # 不該被整個測試套件擋住。真正危險的是「連上正式環境」，那條在下面 fail。
         # 註：整合測試刻意不進 CI，所以這個 skip 不會變成 CI 的假綠燈——
-        # 見 .github/workflows/tests.yml 的說明與 specs/BACKLOG.md「CI gating」L2。
+        # 見 .github/workflows/tests.yml 的說明與 docs/standing-cautions.md「不要直接把整合測試加進 CI」。
         pytest.skip(f"未設定本機測試庫。\n{_SETUP_HINT}", allow_module_level=True)
 
     host = urlparse(url).hostname
@@ -105,7 +105,7 @@ def force_local_supabase():
             f"SUPABASE_TEST_URL 指向非本機主機 `{host}`。\n"
             "整合測試會寫入資料，只允許指向本機（見本檔開頭：2026-07-21 的正式庫汙染事件）。\n"
             "若真的要改變這條規則，請連同 conftest 的 _LOCAL_HOSTS 一起改，"
-            "並在 specs/BACKLOG.md 記錄理由——不要只改這一行。",
+            "並在 docs/standing-cautions.md 記錄理由——不要只改這一行。",
             pytrace=False,
         )
 
