@@ -12,7 +12,7 @@ import pytest
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-from src.storage import get_existing_title_fingerprints, get_traffic_buffer  # noqa: E402
+from src.storage import get_existing_title_fingerprints, get_recent_consumed_traffic, get_traffic_buffer  # noqa: E402
 
 CAP = 1000  # 伺服器端上限，刻意寫字面值而不引用 storage 的常數
 
@@ -44,6 +44,10 @@ class _Query:
 
     def gt(self, col, val):
         self.filters.append(("gt", col))
+        return self
+
+    def gte(self, col, val):
+        self.filters.append(("gte", col))
         return self
 
     def order(self, col, desc=False):
@@ -159,3 +163,22 @@ def test_every_page_keeps_its_filters_and_orders_by_id(reader, filters, orders):
     assert len(pages) == 3
     assert [p.filters for p in pages] == [filters] * 3
     assert [p.orders for p in pages] == [orders] * 3
+
+
+def test_recent_consumed_returns_every_row_past_the_cap(caplog):
+    """跨期影子比對讀已消耗的列（GNS-20261005-nwn）：同樣不得被 1000 列截斷。"""
+    client, pages = _client(_rows(2345))
+    with caplog.at_level(logging.INFO, logger="src.storage"):
+        got = _run(get_recent_consumed_traffic, client)
+    assert sorted(r["id"] for r in got) == list(range(1, 2346))
+    assert "get_recent_consumed_traffic：取得 2345 筆（35 天內）" in caplog.text
+    assert [p.filters for p in pages] == [[("eq", "content_type", "traffic"),
+                                           ("eq", "hot_topic_analyzed", True),
+                                           ("gte", "buffered_at")]] * 3
+    assert [p.orders for p in pages] == [[("id", False)]] * 3
+
+
+def test_recent_consumed_failure_on_page_two_raises():
+    client, _ = _client(_rows(2345), fail_on_page=2)
+    with pytest.raises(RuntimeError, match="page boom"):
+        _run(get_recent_consumed_traffic, client)

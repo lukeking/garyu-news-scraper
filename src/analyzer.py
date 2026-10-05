@@ -442,6 +442,37 @@ def embed_dedup(candidates: list, buffer_articles: list, threshold: float = 0.88
     return result
 
 
+
+def _published_at(val):
+    from datetime import datetime
+    try:
+        stamp = datetime.fromisoformat(val)
+    except (TypeError, ValueError):
+        return None
+    return stamp if stamp.tzinfo else None
+
+
+def find_cross_run_repeats(candidates: list, consumed: list, threshold: float = 0.88,
+                           max_gap_hours: float = 24.0) -> list:
+    """候選與已被週報消耗的列：餘弦 ≥ threshold 且發布差 < max_gap_hours＝同一則舊文換個網址又進來。
+    回傳 (候選, 最像的那篇, 餘弦, 發布差小時)，只判定、不擋（純）。缺向量或發布時間的不判，寧可漏記。"""
+    olds = [(o, _parse_embedding(o.get("embedding")), _published_at(o.get("published"))) for o in consumed]
+    olds = [(o, e, p) for o, e, p in olds if e is not None and p is not None]
+    hits = []
+    for cand in candidates:
+        emb, pub = _parse_embedding(cand.get("embedding")), _published_at(cand.get("published"))
+        if emb is None or pub is None:
+            continue
+        best = None
+        for old, old_emb, old_pub in olds:
+            gap_h = abs((pub - old_pub).total_seconds()) / 3600
+            cos = _cosine_similarity(emb, old_emb)
+            if cos >= threshold and gap_h < max_gap_hours and (best is None or cos > best[2]):
+                best = (cand, old, cos, gap_h)
+        if best:
+            hits.append(best)
+    return hits
+
 def _retry_after_seconds(resp, attempt, status_code):
     """
     503/UNAVAILABLE 常持續數小時至數日（Google 端容量問題），需較長指數退避。

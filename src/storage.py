@@ -332,6 +332,29 @@ def get_traffic_buffer(max_age_weeks: int = 8) -> list:
         raise
 
 
+
+def get_recent_consumed_traffic(days: int = 35) -> list:
+    """days 天內進庫、已被週報消耗的 traffic 列，只取跨期比對要的欄位（GNS-20261005-nwn 的影子判定）。
+    35＝帶 lookback_days 的來源最長 30 天再加一點：更舊的文章收集端就收不進來了。"""
+    from datetime import datetime, timedelta, timezone
+
+    client = _get_client()
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    try:
+        rows = _fetch_all_pages(lambda: (
+            client.table("articles")
+            .select("id,title,published,embedding")
+            .eq("content_type", "traffic")
+            .eq("hot_topic_analyzed", True)
+            .gte("buffered_at", since)
+            .order("id")
+        ))
+        logger.info("get_recent_consumed_traffic：取得 %d 筆（%d 天內）", len(rows), days)
+        return rows
+    except Exception as e:
+        logger.error("get_recent_consumed_traffic 失敗：%s", e)
+        raise
+
 def expire_buffer_articles() -> int:
     """
     Delete expired, unanalyzed traffic buffer articles.
