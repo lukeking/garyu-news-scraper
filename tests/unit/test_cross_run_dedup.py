@@ -67,7 +67,8 @@ def test_below_threshold_is_not_flagged():
     assert find_cross_run_repeats([_art(1, BASE)], [_art(77, FAR)], threshold=0.88) == []
 
 
-@pytest.mark.parametrize("cand_pub, old_pub", [("", PUB), (PUB, None), ("Thu, 11 Sep 2026", PUB)])
+@pytest.mark.parametrize("cand_pub, old_pub", [("", PUB), (PUB, None), ("Thu, 11 Sep 2026", PUB),
+                                              ("2026-09-11T02:13:00", PUB)])
 def test_missing_or_unparseable_published_is_not_flagged(cand_pub, old_pub):
     """缺發布時間就判不了「同一則」：寧可漏記，不要誤記。"""
     assert find_cross_run_repeats([_art(1, BASE, cand_pub)], [_art(77, NEAR, old_pub)], threshold=0.88) == []
