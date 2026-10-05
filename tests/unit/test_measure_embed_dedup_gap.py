@@ -16,8 +16,16 @@ sys.path.insert(0, os.path.join(_REPO, "scripts"))
 import measure_embed_dedup_gap as gap  # noqa: E402
 
 
-def _row(week, analysed=False):
-    return {"week_id": week, "hot_topic_analyzed": analysed}
+def _row(week, analysed=False, buffered=None):
+    row = {"week_id": week, "hot_topic_analyzed": analysed}
+    if buffered:
+        row["buffered_at"] = buffered
+    return row
+
+
+MON = "2026-09-14T02:07:23.725181+00:00"  # W38 週一，週報 run 收的（id 3842）
+TUE = "2026-09-15T02:50:01.63516+00:00"   # W38 週二，daily 收的（id 3950）
+WED = "2026-09-16T02:40:00+00:00"
 
 
 def test_different_weeks_is_cross_week():
@@ -34,14 +42,32 @@ def test_cross_week_outranks_analysed():
     ) == gap.CROSS_WEEK
 
 
-def test_same_week_with_one_analysed():
-    assert gap.classify_pair(
-        _row("2026-W34"), _row("2026-W34", analysed=True)
-    ) == gap.ANALYSED
-    # 對稱：哪一邊已分析都算
-    assert gap.classify_pair(
-        _row("2026-W34", analysed=True), _row("2026-W34")
-    ) == gap.ANALYSED
+def test_monday_batch_consumed_before_later_arrival_is_analysed():
+    """3842↔3950：先進那篇是週一週報那批、當天被消耗，週二那篇進來時它已不在比對窗。"""
+    assert gap.classify_pair(_row("2026-W38", True, MON), _row("2026-W38", True, TUE)) == gap.ANALYSED
+    assert gap.classify_pair(_row("2026-W38", True, TUE), _row("2026-W38", True, MON)) == gap.ANALYSED
+
+
+def test_both_daily_then_consumed_is_a_real_miss():
+    """後進那篇進來時先進那篇還沒被分析＝在比對窗內。「現在」兩篇都已分析不改變這件事，
+    舊版用現在的旗標，把這類錯記成比對範圍外。"""
+    assert gap.classify_pair(_row("2026-W38", True, TUE), _row("2026-W38", True, WED)) == gap.REAL_MISS
+
+
+def test_same_batch_is_a_real_miss():
+    """同一批進庫的候選之間互相比對，週一那批也一樣。"""
+    assert gap.classify_pair(_row("2026-W38", True, MON), _row("2026-W38", True, MON)) == gap.REAL_MISS
+
+
+def test_monday_batch_never_consumed_stays_in_window():
+    """週一進庫但從沒被選上（現在仍未分析）＝一直在比對窗內。"""
+    assert gap.classify_pair(_row("2026-W38", False, MON), _row("2026-W38", False, TUE)) == gap.REAL_MISS
+
+
+def test_monday_is_the_taiwan_date():
+    """week_id 用台灣時區：週日 UTC 20:00 是台灣週一 04:00。"""
+    sunday_utc = "2026-09-13T20:00:00+00:00"
+    assert gap.classify_pair(_row("2026-W38", True, sunday_utc), _row("2026-W38", True, TUE)) == gap.ANALYSED
 
 
 def test_same_week_both_unanalysed_is_a_real_miss():

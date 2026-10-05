@@ -27,24 +27,34 @@ import argparse
 import math
 import os
 import sys
+from datetime import datetime, timedelta, timezone
 
 _REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _REPO)
 
 CROSS_WEEK = "跨週（比對範圍外）"
-ANALYSED = "同週但至少一篇已分析（比對範圍外）"
-REAL_MISS = "同週且兩篇皆未分析（真的漏抓）"
+ANALYSED = "同週但先進那篇已被週報消耗（比對範圍外）"
+REAL_MISS = "同週且在比對窗內（真的漏抓）"
+_TW = timezone(timedelta(hours=8))
+
+
+def _weekly_batch(row: dict) -> bool:
+    """週報 run 收的那批：week_id 用台灣時區，週報排在週一、daily 不跑週一。"""
+    stamp = row.get("buffered_at")
+    return bool(stamp) and datetime.fromisoformat(stamp).astimezone(_TW).weekday() == 0
 
 
 def classify_pair(a: dict, b: dict) -> str:
-    """一對已達門檻的文章為什麼還並存？回答的是**比對窗**，不是相似度。
-
-    順序寫死成「先看週別、再看已分析」：跨週的那些即使兩篇都未分析也不會被比對到，
-    所以週別是更外層的原因，不能反過來。
+    """一對已達門檻的文章為什麼還並存？回答的是**比對窗**，不是相似度。先看週別：跨週的即使
+    兩篇都未分析也比不到，週別是更外層的原因。「已分析」看的是**後進那篇進庫當下**，不是現在：
+    同週只有週一的週報會消耗，所以先進那篇得是週一那批、且現在已分析（推論：沒有消耗時間可查，
+    假設週一那批當天就被消耗）。同一批進庫的候選會互相比對。
     """
     if a.get("week_id") != b.get("week_id"):
         return CROSS_WEEK
-    if a.get("hot_topic_analyzed") or b.get("hot_topic_analyzed"):
+    early, late = sorted((a, b), key=lambda r: r.get("buffered_at") or "")
+    if (early.get("buffered_at") != late.get("buffered_at")
+            and early.get("hot_topic_analyzed") and _weekly_batch(early)):
         return ANALYSED
     return REAL_MISS
 
@@ -59,7 +69,7 @@ def _fetch(sb):
     while True:
         batch = (
             sb.table("articles")
-            .select("id,title,source,week_id,published,hot_topic_analyzed,embedding")
+            .select("id,title,source,week_id,published,buffered_at,hot_topic_analyzed,embedding")
             .eq("content_type", "traffic")
             .range(page * 1000, page * 1000 + 999)
             .execute()
