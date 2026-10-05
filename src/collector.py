@@ -242,7 +242,7 @@ def last_collect_failures() -> tuple:
 
 
 def too_many_source_failures(failed: int, attempted: int) -> bool:
-    """失敗比例超過一半（09-30 量 35 個 daily run：平常 0～6.1%，09-13 事故 75.8%）。"""
+    """失敗比例超過一半（09-30 量 35 個 daily run：平常最多 2 個來源失敗，現行 30 個啟用來源下是 6.7%；09-13 事故是 Google News 全數 503）。"""
     return attempted > 0 and failed / attempted > SOURCE_FAILURE_LIMIT
 
 
