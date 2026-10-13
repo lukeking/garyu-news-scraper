@@ -18,6 +18,7 @@ permissions:
 jobs:
   measure:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout 程式碼
