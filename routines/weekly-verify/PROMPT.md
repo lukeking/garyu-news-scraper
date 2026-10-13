@@ -47,7 +47,8 @@
 
 ### (B) runtime
 
-週報 job 耗時（憲章 IV 上限 10 分）。比較基準在 `FOCUS.md`。
+週報 job 耗時。比較基準在 `FOCUS.md`。憲章 IV（1.3.0 起）沒有單次 10 分的上限了，週報 job 的 `timeout-minutes` 是 30：
+job 耗時達到 30 分、且 run 沒有成功結束（被 timeout 砍掉）→ FAIL；其餘只跟比較基準比，不判 FAIL。
 
 ## OUT OF SCOPE — 交棒本地
 

@@ -12,6 +12,7 @@ jobs:
   auto-kb:
     name: Auto KB Expansion
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     environment: production
     # ⚠️ workflow_dispatch 事件沒有 `workflow_run` 物件，只留右半邊會讓運算式成
     # `null == 'success'` → false → job 靜默跳過。加入口就必須同時放寬這個條件。

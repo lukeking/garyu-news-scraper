@@ -1,28 +1,32 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.1.0 → 1.2.0
-**Bump rationale**: MINOR — Principle VI materially updated to reflect migration of the FFXIV
-  knowledge base from `knowledge-base.md` to the Supabase `knowledge_base` table; PR-gate
-  requirement replaced by auto-KB job confidence gate; Technology Constraints and Operations
-  updated accordingly. Core intent of the principle (authoritative KB, no invented translations)
-  is preserved.
+**Version change**: 1.2.0 → 1.3.0
+**Bump rationale**: MINOR — Principle IV's GitHub Actions constraint materially changed: the
+  per-run 10-minute limit is replaced by a monthly budget plus an explicit per-job timeout.
+  The limit's premise (protecting the 2,000 free minutes) does not bind a public repository,
+  measured usage is ~148 minutes over 30 days, and the limit had no executor: 13 of 54 weekly
+  runs exceeded 10 minutes (max 15.2) without any signal. Core intent (stay inside a budget,
+  fail visibly when a run goes wrong) is preserved.
 
 ### Modified Principles
-- VI. Knowledge Base Integrity → updated: storage changed from `knowledge-base.md` to
-  Supabase `knowledge_base` table; PR requirement removed; auto-KB job rules added.
+- IV. Free Tier Discipline → GitHub Actions: monthly ≤ 2,000 minutes kept as a self-imposed
+  budget; every workflow job MUST set `timeout-minutes` (20 by default, 30 when the observed
+  maximum exceeds 13 minutes); the per-run 10-minute limit is removed.
 
 ### Added Sections
 - None
 
 ### Removed Sections
-- References to `knowledge-base.md` and `knowledge-base-template.md` throughout.
+- None
 
 ### Templates Checked
 - ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic;
-    no `knowledge-base.md` references. No changes required.
-- ✅ `.specify/templates/spec-template.md` — Generic requirements structure; no file
-    references. No changes required.
+    no runtime limit is restated there. No changes required.
+- ✅ `.specify/templates/spec-template.md` — Generic requirements structure; no runtime
+    limit referenced. No changes required.
+- ✅ `.github/workflows/*.yml` — every job now sets `timeout-minutes` (weekly 30, tests 10,
+    the rest 20), so the amended rule holds the moment it merges.
 - ✅ `.specify/templates/tasks-template.md` — Phase/parallel model is content-agnostic.
     No changes required.
 - ✅ `.specify/templates/commands/` — Directory does not exist; skipped.
@@ -79,8 +83,12 @@ approval and documentation in the relevant PR.
 
 - **Gemini**: MUST NOT exceed free tier rate limits; the 2.5-second inter-request delay MUST
   be preserved; the per-run article cap (default 30) MUST be respected.
-- **GitHub Actions**: Each workflow run MUST complete within 10 minutes; total monthly usage
-  MUST remain within the 2,000 free minutes.
+- **GitHub Actions**: Total monthly usage across all workflows MUST remain within 2,000 minutes.
+  This is a self-imposed budget: the repository is public (standard runners are not metered),
+  and the budget is kept anyway so that a switch to private needs no amendment.
+- Every workflow job MUST set an explicit `timeout-minutes` as a runaway guard, so a hung run
+  fails visibly instead of running on: 20 by default; a job whose observed maximum runtime
+  exceeds 13 minutes uses 30. There is no other per-run duration limit.
 - **Reddit RSS**: MUST use the public RSS endpoint (`/new/.rss`) without OAuth; rate limits
   MUST be respected via appropriate request delays.
 - **JP Forums / Official Sites**: MUST use public web scraping only; robots.txt MUST be
@@ -189,4 +197,4 @@ wins unless the constitution is formally amended.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 1.2.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-05-11
+**Version**: 1.3.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-13
