@@ -1,38 +1,47 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.2.0 → 1.3.0
-**Bump rationale**: MINOR — Principle IV's GitHub Actions constraint materially changed: the
-  per-run 10-minute limit is replaced by a monthly budget plus an explicit per-job timeout.
-  The limit's premise (protecting the 2,000 free minutes) does not bind a public repository,
-  measured usage is ~148 minutes over 30 days, and the limit had no executor: 13 of 54 weekly
-  runs exceeded 10 minutes (max 15.2) without any signal. Core intent (stay inside a budget,
-  fail visibly when a run goes wrong) is preserved.
+**Version change**: 1.3.0 → 2.0.0
+**Bump rationale**: MAJOR — Principle IV is redefined (Free Tier Discipline → Explicit Budgets)
+  and Technology Constraints stops fixing versions, models, plans and schedules. The rule this
+  amendment adopts: the constitution states intent and invariants; values that change in
+  routine operation live where they are enforced (config, workflow files, code next to the
+  call), indexed in `docs/external-services.md`. Evidence that the old text had decayed
+  silently: it named the `google-generativeai` SDK (not in `requirements.txt`; calls are REST),
+  default model `gemini-2.0-flash` (code default `gemini-2.5-pro`, prod `gemini-3.7-flash`), a
+  2.5-second delay (code uses per-model 4–12 s), a free-tier rule (pay-as-you-go since
+  2026-06-22), and Gmail SMTP delivery (`src/mailer.py` removed as dead code in `ddf6c84`).
+  1.3.0 itself wrote minute counts and timeout values into IV — the same mistake.
 
 ### Modified Principles
-- IV. Free Tier Discipline → GitHub Actions: monthly ≤ 2,000 minutes kept as a self-imposed
-  budget; every workflow job MUST set `timeout-minutes` (20 by default, 30 when the observed
-  maximum exceeds 13 minutes); the per-run 10-minute limit is removed.
+- II. Configuration over Code → adds: an example file that mirrors a production variable is
+  committed; the variable remains the source of truth; the mirror list is the one in
+  `scripts/check_config_drift.py` (spec 014 adds the two sources files to it).
+- Operations: source changes update the mirror in a PR when one exists, replacing "Neither
+  sources update requires a PR"; the canonical pipeline test no longer cites the removed email step.
+- IV. Free Tier Discipline → **IV. Explicit Budgets**: every external service runs inside a
+  written budget, overruns are visible, rate limits and per-run caps are explicit where the call
+  is made; values live in `docs/external-services.md` and the files it points to.
 
 ### Added Sections
-- None
+- None (the new file `docs/external-services.md` is an operational doc, not a section).
 
 ### Removed Sections
-- None
+- Technology Constraints: SDK name, default model, FFXIV source list, schedule time, email delivery.
 
 ### Templates Checked
-- ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic;
-    no runtime limit is restated there. No changes required.
-- ✅ `.specify/templates/spec-template.md` — Generic requirements structure; no runtime
-    limit referenced. No changes required.
-- ✅ `.github/workflows/*.yml` — every job now sets `timeout-minutes` (weekly 30, tests 10,
-    the rest 20), so the amended rule holds the moment it merges.
+- ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic.
+    No changes required.
+- ✅ `.specify/templates/spec-template.md` — No principle text restated. No changes required.
 - ✅ `.specify/templates/tasks-template.md` — Phase/parallel model is content-agnostic.
     No changes required.
 - ✅ `.specify/templates/commands/` — Directory does not exist; skipped.
+- ✅ `.github/workflows/*.yml` — every job already sets `timeout-minutes` (1.3.0).
 
 ### Deferred Items
-- None
+- Principle I still names a **Notify** stage and Principle V still lists `src/mailer.py`; email
+  was removed in `ddf6c84`. Principle I also calls the weekly workflow the authoritative
+  environment, while a daily workflow now writes the buffer. Left for a separate decision.
 -->
 
 # Garyu News Scraper Constitution
@@ -61,6 +70,10 @@ News sources, AI model names, and credentials MUST be externalized from source c
   stored as the GitHub Environment Variable `SOURCES_TRAFFIC_YML` and MUST NOT be committed.
 - `config/sources_ffxiv.yml` is the sole source-of-truth for FFXIV sources; it MUST be
   stored as the GitHub Environment Variable `SOURCES_FFXIV_YML` and MUST NOT be committed.
+- A `config/*.example.yml` that mirrors a production variable is committed so the setting can be
+  read and diffed in git; the variable remains the source of truth. Which files are mirrors is
+  the list in `scripts/check_config_drift.py`, and that scheduled check fails when a mirror falls
+  out of sync.
 - Secrets (API keys, passwords) MUST live in GitHub Secrets (production) or `.env` (local
   development only). Neither `.env` nor either sources config may be committed.
 - Adding, removing, or disabling a source, or swapping AI models, MUST require no code
@@ -76,24 +89,27 @@ Repeated pipeline runs on the same underlying news corpus MUST produce identical
 - The Supabase `articles` table MUST be written using the `SUPABASE_SERVICE_ROLE_KEY`; the
   anonymous key MUST NOT be used for writes to avoid RLS-related data loss.
 
-### IV. Free Tier Discipline
+### IV. Explicit Budgets
 
-All external service usage MUST remain within free tier limits. Paid usage requires explicit
-approval and documentation in the relevant PR.
+Every external service the system consumes runs inside a budget that is written down, and
+going over it MUST be visible rather than silent. This principle fixes the obligation, not the
+values: plans, budgets, models, delays, caps and timeouts change in routine operation and live
+where they are enforced, indexed in `docs/external-services.md`. Changing one is an ordinary
+reviewed PR to that file and the setting it points to, not an amendment.
 
-- **Gemini**: MUST NOT exceed free tier rate limits; the 2.5-second inter-request delay MUST
-  be preserved; the per-run article cap (default 30) MUST be respected.
-- **GitHub Actions**: Total monthly usage across all workflows MUST remain within 2,000 minutes.
-  This is a self-imposed budget: the repository is public (standard runners are not metered),
-  and the budget is kept anyway so that a switch to private needs no amendment.
-- Every workflow job MUST set an explicit `timeout-minutes` as a runaway guard, so a hung run
-  fails visibly instead of running on: 20 by default; a job whose observed maximum runtime
-  exceeds 13 minutes uses 30. There is no other per-run duration limit.
-- **Reddit RSS**: MUST use the public RSS endpoint (`/new/.rss`) without OAuth; rate limits
-  MUST be respected via appropriate request delays.
-- **JP Forums / Official Sites**: MUST use public web scraping only; robots.txt MUST be
-  checked before adding a new HTML source.
-- New external service integrations MUST be evaluated against free tier constraints before
+- Each paid or metered service MUST have its current plan, its budget and the date that plan
+  was approved recorded in `docs/external-services.md`. Moving to a paid plan requires explicit
+  approval recorded there and in the PR.
+- Rate limits MUST be respected by explicit throttling whose value lives next to the call
+  (code or configuration), not by convention.
+- Generative AI calls per run MUST be bounded by explicit caps (articles, topics, retries) set in
+  code or configuration, so cost cannot grow without a visible change.
+- Every CI workflow job MUST set an explicit `timeout-minutes` as a runaway guard, sized from the
+  job's observed maximum runtime with headroom; the value lives in the workflow file. CI usage
+  MUST stay within the budget recorded in `docs/external-services.md`.
+- Feeds and pages MUST be fetched from public endpoints without credentials for public data;
+  robots.txt MUST be checked before adding an HTML source; requests MUST be spaced by delays.
+- A new external service MUST have its budget recorded in `docs/external-services.md` before
   adoption.
 
 ### V. Single Responsibility per Module
@@ -135,37 +151,35 @@ be consulted by `src/analyzer.py` before generating any FFXIV summary.
 
 ## Technology Constraints
 
-The following technology choices are fixed for this project. Deviations require a constitution
-amendment.
+These are the project's structural choices: changing one changes the shape of the system and
+requires an amendment. Versions, model names, plans, sources and schedules are not listed here;
+they are configuration and live where they are set (Principles II and IV).
 
-- **Runtime**: Python 3.x; dependency list managed via `requirements.txt`.
-- **AI Analysis**: Gemini API (google-generativeai SDK); default model `gemini-2.0-flash`,
-  overridable via `GEMINI_MODEL_NAME` secret without code changes.
-- **Storage**: Supabase (PostgreSQL); accessed via `supabase-py` SDK using `service_role` key.
-- **FFXIV Sources**: Reddit RSS (`/r/ffxiv/new/.rss`), JP official forums HTML scraping
-  (`forum.square-enix.com/ffxiv/` and official patch note pages), and Taiwan/JP FFXIV
-  official sites for structured patch note pages.
+- **Runtime**: Python 3; dependencies managed via `requirements.txt`.
+- **AI Analysis**: an external LLM API called from `src/analyzer.py`; the model is chosen by
+  configuration (`GEMINI_MODEL_NAME`). The current provider, model and plan are recorded in
+  `docs/external-services.md`.
+- **Storage**: Supabase (PostgreSQL); writes use the `service_role` key.
 - **Knowledge Base**: Supabase `knowledge_base` table; queried at analysis runtime by
-  `src/analyzer.py`; auto-expanded weekly by `scripts/auto_kb.py` via Gemini.
+  `src/analyzer.py`; auto-expanded by `scripts/auto_kb.py`.
+- **Sources**: public feeds, pages and APIs, as configured (Principle II).
 - **Public API**: Cloudflare Worker (`workers/api/`); serves the `articles` data to frontends.
-- **Frontend**: Cloudflare Pages (`pages/`); separate deployments for traffic and FFXIV
-  content (distinct domains or sub-paths).
-- **Scheduling**: GitHub Actions weekly workflow (Monday 08:00 Taiwan time).
-- **Email delivery**: Gmail SMTP using an App Password (16-character format).
+- **Frontend**: Cloudflare Pages (`pages/`); separate deployments for traffic and FFXIV.
+- **Scheduling and CI**: GitHub Actions; schedules live in `.github/workflows/`.
 
 ## Operations & Deployment
 
 Standard operating procedures that all contributors MUST follow.
 
-- The canonical test for a full pipeline run is: GitHub Actions UI → **Actions →
-  週報自動系統 → Run workflow**. Confirm success by checking that `信件寄送成功` appears
-  in the run log.
+- The canonical test for a full pipeline run is a manual dispatch of
+  `.github/workflows/weekly.yml`. Confirm success by the run concluding successfully and by
+  the weekly verification routine's report (`routines/weekly-verify/`).
 - Local development MUST use `.env` (copied from `.env.example`) and local copies of both
   `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example`
   counterparts). All four files MUST remain in `.gitignore`.
-- To add or modify traffic sources: edit `SOURCES_TRAFFIC_YML` in GitHub Environment Variables.
-- To add or modify FFXIV sources: edit `SOURCES_FFXIV_YML` in GitHub Environment Variables.
-- Neither sources update requires a PR.
+- To add or modify traffic or FFXIV sources: edit `SOURCES_TRAFFIC_YML` or `SOURCES_FFXIV_YML`
+  in GitHub Environment Variables. If that variable has a mirror (Principle II), update the
+  mirror to match in a PR; the scheduled drift check fails when it was skipped.
 - To rotate secrets: update the relevant GitHub Secret. No PR needed.
 - The `SUPABASE_SERVICE_ROLE_KEY` secret MUST be shared between the weekly workflow and the
   Cloudflare Worker; both require the ability to bypass RLS on the `articles` table.
@@ -197,4 +211,4 @@ wins unless the constitution is formally amended.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 1.3.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-13
+**Version**: 2.0.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-13
