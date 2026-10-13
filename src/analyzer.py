@@ -27,8 +27,8 @@ GEMINI_EMBED_URL = (
 )
 EMBED_DIMENSIONS = 768  # MRL truncation from 3072; balances accuracy vs storage
 EMBED_MAX_RETRIES = 3
-# 一次 run 所有 embedding 重試的等待總上限。09-14 週報 workflow 跑 8m39s，
-# 離憲章 IV 的 10 分鐘只剩約 80s（BACKLOG #13）。
+# 一次 run 所有 embedding 重試的等待總上限。訂值時（09-14）憲章 IV 單次上限 10 分、週報 8m39s，只剩約 80s（BACKLOG #13）；
+# 1.3.0 起改成 job timeout（週報 30 分），這個預算沒有跟著放寬。
 EMBED_RETRY_BUDGET_SECONDS = 60
 
 SYSTEM_PROMPT = (

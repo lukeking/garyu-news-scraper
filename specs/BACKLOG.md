@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
 | `GNS-20261005-nwn` | `embed_dedup` 比對窗改成本週＋上週未消耗（OQ#2，方向 A） | 10-12、10-19 兩次週報跑完（A 上線滿兩週） | A 上線後連兩週，週報 digest 池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_pool_near_dups.py <RUN_ID>` 量）；或寫明不改的理由 |
 | `GNS-20261005-crb` | 來源清單只存在 GitHub 變數，git 沒有副本 | GNS-008 重開條件成立、要判斷來源結構時；或下次改 `SOURCES_TRAFFIC_YML` 時 | 選定並落地一條（example 改成鏡像，或另存來源清單快照並納入漂移檢查），或寫明不做的理由 |

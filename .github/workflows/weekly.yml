@@ -11,6 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # 實測最長 15.2 分鐘（09-07），20 的餘裕不夠，見憲章 IV
     environment: production
 
     steps:
