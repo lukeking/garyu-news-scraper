@@ -34,7 +34,7 @@ query 本身不準），所以評估要分關報數字，還要列出標題讓�
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-依據憲章 1.3.0（PR #161 merge 後；merge 前 IV 仍是單次 10 分鐘，本 plan 的 SC-003 跟著修訂後的條文）。
+依據憲章 2.0.0（PR #163）：IV 改名 Explicit Budgets，timeout 與預算的值在 workflow 檔與 `docs/external-services.md`。
 
 | 原則 | 判定 | 依據 |
 |---|---|---|
@@ -45,15 +45,12 @@ query 本身不準），所以評估要分關報數字，還要列出標題讓�
 | **V. Single Responsibility** | ✅ 通過 | 漏斗記帳在 traffic 管線自己的 `filter()`；池來源 log 放在既有 digest log 函式旁；評估工具在 `scripts/`。不新增 `src/` 模組 |
 | **VI. Knowledge Base Integrity** | N/A | FFXIV 專屬，本功能只把 FFXIV 的 example 改成鏡像，不動其來源內容 |
 
-### ⚠️ 原則 II／Operations 的文字修正（本 spec 的 PR 內做，PATCH 1.3.1）
+### 原則 II／Operations 的文字修正——已由憲章 2.0.0 處理（PR #163）
 
-鏡像加漂移檢查之後，「只改 GitHub 變數」會讓隔天的 daily 變紅。這是 `crb` 要的效果（來源變更留在 git），但與 Operations
-「Neither sources update requires a PR」直接矛盾。修法是改文字，不是改設計：
-
-- 原則 II：補一句「`config/*.example.yml` 是 prod 的鏡像，會進 git；變數仍是唯一真身」。
-- Operations：改成「改來源＝改變數，並在同一個 PR 同步鏡像；daily 的漂移檢查會抓到沒同步的」。
-
-PATCH（措辭釐清，不改原則意圖）。依賴 PR #161 先 merge，避免兩份憲章修訂互相覆蓋。
+鏡像加漂移檢查之後，「只改 GitHub 變數」會讓隔天的 daily 變紅，與舊 Operations「Neither sources update requires a PR」矛盾。
+原本規劃在本 spec 做 PATCH 1.3.1；10-13 Luke 裁示另開 PR 把憲章改成「只寫意圖」（2.0.0），這段措辭併進去：
+II 寫明有鏡像的 example 進 git、鏡像清單以 `scripts/check_config_drift.py` 為準；Operations 改成有鏡像就在 PR 同步。
+本 spec 在 T007 把兩份 sources 加進清單，條文自動涵蓋。
 
 ### ⚠️ 刻意翻案：`test_only_declared_mirrors_are_checked`
 
@@ -97,7 +94,6 @@ tests/unit/
 ├── test_digest_pool.py          # 加：池來源 log
 ├── test_evaluate_sources.py     # 新增：暫存 categories 合併、寫入保險
 └── test_check_config_drift.py   # 改寫守門員
-.specify/memory/constitution.md  # PATCH 1.3.1（II／Operations 措辭）
 routines/weekly-verify/          # PROMPT (A) 改指新列；FOCUS 加追蹤名單
 specs/BACKLOG.md                 # closeout：移出 GNS-008、crb；新增追 L1／L2 的列
 ```
@@ -109,7 +105,7 @@ specs/BACKLOG.md                 # closeout：移出 GNS-008、crb；新增追 L
 
 | 段 | 內容 | 檢查 |
 |---|---|---|
-| A | 憲章 PATCH 1.3.1（等 #161 merge） | 文字對照 Constitution Check 那兩點 |
+| A | ~~憲章 PATCH 1.3.1~~ 已併入 #163（憲章 2.0.0） | #163 merge 後才開始 B |
 | B | `crb`：example 同步成鏡像 → 本機漂移檢查綠 → 改 `MIRRORED` 與守門員 | `check_config_drift.py` 本機綠；改壞 example 一個值會紅 |
 | C | 漏斗記帳（C1）＋池來源 log（C2）＋評估工具（C3） | 單元測試；評估工具在現行清單上跑一次，`天下交通` 的漏斗要顯示整批掉在過濾那關 |
 | D | 評估候選（人工判讀標題） | 每個採用的候選：正題進池 > 0（SC-001 Gate）；runtime 估算 |

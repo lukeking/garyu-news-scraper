@@ -33,12 +33,11 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 
 ## Phase 1: Setup
 
-**Purpose**: 憲章措辭跟上 `crb` 的設計（plan 的 Constitution Check）。必須在 US2 改 `MIRRORED` 之前 merge 進同一個 PR。
+**Purpose**: 憲章措辭跟上 `crb` 的設計——已由憲章 2.0.0（PR #163）處理，本 spec 不再修憲。
 
-- [ ] T001 在 `.specify/memory/constitution.md` 做 PATCH 1.3.0 → 1.3.1：原則 II 補一句「`config/*.example.yml` 是 prod 的鏡像、
-      會進 git；GitHub 變數仍是唯一真身」；Operations 的兩條「To add or modify … sources」改成「改變數，並在同一個 PR 同步
-      對應的 example 鏡像；daily 的漂移檢查會抓到沒同步的」，刪掉「Neither sources update requires a PR」。
-      更新檔頭 Sync Impact Report（PATCH：措辭釐清，原則意圖不變）與版本行。
+- [~] T001 ~~憲章 PATCH 1.3.1（原則 II／Operations 的鏡像措辭）~~——移出範圍：併入憲章 2.0.0（PR #163），
+      II 已寫明「有鏡像的 example 進 git、鏡像清單以 `scripts/check_config_drift.py` 為準」，Operations 已改成「有鏡像就在 PR 同步」。
+      本 spec 只要在 T007 把兩份 sources 加進那份清單，條文就涵蓋它們。**#163 要先 merge。**
 
 **Checkpoint**: 憲章文字與 plan 的 Constitution Check 一致。
 
@@ -146,7 +145,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 
 ## Dependencies & Execution Order
 
-- **Phase 1（T001）**：不擋程式，但要與 T007 在同一個 PR，且在 PR 轉 ready 前完成。
+- **Phase 1（T001）**：已移出範圍（PR #163）。#163 merge 後再開始 US2。
 - **Phase 2（US2）**：T002 → T003／T004（平行）→ T005 → T006 → T007 → T008。
 - **Phase 3（US3）**：T009／T010／T011 平行（RED）→ T012 → T013（可與 T012 平行，不同檔）→ T014（依賴 T012）→ T015。
 - **Phase 4（US1）**：依賴 Phase 2（鏡像在，T019 才有地方同步）與 Phase 3（T014 評估工具）。T016／T017 可交錯 → T018（Luke 裁示）→ T019 → T020（Luke 確認）→ T021。
