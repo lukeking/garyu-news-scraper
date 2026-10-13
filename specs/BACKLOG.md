@@ -36,7 +36,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
-| `GNS-20261005-nwn` | `embed_dedup` 比對窗改成本週＋上週未消耗（OQ#2，方向 A） | 10-12、10-19 兩次週報跑完（A 上線滿兩週） | A 上線後連兩週，週報 digest 池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_embed_dedup_gap.py` 與 `replay_digest_pool.py` 量）；或寫明不改的理由 |
+| `GNS-20261005-nwn` | `embed_dedup` 比對窗改成本週＋上週未消耗（OQ#2，方向 A） | 10-12、10-19 兩次週報跑完（A 上線滿兩週） | A 上線後連兩週，週報 digest 池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_pool_near_dups.py <RUN_ID>` 量）；或寫明不改的理由 |
 | `GNS-20261005-crb` | 來源清單只存在 GitHub 變數，git 沒有副本 | GNS-008 重開條件成立、要判斷來源結構時；或下次改 `SOURCES_TRAFFIC_YML` 時 | 選定並落地一條（example 改成鏡像，或另存來源清單快照並納入漂移檢查），或寫明不做的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時 | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-654` | `measure_relevance.py --add` 不帶 `--ablate` 時靜默忽略 | 下次動 `scripts/measure_relevance.py` 時 | `--add` 不帶 `--ablate` 時以非零 exit 結束並說明原因，有一條 unit test 鎖住 |
@@ -1035,14 +1035,14 @@ B 的誤殺證據只有判斷級：發布同一天、餘弦 0.88–0.92 的對�
 
 ### 驗證點
 
-- A：10-12、10-19 兩次週報之後，本機用 `replay_digest_pool.py <RUN_ID>` 的匯流新進清單與
-  `measure_embed_dedup_gap.py` 確認池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對。daily log 的
+- A：10-12、10-19 兩次週報之後，本機跑 `scripts/measure_pool_near_dups.py <RUN_ID>`，確認池裡沒有
+  餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_embed_dedup_gap.py` 量的是全庫，不限池）。daily log 的
   `[embed_dedup] 已在緩衝區（<week_id> id=…）` 裡 week_id 是上週的，就是 A 新擋下來的。
 - A 的副作用：去重會讓池子變小。看週報 log 的 `digest[道安政策] 最大來源：… 抽掉最大剩 N`（GNS-008 的 L1）；
   重複多半出自池裡最大的來源（`Google News 交通安全教育`），抽掉最大剩的那個數受影響應該不大（推論）。
 - **10-12（第一週）✅**：池內 24 篇兩兩比，餘弦 ≥ 0.88 的對是 **0**（10-13 本機量，run `38197979312`）。同一把尺量 10-05 的池
-  （A 上線前，run `37256590136`）抓到 6 對、全部發布差 < 24h——尺會咬。量法：用 `replay_digest_pool.links_from_log` 還原池的連結，
-  拉 `embedding` 兩兩算餘弦（`measure_embed_dedup_gap.py` 量的是全庫，不限池）。副作用那條見 GNS-008 觀測記錄 10-12：
+  （A 上線前，run `37256590136`）抓到 6 對、全部發布差 < 24h——尺會咬。
+  副作用那條見 GNS-008 觀測記錄 10-12：
   A 對 L1 的影響最多 2～3 則新聞，不改判定。
 
 ---
