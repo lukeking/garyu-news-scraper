@@ -121,7 +121,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       收集耗時）寫進 `evaluation.md`。
 - [X] T017 [US1] 評估新增 query（research R7 的方向：政策行為者與事件）。同 T016 的記錄方式；標題會帶 `行人`／`路口` 的要特別看分類。
       量少的候選隔幾天再評一次，不因單次 0 篇下結論。
-- [ ] T018 [US1] 彙整採用清單到 `evaluation.md`：每個來源的 Gate 結果（正題進池篇數）、合計是否達 research R6 的目標（每週多 10 篇非最大來源）、
+- [X] T018 [US1] 彙整採用清單到 `evaluation.md`：每個來源的 Gate 結果（正題進池篇數）、合計是否達 research R6 的目標（每週多 10 篇非最大來源）、
       runtime 增量估算（每來源約 1.5 秒／run）、embedding 增量。**交 Luke 裁示採用哪些**（`[你]`）。
 - [ ] T019 [US1] 把採用的變更寫進本機 `config/sources_traffic.yml`（需要時加 `config/categories_traffic.yml` 的 `source_defaults`），
       同步兩份對應的 example 鏡像；本機漂移檢查要綠。
