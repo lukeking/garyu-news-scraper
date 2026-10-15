@@ -301,3 +301,16 @@ def log_digest_pool_concentration(logger, category: str, pool_all: list) -> None
     total = len(pool_all)
     logger.info("digest[%s] 最大來源：%s %d/%d（%.1f%%），抽掉最大剩 %d",
                 category, top, n, total, 100 * n / total, total - n)
+
+
+def log_digest_pool_sources(logger, category: str, pool_all: list) -> None:
+    """印出池內每個來源各幾篇（014 C2）：降冪、同數依名稱；池裡 0 篇的來源不會出現。
+    排序鍵用 `str(s)`：缺 source 的文章印成 `None`，與真來源同數時也不會因比較 None 而炸掉週跑。"""
+    from collections import Counter
+
+    if not pool_all:
+        return
+    per_src = Counter(a.get("source") for a in pool_all)
+    ranked = sorted(per_src.items(), key=lambda kv: (-kv[1], str(kv[0])))
+    parts = "、".join(f"{s} {n}" for s, n in ranked)
+    logger.info("digest[%s] 池來源：%s（共 %d 個來源）", category, parts, len(per_src))
