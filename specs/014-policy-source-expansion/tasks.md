@@ -51,9 +51,13 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 **Independent Test**: 本機跑 `.venv/bin/python scripts/check_config_drift.py` 綠；把鏡像的某個值改掉（在 scratchpad 的副本上，
 不在主工作區）再比，會紅並指出那個鍵。
 
-- [ ] T002 [US2] 確認本機 `config/sources_traffic.yml` 與 prod `SOURCES_TRAFFIC_YML` 解析後相同
+- [X] T002 [US2] 確認本機 `config/sources_traffic.yml` 與 prod `SOURCES_TRAFFIC_YML` 解析後相同
       （`gh variable get SOURCES_TRAFFIC_YML --env production`，YAML parse 後比物件；不同就以 prod 為準更新本機並記下差異）。
       `config/sources_ffxiv.yml` 與 `SOURCES_FFXIV_YML` 同樣比一次。
+      **結果（10-15）**：traffic 相同（33 筆）。ffxiv 本機落後 prod：prod 9 筆、本機 4 筆（缺 JP 論壇 4 個子版；
+      `FFXIV JP Forum`、`FFXIV TW 修正說明` 本機是 `enabled: false`、prod 是 `true`），已以 prod 覆蓋本機，讀回解析後相同。
+      另發現 prod 的 `forumids=553` 名字誤植成 `FFXIV JP Forum - HEALER`（RSS 頻道標題是「その他バトルシステム」；
+      552 才是 HEALER），修正併入 T019／T020。
 - [ ] T003 [P] [US2] 把 `config/sources_traffic.example.yml` 改成 `config/sources_traffic.yml` 的鏡像：`sources:` 的內容逐筆相同，
       保留檔頭的欄位與 type 說明（註解不影響比對），把「這是格式範例」改寫成「這是 prod 的鏡像，改來源要同步這裡」。
 - [ ] T004 [P] [US2] 同 T003，對 `config/sources_ffxiv.example.yml`。
@@ -125,7 +129,10 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       runtime 增量估算（每來源約 1.5 秒／run）、embedding 增量。**交 Luke 裁示採用哪些**（`[你]`）。
 - [ ] T019 [US1] 把採用的變更寫進本機 `config/sources_traffic.yml`（需要時加 `config/categories_traffic.yml` 的 `source_defaults`），
       同步兩份對應的 example 鏡像；本機漂移檢查要綠。
+      另外把 `config/sources_ffxiv.yml` 與其鏡像裡 `forumids=553` 那筆改名為 `FFXIV JP Forum - その他バトルシステム`
+      （T002 發現的誤植；Luke 10-15 裁示併入 014，是 FFXIV 內容唯一的一行改動）。
 - [ ] T020 [US1] 改 prod 變數（`gh variable set … --env production < 檔案`，不用 `--body`），讀回後 YAML parse 比對物件相同。
+      含 `SOURCES_FFXIV_YML`（T019 的改名）。
       **動手前再跟 Luke 確認一次**（對外、會影響隔天的 daily）。
 - [ ] T021 [US1] 上線後第一個 daily：新增或調整的來源都有 C1 漏斗行、漂移檢查綠、runtime 沒有異常；結果寫進 `evaluation.md`。
 
