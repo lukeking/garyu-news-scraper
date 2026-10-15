@@ -181,6 +181,21 @@ def test_vector_dedup_drop_is_counted_in_the_vector_stage(boundary, monkeypatch,
     assert "[來源漏斗] 乙台：收集 2 → 新鮮度 2 → 過濾 2 → 封鎖 2 → 同批去重 2 → 向量去重 1 → 寫入上限 1（匯流四類 1）" in _funnel_lines(caplog)
 
 
+def test_vector_dedup_failure_prints_f_as_e(boundary, monkeypatch, caplog):
+    """C1-3 的另一條路：向量去重拋例外而略過時，f 照 e 印（不印成 0），並留下既有的 warning。"""
+    def boom(self, deduped, config, now=None):
+        raise RuntimeError("Gemini 掛了")
+    monkeypatch.setattr("src.storage.is_configured", lambda: True)
+    monkeypatch.setattr("src.storage.get_existing_title_fingerprints", lambda: set())
+    monkeypatch.setattr(TrafficCategory, "_embedding_dedup", boom)
+    cat = TrafficCategory()
+    with caplog.at_level(logging.INFO, logger="src.pipeline.traffic"):
+        cat.filter(cat.collect(SOURCES))
+    assert "嵌入去重複失敗，略過" in caplog.text
+    assert "[來源漏斗] 乙台：收集 2 → 新鮮度 2 → 過濾 2 → 封鎖 2 → 同批去重 2 → 向量去重 2 → 寫入上限 1（匯流四類 1）" in _funnel_lines(caplog)
+    assert all(c[5] == c[4] for c in cat.last_funnel.values())
+
+
 def test_config_failure_clears_the_previous_funnel_and_prints_nothing(boundary, monkeypatch, caplog):
     """分類設定載入失敗走早退：既有 warning 就是訊號，不印漏斗；上一次的 last_funnel 不可殘留。"""
     def broken(*a, **k):
