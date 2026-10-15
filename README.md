@@ -227,8 +227,8 @@ cd workers/api && npx wrangler dev
 | `functions/api/[[path]].js` | CF Pages Function（代理 `/api/*` 至 Worker） |
 | `pages/traffic/index.html` | Traffic 前端（含深色模式、過時標記） |
 | `pages/ffxiv/index.html` | FFXIV 前端（含深色模式、過時標記） |
-| `config/sources_traffic.example.yml` | Traffic 來源設定範本 |
-| `config/sources_ffxiv.example.yml` | FFXIV 來源設定範本 |
+| `config/sources_traffic.example.yml` | Traffic 來源設定的 prod 鏡像（`SOURCES_TRAFFIC_YML`，daily 漂移檢查比對） |
+| `config/sources_ffxiv.example.yml` | FFXIV 來源設定的 prod 鏡像（`SOURCES_FFXIV_YML`，daily 漂移檢查比對） |
 | `config/knowledge-base-template.md` | KB 詞條格式說明 |
 | `db/supabase_schema.sql` | 資料庫 schema |
 | `db/supabase_migrations/` | 增量 migration SQL |

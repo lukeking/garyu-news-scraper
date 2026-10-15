@@ -9,9 +9,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import logging
+import re
 
 from src.topic_scoring import (
     select_digest_pool, log_digest_pool_composition, log_digest_pool_concentration,
+    log_digest_pool_sources,
 )
 
 _CFG = {"trigger_count": 10, "quality_floor": 0.18, "max_articles": 15}
@@ -298,3 +300,56 @@ def test_concentration_silent_on_empty_pool(caplog):
     with caplog.at_level(logging.INFO, logger="test_weekly"):
         log_digest_pool_concentration(logger, "道安政策", [])
     assert "最大來源" not in caplog.text
+
+
+# ── 014 C2：池來源行——新增／調整的來源有沒有進池，從週報 log 讀得到 ──────────
+# 守備範圍同上：守這個函式怎麼印，不守週跑腳本有沒有呼叫它。
+
+def _sources_entries(caplog):
+    """把 `池來源：` 那一行拆成 [(來源, 篇數)]，另回傳 `（共 k 個來源）` 的 k。"""
+    m = re.search(r"池來源：(.*)（共 (\d+) 個來源）$", "\n".join(caplog.messages), re.M)
+    assert m, f"找不到池來源行：{caplog.messages!r}"
+    entries = [e.rsplit(" ", 1) for e in m.group(1).split("、")]
+    return [(s, int(n)) for s, n in entries], int(m.group(2))
+
+
+def test_sources_desc_then_name_on_ties(caplog):
+    """C2-1：降冪；同數依名稱。警政署先進池，但「公」< 「警」，所以公路局排前面。"""
+    logger = logging.getLogger("test_weekly")
+    pool = ([dict(_art(1), source="警政署"), dict(_art(2), source="公路局")]
+            + [dict(_art(i), source="交通安全教育") for i in range(3, 6)])
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_sources(logger, "道安政策", pool)
+    assert "digest[道安政策] 池來源：交通安全教育 3、公路局 1、警政署 1（共 3 個來源）" in caplog.messages
+
+
+def test_sources_counts_sum_to_pool_and_k_is_distinct(caplog):
+    """C2-2：以 09-28 prod 形狀（池 40、交通安全教育 33、其餘 7 個各 1）驗總和與 k。"""
+    logger = logging.getLogger("test_weekly")
+    pool = ([dict(_art(i), source="交通安全教育") for i in range(33)]
+            + [_art(i, cat="路權政策") for i in range(33, 40)])
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_sources(logger, "道安政策", pool)
+    entries, k = _sources_entries(caplog)
+    assert sum(n for _, n in entries) == len(pool) == 40
+    assert k == len(entries) == len({a["source"] for a in pool}) == 8
+    assert entries[0] == ("交通安全教育", 33)
+
+
+def test_sources_silent_on_empty_pool(caplog):
+    """C2-3：池為空時不印，與「最大來源」行相同。"""
+    logger = logging.getLogger("test_weekly")
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_sources(logger, "道安政策", [])
+    assert "池來源" not in caplog.text
+
+
+def test_sources_missing_source_does_not_raise(caplog):
+    """source 為 None 或缺欄位時照算一個鍵、印成 `None`；與真來源同數也不得在排序時炸掉。"""
+    logger = logging.getLogger("test_weekly")
+    no_key = {k: v for k, v in _art(2).items() if k != "source"}
+    pool = [dict(_art(1), source=None), no_key, dict(_art(3), source="公路局"),
+            dict(_art(4), source="公路局")]
+    with caplog.at_level(logging.INFO, logger="test_weekly"):
+        log_digest_pool_sources(logger, "道安政策", pool)
+    assert "digest[道安政策] 池來源：None 2、公路局 2（共 2 個來源）" in caplog.messages

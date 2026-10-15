@@ -1,5 +1,6 @@
 import logging
 import os
+from collections import Counter
 from datetime import datetime, timezone, timedelta
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,29 @@ def dedup_window(buffer_rows: list, now: datetime) -> list:
     weeks = {f"{y}-W{w:02d}" for y, w, _ in (local.isocalendar(), (local - timedelta(days=7)).isocalendar())}
     return [a for a in buffer_rows if a.get("week_id") in weeks]
 
+
+def confluence_categories(config: dict) -> set:
+    """匯流類別＝每個 category_digest 的主類別＋其 include_categories；從設定推導，程式裡不寫類別名。"""
+    out: set = set()
+    for cat, entry in (config.get("category_digest") or {}).items():
+        out |= {cat} | set(entry.get("include_categories") or [])
+    return out
+
+
+def source_funnel(attempted: list, stages: list, confluence: set) -> dict:
+    """逐來源漏斗（contracts C1）：stages＝收集…寫入上限七關之後的 list，回傳 {來源: (a…g, h)}。
+    順序先照 attempted、再補 stages[0] 裡名單外的來源（依首次出現）；0 篇的來源照樣有一列。"""
+    per_stage = [Counter(a.get("source") for a in stage) for stage in stages]
+    in_confluence = Counter(a.get("source") for a in stages[-1] if a.get("major_category") in confluence)
+    names = dict.fromkeys(list(attempted) + [a.get("source") for a in stages[0]])
+    return {n: tuple(c[n] for c in per_stage) + (in_confluence[n],) for n in names}
+
+
+def funnel_line(source, counts: tuple) -> str:
+    """C1 的一行。行首與箭頭是週驗收 routine grep 的錨（C1-4），改了要同步 routine。"""
+    a, b, c, d, e, f, g, h = counts
+    return f"[來源漏斗] {source}：收集 {a} → 新鮮度 {b} → 過濾 {c} → 封鎖 {d} → 同批去重 {e} → 向量去重 {f} → 寫入上限 {g}（匯流四類 {h}）"
+
 class TrafficCategory:
     name = "traffic"
     content_type = "traffic"
@@ -29,9 +53,12 @@ class TrafficCategory:
         y, w, _ = dt.isocalendar()
         return f"{y}-W{w:02d}"
 
-    def collect(self) -> list:
+    def collect(self, sources: list | None = None) -> list:
         from src.collector import load_sources, collect_sources
-        return collect_sources(load_sources())
+        if sources is None:
+            sources = load_sources()
+        self._attempted_names = [s.get("name") for s in sources]
+        return collect_sources(sources)
 
     def filter(self, raw: list) -> list:
         from src.filter import freshness_filter, filter_and_deduplicate, normalise_title, assign_category, resolve_source_default, compute_quality_score, compute_jaccard
@@ -48,6 +75,7 @@ class TrafficCategory:
         after_freshness = freshness_filter(raw, existing_fps)
         # No cap yet — dedup first so the quota is spent on unique stories
         candidates = filter_and_deduplicate(after_freshness, throttle=False)
+        stages = [raw, after_freshness, candidates]
 
         try:
             config = load_pipeline_config()
@@ -55,6 +83,7 @@ class TrafficCategory:
             source_defaults = load_source_default_categories()
         except Exception as e:
             logger.warning("[%s] 分類設定載入失敗，略過分類步驟：%s", self.name, e)
+            self.last_funnel = {}
             return candidates[:self.max_articles]
 
         # Drop articles from blocked sources (brand keyword match).
@@ -81,6 +110,7 @@ class TrafficCategory:
             dropped = before - len(candidates)
             if dropped:
                 logger.info("[%s] 內容關鍵字封鎖：略過 %d 筆", self.name, dropped)
+        stages.append(candidates)
 
         for article in candidates:
             tokens = normalise_title(article.get("title") or "")
@@ -109,6 +139,7 @@ class TrafficCategory:
                 deduped.append(article)
             elif len(ts) > len(deduped[dup_idx].get("token_set", frozenset())):
                 deduped[dup_idx] = article
+        stages.append(deduped)
 
         # LLM same-event dedup: catches same-incident articles that Jaccard misses
         # (different reporters, different angles, same event). Also checks against this and
@@ -118,13 +149,21 @@ class TrafficCategory:
                 deduped = self._embedding_dedup(deduped, config)
             except Exception as e:
                 logger.warning("[%s] 嵌入去重複失敗，略過：%s", self.name, e)
+        stages.append(deduped)
 
         deduped.sort(key=lambda a: float(a.get("initial_quality_score") or 0), reverse=True)
         # Buffer cap is a feed-flood safety ceiling, not a cost control: generative
         # spend is bounded at the weekly stage (min_threshold + max_hot_topics + novelty
         # gate), so low-frequency deep sources are no longer starved by a tight daily cap.
         max_daily = config.get("buffer", {}).get("max_daily_articles", 100)
-        return deduped[:max_daily]
+        kept = deduped[:max_daily]
+        stages.append(kept)
+
+        attempted = getattr(self, "_attempted_names", [])
+        self.last_funnel = source_funnel(attempted, stages, confluence_categories(config))
+        for source, counts in self.last_funnel.items():
+            logger.info("%s", funnel_line(source, counts))
+        return kept
 
     def _embedding_dedup(self, deduped: list, config: dict, now=None) -> list:
         from src.storage import get_traffic_buffer

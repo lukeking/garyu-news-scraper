@@ -1,7 +1,8 @@
 # sources_traffic.example.yml
-# 這是 config/sources_traffic.yml 的格式範例，說明所有支援的欄位與 type。
+# 這是 prod 來源設定的鏡像：sources 與 SOURCES_TRAFFIC_YML 解析後逐筆相同（順序也算），
+# 由 scripts/check_config_drift.py 每天比對。改來源要同步這裡（同一個 PR），否則隔天 daily 會紅。
 # 實際使用的設定存放在 GitHub Environment Variable: SOURCES_TRAFFIC_YML
-# 請勿把 config/sources_traffic.yml 加入 git（已在 .gitignore 中排除）。
+# 本機開發時複製成 config/sources_traffic.yml；請勿把它加入 git（已在 .gitignore 中排除）。
 #
 # ┌─────────────────────────────────────────────────────────────┐
 # │  支援的 type                                                 │
@@ -10,26 +11,147 @@
 # │  web     → 一般網頁爬蟲（BeautifulSoup）                    │
 # │  youtube → YouTube 頻道影片（需設定 YOUTUBE_API_KEY）        │
 # └─────────────────────────────────────────────────────────────┘
+#
+# 以下欄位說明是註解，不影響比對。停用來源：改成 enabled: false 即可，不需要刪除整個 block。
+#
+# ── type: rss ──────────────────────────────────────────────
+# 必要欄位：name, type, url
+# 選用欄位：enabled（預設 true）
+#          lookback_days（預設 7）— 放寬該來源的新鮮度視窗。
+#          低頻政策來源（道安、基本法…）月發數則，7 天視窗幾乎抓不到；
+#          設 30 可納入近一個月的政策報導，讓 道安政策 bucket 累積足量。
+#          同時讓文章跳過 filter 的 14 天 stale 啟發式（收集端已按此視窗把關）。
+#          relevance_exempt（預設 false）— 跳過 MUST_INCLUDE 機車關鍵字檢查。
+#          政策/深度來源的查詢詞本身就是主題篩選，開會文、民團報告常無
+#          機車字眼，不豁免會在 filter 端全滅。
+# 非 Google News 的 RSS 會再用 MOTORCYCLE_KEYWORDS 過濾一次；
+# Google News 的 RSS 因為 query 已鎖定主題，不做這一層。
+#
+# ── type: ptt ──────────────────────────────────────────────
+# 必要欄位：name, type, board（PTT 板名，注意大小寫：biker、SuperBike）
+# 選用欄位：enabled（預設 true）、min_pushes（預設 5；只收推文數 >= 此值的文章，「爆」自動視為 10）
+#
+# ── type: web ──────────────────────────────────────────────
+# 必要欄位：name, type, url
+# 選用欄位：enabled（預設 true）、max_items（預設 10；最多抓幾筆命中 MOTORCYCLE_KEYWORDS 的連結）
+#
+# ── type: youtube ──────────────────────────────────────────
+# 必要欄位：name, type, channel_id
+# 選用欄位：enabled（預設 true）、max_items（預設 5）、lookback_days（預設 2）
+# channel_id：接受兩種格式：
+#   UC 開頭的頻道 ID（如 UCxxxxxxxxxxxxxxxxxxxxxxxx）
+#   @ 開頭的 handle → 必須加引號（如 "@abcd"）→ 程式自動解析為頻道 ID（多用 1 quota unit）
+#   ⚠️  @ 字元在 YAML 中需要引號，否則會 parse error：channel_id: "@abcd" ✓  @abcd ✗
+#   找法：頻道頁面 URL → youtube.com/channel/UC... 或 youtube.com/@handle
+# 前置條件：需在 GitHub Secrets 設定 YOUTUBE_API_KEY（YouTube Data API v3 金鑰）
+#
+# ⚠️  中文頻道注意：中文 YouTube 頻道多半用內嵌字幕或不上字幕，很少提供 CC，
+#   transcript API 常只能拿到標題＋說明，分析深度與 RSS 文章無異，所以原本不建議收錄。
+#   現況：prod 仍啟用 4 個中文頻道；2026-10-15 實測 火花羅、台灣解碼中 取不到逐字稿（退回標題＋說明），
+#   貓頭鷹交通書、企鵝交通手扎 取得到。後續見 specs/BACKLOG.md 的 GNS-20261015-0cz。
 
 sources:
 
-  # ── type: rss ──────────────────────────────────────────────
-  # 必要欄位：name, type, url
-  # 選用欄位：enabled（預設 true）
-  #          lookback_days（預設 7）— 放寬該來源的新鮮度視窗。
-  #          低頻政策來源（道安、基本法…）月發數則，7 天視窗幾乎抓不到；
-  #          設 30 可納入近一個月的政策報導，讓 道安政策 bucket 累積足量。
-  #          同時讓文章跳過 filter 的 14 天 stale 啟發式（收集端已按此視窗把關）。
-  #          relevance_exempt（預設 false）— 跳過 MUST_INCLUDE 機車關鍵字檢查。
-  #          政策/深度來源的查詢詞本身就是主題篩選，開會文、民團報告常無
-  #          機車字眼，不豁免會在 filter 端全滅。
-
+  # ── RSS 類型 ────────────────────────────────────────────────
   - name: Google News 機車交通
     type: rss
     enabled: true
     url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E4%BA%A4%E9%80%9A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
-  # 低頻政策來源範例：lookback_days 放寬視窗 + relevance_exempt 豁免機車關鍵字閘
+  - name: Google News 重機
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E9%87%8D%E6%A9%9F+%E5%8F%B0%E7%81%A3&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 白牌機車
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E7%99%BD%E7%89%8C%E6%A9%9F%E8%BB%8A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 機車法規
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E6%B3%95%E8%A6%8F+%E4%BA%A4%E9%80%9A%E9%83%A8&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News Gogoro
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=Gogoro+%E9%9B%BB%E5%8B%95%E6%A9%9F%E8%BB%8A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 機車路權
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E8%B7%AF%E6%AC%8A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 機車事故
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E4%BA%8B%E6%95%85+%E5%8F%B0%E7%81%A3&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 紅黃牌重機
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E7%B4%85%E7%89%8C+%E9%BB%83%E7%89%8C+%E6%A9%9F%E8%BB%8A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  # 聯合新聞網自家 RSS 已於 2026-07 確認廢棄（所有頻道回空 item），已移除；
+  # UDN 內容仍經 Google News 各查詢進來。
+
+  # 中時新聞網 RSS 已停止服務，改用 Google News 中時頻道
+  - name: 中時新聞網
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+site%3Achinatimes.com&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: 自由時報
+    type: rss
+    enabled: false
+    url: "https://news.ltn.com.tw/rss/all.xml"
+
+  # TVBS RSS 連線不穩，改用 Google News TVBS 頻道
+  - name: TVBS新聞
+    type: rss
+    enabled: false
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+site%3Anews.tvbs.com.tw&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: ETtoday
+    type: rss
+    enabled: false
+    url: "https://feeds.feedburner.com/ettoday/realtime"
+
+  # ── Layer 2 深度／政策來源（dry-run，餵 axis B/C 用）─────────────
+  # 經 Google News query 進來，繞過 MOTORCYCLE_KEYWORDS 過濾（query 已鎖主題）
+  - name: Google News 道安統計
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E9%81%93%E5%AE%89%20%E7%B5%B1%E8%A8%88&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 行人地獄
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E8%A1%8C%E4%BA%BA%E5%9C%B0%E7%8D%84&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  # 原 query「區間測速 科技執法」兩個詞都要出現，30 天只有 2 篇；2026-10-15 改成下面這個（spec 014 T016–T018）
+  - name: Google News 科技執法
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E7%A7%91%E6%8A%80%E5%9F%B7%E6%B3%95%20-%E7%92%B0%E4%BF%9D%E5%B1%80&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 報導者交通
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E4%BA%A4%E9%80%9A%20site%3Atwreporter.org&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  # 2026-10-15 停用（spec 014 T016–T018）：site:cw.com.tw 幾乎全是一般內容，
+  # 收窄到未來城市也只帶進早已進過庫的文章
+  - name: Google News 天下交通
+    type: rss
+    enabled: false
+    url: "https://news.google.com/rss/search?q=%E4%BA%A4%E9%80%9A%20site%3Acw.com.tw&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
   - name: Google News 道安會報
     type: rss
     enabled: true
@@ -37,143 +159,134 @@ sources:
     relevance_exempt: true
     url: "https://news.google.com/rss/search?q=%E9%81%93%E5%AE%89%E6%9C%83%E5%A0%B1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
-  - name: Google News 機車事故
+  - name: Google News 交通安全基本法
     type: rss
     enabled: true
-    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E4%BA%8B%E6%95%85&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E9%81%93%E8%B7%AF%E4%BA%A4%E9%80%9A%E5%AE%89%E5%85%A8%E5%9F%BA%E6%9C%AC%E6%B3%95&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
-  - name: Google News 機車法規
+  - name: Google News Vision Zero
     type: rss
     enabled: true
-    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+%E6%B3%95%E8%A6%8F&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E9%A1%98%E6%99%AF%E9%9B%B6%E6%AD%BB%E4%BA%A1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
-  - name: Google News 重機道路
-    type: rss
-    enabled: true
-    url: "https://news.google.com/rss/search?q=%E9%87%8D%E6%A9%9F+%E9%81%93%E8%B7%AF&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
-
-  - name: Google News 中央社機車
-    type: rss
-    enabled: true
-    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A+site:cna.com.tw&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
-    # site: 運算子鎖定中央社（source_weight 0.9），濾掉低品質來源後命中率最高
-
-  - name: 聯合新聞網
-    type: rss
-    enabled: true
-    url: "https://udn.com/rssfeed/news/2/0?ch=news"
-    # 主流新聞網的 RSS 會用 MOTORCYCLE_KEYWORDS 再次過濾，
-    # Google News 的 RSS 因為 query 已鎖定主題，不需要二次過濾。
-
-  - name: 中央社 政治
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/politics"
-
-  - name: 中央社 國際
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/intworld"
-
-  - name: 中央社 兩岸
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/mainland"
-
-  - name: 中央社 產經
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/finance"
-
-  - name: 中央社 科技
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/technology"
-
-  - name: 中央社 生活
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/lifehealth"
-
-  - name: 中央社 社會
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/social"
-
-  - name: 中央社 地方
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/local"
-
-  - name: 中央社 文化
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/culture"
-
-  - name: 中央社 運動
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/sport"
-
-  - name: 中央社 娛樂
-    type: rss
-    enabled: true
-    url: "https://feeds.feedburner.com/rsscna/stars"
-
-  - name: 停用的來源範例
-    type: rss
-    enabled: false                        # ← 只要改成 false 即可停用，不需要刪除整個 block
-    url: "https://example.com/rss"
-
-  # ── type: ptt ──────────────────────────────────────────────
-  # 必要欄位：name, type, board
-  # 選用欄位：enabled（預設 true）、min_pushes（預設 5）
-
+  # ── PTT 類型 ────────────────────────────────────────────────
   - name: PTT/biker
     type: ptt
     enabled: true
-    board: biker                          # PTT 板名，注意大小寫（biker、SuperBike）
-    min_pushes: 5                         # 只收推文數 >= 5 的文章；「爆」自動視為 10
+    board: biker       # 白牌機車板
+    min_pushes: 5
 
   - name: PTT/SuperBike
     type: ptt
     enabled: true
-    board: SuperBike                      # 紅黃牌重機板（S 和 B 要大寫）
-    min_pushes: 3                         # 重機板發文較少，可調低門檻
+    board: SuperBike   # 紅黃牌重機板（注意大小寫）
+    min_pushes: 5
 
-  # ── type: web ──────────────────────────────────────────────
-  # 必要欄位：name, type, url
-  # 選用欄位：enabled（預設 true）、max_items（預設 10）
-
+  # ── 網頁爬蟲類型 ────────────────────────────────────────────
   - name: 交通部
     type: web
     enabled: true
-    url: "https://www.motc.gov.tw/ch/home.jsp?id=14&parentpath=0,2"
-    max_items: 10                         # 最多抓幾筆公告（命中 MOTORCYCLE_KEYWORDS 的連結）
-
-  - name: 公路局
-    type: web
-    enabled: true
-    url: "https://www.thb.gov.tw/sites/ch/modules/news/news_list?Type=2"
+    # 2026-07 網站改版，舊 home.jsp 路徑 404；改新版交通新聞稿列表
+    url: "https://www.motc.gov.tw/ch/app/news_list/list?id=14"
     max_items: 10
 
-  # ── type: youtube ──────────────────────────────────────────
-  # 必要欄位：name, type, channel_id
-  # 選用欄位：enabled（預設 true）、max_items（預設 5）、lookback_days（預設 2）
-  # channel_id：接受兩種格式：
-  #   UC 開頭的頻道 ID（如 UCxxxxxxxxxxxxxxxxxxxxxxxx）
-  #   @ 開頭的 handle → 必須加引號（如 "@abcd"）→ 程式自動解析為頻道 ID（多用 1 quota unit）
-  #   ⚠️  @ 字元在 YAML 中需要引號，否則會 parse error：channel_id: "@abcd" ✓  @abcd ✗
-  #   找法：頻道頁面 URL → youtube.com/channel/UC... 或 youtube.com/@handle
-  # 前置條件：需在 GitHub Secrets 設定 YOUTUBE_API_KEY（YouTube Data API v3 金鑰）
-  #
-  # ⚠️  中文頻道注意：多數中文 YouTube 頻道不提供逐字稿，transcript API 只能拿到標題＋說明。
-  #   這種情況下分析深度與 RSS 文章無異，不建議收錄。
-  #   建議只啟用有完整逐字稿的頻道（如日文、英文交通分析頻道）。
+  # 公路局已於 2026-07 移除：整站改 JS 渲染（SPA），requests+bs4 抓不到內容。
+  # 若要撿回可改走 Google News「site:thb.gov.tw」查詢。
 
-  - name: 外國交通比較頻道範例
+  - name: 火花羅
     type: youtube
-    enabled: false
-    channel_id: UCxxxxxxxxxxxxxxxxxxxxxxxx  # 替換為實際 channel_id（UC 開頭 24 字元）
-    max_items: 5
-    lookback_days: 2
+    enabled: true
+    channel_id: "@sparklo"                  # @handle 或 UC 開頭 id 皆可（collector 會解析）
+    max_items: 3                            # 每次最多抓幾支影片（過濾 Shorts 前）
+    lookback_days: 2                        # 只抓最近幾天發布的影片
+
+  - name: 貓頭鷹交通書
+    type: youtube
+    enabled: true
+    channel_id: "@owlfuko"
+    max_items: 2                            # 更新頻率低的頻道可設低一點
+    lookback_days: 30                       # 省略時使用預設值 2
+
+  - name: 企鵝交通手扎
+    type: youtube
+    enabled: true
+    channel_id: "@icypenguinTFC"
+    max_items: 3
+    lookback_days: 14
+
+  - name: 台灣解碼中
+    type: youtube
+    enabled: true
+    channel_id: "@twcode158"
+    max_items: 3
+    lookback_days: 14
+
+  # ── 政策類擴充（2026-07-20）：實測 30 天新增非事故則數 16–32，
+  #    遠高於既有道安會報(1)/基本法(0)/Vision Zero(1)。沿用同形狀。
+
+  - name: Google News 交通安全教育
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E4%BA%A4%E9%80%9A%E5%AE%89%E5%85%A8%E6%95%99%E8%82%B2&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 處罰條例
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E9%81%93%E8%B7%AF%E4%BA%A4%E9%80%9A%E7%AE%A1%E7%90%86%E8%99%95%E7%BD%B0%E6%A2%9D%E4%BE%8B%20%E6%A9%9F%E8%BB%8A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 禁行機車
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E7%A6%81%E8%A1%8C%E6%A9%9F%E8%BB%8A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 機車待轉
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A%E5%BE%85%E8%BD%89&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 停讓行人
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E5%81%9C%E8%AE%93%E8%A1%8C%E4%BA%BA&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  # UDN 無可用 RSS（原始 XML 標題為空），改用 Google News site: 限定，同中時模式
+  - name: UDN 聯合報
+    type: rss
+    enabled: true
+    url: "https://news.google.com/rss/search?q=%E6%A9%9F%E8%BB%8A%20site%3Audn.com&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  # ── 政策類擴充（2026-10-15，spec 014）：上線前評估與逐篇判讀見 specs/014-policy-source-expansion/evaluation.md ──
+  - name: Google News 交通部道安
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E9%81%93%E5%AE%89%20%E4%BA%A4%E9%80%9A%E9%83%A8&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 高齡換照
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E9%AB%98%E9%BD%A1%E9%A7%95%E9%A7%9B%20%E6%8F%9B%E7%85%A7&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
+
+  - name: Google News 人本交通
+    type: rss
+    enabled: true
+    lookback_days: 30
+    relevance_exempt: true
+    url: "https://news.google.com/rss/search?q=%E4%BA%BA%E6%9C%AC%E4%BA%A4%E9%80%9A&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"

@@ -46,6 +46,7 @@ def main():
         cluster_traffic_articles, score_topic_buckets,
         select_hot_topics_with_novelty, topic_token_signature,
         select_digest_pool, log_digest_pool_composition, log_digest_pool_concentration,
+        log_digest_pool_sources,
     )
     from src.publisher import publish_hot_topic_reports
 
@@ -130,6 +131,7 @@ def main():
         # 印在觸發判定之前，故未觸發時仍看得到組成。
         log_digest_pool_composition(logger, cat, dcfg, pool_all)
         log_digest_pool_concentration(logger, cat, pool_all)
+        log_digest_pool_sources(logger, cat, pool_all)
         logger.info(
             "digest[%s] pool=%d effective=%d threshold=%d → %s",
             cat, len(pool_all), effective, trigger_count,

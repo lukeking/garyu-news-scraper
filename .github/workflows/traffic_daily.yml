@@ -61,6 +61,14 @@ jobs:
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
 
+      # daily 不收 FFXIV，這個檔只給下面的漂移檢查用（寫法同 weekly.yml）。
+      # 變數為空時不寫檔，漂移檢查會因讀不到而紅——讀不到不等於沒漂移。
+      - name: 寫入 config/sources_ffxiv.yml（從 GitHub Variable，選填）
+        if: ${{ vars.SOURCES_FFXIV_YML != '' }}
+        run: echo "$SOURCES_FFXIV_YML" > config/sources_ffxiv.yml
+        env:
+          SOURCES_FFXIV_YML: ${{ vars.SOURCES_FFXIV_YML }}
+
       # 設定漂移檢查刻意排在收集**之後**：文章已經寫進 Supabase，所以這一步失敗
       # 不影響當天的營運，只讓整個 run 變紅——一個看得見、但弄不壞東西的執行者。
       # 判準是解析後的值（prod 的 PIPELINE_CONFIG_YML 是 CRLF，逐字比對會天天誤報）。
