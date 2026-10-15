@@ -137,9 +137,12 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       順手（Luke 10-15 裁示，只動註解與文件）：traffic 鏡像檔頭「中文 YouTube 頻道不建議收錄」改寫成理由＋現況
       （中文頻道多半用內嵌字幕或不上字幕，CC 逐字稿常取不到；10-15 實測 `火花羅`、`台灣解碼中` 退回標題＋描述，
       後續見 `GNS-20261015-0cz`）；`README.md` 的 sources example 說明從「範本」改成「prod 來源設定的鏡像」。
-- [ ] T020 [US1] 改 prod 變數（`gh variable set … --env production < 檔案`，不用 `--body`），讀回後 YAML parse 比對物件相同。
+- [X] T020 [US1] 改 prod 變數（`gh variable set … --env production < 檔案`，不用 `--body`），讀回後 YAML parse 比對物件相同。
       含 `SOURCES_FFXIV_YML`（T019 的改名）。
       **動手前再跟 Luke 確認一次**（對外、會影響隔天的 daily）。
+      （10-15 23:3x +0800 完成，Luke 同日確認「CI 綠了就上」：三個變數 set／get 皆 exit 0，讀回後 parse 比對本機設定與三份鏡像皆相同；
+      改前的 prod 與本機設定在來源名稱上只差採用清單那幾筆——traffic 還有 `區間測速科技執法`、`天下交通` 仍啟用，沒有
+      `科技執法`、`交通部道安`、`高齡換照`、`人本交通`；FFXIV 只差 553 的改名。改前的值存在 session scratchpad，沒進 git。）
 - [ ] T021 [US1] 上線後第一個 daily：新增或調整的來源都有 C1 漏斗行、漂移檢查綠、runtime 沒有異常；結果寫進 `evaluation.md`。
 
 **Checkpoint**: SC-001 Gate、SC-003 通過——可以 closeout（spec「驗收時點」）。
