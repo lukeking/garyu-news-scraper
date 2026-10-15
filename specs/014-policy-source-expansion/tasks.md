@@ -13,6 +13,7 @@ description: "Task list for 014-policy-source-expansion"
 
 **Task markers are three-state**（本 repo 的 delegated-TDD 接線）：
 `[ ]` 未開始 → `[-]` 已實作、待審 → `[X]` 已審且 main 驗證過 → `[~]` 移出範圍
+驗證型 task（main 跑真實入口或咬合實驗、記下結果，沒有實作：T008、T015、T021）由 main 驗證即可標 `[X]`，不派 reviewer（Luke 2026-10-15 裁示）。
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -100,7 +101,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 - [X] T014 [US3] 新增 `scripts/evaluate_sources.py`（C3）：讀提案檔 → 驗證格式 → 合併 `source_defaults` 到暫存 categories 副本並設
       `CATEGORIES_TRAFFIC_YML_PATH` → 換上唯讀代理 → `TrafficCategory().collect(sources)` → `.filter(raw)` → 印逐來源漏斗、
       每個來源的匯流四類標題、embedding 呼叫篇數、逐來源收集耗時。依賴 T012。
-- [-] T015 [US3] 真實入口驗證：複製 `config/sources_traffic.yml` 到 scratchpad 當提案檔，跑 T014。確認 `天下交通` 整批掉在過濾那關、
+- [X] T015 [US3] 真實入口驗證：複製 `config/sources_traffic.yml` 到 scratchpad 當提案檔，跑 T014。確認 `天下交通` 整批掉在過濾那關、
       `交通安全教育` 有匯流四類篇數、唯讀代理沒有被觸發、`config/` 底下沒有任何檔案被改。輸出摘要寫進
       `specs/014-policy-source-expansion/evaluation.md` 的「現行清單基準」一節。
 
