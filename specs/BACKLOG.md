@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261015-8pg` | `gemini-4-argon` 模型評比（對現行 `gemini-3.7-flash`） | 014 closeout 之後（2026-10-15 Luke 裁示） | 用同一套 framework（`experiments/model-quality-3p6flash-vs-3p7flash/scripts/quality_ab.py`，改 `MODELS`）跑完盲評，品質、成本、延遲寫進 `experiments/` 的新目錄與本節，據此決定換或不換 prod 的 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
 | `GNS-20261005-nwn` | `embed_dedup` 比對窗改成本週＋上週未消耗（OQ#2，方向 A） | 10-12、10-19 兩次週報跑完（A 上線滿兩週） | A 上線後連兩週，週報 digest 池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_pool_near_dups.py <RUN_ID>` 量）；或寫明不改的理由 |
@@ -1073,6 +1074,25 @@ B 的誤殺證據只有判斷級：發布同一天、餘弦 0.88–0.92 的對�
 （10-06 那天 41 篇候選只新增 20 篇），link 已在庫的舊文章寫不進去，隔天又被抓回來、又過一次影子判定。所以判讀時按對去重；
 而且這種對本來就進不了 buffer，B 擋不擋都一樣——**行數會高估 B 的實際效果**。證偽：拿重複出現那幾對的候選 link 查
 `articles`，在庫就成立。
+
+## GNS-20261015-8pg `gemini-4-argon` 模型評比
+
+**起因**：10-15 Luke 提出。慣例是新的 flash／pro 一出 stable／GA，就用同一套 framework 再跑一輪：
+前兩輪是 2.5-pro → 3.6-flash（PR `#74`）、3.6-flash → 3.7-flash（PR `#90`，現行 prod）。
+10-15 裁示排在 014 closeout 之後。
+
+**釋出狀態**（10-15 網路查證）：9-30 發表，起初只開放給特定的資安合作夥伴；10-13 開放 API，model ID
+`gemini-4-argon`。查到的來源都沒有明確寫是 GA 還是 preview——**開跑前先確認**。preview 不進 prod 排程
+（`gemini-3.1-pro` 一直停在 preview，就是因此沒採用）。
+
+**定價**：優惠價每百萬 token 輸入 $2、輸出 $10，到 2026-11-30；之後 $4／$20；沒有 free tier。
+這是旗艦級定價，現行 3.7-flash 的成本基準見 PR `#90` 的實驗紀錄。
+
+**開跑前要決定的事**：
+
+- **裁判模型**：前兩輪用 `gemini-3.1-pro-preview` 做盲評。Argon 可能比裁判強，而且同屬 Gemini 家族；
+  要考慮跨家族的裁判，或至少做 spot-check。
+- **成本**：凍結快照要讀正式庫；本機 `.env` 與 prod 是同一把 key，評比會計費、吃 prod 的額度。
 
 ---
 
