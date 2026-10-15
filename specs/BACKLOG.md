@@ -35,6 +35,8 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述（10-15 實測：`火花羅`、`台灣解碼中` 取不到，`貓頭鷹交通書`、`企鵝交通手扎` 取得到） | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
+| `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
 | `GNS-20261015-8pg` | 模型評比：已被自動換上的 `gemini-3.8-flash`，與 `gemini-4-argon` | 014 closeout 之後（2026-10-15 Luke 裁示；3.8 同日併入） | 用同一套 framework（`experiments/model-quality-3p6flash-vs-3p7flash/scripts/quality_ab.py`）在同一份凍結快照上跑完盲評：3.8 對 PR `#90` 存下的 3.7 輸出、argon 對 3.8；品質、成本、延遲寫進 `experiments/` 的新目錄與本節，據此決定 prod 的 `GEMINI_MODEL_NAME`（留在 3.8、釘回 `gemini-3.6-flash`、或換 argon）；或寫明不跑的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
