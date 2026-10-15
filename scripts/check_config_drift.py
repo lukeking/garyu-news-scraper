@@ -10,11 +10,9 @@ repo 裡的 `*.example.yml` 是那些值**唯一會進 git 的副本**。兩邊�
 prod 的 `PIPELINE_CONFIG_YML` 有 104/105 行是 CRLF 而 example 是 LF，且 example
 刻意比 prod 多 14 行註解。逐字比對會天天誤報，而天天誤報的檢查最後一定會被關掉。
 
-⚠️ **`sources_traffic` / `sources_ffxiv` 刻意不在清單裡——不要「順手補完」。**
-它們的 `.example.yml` 在檔頭自稱「格式範例，說明所有支援的欄位與 type」，README 也是
-叫人 `cp` 它當起點：它們是**範本**，不是 prod 的鏡像。2026-09-05 實測 prod 有 33 個
-traffic 來源而 example 只有 24 個、ffxiv 是 9 對 4。把它們加進來只會得到一個天天紅、
-然後被忽略的檢查。「讓來源組成在 repo 裡留痕跡」是另一件事，不是這支腳本的工作。
+**`sources_traffic` / `sources_ffxiv` 在 2026-10-13 之前刻意不在清單裡**：當時它們的
+example 是格式範本、與 prod 不同步（2026-09-05 實測 traffic 33 對 24、ffxiv 9 對 4）。
+spec 014（`crb`）先把兩份同步成鏡像、本機比對相符，才加進清單——是前提換了，不是順手補完。
 
 用法（無參數，從 repo 根目錄跑）：
 
@@ -28,12 +26,14 @@ import yaml
 
 _REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 只放**宣稱自己是 prod 鏡像**的那些。判準寫在各檔的檔頭：鏡像那兩個都寫
-# 「Stored as GitHub Environment Variable … Copy to config/X.yml for local
-# development」，而範本那兩個寫的是「格式範例，說明所有支援的欄位與 type」。
+# 只放**檔頭自稱是 prod 鏡像**的 example。categories／pipeline 兩份寫「Stored as GitHub
+# Environment Variable … Copy to config/X.yml」，sources 兩份寫「這是 prod … 來源設定的
+# 鏡像」（2026-10-13 起，`crb`）。改清單前先看那份 example 的檔頭。
 MIRRORED = [
     ("config/categories_traffic.yml", "config/categories_traffic.example.yml"),
     ("config/pipeline_config.yml", "config/pipeline_config.example.yml"),
+    ("config/sources_traffic.yml", "config/sources_traffic.example.yml"),
+    ("config/sources_ffxiv.yml", "config/sources_ffxiv.example.yml"),
 ]
 
 

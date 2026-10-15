@@ -104,15 +104,16 @@ def test_unparseable_yaml_is_a_failure(tmp_path):
     assert "不是合法 YAML" in problems[0]
 
 
-# ── 清單本身：sources_* 刻意不在裡面 ────────────────────────────────────────
+# ── 清單本身：成員與各 example 檔頭自稱的身分一致 ───────────────────────────
 
 def test_only_declared_mirrors_are_checked(tmp_path):
-    """`sources_traffic` / `sources_ffxiv` 的 example 是**格式範本**不是 prod 鏡像
-    （檔頭自稱「格式範例，說明所有支援的欄位與 type」；2026-09-05 實測 prod 33 個
-    來源 vs example 24 個）。把它們加進來會得到一個天天紅然後被忽略的檢查。
-
-    這條是守門員：有人日後「順手補完」清單時它會紅，並被迫先讀上面這段理由。
-    """
+    """2026-10-13 起 sources 的 example 是鏡像（`crb`），清單的成員要與各 example 檔頭自稱的身分一致。
+    增減成員前先改那份 example 的檔頭；之前不列 sources，是因為它們當時是格式範本、與 prod 不同步。"""
     checked = {runtime for runtime, _ in drift.MIRRORED}
 
-    assert checked == {"config/categories_traffic.yml", "config/pipeline_config.yml"}
+    assert checked == {
+        "config/categories_traffic.yml",
+        "config/pipeline_config.yml",
+        "config/sources_traffic.yml",
+        "config/sources_ffxiv.yml",
+    }
