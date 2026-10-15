@@ -129,7 +129,7 @@ dismiss 狀態）與 `workers/api/src/index.js`（約 363 行，含全部端點�
 **注意事項**：
 - Cloudflare Pages 前端無建置步驟（`pages/` 是手寫 HTML/CSS/JS 直接部署）。
   引入需要 bundler 的工具會改變部署模型——這是這項的主要成本，不是寫測試本身。
-- 憲章 IV（Free Tier Discipline）：CI 若跑 E2E 需計入 Actions 每月 2000 分鐘額度。
+- 憲章 IV（Explicit Budgets）：CI 若跑 E2E 需計入 Actions 的每月預算（值在 `docs/external-services.md`）。
 
 ---
 
