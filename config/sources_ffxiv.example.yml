@@ -96,9 +96,7 @@ sources:
     enabled: true
     content_type: "ffxiv"
 
-  # 下一筆與上一筆同名、forumids 不同（552／553）：prod 就是這樣，鏡像照抄。
-  # 要改名，SOURCES_FFXIV_YML 與這裡要一起改，只改一邊隔天 daily 會紅。
-  - name: "FFXIV JP Forum - HEALER"
+  - name: "FFXIV JP Forum - その他バトルシステム"
     type: rss
     url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=553"
     enabled: true

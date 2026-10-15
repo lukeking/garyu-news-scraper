@@ -130,12 +130,12 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       量少的候選隔幾天再評一次，不因單次 0 篇下結論。
 - [X] T018 [US1] 彙整採用清單到 `evaluation.md`：每個來源的 Gate 結果（正題進池篇數）、合計是否達 research R6 的目標（每週多 10 篇非最大來源）、
       runtime 增量估算（每來源約 1.5 秒／run）、embedding 增量。**交 Luke 裁示採用哪些**（`[你]`）。
-- [ ] T019 [US1] 把採用的變更寫進本機 `config/sources_traffic.yml`（需要時加 `config/categories_traffic.yml` 的 `source_defaults`），
+- [-] T019 [US1] 把採用的變更寫進本機 `config/sources_traffic.yml`（需要時加 `config/categories_traffic.yml` 的 `source_defaults`），
       同步兩份對應的 example 鏡像；本機漂移檢查要綠。
       另外把 `config/sources_ffxiv.yml` 與其鏡像裡 `forumids=553` 那筆改名為 `FFXIV JP Forum - その他バトルシステム`
       （T002 發現的誤植；Luke 10-15 裁示併入 014，是 FFXIV 內容唯一的一行改動），並拿掉鏡像裡解釋同名的那兩行註解。
       順手（Luke 10-15 裁示，只動註解與文件）：traffic 鏡像檔頭「中文 YouTube 頻道不建議收錄」改寫成理由＋現況
-      （中文頻道多半燒字幕或不上字幕，CC 逐字稿常取不到；10-15 實測 `火花羅`、`台灣解碼中` 退回標題＋描述，
+      （中文頻道多半用內嵌字幕或不上字幕，CC 逐字稿常取不到；10-15 實測 `火花羅`、`台灣解碼中` 退回標題＋描述，
       後續見 `GNS-20261015-0cz`）；`README.md` 的 sources example 說明從「範本」改成「prod 來源設定的鏡像」。
 - [ ] T020 [US1] 改 prod 變數（`gh variable set … --env production < 檔案`，不用 `--body`），讀回後 YAML parse 比對物件相同。
       含 `SOURCES_FFXIV_YML`（T019 的改名）。
