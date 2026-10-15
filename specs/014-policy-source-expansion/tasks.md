@@ -81,7 +81,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 
 > **先寫、先確認會失敗，再實作**
 
-- [ ] T009 [P] [US3] **RED** 新增 `tests/unit/test_source_funnel.py`，對漏斗記帳的純函數：每一關逐來源計數（C1-2 單調不增）；
+- [-] T009 [P] [US3] **RED** 新增 `tests/unit/test_source_funnel.py`，對漏斗記帳的純函數：每一關逐來源計數（C1-2 單調不增）；
       收集為 0 的來源（只出現在嘗試名單）也有一列（C1-1）；匯流四類篇數只算 `major_category` 在匯流四類者；
       log 行與 C1 的格式逐字相同；向量去重沒跑時 `f` 等於 `e`（C1-3）。
 - [ ] T010 [P] [US3] **RED** 在 `tests/unit/test_digest_pool.py` 補 `log_digest_pool_sources` 的 caplog 測試：降冪、同數依名稱（C2-1）；
@@ -92,7 +92,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] 在 `src/pipeline/traffic.py`：`collect()` 接受選用的 `sources` 參數（預設照舊 `load_sources()`），記下嘗試的來源名單；
+- [-] T012 [US3] 在 `src/pipeline/traffic.py`：`collect()` 接受選用的 `sources` 參數（預設照舊 `load_sources()`），記下嘗試的來源名單；
       `filter()` 在每一關之後用 T009 的純函數記帳，存成 `self.last_funnel`，並逐來源印 C1 的行（含 0 篇的來源）。
       daily 呼叫端（`scripts/traffic_buffer.py`）的行為不變。PR 內文要寫原則 I–III 的符合性（管線模組）。
 - [ ] T013 [P] [US3] 在 `src/topic_scoring.py` 新增 `log_digest_pool_sources`，並在 `scripts/traffic_weekly_analysis.py` 緊接
