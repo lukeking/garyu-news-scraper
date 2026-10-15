@@ -86,7 +86,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       log 行與 C1 的格式逐字相同；向量去重沒跑時 `f` 等於 `e`（C1-3）。
 - [X] T010 [P] [US3] **RED** 在 `tests/unit/test_digest_pool.py` 補 `log_digest_pool_sources` 的 caplog 測試：降冪、同數依名稱（C2-1）；
       篇數總和等於池大小（C2-2）；空池不印（C2-3）；格式逐字相同。
-- [-] T011 [P] [US3] **RED** 新增 `tests/unit/test_evaluate_sources.py`：唯讀代理對 `select` 放行、對 `upsert`／`insert`／`update`／`delete`
+- [X] T011 [P] [US3] **RED** 新增 `tests/unit/test_evaluate_sources.py`：唯讀代理對 `select` 放行、對 `upsert`／`insert`／`update`／`delete`
       raise（C3-1）；`source_defaults` 合併進暫存的 categories 副本、原檔不變（C3-3）；提案檔不是 `sources:` list 或缺 `name`／`type`
       時以非零結束並說明（C3-5）。
 
@@ -97,7 +97,7 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       daily 呼叫端（`scripts/traffic_buffer.py`）的行為不變。PR 內文要寫原則 I–III 的符合性（管線模組）。
 - [X] T013 [P] [US3] 在 `src/topic_scoring.py` 新增 `log_digest_pool_sources`，並在 `scripts/traffic_weekly_analysis.py` 緊接
       `log_digest_pool_concentration` 之後呼叫（C2）。
-- [-] T014 [US3] 新增 `scripts/evaluate_sources.py`（C3）：讀提案檔 → 驗證格式 → 合併 `source_defaults` 到暫存 categories 副本並設
+- [X] T014 [US3] 新增 `scripts/evaluate_sources.py`（C3）：讀提案檔 → 驗證格式 → 合併 `source_defaults` 到暫存 categories 副本並設
       `CATEGORIES_TRAFFIC_YML_PATH` → 換上唯讀代理 → `TrafficCategory().collect(sources)` → `.filter(raw)` → 印逐來源漏斗、
       每個來源的匯流四類標題、embedding 呼叫篇數、逐來源收集耗時。依賴 T012。
 - [ ] T015 [US3] 真實入口驗證：複製 `config/sources_traffic.yml` 到 scratchpad 當提案檔，跑 T014。確認 `天下交通` 整批掉在過濾那關、
