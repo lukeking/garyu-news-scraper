@@ -150,8 +150,10 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 
 - [ ] T022 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py add` 新增一列追 SC-001 L1／L2 與 SC-002（含停用判準），
       把 `GNS-008` 節的常設重開條件搬進新列的小節；再用 `backlog.py remove` 移出 `GNS-008` 與 `GNS-20261005-crb`，讀 diff 確認。
+      （10-15 補：`GNS-20261005-crb` 由 US2 完成，已在 PR #162 移出；新列與 `GNS-008` 的移出等 SC-003 量完，進 closeout PR——Luke 10-15 裁示。）
 - [ ] T023 [P] `routines/weekly-verify/PROMPT.md` 的常設檢查 (A) 改指新列；`routines/weekly-verify/FOCUS.md` 寫入要追的來源名單，
       以及怎麼讀 C1／C2 的行（名單上的來源沒出現在「池來源」＝0 篇）。
+      （10-15 補：來源名單與 C1／C2 讀法隨 PR #162 先寫進 FOCUS 的 (5)，趕 10-19 週報；PROMPT (A) 與 FOCUS 改指新列跟 T022 一起進 closeout PR。）
 - [ ] T024 [P] spec.md 補「達成階數」一節（Gate、SC-003 的實測；L1／L2 標明交給 routine），PR 內文寫實際做了什麼
       （採用與放棄的候選、各自的評估數字）與一行 `Backlog:`。
 

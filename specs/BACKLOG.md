@@ -41,7 +41,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
 | `GNS-20261005-nwn` | `embed_dedup` 比對窗改成本週＋上週未消耗（OQ#2，方向 A） | 10-12、10-19 兩次週報跑完（A 上線滿兩週） | A 上線後連兩週，週報 digest 池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_pool_near_dups.py <RUN_ID>` 量）；或寫明不改的理由 |
-| `GNS-20261005-crb` | 來源清單只存在 GitHub 變數，git 沒有副本 | GNS-008 重開條件成立、要判斷來源結構時；或下次改 `SOURCES_TRAFFIC_YML` 時 | 選定並落地一條（example 改成鏡像，或另存來源清單快照並納入漂移檢查），或寫明不做的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時 | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-654` | `measure_relevance.py --add` 不帶 `--ablate` 時靜默忽略 | 下次動 `scripts/measure_relevance.py` 時 | `--add` 不帶 `--ablate` 時以非零 exit 結束並說明原因，有一條 unit test 鎖住 |
 | `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403 | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
@@ -916,22 +915,6 @@ CRLF 誤判同形。修法是一行：`if extra and not args.ablate: 報錯`。
 **這 9 筆是下限，不是全部**：近失詞掃描只抓得到**清單裡列出的詞**，一篇用完全不同詞彙
 描述的真事故對這個掃描是隱形的。要拿到真實 recall 必須人工標記那 119 篇通過者
 （08-10 未做）。**不要把 9 當成「誤殺總數」引用**；本輪救回的 8 篇同樣是下限。
-
-## GNS-20261005-crb 來源清單只存在 GitHub 變數，git 沒有副本
-
-**出處**：GNS-010 的待辦（2026-09-05 補 config 漂移檢查時撞到）。
-
-`sources_traffic.example.yml` 與 `sources_ffxiv.example.yml` 的檔頭自稱「格式範例，說明所有支援的欄位與 type」，
-README 也是叫人 `cp` 它當起點——**它們是範本，不是 prod 的鏡像**，所以 `scripts/check_config_drift.py`
-刻意不涵蓋它們。實測落差（09-05）：prod **33 個** traffic 來源 vs example **24 個**；ffxiv **9** vs **4**。
-也就是說「現在有哪些來源在餵管線」這件事**只存在於 GitHub 變數裡**，git 沒有副本。
-這與 GNS-008（政策池的單一 feed 依賴）直接相關——判斷來源結構時，repo 是查不到答案的。
-
-修法有兩條，都還沒選：讓 example 變成鏡像（那它就不再是好用的範本），或另外存一份來源清單快照。
-兩者都不是漂移檢查的工作。
-
-2026-10-05 補（實測）：prod 的 33 筆裡有 3 筆 `enabled: false`（自由時報、TVBS新聞、ETtoday），實際啟用 30 個；
-與本機 `config/sources_traffic.yml` 逐筆相同。
 
 ## GNS-20261005-nwn `embed_dedup` 比對窗怎麼改（OQ#2）
 
