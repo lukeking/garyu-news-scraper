@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261015-8pg` | 模型評比：已被自動換上的 `gemini-3.8-flash`，與 `gemini-4-argon` | 014 closeout 之後（2026-10-15 Luke 裁示；3.8 同日併入） | 用同一套 framework（`experiments/model-quality-3p6flash-vs-3p7flash/scripts/quality_ab.py`）在同一份凍結快照上跑完盲評：3.8 對 PR `#90` 存下的 3.7 輸出、argon 對 3.8；品質、成本、延遲寫進 `experiments/` 的新目錄與本節，據此決定 prod 的 `GEMINI_MODEL_NAME`（留在 3.8、釘回 `gemini-3.6-flash`、或換 argon）；或寫明不跑的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
 | `GNS-20261005-nwn` | `embed_dedup` 比對窗改成本週＋上週未消耗（OQ#2，方向 A） | 10-12、10-19 兩次週報跑完（A 上線滿兩週） | A 上線後連兩週，週報 digest 池裡沒有餘弦 ≥ 0.88 且發布差 < 1 天的對（`measure_pool_near_dups.py <RUN_ID>` 量）；或寫明不改的理由 |
@@ -128,7 +129,7 @@ dismiss 狀態）與 `workers/api/src/index.js`（約 363 行，含全部端點�
 **注意事項**：
 - Cloudflare Pages 前端無建置步驟（`pages/` 是手寫 HTML/CSS/JS 直接部署）。
   引入需要 bundler 的工具會改變部署模型——這是這項的主要成本，不是寫測試本身。
-- 憲章 IV（Free Tier Discipline）：CI 若跑 E2E 需計入 Actions 每月 2000 分鐘額度。
+- 憲章 IV（Explicit Budgets）：CI 若跑 E2E 需計入 Actions 的每月預算（值在 `docs/external-services.md`）。
 
 ---
 
@@ -1073,6 +1074,40 @@ B 的誤殺證據只有判斷級：發布同一天、餘弦 0.88–0.92 的對�
 （10-06 那天 41 篇候選只新增 20 篇），link 已在庫的舊文章寫不進去，隔天又被抓回來、又過一次影子判定。所以判讀時按對去重；
 而且這種對本來就進不了 buffer，B 擋不擋都一樣——**行數會高估 B 的實際效果**。證偽：拿重複出現那幾對的候選 link 查
 `articles`，在庫就成立。
+
+## GNS-20261015-8pg 模型評比：`gemini-3.8-flash` 與 `gemini-4-argon`
+
+**起因**：10-15 Luke 提出。慣例是新的 flash／pro 一出 stable／GA，就用同一套 framework 再跑一輪：
+前兩輪是 2.5-pro → 3.6-flash（PR `#74`）、3.6-flash → 3.7-flash（PR `#90`）。
+10-15 裁示排在 014 closeout 之後；同日發現 prod 已被換成 3.8（下一段），裁示 3.8 併進同一輪。
+
+**3.8 已經在 prod 上跑，而且沒評比過**（10-15 查證）：
+
+- 官方 changelog 2026-10-08：`gemini-3.7-flash` deprecated，API 請求自動 route 到 `gemini-3.8-flash`。
+  10-15 實測：送 `gemini-3.7-flash`，回應的 `modelVersion` 是 `gemini-3.8-flash`；`gemini-3.6-flash` 仍回它自己。
+  prod 的 `GEMINI_MODEL_NAME` 還寫 3.7，所以 10-08 之後的週報是 3.8 產生的，從設定看不出來。
+- 3.7 → 3.8 那輪 09-04 就判定該跑（3.8 已 GA、與 3.7 同價），排在 09-07 之後，但只寫在當時的 handoff、
+  沒有進這張表，之後就掉了。沒有「評估後決定不換」這個決定。
+- 基準：3.7 已經叫不到。PR `#90` 存下的輸出（`experiments/model-quality-3p6flash-vs-3p7flash/data/` 的
+  `q_run_gemini-3_7-flash.json`，同一份 `q_snapshot.json`）仍然有效——`analyze_hot_topic` 用到的 prompt 常數
+  從 `770ed2a` 到 10-15 逐字相同，`_call_gemini` 只把 key 移到 header。
+- **陷阱**：`MODELS` 不能直接寫 `gemini-3.7-flash`，那會被 route 成 3.8，變成 3.8 跟自己比。框架要改成
+  讀存檔當 incumbent，並記下每次回應的 `modelVersion`。
+- 退路：3.8 若比較差，`gemini-3.6-flash` 沒有 deprecated、還叫得到，是唯一能釘回去的舊 flash；另一條是 argon。
+- embedding（`gemini-embedding-2`）不受影響，沒有公布關閉日期。
+
+**釋出狀態**（10-15 網路查證）：9-30 發表，起初只開放給特定的資安合作夥伴；10-13 開放 API，model ID
+`gemini-4-argon`。查到的來源都沒有明確寫是 GA 還是 preview——**開跑前先確認**。preview 不進 prod 排程
+（`gemini-3.1-pro` 一直停在 preview，就是因此沒採用）。
+
+**定價**：優惠價每百萬 token 輸入 $2、輸出 $10，到 2026-11-30；之後 $4／$20；沒有 free tier。
+這是旗艦級定價。3.7 與 3.8-flash 同價（09-04 官方定價頁），成本基準見 PR `#90` 的實驗紀錄。
+
+**開跑前要決定的事**：
+
+- **裁判模型**：第一輪用 `gemini-3.1-pro-preview`、第二輪用 `gemini-2.5-pro`（`quality_ab.py` 的 `JUDGE`）做盲評；
+  開跑前先確認裁判還在服務。Argon 可能比裁判強，而且同屬 Gemini 家族；要考慮跨家族的裁判，或至少做 spot-check。
+- **成本**：凍結快照要讀正式庫；本機 `.env` 與 prod 是同一把 key，評比會計費、吃 prod 的額度。
 
 ---
 
