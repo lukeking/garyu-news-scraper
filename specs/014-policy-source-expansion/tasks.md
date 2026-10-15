@@ -58,18 +58,21 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       `FFXIV JP Forum`、`FFXIV TW 修正說明` 本機是 `enabled: false`、prod 是 `true`），已以 prod 覆蓋本機，讀回解析後相同。
       另發現 prod 的 `forumids=553` 名字誤植成 `FFXIV JP Forum - HEALER`（RSS 頻道標題是「その他バトルシステム」；
       552 才是 HEALER），修正併入 T019／T020。
-- [-] T003 [P] [US2] 把 `config/sources_traffic.example.yml` 改成 `config/sources_traffic.yml` 的鏡像：`sources:` 的內容逐筆相同，
+- [X] T003 [P] [US2] 把 `config/sources_traffic.example.yml` 改成 `config/sources_traffic.yml` 的鏡像：`sources:` 的內容逐筆相同，
       保留檔頭的欄位與 type 說明（註解不影響比對），把「這是格式範例」改寫成「這是 prod 的鏡像，改來源要同步這裡」。
-- [-] T004 [P] [US2] 同 T003，對 `config/sources_ffxiv.example.yml`。
-- [-] T005 [US2] 在 `.github/workflows/traffic_daily.yml` 的漂移檢查之前，補一步寫入 `config/sources_ffxiv.yml`
+- [X] T004 [P] [US2] 同 T003，對 `config/sources_ffxiv.example.yml`。
+- [X] T005 [US2] 在 `.github/workflows/traffic_daily.yml` 的漂移檢查之前，補一步寫入 `config/sources_ffxiv.yml`
       （照 `weekly.yml` 的寫法，從 `vars.SOURCES_FFXIV_YML`）。沒有這一步，FFXIV 鏡像一列進清單，daily 就會因缺檔而紅。
-- [-] T006 [US2] **RED** 改寫 `tests/unit/test_check_config_drift.py` 的守門員 `test_only_declared_mirrors_are_checked`：
+- [X] T006 [US2] **RED** 改寫 `tests/unit/test_check_config_drift.py` 的守門員 `test_only_declared_mirrors_are_checked`：
       期望集合加入兩份 sources；docstring 改寫成「2026-10-13 起 sources 的 example 是鏡像（`crb`），清單的成員要與
       各 example 檔頭自稱的身分一致」。**先確認它會紅。**
-- [-] T007 [US2] 在 `scripts/check_config_drift.py` 的 `MIRRORED` 加入兩份 sources，改寫檔頭那段「刻意不在清單裡——不要順手補完」
+- [X] T007 [US2] 在 `scripts/check_config_drift.py` 的 `MIRRORED` 加入兩份 sources，改寫檔頭那段「刻意不在清單裡——不要順手補完」
       為現在的理由（前提換了：example 已同步）。本機跑腳本要綠，T006 要綠。
-- [ ] T008 [US2] 咬合驗證：在 scratchpad 複製一份 `sources_traffic.example.yml`、改掉一個來源的 `enabled`，用腳本的比對函式
+- [X] T008 [US2] 咬合驗證：在 scratchpad 複製一份 `sources_traffic.example.yml`、改掉一個來源的 `enabled`，用腳本的比對函式
       對它比一次，要紅並指出鍵路徑；還原不涉及主工作區。
+      **結果（10-15）**：未改的副本 `[]`；把 `Google News 交通安全教育` 改成 `enabled: false` 的副本回報
+      `值不同：sources[27].enabled（執行期 True、example False）`。另在 review worktree 拿掉 `MIRRORED` 的 sources_traffic 那行，
+      守門員紅在集合斷言（`Extra items … 'config/sources_traffic.yml'`），還原後乾淨。
 
 **Checkpoint**: 來源清單的現況在 git 裡、與 prod 一致，且有每天跑的執行者。
 
