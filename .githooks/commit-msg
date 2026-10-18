@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# BACKLOG 範圍閘：分支上第一個 commit 要帶 `Backlog-scope`。邏輯、不檢查的情況與洞都在
+# `~/.agents/bin/backlog_trailers.py`（bare repo 的正本，GUB-017），這裡只轉接一行。
+# 找不到那份正本（cloud、新機器）就印一行說沒檢查，然後放行。
+set -e
+checker="$HOME/.agents/bin/backlog_trailers.py"
+if [ ! -f "$checker" ]; then
+  echo "commit-msg: 找不到 $checker，BACKLOG 範圍沒有檢查。" >&2
+  exit 0
+fi
+exec python3 "$checker" commit-msg "$1"
