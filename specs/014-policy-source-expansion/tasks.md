@@ -143,7 +143,9 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       （10-15 23:3x +0800 完成，Luke 同日確認「CI 綠了就上」：三個變數 set／get 皆 exit 0，讀回後 parse 比對本機設定與三份鏡像皆相同；
       改前的 prod 與本機設定在來源名稱上只差採用清單那幾筆——traffic 還有 `區間測速科技執法`、`天下交通` 仍啟用，沒有
       `科技執法`、`交通部道安`、`高齡換照`、`人本交通`；FFXIV 只差 553 的改名。改前的值存在 session scratchpad，沒進 git。）
-- [ ] T021 [US1] 上線後第一個 daily：新增或調整的來源都有 C1 漏斗行、漂移檢查綠、runtime 沒有異常；結果寫進 `evaluation.md`。
+- [X] T021 [US1] 上線後第一個 daily：新增或調整的來源都有 C1 漏斗行、漂移檢查綠、runtime 沒有異常；結果寫進 `evaluation.md`。
+      （10-16 main 驗證：run `38840946826` 五個來源都有漏斗行、匯流四類合計 51（T018 合跑 50）、`天下交通`／`區間測速科技執法` 沒有；
+      漂移檢查 4 份相符；job 284 秒，前一天 162 秒，多出來的是存量的 embedding 與 GN 充實。SC-003 的週報那一半等 10-19。）
 
 **Checkpoint**: SC-001 Gate、SC-003 通過——可以 closeout（spec「驗收時點」）。
 
@@ -151,14 +153,22 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
 
 ## Phase 5: Closeout & Polish
 
-- [ ] T022 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py add` 新增一列追 SC-001 L1／L2 與 SC-002（含停用判準），
+- [X] T022 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py add` 新增一列追 SC-001 L1／L2 與 SC-002（含停用判準），
       把 `GNS-008` 節的常設重開條件搬進新列的小節；再用 `backlog.py remove` 移出 `GNS-008` 與 `GNS-20261005-crb`，讀 diff 確認。
       （10-15 補：`GNS-20261005-crb` 由 US2 完成，已在 PR #162 移出；新列與 `GNS-008` 的移出等 SC-003 量完，進 closeout PR——Luke 10-15 裁示。）
-- [ ] T023 [P] `routines/weekly-verify/PROMPT.md` 的常設檢查 (A) 改指新列；`routines/weekly-verify/FOCUS.md` 寫入要追的來源名單，
+      （10-19 main 驗證：新列 `GNS-20261019-dkm` 只追 SC-001——SC-002 第一個週報就達成，停用判準用不到；完成標準沿用 `GNS-008` 的
+      「條件成立時開 spec，或再關一次」，四週判定只是里程碑，重開條件因此不會在 11-09 後消失（Luke 10-19 裁示）。
+      重開條件逐字搬入，觀測記錄表也搬入並補 10-19 與 L2 欄。同 PR 移出 `GNS-20261005-nwn`（Luke 10-19 裁示，理由見 PR 內文），
+      它那張表 `yjb` 還要用的跨期列搬進 `yjb` 節。）
+- [X] T023 [P] `routines/weekly-verify/PROMPT.md` 的常設檢查 (A) 改指新列；`routines/weekly-verify/FOCUS.md` 寫入要追的來源名單，
       以及怎麼讀 C1／C2 的行（名單上的來源沒出現在「池來源」＝0 篇）。
       （10-15 補：來源名單與 C1／C2 讀法隨 PR #162 先寫進 FOCUS 的 (5)，趕 10-19 週報；PROMPT (A) 與 FOCUS 改指新列跟 T022 一起進 closeout PR。）
-- [ ] T024 [P] spec.md 補「達成階數」一節（Gate、SC-003 的實測；L1／L2 標明交給 routine），PR 內文寫實際做了什麼
+      （10-19 main 驗證：(A) 改指 `GNS-20261019-dkm`，並加一行記 L2 佔比（只記錄）；FOCUS 與 README 的「GNS-008 L1 前兩週」改名「L1 前兩週」，
+      下次換列不必再改標題。`routines/` 裡 `grep -w GNS-008` 只剩兩處歷史說明。）
+- [X] T024 [P] spec.md 補「達成階數」一節（Gate、SC-003 的實測；L1／L2 標明交給 routine），PR 內文寫實際做了什麼
       （採用與放棄的候選、各自的評估數字）與一行 `Backlog:`。
+      （10-19 main 驗證：spec「達成階數」含 SC-001～SC-004；PR #166 內文改寫，`Backlog:` 那行由 `backlog_trailers.py pr-line` 產生、
+      讀回一致。）
 
 ---
 
