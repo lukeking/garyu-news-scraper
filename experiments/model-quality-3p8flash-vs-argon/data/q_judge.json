@@ -1,0 +1,1517 @@
+{
+  "judge_model": "gemini-2.5-pro",
+  "results": [
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B1_機車左轉政策",
+      "run": 1,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"兩份報告均表現優異，但報告A的因果解構結論與來源文章[1]標題的「論戰」一詞有更直接的文本連結，文本依據的嚴謹度略高。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1102,
+        "candidatesTokenCount": 195,
+        "totalTokenCount": 4523,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1102
+          }
+        ],
+        "thoughtsTokenCount": 3226,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.7-flash",
+      "reason": "兩份報告均表現優異，但報告A的因果解構結論與來源文章[1]標題的「論戰」一詞有更直接的文本連結，文本依據的嚴謹度略高。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B1_機車左轉政策",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"tie\",\n  \"reason\": \"兩份報告在所有評分軸向上均獲滿分，其分析深度、格式與紀律遵循度皆無差異。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1102,
+        "candidatesTokenCount": 174,
+        "totalTokenCount": 4319,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1102
+          }
+        ],
+        "thoughtsTokenCount": 3043,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "tie",
+      "reason": "兩份報告在所有評分軸向上均獲滿分，其分析深度、格式與紀律遵循度皆無差異。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B1_機車左轉政策",
+      "run": 2,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"tie\",\n  \"reason\": \"兩份報告在各項評分準則上均表現完美，分析深度與紀律性相當，難分軒輊。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1147,
+        "candidatesTokenCount": 176,
+        "totalTokenCount": 4704,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1147
+          }
+        ],
+        "thoughtsTokenCount": 3381,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "tie",
+      "reason": "兩份報告在各項評分準則上均表現完美，分析深度與紀律性相當，難分軒輊。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B1_機車左轉政策",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"tie\",\n  \"reason\": \"兩份報告在所有評分軸上均表現完美，分析深度、文本依據與紀律性相當，難分軒輊。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1147,
+        "candidatesTokenCount": 178,
+        "totalTokenCount": 4859,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1147
+          }
+        ],
+        "thoughtsTokenCount": 3534,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "tie",
+      "reason": "兩份報告在所有評分軸上均表現完美，分析深度、文本依據與紀律性相當，難分軒輊。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B1_機車左轉政策",
+      "run": 3,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A透過外部原則對已知政策進行了深刻的因果分析，而報告B則以來源細節不足為由迴避了分析。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1043,
+        "candidatesTokenCount": 178,
+        "totalTokenCount": 4320,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1043
+          }
+        ],
+        "thoughtsTokenCount": 3099,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.7-flash",
+      "reason": "報告A透過外部原則對已知政策進行了深刻的因果分析，而報告B則以來源細節不足為由迴避了分析。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B1_機車左轉政策",
+      "run": 3,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A嚴格依據來源文章進行分析與推論，而報告B在因果解構中多處未引用來源，其結論與文本的連結薄弱。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1043,
+        "candidatesTokenCount": 184,
+        "totalTokenCount": 4558,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1043
+          }
+        ],
+        "thoughtsTokenCount": 3331,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告A嚴格依據來源文章進行分析與推論，而報告B在因果解構中多處未引用來源，其結論與文本的連結薄弱。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B2_路權政策",
+      "run": 1,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"兩份報告均極為優秀，然 B 報告在工程變數中引入動能公式（½mv²）解釋同質性原則，並在政經審查中更精準地描述了「成本轉嫁」的制度慣性，展現出微弱但可辨的分析深度優勢。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2207,
+        "candidatesTokenCount": 215,
+        "totalTokenCount": 5716,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2207
+          }
+        ],
+        "thoughtsTokenCount": 3294,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "兩份報告均極為優秀，然 B 報告在工程變數中引入動能公式（½mv²）解釋同質性原則，並在政經審查中更精準地描述了「成本轉嫁」的制度慣性，展現出微弱但可辨的分析深度優勢。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B2_路權政策",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A的因果解構更為精確，直接點出舊工程「人為製造直行與轉向動線同相位交織衝突」，分析深度略優於B。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2207,
+        "candidatesTokenCount": 187,
+        "totalTokenCount": 6262,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2207
+          }
+        ],
+        "thoughtsTokenCount": 3868,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告A的因果解構更為精確，直接點出舊工程「人為製造直行與轉向動線同相位交織衝突」，分析深度略優於B。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B2_路權政策",
+      "run": 2,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4.5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 4.5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"兩份報告均高度遵循準則，B報告在「因果解構深度」與「轉譯紀律」上，更具體地闡述了荷蘭原則的多重解法（實體分隔或降速），略勝一籌。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2219,
+        "candidatesTokenCount": 205,
+        "totalTokenCount": 5661,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2219
+          }
+        ],
+        "thoughtsTokenCount": 3237,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4.5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 4.5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "兩份報告均高度遵循準則，B報告在「因果解構深度」與「轉譯紀律」上，更具體地闡述了荷蘭原則的多重解法（實體分隔或降速），略勝一籌。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B2_路權政策",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在因果解構上更為精確，以「工程管制強加交織」明確歸因，論述比B的「放大決策風險」更具物理性與決定性。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2219,
+        "candidatesTokenCount": 191,
+        "totalTokenCount": 5253,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2219
+          }
+        ],
+        "thoughtsTokenCount": 2843,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告A在因果解構上更為精確，以「工程管制強加交織」明確歸因，論述比B的「放大決策風險」更具物理性與決定性。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B2_路權政策",
+      "run": 3,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 3,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「文本依據」與「觸發制紀律」兩軸更嚴謹，完整觸發所有政經變數，且未將自身分析錯誤歸因於來源文章。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2220,
+        "candidatesTokenCount": 189,
+        "totalTokenCount": 5887,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2220
+          }
+        ],
+        "thoughtsTokenCount": 3478,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 5,
+          "觸發制紀律": 3,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.7-flash",
+      "reason": "報告 A 在「文本依據」與「觸發制紀律」兩軸更嚴謹，完整觸發所有政經變數，且未將自身分析錯誤歸因於來源文章。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B2_路權政策",
+      "run": 3,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 4\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「文本依據」軸上表現完美，而報告 B 在第一部分完全沒有標註引用來源，構成重大違規；此外，A 的因果分析與原則轉譯也更為深刻精準。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2220,
+        "candidatesTokenCount": 195,
+        "totalTokenCount": 6405,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2220
+          }
+        ],
+        "thoughtsTokenCount": 3990,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 4
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告 A 在「文本依據」軸上表現完美，而報告 B 在第一部分完全沒有標註引用來源，構成重大違規；此外，A 的因果分析與原則轉譯也更為深刻精準。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B3_道安政策",
+      "run": 1,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 3,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 4\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"兩份報告皆基於來源文章[7]中不存在的「新生禁令」與「事故降低三成」等虛構造詞，嚴重違反「文本依據」與「觸發制紀律」原則；但在剩餘項目中，B報告對因果機制與外國原則的闡述更為精確。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2513,
+        "candidatesTokenCount": 218,
+        "totalTokenCount": 6244,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2513
+          }
+        ],
+        "thoughtsTokenCount": 3513,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 3,
+          "觸發制紀律": 0,
+          "轉譯紀律": 4
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "兩份報告皆基於來源文章[7]中不存在的「新生禁令」與「事故降低三成」等虛構造詞，嚴重違反「文本依據」與「觸發制紀律」原則；但在剩餘項目中，B報告對因果機制與外國原則的闡述更為精確。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B3_道安政策",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"tie\",\n  \"reason\": \"兩份報告皆基於來源文章[7]中不存在的虛構事實（新生禁行機車、事故率降低三成）進行分析，導致在「文本依據」與「觸發制紀律」兩軸上皆有相同且致命的錯誤。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2513,
+        "candidatesTokenCount": 205,
+        "totalTokenCount": 6283,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2513
+          }
+        ],
+        "thoughtsTokenCount": 3565,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 5,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 5,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "tie",
+      "reason": "兩份報告皆基於來源文章[7]中不存在的虛構事實（新生禁行機車、事故率降低三成）進行分析，導致在「文本依據」與「觸發制紀律」兩軸上皆有相同且致命的錯誤。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B3_道安政策",
+      "run": 2,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 1,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 2\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 3,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 3\n  },\n  \"winner\": \"B\",\n  \"reason\": \"B的因果解構更深入（引入物理學變數），且在人因變數的推斷上比A更誠實地標註為「推斷」；儘管兩者皆基於來源文章未提及的資訊進行偏誤分析，犯了嚴重錯誤，但B在其他面向略勝一籌。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2500,
+        "candidatesTokenCount": 218,
+        "totalTokenCount": 6245,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2500
+          }
+        ],
+        "thoughtsTokenCount": 3527,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 1,
+          "觸發制紀律": 1,
+          "轉譯紀律": 2
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 3,
+          "觸發制紀律": 1,
+          "轉譯紀律": 3
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "B的因果解構更深入（引入物理學變數），且在人因變數的推斷上比A更誠實地標註為「推斷」；儘管兩者皆基於來源文章未提及的資訊進行偏誤分析，犯了嚴重錯誤，但B在其他面向略勝一籌。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B3_道安政策",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 3,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"儘管兩份報告皆基於來源文章[7]中不存在的資訊進行分析，但A報告尚能將其推論標示為「推斷」，B報告卻將捏造細節標示為「直接證據」，嚴謹度稍遜。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2500,
+        "candidatesTokenCount": 203,
+        "totalTokenCount": 9956,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2500
+          }
+        ],
+        "thoughtsTokenCount": 7253,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 3,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "儘管兩份報告皆基於來源文章[7]中不存在的資訊進行分析，但A報告尚能將其推論標示為「推斷」，B報告卻將捏造細節標示為「直接證據」，嚴謹度稍遜。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B3_道安政策",
+      "run": 3,
+      "order": "inc_first",
+      "A_model": "gemini-3.7-flash",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"兩份報告皆基於來源未提及的資訊進行分析，但在A報告將臆測標為「直接證據」相比，B報告將其標為「推斷」是較輕微的錯誤。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2576,
+        "candidatesTokenCount": 191,
+        "totalTokenCount": 7344,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2576
+          }
+        ],
+        "thoughtsTokenCount": 4577,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 5,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 5,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "兩份報告皆基於來源未提及的資訊進行分析，但在A報告將臆測標為「直接證據」相比，B報告將其標為「推斷」是較輕微的錯誤。"
+    },
+    {
+      "pair": "gemini-3.7-flash vs gemini-3.8-flash",
+      "bucket": "B3_道安政策",
+      "run": 3,
+      "order": "chal_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-3.7-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"tie\",\n  \"reason\": \"兩份報告在各項評分軸向上表現相當，但皆基於來源文章[7]中不存在的「新生禁令」與「事故數據」進行分析，構成重大文本依據瑕疵。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2576,
+        "candidatesTokenCount": 192,
+        "totalTokenCount": 7226,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2576
+          }
+        ],
+        "thoughtsTokenCount": 4458,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        },
+        "gemini-3.7-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "tie",
+      "reason": "兩份報告在各項評分軸向上表現相當，但皆基於來源文章[7]中不存在的「新生禁令」與「事故數據」進行分析，構成重大文本依據瑕疵。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B1_機車左轉政策",
+      "run": 1,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 2,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「觸發制紀律」軸上表現更佳，精準判斷來源文章[1]未提供官方統計數據，故不觸發§三，完全符合評分準則；報告 B 則根據「成效論戰」一詞過度推斷並觸發，紀律性稍弱。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1294,
+        "candidatesTokenCount": 218,
+        "totalTokenCount": 4989,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1294
+          }
+        ],
+        "thoughtsTokenCount": 3477,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 5,
+          "觸發制紀律": 2,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告 A 在「觸發制紀律」軸上表現更佳，精準判斷來源文章[1]未提供官方統計數據，故不觸發§三，完全符合評分準則；報告 B 則根據「成效論戰」一詞過度推斷並觸發，紀律性稍弱。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B1_機車左轉政策",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 3,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 的「文本依據」更嚴謹，其引證完全對應來源文章的既有詞彙；報告 B 則將自身推論的因果（衝撞嚴重度）歸因於來源文章，依據較為薄弱。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1294,
+        "candidatesTokenCount": 202,
+        "totalTokenCount": 9170,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1294
+          }
+        ],
+        "thoughtsTokenCount": 7674,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 3,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告 A 的「文本依據」更嚴謹，其引證完全對應來源文章的既有詞彙；報告 B 則將自身推論的因果（衝撞嚴重度）歸因於來源文章，依據較為薄弱。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B1_機車左轉政策",
+      "run": 2,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「文本依據」與「觸發制紀律」兩軸展現了嚴格紀律，反觀報告 B 則基於臆測不當觸發第三部分並杜撰來源 [1] 未提及的統計偏誤細節。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1449,
+        "candidatesTokenCount": 204,
+        "totalTokenCount": 4174,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1449
+          }
+        ],
+        "thoughtsTokenCount": 2521,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 5,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告 A 在「文本依據」與「觸發制紀律」兩軸展現了嚴格紀律，反觀報告 B 則基於臆測不當觸發第三部分並杜撰來源 [1] 未提及的統計偏誤細節。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B1_機車左轉政策",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"報告B在「文本依據」與「觸發制紀律」兩軸展現了嚴謹的紀律，未如報告A般臆測或杜撰來源文章未提及的官方統計細節。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1449,
+        "candidatesTokenCount": 193,
+        "totalTokenCount": 4940,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1449
+          }
+        ],
+        "thoughtsTokenCount": 3298,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 5,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告B在「文本依據」與「觸發制紀律」兩軸展現了嚴謹的紀律，未如報告A般臆測或杜撰來源文章未提及的官方統計細節。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B1_機車左轉政策",
+      "run": 3,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 4\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 1,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A嚴格遵守文本依據與觸發紀律，而報告B在極度單薄的來源基礎上，大量杜撰文本未提及的細節與官方論述。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1540,
+        "candidatesTokenCount": 187,
+        "totalTokenCount": 9082,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1540
+          }
+        ],
+        "thoughtsTokenCount": 7355,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 4
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 1,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告A嚴格遵守文本依據與觸發紀律，而報告B在極度單薄的來源基礎上，大量杜撰文本未提及的細節與官方論述。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B1_機車左轉政策",
+      "run": 3,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"報告B嚴格遵守文本依據與觸發紀律，未如報告A般臆測或擴寫來源文章未提及的資訊。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 1540,
+        "candidatesTokenCount": 177,
+        "totalTokenCount": 4931,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 1540
+          }
+        ],
+        "thoughtsTokenCount": 3214,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 4,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告B嚴格遵守文本依據與觸發紀律，未如報告A般臆測或擴寫來源文章未提及的資訊。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B2_路權政策",
+      "run": 1,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"A在「文本依據」軸上更為嚴謹，其對人因變數的詮釋（文本未記載）比B的詮釋（將常規駕駛決策歸為人因變數）更忠於來源文章。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2525,
+        "candidatesTokenCount": 199,
+        "totalTokenCount": 6738,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2525
+          }
+        ],
+        "thoughtsTokenCount": 4014,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "A在「文本依據」軸上更為嚴謹，其對人因變數的詮釋（文本未記載）比B的詮釋（將常規駕駛決策歸為人因變數）更忠於來源文章。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B2_路權政策",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 2,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在「文本依據」與「因果解構深度」兩軸表現明顯優於B；B的核心工程分析段落完全未標註文本來源，且因果論述的全面性與精確度不及A。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2525,
+        "candidatesTokenCount": 198,
+        "totalTokenCount": 5508,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2525
+          }
+        ],
+        "thoughtsTokenCount": 2785,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 2,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告A在「文本依據」與「因果解構深度」兩軸表現明顯優於B；B的核心工程分析段落完全未標註文本來源，且因果論述的全面性與精確度不及A。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B2_路權政策",
+      "run": 2,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 2,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"報告 B 對每項分析結論皆嚴格標註文本來源，並誠實標示推斷，文本依據紀律顯著優於報告 A；且 B 在轉譯國外原則時，明確切割了易混淆概念，展現更佳的嚴謹性。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2507,
+        "candidatesTokenCount": 208,
+        "totalTokenCount": 6136,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2507
+          }
+        ],
+        "thoughtsTokenCount": 3421,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 2,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告 B 對每項分析結論皆嚴格標註文本來源，並誠實標示推斷，文本依據紀律顯著優於報告 A；且 B 在轉譯國外原則時，明確切割了易混淆概念，展現更佳的嚴謹性。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B2_路權政策",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在「因果解構深度」軸上，透過分析兩種不同個案（集賢路、駕艙機車）並引用兩種國外原則（荷蘭、日本），展現了更全面的分析廣度與深度。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2507,
+        "candidatesTokenCount": 198,
+        "totalTokenCount": 5686,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2507
+          }
+        ],
+        "thoughtsTokenCount": 2981,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告A在「因果解構深度」軸上，透過分析兩種不同個案（集賢路、駕艙機車）並引用兩種國外原則（荷蘭、日本），展現了更全面的分析廣度與深度。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B2_路權政策",
+      "run": 3,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 4,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"報告B在文本依據、因果解構、觸發紀律上均更為全面深刻，能整合多個案例論證系統性問題。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2551,
+        "candidatesTokenCount": 180,
+        "totalTokenCount": 5877,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2551
+          }
+        ],
+        "thoughtsTokenCount": 3146,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 4,
+          "觸發制紀律": 4,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告B在文本依據、因果解構、觸發紀律上均更為全面深刻，能整合多個案例論證系統性問題。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B2_路權政策",
+      "run": 3,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A的因果解構更為深刻，其「人因變數」與「交織說明」的分析更具體，且整合了來源文章中的多個案例，深度優於B。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2551,
+        "candidatesTokenCount": 191,
+        "totalTokenCount": 5627,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2551
+          }
+        ],
+        "thoughtsTokenCount": 2885,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告A的因果解構更為深刻，其「人因變數」與「交織說明」的分析更具體，且整合了來源文章中的多個案例，深度優於B。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B3_道安政策",
+      "run": 1,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 2,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在「觸發制紀律」上表現更嚴謹，僅針對有進行分析的文本觸發，而報告B觸發了數個來源卻未提供對應分析，此為重大瑕疵。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2694,
+        "candidatesTokenCount": 194,
+        "totalTokenCount": 7040,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2694
+          }
+        ],
+        "thoughtsTokenCount": 4152,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 5,
+          "觸發制紀律": 2,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-3.8-flash",
+      "reason": "報告A在「觸發制紀律」上表現更嚴謹，僅針對有進行分析的文本觸發，而報告B觸發了數個來源卻未提供對應分析，此為重大瑕疵。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B3_道安政策",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 4,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在「文本依據」的分類上更精準，且在「觸發制紀律」上更全面地辨識出所有符合官方論述偏誤條件的來源文章。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2694,
+        "candidatesTokenCount": 189,
+        "totalTokenCount": 5997,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2694
+          }
+        ],
+        "thoughtsTokenCount": 3114,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "因果解構深度": 5,
+          "觸發制紀律": 4,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告A在「文本依據」的分類上更精準，且在「觸發制紀律」上更全面地辨識出所有符合官方論述偏誤條件的來源文章。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B3_道安政策",
+      "run": 2,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"tie\",\n  \"reason\": \"兩份報告在「文本依據」與「觸發制紀律」兩項核心準則上，皆因引用來源文章未包含的資訊而嚴重違規，得分皆為零；儘管在其他分析軸向上表現優異，但此根本性錯誤使兩者無法分出高下。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2695,
+        "candidatesTokenCount": 214,
+        "totalTokenCount": 8081,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2695
+          }
+        ],
+        "thoughtsTokenCount": 5172,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "tie",
+      "reason": "兩份報告在「文本依據」與「觸發制紀律」兩項核心準則上，皆因引用來源文章未包含的資訊而嚴重違規，得分皆為零；儘管在其他分析軸向上表現優異，但此根本性錯誤使兩者無法分出高下。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B3_道安政策",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 4\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在「轉譯紀律」上更勝一籌，明確切割了日本原則與台灣常見的「車種分流」概念，完全符合評分準則要求。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2695,
+        "candidatesTokenCount": 185,
+        "totalTokenCount": 5687,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2695
+          }
+        ],
+        "thoughtsTokenCount": 2807,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "因果解構深度": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 4
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "報告A在「轉譯紀律」上更勝一籌，明確切割了日本原則與台灣常見的「車種分流」概念，完全符合評分準則要求。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B3_道安政策",
+      "run": 3,
+      "order": "inc_first",
+      "A_model": "gemini-3.8-flash",
+      "B_model": "gemini-4-argon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 4,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 0,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"兩份報告皆基於來源文章未提供的資訊進行分析，嚴重違反文本依據原則；但B的因果解構更全面，除個案外亦整合評論了其他來源文章的共通偏誤，分析深度略優於A。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2704,
+        "candidatesTokenCount": 200,
+        "totalTokenCount": 6666,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2704
+          }
+        ],
+        "thoughtsTokenCount": 3762,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 4,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        },
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 5,
+          "觸發制紀律": 0,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "兩份報告皆基於來源文章未提供的資訊進行分析，嚴重違反文本依據原則；但B的因果解構更全面，除個案外亦整合評論了其他來源文章的共通偏誤，分析深度略優於A。"
+    },
+    {
+      "pair": "gemini-3.8-flash vs gemini-4-argon",
+      "bucket": "B3_道安政策",
+      "run": 3,
+      "order": "chal_first",
+      "A_model": "gemini-4-argon",
+      "B_model": "gemini-3.8-flash",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 1,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 0,\n    \"因果解構深度\": 5,\n    \"觸發制紀律\": 1,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"兩份報告皆基於來源文章[7]中不存在的資訊進行分析，嚴重違反「文本依據」原則，但A報告在文章分類計數上較B報告準確。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "usage": {
+        "promptTokenCount": 2704,
+        "candidatesTokenCount": 188,
+        "totalTokenCount": 6146,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2704
+          }
+        ],
+        "thoughtsTokenCount": 3254,
+        "serviceTier": "standard"
+      },
+      "scores": {
+        "gemini-4-argon": {
+          "格式遵循": 5,
+          "文本依據": 1,
+          "因果解構深度": 5,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        },
+        "gemini-3.8-flash": {
+          "格式遵循": 5,
+          "文本依據": 0,
+          "因果解構深度": 5,
+          "觸發制紀律": 1,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-argon",
+      "reason": "兩份報告皆基於來源文章[7]中不存在的資訊進行分析，嚴重違反「文本依據」原則，但A報告在文章分類計數上較B報告準確。"
+    }
+  ]
+}

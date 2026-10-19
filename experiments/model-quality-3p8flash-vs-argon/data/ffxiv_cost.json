@@ -1,0 +1,216 @@
+{
+  "gemini-3.8-flash": [
+    {
+      "title": "A mind is a delightful thing to lose. || Spooky Glam Entry",
+      "seconds": 16.0,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 3649,
+        "candidatesTokenCount": 233,
+        "totalTokenCount": 4624,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3649
+          }
+        ],
+        "thoughtsTokenCount": 742,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "title": "What are the benefits of FCs???",
+      "seconds": 16.4,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 3745,
+        "candidatesTokenCount": 245,
+        "totalTokenCount": 5127,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3745
+          }
+        ],
+        "thoughtsTokenCount": 1137,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "title": "Is there any photographer around who could take some pictures of my character? I",
+      "seconds": 15.1,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 3651,
+        "candidatesTokenCount": 247,
+        "totalTokenCount": 5034,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3651
+          }
+        ],
+        "thoughtsTokenCount": 1136,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "title": "What if every FF main villain from 1-15 attacked the source and it’s shards what",
+      "seconds": 14.3,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 3736,
+        "candidatesTokenCount": 379,
+        "totalTokenCount": 4974,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3736
+          }
+        ],
+        "thoughtsTokenCount": 859,
+        "serviceTier": "standard"
+      }
+    },
+    {
+      "title": "[Weekly Thread] Mentor Monday (Mon, Oct 19)",
+      "seconds": 13.7,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 3727,
+        "candidatesTokenCount": 283,
+        "totalTokenCount": 4855,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3727
+          }
+        ],
+        "thoughtsTokenCount": 845,
+        "serviceTier": "standard"
+      }
+    }
+  ],
+  "gemini-4-argon": [
+    {
+      "title": "A mind is a delightful thing to lose. || Spooky Glam Entry",
+      "seconds": 10.2,
+      "ok": true,
+      "modelVersion": "gemini-4-argon",
+      "usage": {
+        "promptTokenCount": 3635,
+        "candidatesTokenCount": 241,
+        "totalTokenCount": 3876,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3635
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 241
+          }
+        ]
+      }
+    },
+    {
+      "title": "What are the benefits of FCs???",
+      "seconds": 10.2,
+      "ok": true,
+      "modelVersion": "gemini-4-argon",
+      "usage": {
+        "promptTokenCount": 3730,
+        "candidatesTokenCount": 367,
+        "totalTokenCount": 4097,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3730
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 367
+          }
+        ]
+      }
+    },
+    {
+      "title": "Is there any photographer around who could take some pictures of my character? I",
+      "seconds": 7.7,
+      "ok": true,
+      "modelVersion": "gemini-4-argon",
+      "usage": {
+        "promptTokenCount": 3636,
+        "candidatesTokenCount": 252,
+        "totalTokenCount": 3888,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3636
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 252
+          }
+        ]
+      }
+    },
+    {
+      "title": "What if every FF main villain from 1-15 attacked the source and it’s shards what",
+      "seconds": 16.8,
+      "ok": true,
+      "modelVersion": "gemini-4-argon",
+      "usage": {
+        "promptTokenCount": 3719,
+        "candidatesTokenCount": 452,
+        "totalTokenCount": 4171,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3719
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 452
+          }
+        ]
+      }
+    },
+    {
+      "title": "[Weekly Thread] Mentor Monday (Mon, Oct 19)",
+      "seconds": 9.5,
+      "ok": true,
+      "modelVersion": "gemini-4-argon",
+      "usage": {
+        "promptTokenCount": 3712,
+        "candidatesTokenCount": 314,
+        "totalTokenCount": 4026,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3712
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 314
+          }
+        ]
+      }
+    }
+  ]
+}

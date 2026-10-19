@@ -1,0 +1,17 @@
+{
+  "run": 1,
+  "key": {
+    "B1_機車左轉政策": {
+      "X": "gemini-3.8-flash",
+      "Y": "gemini-4-argon"
+    },
+    "B2_路權政策": {
+      "X": "gemini-4-argon",
+      "Y": "gemini-3.8-flash"
+    },
+    "B3_道安政策": {
+      "X": "gemini-4-argon",
+      "Y": "gemini-3.8-flash"
+    }
+  }
+}
