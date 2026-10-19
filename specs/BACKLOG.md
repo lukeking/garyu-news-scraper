@@ -35,12 +35,12 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」） | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | 兩個觸發都已成立（7.56 於 09-08 上線；traffic digest 07-20 驗收）；`GNS-20261019-a0r` 開 spec 時一起談。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
-| `GNS-20261019-a0r` | FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重 | `GNS-20261015-8pg` 模型評比結束後（Luke 10-19 裁示排在評比之後）；或下次動 `src/filter.py` 的 `game_deduplicate`、`src/collector.py` 的 `_entry_to_dict`／`_fetch_html_patch` 時 | 連兩週週報的 FFXIV 分析裡，來自五個論壇版（550／551／552／553／537）的至少 1 篇（09-21～10-19 五週都是 0／20）；Lodestone 不再是 `0 筆`；PLL 來源在篩選時優先，有 unit test 鎖住；或寫明不做的理由 |
+| `GNS-20261019-a0r` | FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重 | 已觸發：Luke 10-19 裁示排在模型評比之後，評比 10-19 已完成；或下次動 `src/filter.py` 的 `game_deduplicate`、`src/collector.py` 的 `_entry_to_dict`／`_fetch_html_patch` 時 | 連兩週週報的 FFXIV 分析裡，來自五個論壇版（550／551／552／553／537）的至少 1 篇（09-21～10-19 五週都是 0／20）；Lodestone 不再是 `0 筆`；PLL 來源在篩選時優先，有 unit test 鎖住；或寫明不做的理由 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
-| `GNS-20261015-8pg` | 模型評比：已被自動換上的 `gemini-3.8-flash`，與 `gemini-4-argon` | 014 closeout 之後（2026-10-15 Luke 裁示；3.8 同日併入） | 用同一套 framework（`experiments/model-quality-3p6flash-vs-3p7flash/scripts/quality_ab.py`）在同一份凍結快照上跑完盲評：3.8 對 PR `#90` 存下的 3.7 輸出、argon 對 3.8；品質、成本、延遲寫進 `experiments/` 的新目錄與本節，據此決定 prod 的 `GEMINI_MODEL_NAME`（留在 3.8、釘回 `gemini-3.6-flash`、或換 argon）；或寫明不跑的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時 | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
@@ -333,6 +333,13 @@ score=0.1842  選中=False  AUTO ONLINE 汽車線上 - AUTO ONLINE 汽車線上
 **B3_道安政策** 桶（category pool，n=16）反覆點名：**兩個模型的 3 次生成都**捏造了來源文章 [7]
 中不存在的關鍵事實——「新生禁行機車」與「事故率下降三成」，並據此展開 §一 因果分析。
 
+**⚠️ 2026-10-19 更正：這個起源案例是裁判看不到原文造成的誤判，不是杜撰。** `analyze_hot_topic` 給生成模型的是
+每篇 `summary` 前 600 字，實驗的裁判只看到凍結時存下的前 200 字。[7]（佛光大學）的「大一新生原則上不得申請機車
+通行證」在第 563 字、「約降低三成」在第 598 字，都在生成看得到、裁判看不到的那一段（實測：`q_snapshot.json`
+的 B3 [7] `summary` 用 `str.find` 定位）。所以下面「為什麼是缺陷」與「證據很薄」兩段的前提不成立，
+文本依據軸偏低（~3.1）也至少有一部分是同一個裁判輸入落差。08-24 之後的取樣與 09-03 的量測是逐篇對正文，
+不受影響，本項以那些為準。裁判輸入的修正記在 `GNS-20261019-1vk`。
+
 **為什麼是缺陷、又為什麼不急**：
 - 杜撰的事實**進了報告本文**（若該桶發布，讀者會讀到假事實）——正確性問題，非風格。
 - 但**與模型無關**（3.6／3.7 皆然、各 3 次）→ 是 `analyze_hot_topic` 的 prompt／grounding 問題，
@@ -557,44 +564,6 @@ CRLF 誤判同形。修法是一行：`if extra and not args.ablate: 報錯`。
 而且這種對本來就進不了 buffer，B 擋不擋都一樣——**行數會高估 B 的實際效果**。證偽：拿重複出現那幾對的候選 link 查
 `articles`，在庫就成立。
 
-## GNS-20261015-8pg 模型評比：`gemini-3.8-flash` 與 `gemini-4-argon`
-
-**起因**：10-15 Luke 提出。慣例是新的 flash／pro 一出 stable／GA，就用同一套 framework 再跑一輪：
-前兩輪是 2.5-pro → 3.6-flash（PR `#74`）、3.6-flash → 3.7-flash（PR `#90`）。
-10-15 裁示排在 014 closeout 之後；同日發現 prod 已被換成 3.8（下一段），裁示 3.8 併進同一輪。
-
-**3.8 已經在 prod 上跑，而且沒評比過**（10-15 查證）：
-
-- 官方 changelog 2026-10-08：`gemini-3.7-flash` deprecated，API 請求自動 route 到 `gemini-3.8-flash`。
-  10-15 實測：送 `gemini-3.7-flash`，回應的 `modelVersion` 是 `gemini-3.8-flash`；`gemini-3.6-flash` 仍回它自己。
-  prod 的 `GEMINI_MODEL_NAME` 還寫 3.7，所以 10-08 之後的週報是 3.8 產生的，從設定看不出來。
-- 3.7 → 3.8 那輪 09-04 就判定該跑（3.8 已 GA、與 3.7 同價），排在 09-07 之後，但只寫在當時的 handoff、
-  沒有進這張表，之後就掉了。沒有「評估後決定不換」這個決定。
-- 基準：3.7 已經叫不到。PR `#90` 存下的輸出（`experiments/model-quality-3p6flash-vs-3p7flash/data/` 的
-  `q_run_gemini-3_7-flash.json`，同一份 `q_snapshot.json`）仍然有效——`analyze_hot_topic` 用到的 prompt 常數
-  從 `770ed2a` 到 10-15 逐字相同，`_call_gemini` 只把 key 移到 header。
-- **陷阱**：`MODELS` 不能直接寫 `gemini-3.7-flash`，那會被 route 成 3.8，變成 3.8 跟自己比。框架要改成
-  讀存檔當 incumbent，並記下每次回應的 `modelVersion`。
-- 退路：3.8 若比較差，`gemini-3.6-flash` 沒有 deprecated、還叫得到，是唯一能釘回去的舊 flash；另一條是 argon。
-- embedding（`gemini-embedding-2`）不受影響，沒有公布關閉日期。
-
-**釋出狀態**（10-15 網路查證）：9-30 發表，起初只開放給特定的資安合作夥伴；10-13 開放 API，model ID
-`gemini-4-argon`。查到的來源都沒有明確寫是 GA 還是 preview——**開跑前先確認**。preview 不進 prod 排程
-（`gemini-3.1-pro` 一直停在 preview，就是因此沒採用）。
-
-**定價**：優惠價每百萬 token 輸入 $2、輸出 $10，到 2026-11-30；之後 $4／$20；沒有 free tier。
-這是旗艦級定價。3.7 與 3.8-flash 同價（09-04 官方定價頁），成本基準見 PR `#90` 的實驗紀錄。
-
-**開跑前要決定的事**：
-
-- **裁判模型**：第一輪用 `gemini-3.1-pro-preview`、第二輪用 `gemini-2.5-pro`（`quality_ab.py` 的 `JUDGE`）做盲評；
-  開跑前先確認裁判還在服務。Argon 可能比裁判強，而且同屬 Gemini 家族；要考慮跨家族的裁判，或至少做 spot-check。
-- **成本**：凍結快照要讀正式庫；本機 `.env` 與 prod 是同一把 key，評比會計費、吃 prod 的額度。
-- **範圍**（10-19 Luke 裁示）：`GEMINI_MODEL_NAME` 是共用的——FFXIV 的文章分析（`src/pipeline/ffxiv.py` → `analyze_all`）
-  與 auto-KB（`scripts/auto_kb.py`、`.github/workflows/auto-kb.yml`）都讀它，換它等於三條一起換。品質照舊只量
-  `analyze_hot_topic`，結果寫明 FFXIV 與 auto-KB 的品質沒量、跟著換；成本估算把三條呼叫端都算進去（argon 是旗艦定價）。
-  daily 只用 embedding（`src/pipeline/traffic.py` 的 `_embedding_dedup`），不呼叫生成模型。
-
 ## GNS-20261015-0cz 中文 YouTube 頻道取不到逐字稿
 
 **出處**：spec 014 T019（PR #162，2026-10-15）。改寫 traffic 鏡像檔頭「中文 YouTube 頻道不建議收錄」那句時量到。
@@ -694,6 +663,29 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 - **10-19 查到、會影響原設計的事**（證據見 `GNS-20261019-a0r`）：週報的雜訊主要來自取樣——Reddit 只抓最近半天、
   篩選只留最新 20 篇——不只是 patch 空窗。原設計的 patch 偵測器（Lodestone）現在是 `0 筆`。
   `hot.json` 從 Actions 的 IP 打不打得到沒驗（Reddit 有時會擋沒有認證的雲端 IP，推測）。
+
+## GNS-20261019-1vk 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送
+
+**起因**：慣例是新的 flash／pro 一 GA，就用同一套 framework 再跑一輪（PR `#74`、`#90`、10-19 這輪）。
+3.7 → 3.8 那輪 09-04 就判定該跑，但只寫在當時的 handoff、沒進這張表，之後就掉了；10-08 起 prod 被自動轉給 3.8，
+到 10-15 才發現。這一列讓下一輪不再只靠 handoff。
+
+**10-19 那輪的結論**（`experiments/model-quality-3p8flash-vs-argon/README.md`）：3.8 對 3.7 非劣（L1）；
+argon 對 3.8 過不了 L1（觸發制紀律 −1.22、文本依據 −0.50）。prod 明寫 `gemini-3.8-flash`。
+
+**下一輪開跑前要先做的**：
+
+- **裁判看到的來源長度改成與生成相同**：生成拿每篇 `summary` 前 600 字，裁判只看到凍結時存下的前 200 字
+  （PR `#74` 起的 framework 都是這樣）。200–600 字之間的內容，裁判一律當成查無來源；引證越多的模型吃虧越大
+  （argon 每份 12.6 處，3.8 是 4.1 處）。`GNS-011` 的起源案例就是這個落差造成的誤判。
+- **對照組**：本輪的 `q_run_gemini-3_8-flash.json`（同一份 08-10 快照）。
+- **成本算全部呼叫端**：`GEMINI_MODEL_NAME` 同時給熱點／彙整、FFXIV 的 `analyze_article`、auto-KB 用。
+  FFXIV 每週 20 次，是呼叫次數的大頭。
+
+**沒有執行者**：prod 不記 `modelVersion`，所以模型被轉送時沒有任何東西會出聲——10-08 那次就是這樣；
+週報耗時連兩週上升（FFXIV 那段 3.7 時期 199–218 秒、3.8 時期 292–352 秒）也沒有人連到換了模型。
+要讓觸發點變成一個事件，可以在 `src/analyzer.py` 的 `_call_gemini` 比對回應的 `modelVersion` 與 `GEMINI_MODEL`，
+不符時印 warning，週驗收 routine 讀得到週報 log。這是提議，還沒做。
 
 ---
 
