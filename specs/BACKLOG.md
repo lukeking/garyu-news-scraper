@@ -35,6 +35,8 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | 兩個觸發都已成立（7.56 於 09-08 上線；traffic digest 07-20 驗收）；`GNS-20261019-a0r` 開 spec 時一起談。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
+| `GNS-20261019-a0r` | FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重 | `GNS-20261015-8pg` 模型評比結束後（Luke 10-19 裁示排在評比之後）；或下次動 `src/filter.py` 的 `game_deduplicate`、`src/collector.py` 的 `_entry_to_dict`／`_fetch_html_patch` 時 | 連兩週週報的 FFXIV 分析裡，來自五個論壇版（550／551／552／553／537）的至少 1 篇（09-21～10-19 五週都是 0／20）；Lodestone 不再是 `0 筆`；PLL 來源在篩選時優先，有 unit test 鎖住；或寫明不做的理由 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
@@ -588,6 +590,10 @@ CRLF 誤判同形。修法是一行：`if extra and not args.ablate: 報錯`。
 - **裁判模型**：第一輪用 `gemini-3.1-pro-preview`、第二輪用 `gemini-2.5-pro`（`quality_ab.py` 的 `JUDGE`）做盲評；
   開跑前先確認裁判還在服務。Argon 可能比裁判強，而且同屬 Gemini 家族；要考慮跨家族的裁判，或至少做 spot-check。
 - **成本**：凍結快照要讀正式庫；本機 `.env` 與 prod 是同一把 key，評比會計費、吃 prod 的額度。
+- **範圍**（10-19 Luke 裁示）：`GEMINI_MODEL_NAME` 是共用的——FFXIV 的文章分析（`src/pipeline/ffxiv.py` → `analyze_all`）
+  與 auto-KB（`scripts/auto_kb.py`、`.github/workflows/auto-kb.yml`）都讀它，換它等於三條一起換。品質照舊只量
+  `analyze_hot_topic`，結果寫明 FFXIV 與 auto-KB 的品質沒量、跟著換；成本估算把三條呼叫端都算進去（argon 是旗艦定價）。
+  daily 只用 embedding（`src/pipeline/traffic.py` 的 `_embedding_dedup`），不呼叫生成模型。
 
 ## GNS-20261015-0cz 中文 YouTube 頻道取不到逐字稿
 
@@ -637,6 +643,57 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 
 **10-19**（spec 014 上線後第一個週報，run `39188558601`，讀自「最大來源」行）：最大來源 `Google News 人本交通` 18/78。
 池含 10-16 新來源一次進來的 30 天存量（匯流四類 51 篇），穩態從 10-26 起看；C1／C2 對帳見上面那份 `evaluation.md`。
+
+## GNS-20261019-a0r FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重
+
+**提出**：2026-10-19，談 FFXIV pipeline 方向（`GNS-20261019-3cq`）時查出。Luke 裁示先記下、排在模型評比之後。
+
+**現況**（實測：09-21～10-19 五次週報的 log，加上本機重跑 collector 的真入口）：
+
+- 每週分析 20 篇，標題含漢字或假名的 0 篇——五週都是 Reddit 的英文貼文。成因在 `game_deduplicate`
+  （`src/filter.py`）：依 `published` 由新到舊取前 20，沒有來源權重。Reddit `new/.rss` 的 25 篇是最近約半天
+  （10-19 本機量 15.7 小時），永遠排最前；HTML 來源的 `published` 是空字串，排到最後。
+- `FFXIV Lodestone JP 更新資訊` 五週都是 `0 筆`（記成 INFO，不算失敗）：回 200、頁面有 22 個 `li.news__list`，
+  設定的 selector `li.news__list--topics` 對到 0 個。而且 `category/2` 是「メンテナンス」，アップデート在 `category/3`。
+- 論壇 RSS 只取 `summary`（`src/collector.py` 的 `_entry_to_dict`，vBulletin 截在約 100 字），`content:encoded`
+  有第一則全文（551 那篇 118 對 760 字）。討論串頁面本機不登入讀得到，與 RSS 全文逐字相同。
+
+**論壇的發現路徑**（實測）：`external.php?type=RSS2&forumids=N&lastpost=1` 依最後回覆排序，順序與版面列表頁
+一致；`pubDate` 是最後一則的時間、`author` 是最後回覆者、`content:encoded` 是那則回覆的全文。每次最多 15 串。
+不加 `lastpost=1` 是依開串時間，舊串有新回覆不會出現。時間窗約四週（推論：551 最舊一則 09-21）。
+10-19 各版筆數：550＝2、551＝9、552＝3、553＝15（滿）、537＝0。
+
+**Luke 定的範圍**（10-19）：先追四個 class & jobs 版（550 TANK、551 DPS、552 HEALER、553 その他バトルシステム）
+與 537 プロデューサーレターLIVE。PLL 更新週期長而且不固定，權重拉高。
+
+**要做的**：
+
+1. 五個版改用 `lastpost=1`、讀 `content:encoded`；第 15 串的時間比上次抓取還新時印截斷警告（可能漏了）。
+2. `game_deduplicate` 的「最新 20 篇」改成看來源權重，PLL 最高。traffic 的 `source_weights`（`src/filter.py`
+   的 quality score）是現成的形狀。
+3. Lodestone 修 selector 與分類網址。
+4. HTML 爬蟲「200 但 0 筆」要出聲——與 `GNS-016` 的 PTT 同一個形狀，可以一起做。
+
+**還沒驗的**：
+
+- Actions 的 IP 打論壇 RSS 與討論串頁面會不會被擋（以上都是本機量的）。
+- 537 的 0 是沒人發文還是壞掉，從筆數分不出來：PLL 不定期，0 是常態。最新的 `第N回` 子版（1618「第8回14時間生放送」、
+  1597「第68回」）最大串 id 是 47 萬與 45 萬，現在約 53 萬，所以近期的 PLL 應該不再開子版（推論）；
+  父版 RSS 含不含子版沒驗。
+- 每串只給最後一則；兩次抓取之間的其他回覆要去討論串頁面拿。
+
+## GNS-20261019-3cq FFXIV 改 patch-triggered、套用聚合 digest
+
+**提出**：2026-07-13 的方向決定，原本只在本機 memory（`project_ffxiv_pipeline_direction`），10-19 搬進這裡。
+
+- **patch-triggered**：9 月大 patch 之後改。原設計：Lodestone 偵測 patch 公告 → 玩家討論成熟（2–3 天）後跑一次 →
+  Reddit JSON API（`r/ffxiv/hot.json`，依 flair、score、有沒有 `selftext` 篩）→ 每個 patch 一份報告，不再每週一份。
+  理由：成熟的老遊戲，有意義的討論集中在 patch 之後（大 patch 每 3–4 個月、小 patch 每 6 週）。
+- **聚合 digest**：traffic 驗證可行之後套用到 FFXIV（spec 010 的 deferred 項）。前置是日文來源不足；
+  10-19 Luke：沒有進展。
+- **10-19 查到、會影響原設計的事**（證據見 `GNS-20261019-a0r`）：週報的雜訊主要來自取樣——Reddit 只抓最近半天、
+  篩選只留最新 20 篇——不只是 patch 空窗。原設計的 patch 偵測器（Lodestone）現在是 `0 筆`。
+  `hot.json` 從 Actions 的 IP 打不打得到沒驗（Reddit 有時會擋沒有認證的雲端 IP，推測）。
 
 ---
 
