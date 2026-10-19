@@ -165,8 +165,10 @@ US1 要改來源，改之前必須先有 US2（來源清單進 git）與 US3（�
       （10-15 補：來源名單與 C1／C2 讀法隨 PR #162 先寫進 FOCUS 的 (5)，趕 10-19 週報；PROMPT (A) 與 FOCUS 改指新列跟 T022 一起進 closeout PR。）
       （10-19 main 驗證：(A) 改指 `GNS-20261019-dkm`，並加一行記 L2 佔比（只記錄）；FOCUS 與 README 的「GNS-008 L1 前兩週」改名「L1 前兩週」，
       下次換列不必再改標題。`routines/` 裡 `grep -w GNS-008` 只剩兩處歷史說明。）
-- [ ] T024 [P] spec.md 補「達成階數」一節（Gate、SC-003 的實測；L1／L2 標明交給 routine），PR 內文寫實際做了什麼
+- [X] T024 [P] spec.md 補「達成階數」一節（Gate、SC-003 的實測；L1／L2 標明交給 routine），PR 內文寫實際做了什麼
       （採用與放棄的候選、各自的評估數字）與一行 `Backlog:`。
+      （10-19 main 驗證：spec「達成階數」含 SC-001～SC-004；PR #166 內文改寫，`Backlog:` 那行由 `backlog_trailers.py pr-line` 產生、
+      讀回一致。）
 
 ---
 
