@@ -69,3 +69,19 @@
 - `auto_kb.py` 的 Step 2 有一個 `sys.exit(0)` 早退（沒有未知術語就結束），
   Step 5 的職責會把未知集清空因而觸發它——**這正是當初要求「跑真 `main()` 而非重寫邏輯」的原因**
   （PR #103）。新測試一律走 `run_main`，不要另外乾跑某個函式。
+
+## Supabase schema
+
+### 新表要在同一份 SQL 授權給 `service_role`
+
+原出處：Supabase 官方通知（2026-10-20 收到）與 changelog 45329；2026-10-21 盤點本 repo。
+
+2026-10-30 起，`public` 裡新建的表不再自動授權給 Data API 的角色（`anon`／`authenticated`／`service_role`），
+sequences 一併撤銷；既有的表不受影響。本 repo 的 Python、Actions、Worker 都經 Data API 以 `service_role`
+存取，新表少了授權就回 `42501 permission denied`。
+
+- 建表的 SQL 同一份寫 `grant select, insert, update, delete on public.<表> to service_role;`，
+  先例是 `supabase_migrations/002_traffic_pipeline.sql`。`serial` 主鍵的 sequence 也要授權（`nextval` 需要 USAGE）。
+- 只給 `service_role`。不要照通知信的範本也給 `anon`／`authenticated`：沒有任何元件用這兩個角色。
+- **本機整合測試抓不到漏寫**：`scripts/setup_test_db.sh` 在所有 SQL 套用完之後，把 public 的每張表都授權給
+  `service_role`，所以漏寫 GRANT 的新表本機照樣會過，要到 prod 第一次排程執行才失敗。
