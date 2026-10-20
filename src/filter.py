@@ -7,6 +7,7 @@ import hashlib
 import logging
 import os
 import re
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 
@@ -195,14 +196,16 @@ def freshness_filter(
 ) -> list:
     """
     Two-layer freshness filter (FR-001, FR-002, FR-003):
-      1. Cross-week fingerprint dedup: exclude if title fingerprint in existing_fingerprints
+      1. Cross-week fingerprint dedup: exclude if title fingerprint in existing_fingerprints (not for dedup_key)
       2. Age gate: exclude if article is older than threshold_days
     Gracefully handles empty existing_fingerprints (Supabase failure path, FR-004).
     """
     result = []
     for article in articles:
-        fp = title_fingerprint(article)
-        if fp in existing_fingerprints:
+        # 論壇長期串標題每週相同；不重複分析靠固定週窗口（spec 015 R5）
+        if article.get("dedup_key"):
+            logger.info("跨週去重略過標題指紋（以回覆去重）：%s", article.get("title", "")[:50])
+        elif title_fingerprint(article) in existing_fingerprints:
             logger.info("跨週去重跳過：%s (fingerprint match)", article.get("title", "")[:50])
             continue
         too_old, reason = _is_too_old_by_age(article, threshold_days)
@@ -468,13 +471,30 @@ def compute_quality_score(article: dict, category_keywords: list, config: dict) 
     return min(max(score, 0.0), 1.0)
 
 
+def ffxiv_rank_key(article: dict) -> tuple:
+    """FFXIV 排序鍵（升冪排即入選順序）：權重降冪 → 時間新到舊 → 沒有或解析不出時間的最後。
+    沒有 source_weight 當 0；不帶時區的時間當 UTC。"""
+    ts = None
+    pub = article.get("published", "")
+    if pub:
+        try:
+            dt = _parse_published(pub)
+            ts = (dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)).timestamp()
+        except Exception:
+            pass
+    return (-article.get("source_weight", 0), ts is None, -(ts or 0.0))
+
+
+def _ffxiv_source_counts(label: str, articles: list) -> str:
+    counts = sorted(Counter(a.get("source", "") for a in articles).items(), key=lambda kv: (-kv[1], kv[0]))
+    if not counts:
+        return f"FFXIV {label} 0 篇"
+    return f"FFXIV {label} {len(articles)} 篇：" + "、".join(f"{s} {n}" for s, n in counts)
+
+
 def game_deduplicate(articles: list, config: dict) -> list:
-    """
-    FFXIV 遊戲新聞去重複：
-      1. 排除包含關係（A 標題是 B 標題的子集）
-      2. 排除 Jaccard > game_threshold 的相似標題
-    回傳最多 20 篇，依發布時間降冪排序（最新在前）。
-    """
+    """FFXIV 去重：排除包含關係與 Jaccard > game_threshold 的標題，重複時留先出現的（呼叫端先依 ffxiv_rank_key
+    排好，留下的就是權重高的那份）；再依同一個鍵取前 20，並印候選池與入選的逐來源篇數。"""
     game_threshold = config.get("jaccard", {}).get("game_threshold", 0.50)
 
     # 預先計算 token set
@@ -503,16 +523,8 @@ def game_deduplicate(articles: list, config: dict) -> list:
             retained_token_sets.append(ts_i)
 
     retained = [articles[i] for i in retained_indices]
-
-    # 依發布時間排序（最新在前）
-    def _pub_key(a):
-        pub = a.get("published", "")
-        if pub:
-            try:
-                return _parse_published(pub)
-            except Exception:
-                pass
-        return datetime.min.replace(tzinfo=timezone.utc)
-
-    retained.sort(key=_pub_key, reverse=True)
-    return retained[:20]
+    retained.sort(key=ffxiv_rank_key)
+    selected = retained[:20]
+    logger.info("%s", _ffxiv_source_counts("候選池", retained))
+    logger.info("%s", _ffxiv_source_counts("入選", selected))
+    return selected
