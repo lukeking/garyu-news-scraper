@@ -68,13 +68,13 @@ PR #132 替兩個查詢都加了分頁。指紋那半 09-15 起每個 run 都 > 
 
 ## (7) spec 015 上線後的 FFXIV 取樣（PR #174，BACKLOG `GNS-20261020-sbe`）
 
-先看週報 log 有沒有 `FFXIV 候選池 N 篇：` 那行。**沒有**＝015 還沒上線（PR 未 merge 或 prod 的 `SOURCES_FFXIV_YML` 還沒改）→ 寫「015 尚未上線」，本節其餘不做、不判 FAIL。有 → 做下面：
+先看週報 log 有沒有 `FFXIV 候選池 ` 開頭的那行（平常是 `FFXIV 候選池 N 篇：…`；候選池空的時候是 `FFXIV 候選池 0 篇`，沒有冒號——那也算有）。**沒有**＝015 還沒上線（PR 未 merge 或 prod 的 `SOURCES_FFXIV_YML` 還沒改）→ 寫「015 尚未上線」，本節其餘不做、不判 FAIL。有 → 做下面：
 
 - 逐字引用 `FFXIV 候選池 N 篇：…` 與 `FFXIV 入選 M 篇：…` 兩行。
 - **SC-001 Gate**：入選那行裡，名稱以 `FFXIV JP Forum - ` 開頭的五個論壇版（不含列表頁 `FFXIV JP Forum`）合計 ≥ 1 → ✅，0 → ❌。
 - **SC-001 L1**：逐字列出每串的 `<版>: <串> 窗口內 N 則、收 M 則、翻 P 頁` 行；數 N ≥ 1 的串數，與入選的論壇版合計比——相等 → ✅，不等 → 標出差幾篇。
 - **SC-002 Gate**：逐字引用 `FFXIV Lodestone JP 更新資訊: 解析 N 則、收進 M 則（窗口外 a、排除 b）`。N > 0 → ✅；出現 `FFXIV Lodestone JP 更新資訊: 回 200 但解析出 0 項` → FAIL。M 是 0 不算失敗（那週沒有アップデート公告）。
-- FFXIV 的 `來源失敗：N/8`：預期 `0/8`（`FFXIV TW 修正說明` 已停用，BACKLOG `GNS-20261020-rhd`）。名單非空 → 逐字引用。
+- FFXIV 的 `來源失敗：N/8`（週報印兩次 `來源失敗`，第一行是交通、第二行才是 FFXIV，同 (6)）：預期 `0/8`（`FFXIV TW 修正說明` 已停用，BACKLOG `GNS-20261020-rhd`）。名單非空 → 逐字引用。
 - 有 `退回 RSS 最後一則`、`翻到上限`、`回滿 15 串`、`詳細頁抓不到` 的行 → 全部逐字列出（不判 FAIL，給本地判讀）。
 - **SC-005**：週報總耗時 ≤ 30 分（`timeout-minutes`）→ ✅；FFXIV 那段照下方「runtime 比較基準」算 `✓ 分析完成：` 的間隔平均，只記錄。
 - **SC-006**：記下候選池的 N（不判）。對照：10-20 本機量（窗口 10-12～10-19）是 45 篇——Reddit 25、論壇列表頁 13、論壇版 6、Lodestone 1；入選是 Reddit 13、論壇版 6、Lodestone 1（`specs/015-ffxiv-sampling-fix/evaluation.md` T021）。
