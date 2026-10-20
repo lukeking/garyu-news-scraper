@@ -16,9 +16,11 @@ class FFXIVCategory:
         return collect_sources(load_ffxiv_sources())
 
     def filter(self, raw: list) -> list:
-        from src.filter import freshness_filter, filter_and_deduplicate, game_deduplicate
+        from src.filter import ffxiv_rank_key, freshness_filter, filter_and_deduplicate, game_deduplicate
         from src.pipeline_config import load_pipeline_config
         from src.storage import get_existing_title_fingerprints, is_configured
+        for source in dict.fromkeys(a.get("source", "") for a in raw if "source_weight" not in a):
+            logger.warning("%s: 未設 weight，排在最後", source)
         existing_fps: set = set()
         if is_configured():
             try:
@@ -26,7 +28,9 @@ class FFXIVCategory:
             except Exception as e:
                 logger.warning("[%s] 跨週指紋查詢失敗，略過：%s", self.name, e)
         after_freshness = freshness_filter(raw, existing_fps)
-        after_dedup = filter_and_deduplicate(after_freshness)
+        # 兩個去重步驟都留先出現的那份，所以先依排序鍵排好，重複時留下的才是權重高的
+        ranked = sorted(after_freshness, key=ffxiv_rank_key)
+        after_dedup = filter_and_deduplicate(ranked)
         config = load_pipeline_config()
         return game_deduplicate(after_dedup, config)
 

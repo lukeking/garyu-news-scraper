@@ -34,7 +34,7 @@ LEGACY = {
     "scripts/traffic_weekly_analysis.py": (5, 3),
     "src/analyzer.py": (9, 11),
     "src/collector.py": (6, 6),
-    "src/filter.py": (9, 11),
+    "src/filter.py": (9, 10),
     "src/gn_resolver.py": (13, 5),
     "src/main.py": (5, 1),
     "src/pipeline/traffic.py": (6, 1),

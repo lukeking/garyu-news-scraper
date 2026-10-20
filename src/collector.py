@@ -608,6 +608,10 @@ def collect_sources(sources: list) -> list:
         if source.get("lookback_days"):
             for a in articles:
                 a["lookback_days"] = source["lookback_days"]
+        # weight → source_weight：FFXIV 排序鍵用；沒寫的不蓋（排序當 0，FFXIV filter 印警告）
+        if source.get("weight") is not None:
+            for a in articles:
+                a["source_weight"] = source["weight"]
         all_articles.extend(articles)
         time.sleep(1)
     logger.info("收集完成，共 %d 筆（去重前）", len(all_articles))
