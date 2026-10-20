@@ -246,6 +246,13 @@ def too_many_source_failures(failed: int, attempted: int) -> bool:
     return attempted > 0 and failed / attempted > SOURCE_FAILURE_LIMIT
 
 
+def _flag_parsed_zero(name: str, count: int) -> None:
+    """回 200 但 selector 對到 0 個節點＝來源失敗（015 FR-007）；在任何篩選之前呼叫，篩選後才變 0 的不算。"""
+    if count == 0:
+        logger.warning("%s: 回 200 但解析出 0 項（selector 可能失效）", name)
+        _mark_failed(name)
+
+
 # ── 各 type 抓取函式 ──────────────────────────────────────────
 
 def _fetch_rss(source: dict) -> list:
@@ -286,7 +293,9 @@ def _fetch_ptt(source: dict) -> list:
         resp = session.get(url, headers=PTT_HEADERS, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "lxml")
-        for div in soup.select("div.r-ent"):
+        entries = soup.select("div.r-ent")
+        _flag_parsed_zero(name, len(entries))
+        for div in entries:
             title_tag = div.select_one("div.title a")
             if not title_tag:
                 continue
@@ -366,7 +375,9 @@ def _fetch_html_patch(source: dict) -> list:
         resp = requests.get(url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "lxml")
-        for item in soup.select(selector):
+        items = soup.select(selector)
+        _flag_parsed_zero(name, len(items))
+        for item in items:
             title_el = item.select_one(title_selector) or item.select_one("a")
             if not title_el:
                 continue
@@ -409,10 +420,10 @@ def _fetch_html_forum(source: dict) -> list:
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "lxml")
         seen_links: set = set()
-        for a in soup.find_all("a", href=True):
+        threads = [a for a in soup.find_all("a", href=True) if _THREAD_HREF_PATTERN.search(a["href"])]
+        _flag_parsed_zero(name, len(threads))
+        for a in threads:
             href = a["href"]
-            if not _THREAD_HREF_PATTERN.search(href):
-                continue
             title = a.get_text(strip=True)
             if len(title) < 3:
                 continue

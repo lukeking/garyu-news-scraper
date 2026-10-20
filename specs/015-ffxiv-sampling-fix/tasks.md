@@ -143,11 +143,11 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 **Independent Test**: T018 綠；T026 用舊的 Lodestone 設定跑，`來源失敗` 名單有 Lodestone。
 
-- [ ] T018 [P] [US4] `tests/unit/test_parsed_zero_signal.py`（patch `requests.get`／`requests.Session.get`）：
+- [-] T018 [P] [US4] `tests/unit/test_parsed_zero_signal.py`（patch `requests.get`／`requests.Session.get`）：
       html_patch selector 對到 0 → 失敗名單有它、印 contracts/log-lines.md 那一句；html_forum 0 個 `threads/\d+` 連結 → 同上；
       PTT 0 個 `div.r-ent` → 同上；PTT 有 `div.r-ent` 但推文數都不到門檻 → 不算失敗；RSS 0 筆 → 不算失敗；
       `collect_sources` 的 `來源失敗：N/M` 彙總行把它們算進去。
-- [ ] T019 [US4] `src/collector.py`：共用的「解析出 0 項」判斷，接進 `_fetch_html_patch`、`_fetch_html_forum`、`_fetch_ptt`（在任何篩選之前判斷）。
+- [-] T019 [US4] `src/collector.py`：共用的「解析出 0 項」判斷，接進 `_fetch_html_patch`、`_fetch_html_forum`、`_fetch_ptt`（在任何篩選之前判斷）。
 
 ---
 
