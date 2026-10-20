@@ -88,6 +88,7 @@ jobs:
           # 寫入 articles 需 service role（略過 RLS）；勿只用 anon key
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
 
       - name: 驗證本週資料可由 Supabase 讀取
         run: |
