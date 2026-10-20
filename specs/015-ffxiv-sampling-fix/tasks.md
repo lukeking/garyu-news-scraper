@@ -83,27 +83,27 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 ### Tests（先寫、先紅）
 
-- [ ] T007 [P] [US1] `tests/unit/test_vb_forum_window.py`：窗口函式——給定「現在」，回傳［該 ISO 週週一 00:00 UTC − 7 天, 該週一 00:00 UTC）；
+- [-] T007 [P] [US1] `tests/unit/test_vb_forum_window.py`：窗口函式——給定「現在」，回傳［該 ISO 週週一 00:00 UTC − 7 天, 該週一 00:00 UTC）；
       週一 00:30Z 與週一 02:30Z、週三同一週都得到同一個窗口；週日 23:59Z 得到前一個窗口。
-- [ ] T008 [P] [US1] `tests/unit/test_vb_forum_parse.py`：用 T001 的 fixtures 解析回覆（id、時間、內文）：
+- [-] T008 [P] [US1] `tests/unit/test_vb_forum_parse.py`：用 T001 的 fixtures 解析回覆（id、時間、內文）：
       `10-15-2026 01:16 PM` 是日本時間 → `2026-10-15T04:16:00+00:00`；`Today`／`Yesterday` 以注入的「現在」的日本日期解析
       （含現在是日本時間凌晨、UTC 仍是前一天的情況）；解析不出的時間回報失敗而不是猜；前一頁網址 `<串網址>/page<N-1>` 從「Page N of N」推得。
-- [ ] T009 [US1] `tests/unit/test_vb_forum_collect.py`（patch `_fetch_rss_bytes`、`requests.get`、`time.sleep`）：
+- [-] T009 [US1] `tests/unit/test_vb_forum_collect.py`（patch `_fetch_rss_bytes`、`requests.get`、`time.sleep`）：
       (a) 只處理 RSS 最後回覆 ≥ 窗口起點的串；(b) 只收窗口內的回覆，往前翻到頁上最早一則 < 窗口起點或到 `max_pages`；
       (c) 超過 `max_replies` 丟最舊的、合併後截到 `max_chars`，依時間由舊到新、每則前標時間；
       (d) `link`＝`<guid>?p=<窗口內最新回覆 id>`、`dedup_key`＝`forum:<串 id>:<最新回覆 id>`、`published`＝最新回覆時間；
       (e) 窗口內 0 則的串不產出；(f) 三種退回（請求失敗、解析不到回覆、時間解析不出）各印 contracts/log-lines.md 那一句、
       各自退回 RSS 最後一則（若在窗口內）——三句彼此不同；(g) 翻頁上限一句；(h) RSS 回滿 15 筆且第 15 筆 ≥ 窗口起點時印截斷警告，
       14 筆或第 15 筆在窗口外時不印；(i) 每串一行「窗口內 N 則、收 M 則、翻 P 頁」；(j) RSS 回 0 筆不算失敗。
-- [ ] T010 [P] [US1] `tests/unit/test_forum_dedup_key.py`：`freshness_filter` 對帶 `dedup_key` 的文章略過標題指紋（即使指紋在集合裡也保留）、
+- [-] T010 [P] [US1] `tests/unit/test_forum_dedup_key.py`：`freshness_filter` 對帶 `dedup_key` 的文章略過標題指紋（即使指紋在集合裡也保留）、
       印「跨週去重略過標題指紋（以回覆去重）」；年齡檢查照做；不帶 `dedup_key` 的行為不變。
 
 ### Implementation
 
-- [ ] T011 [US1] `src/collector.py`：窗口函式、回覆時間解析（日本時間、Today／Yesterday、注入「現在」）、討論串頁面解析（回覆 id、時間、內文、前一頁網址）。
-- [ ] T012 [US1] `src/collector.py`：`_fetch_vb_forum(source)` 並註冊進 `FETCHERS["vb_forum"]`——讀 RSS（`_fetch_rss_bytes`）、選串、翻頁、
+- [-] T011 [US1] `src/collector.py`：窗口函式、回覆時間解析（日本時間、Today／Yesterday、注入「現在」）、討論串頁面解析（回覆 id、時間、內文、前一頁網址）。
+- [-] T012 [US1] `src/collector.py`：`_fetch_vb_forum(source)` 並註冊進 `FETCHERS["vb_forum"]`——讀 RSS（`_fetch_rss_bytes`）、選串、翻頁、
       收回覆、合併與上限、退回、截斷警告、每串一行 log；分頁請求之間 `time.sleep(1)`；上限的初值 3／20／6000（設定可覆寫）。
-- [ ] T013 [US1] `src/filter.py`：`freshness_filter` 對帶 `dedup_key` 的文章略過標題指紋並印一行。
+- [-] T013 [US1] `src/filter.py`：`freshness_filter` 對帶 `dedup_key` 的文章略過標題指紋並印一行。
 
 **Checkpoint**: T007–T010 綠；`pytest tests/unit` 全綠。
 

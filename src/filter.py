@@ -196,14 +196,16 @@ def freshness_filter(
 ) -> list:
     """
     Two-layer freshness filter (FR-001, FR-002, FR-003):
-      1. Cross-week fingerprint dedup: exclude if title fingerprint in existing_fingerprints
+      1. Cross-week fingerprint dedup: exclude if title fingerprint in existing_fingerprints (not for dedup_key)
       2. Age gate: exclude if article is older than threshold_days
     Gracefully handles empty existing_fingerprints (Supabase failure path, FR-004).
     """
     result = []
     for article in articles:
-        fp = title_fingerprint(article)
-        if fp in existing_fingerprints:
+        # 論壇長期串標題每週相同；不重複分析靠固定週窗口（spec 015 R5）
+        if article.get("dedup_key"):
+            logger.info("跨週去重略過標題指紋（以回覆去重）：%s", article.get("title", "")[:50])
+        elif title_fingerprint(article) in existing_fingerprints:
             logger.info("跨週去重跳過：%s (fingerprint match)", article.get("title", "")[:50])
             continue
         too_old, reason = _is_too_old_by_age(article, threshold_days)

@@ -573,6 +573,168 @@ def _fetch_youtube(source: dict) -> list:
     return articles
 
 
+# ── vBulletin 論壇（spec 015）──────────────────────────────────
+
+JST = timezone(timedelta(hours=9))
+_VB_RSS_LIMIT = 15
+_VB_TIME_PATTERN = re.compile(
+    r"(?P<day>Today|Yesterday|(?P<month>\d{2})-(?P<mday>\d{2})-(?P<year>\d{4}))"
+    r"\s+(?P<hour>\d{1,2}):(?P<minute>\d{2})\s*(?P<ampm>[AP]M)"
+)
+_VB_PAGE_PATTERN = re.compile(r"Page (\d+) of \d+")
+_VB_POST_ID_PATTERN = re.compile(r"post_(\d+)")
+_VB_THREAD_ID_PATTERN = re.compile(r"threads/(\d+)")
+
+
+def _forum_window(now: datetime | None = None) -> tuple:
+    """［本次執行所在 ISO 週的週一 00:00 UTC − 7 天, 該週一 00:00 UTC）（research R1）。"""
+    now = (now or datetime.now(timezone.utc)).astimezone(timezone.utc)
+    monday = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    return monday - timedelta(days=7), monday
+
+
+def _parse_vb_time(text: str, now: datetime | None = None) -> datetime | None:
+    """span.date 的日本時間 → UTC；Today／Yesterday 以「現在」的日本日期為準。解析不出回 None，不猜。"""
+    m = _VB_TIME_PATTERN.fullmatch((text or "").strip())
+    if not m or not 1 <= int(m["hour"]) <= 12:
+        return None
+    hour = int(m["hour"]) % 12 + (12 if m["ampm"] == "PM" else 0)
+    try:
+        if m["year"]:
+            day = datetime(int(m["year"]), int(m["month"]), int(m["mday"])).date()
+        else:
+            day = (now or datetime.now(timezone.utc)).astimezone(JST).date()
+            day -= timedelta(days=1 if m["day"] == "Yesterday" else 0)
+        local = datetime(day.year, day.month, day.day, hour, int(m["minute"]), tzinfo=JST)
+    except ValueError:
+        return None
+    return local.astimezone(timezone.utc)
+
+
+def _parse_vb_page(html: str, thread_url: str, now: datetime | None = None) -> tuple:
+    """討論串的一頁 → (回覆清單, 前一頁網址或 None)。每則回覆：id、time（解析不出為 None）、raw_time、text。"""
+    soup = BeautifulSoup(html, "lxml")
+    posts = []
+    for li in soup.select("li[id^=post_]"):
+        m = _VB_POST_ID_PATTERN.fullmatch(li.get("id", ""))
+        if not m:
+            continue
+        date_el = li.select_one("span.date")
+        body = li.select_one("[id^=post_message_]")
+        raw_time = date_el.get_text(" ", strip=True) if date_el else ""
+        posts.append({
+            "id": int(m.group(1)),
+            "time": _parse_vb_time(raw_time, now),
+            "raw_time": raw_time,
+            "text": re.sub(r"\s+", " ", body.get_text(" ") if body else "").strip(),
+        })
+    page_text = soup.find(string=_VB_PAGE_PATTERN)
+    page = int(_VB_PAGE_PATTERN.search(page_text).group(1)) if page_text else 1
+    return posts, (f"{thread_url}/page{page - 1}" if page > 1 else None)
+
+
+def _merge_vb_replies(replies: list, max_replies: int, max_chars: int) -> tuple:
+    """依時間由舊到新、每則前標日本時間；超過 max_replies 丟最舊的，超過 max_chars 也從最舊的整則丟（新的優先）。"""
+    replies = sorted(replies, key=lambda r: (r["time"], r["id"]))[-max_replies:]
+    blocks, total = [], -1
+    for r in reversed(replies):
+        block = f"[{r['time'].astimezone(JST):%m/%d %H:%M}] {r['text']}"
+        if blocks and total + 1 + len(block) > max_chars:
+            break
+        blocks.append(block)
+        total += 1 + len(block)
+    return "\n".join(reversed(blocks))[:max_chars], len(blocks)
+
+
+def _collect_vb_thread(source: dict, entry, last: datetime, window: tuple, now: datetime) -> dict | None:
+    """一串 → 窗口內回覆合成的一篇；頁面出問題時退回 RSS 最後一則；窗口內 0 則回 None。"""
+    max_pages = source.get("max_pages", 3)
+    max_replies = source.get("max_replies", 20)
+    max_chars = source.get("max_chars", 6000)
+    start, end = window
+    title = entry.get("title", "").strip()
+    label = f"{source['name']}: {title[:30]}"
+    thread_url = entry.get("id", "")
+    thread_id = _VB_THREAD_ID_PATTERN.search(thread_url).group(1)
+    replies, pages, reason, url = [], 0, None, entry.get("link", "")
+    while url:
+        time.sleep(1)
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=15)
+            resp.raise_for_status()
+        except Exception as e:
+            reason = f"討論串頁面請求失敗（{e}）"
+            break
+        pages += 1
+        posts, prev_url = _parse_vb_page(resp.text, thread_url, now)
+        unparsed = [p for p in posts if p["time"] is None]
+        if not posts or unparsed:
+            reason = f"回覆時間解析不出來（{unparsed[0]['raw_time']}）" if posts else "頁面解析不到回覆"
+            break
+        replies = [p for p in posts if start <= p["time"] < end] + replies
+        if min(p["time"] for p in posts) < start or len(replies) >= max_replies:
+            break
+        if pages >= max_pages:
+            logger.info("%s 翻到上限 %d 頁仍未到窗口起點，可能還有更早的回覆沒收", label, pages)
+            break
+        url = prev_url
+    if reason:
+        in_window = last < end
+        logger.warning("%s %s，退回 RSS 最後一則%s", label, reason, "" if in_window else "，但它不在窗口內，這串略過")
+        html = (entry.get("content") or [{}])[0].get("value", "")
+        text = re.sub(r"\s+", " ", BeautifulSoup(html, "html.parser").get_text(" ")).strip()
+        replies = [{"id": 0, "time": last, "text": text}] if in_window else []
+    summary, kept = _merge_vb_replies(replies, max_replies, max_chars)
+    logger.info("%s 窗口內 %d 則、收 %d 則、翻 %d 頁", label, len(replies), kept, pages)
+    if not replies:
+        return None
+    newest = max(replies, key=lambda r: (r["time"], r["id"]))
+    if reason:
+        epoch = int(last.timestamp())
+        link, key = f"{thread_url}?lastpost={epoch}", f"forum:{thread_id}:t{epoch}"
+    else:
+        link, key = f"{thread_url}?p={newest['id']}", f"forum:{thread_id}:{newest['id']}"
+    return {
+        "title": title,
+        "link": link,
+        "summary": summary,
+        "source": source["name"],
+        "published": newest["time"].isoformat(),
+        "content_type": source.get("content_type", "ffxiv"),
+        "dedup_key": key,
+    }
+
+
+def _fetch_vb_forum(source: dict, now: datetime | None = None) -> list:
+    """vBulletin 論壇版：RSS（依最後回覆排序）裡最後回覆在窗口內的串，各自把窗口內的回覆合成一篇。"""
+    name = source["name"]
+    now = now or datetime.now(timezone.utc)
+    window = _forum_window(now)
+    articles = []
+    try:
+        entries = feedparser.parse(_fetch_rss_bytes(source["url"])).entries
+        last_times = [
+            datetime.fromtimestamp(calendar.timegm(e["published_parsed"]), tz=timezone.utc)
+            if e.get("published_parsed") else None
+            for e in entries
+        ]
+        oldest = last_times[_VB_RSS_LIMIT - 1] if len(entries) >= _VB_RSS_LIMIT else None
+        if oldest and oldest >= window[0]:
+            logger.warning("%s: 回滿 %d 串且最舊一串仍在窗口內，可能有串被截掉（最舊 %s）",
+                           name, _VB_RSS_LIMIT, oldest.isoformat())
+        for entry, last in zip(entries, last_times):
+            if last is None or last < window[0]:
+                continue
+            article = _collect_vb_thread(source, entry, last, window, now)
+            if article:
+                articles.append(article)
+        logger.info("%s: %d 筆", name, len(articles))
+    except Exception as e:
+        logger.warning("%s 失敗: %s", name, e)
+        _mark_failed(name)
+    return articles
+
+
 # ── 主入口 ────────────────────────────────────────────────────
 
 FETCHERS = {
@@ -582,6 +744,7 @@ FETCHERS = {
     "html_patch": _fetch_html_patch,
     "html_forum": _fetch_html_forum,
     "youtube": _fetch_youtube,
+    "vb_forum": _fetch_vb_forum,
 }
 
 
