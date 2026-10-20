@@ -1,0 +1,32 @@
+name: a0r 可達性探針（診斷，唯讀）
+
+# 只在推這條分支時跑一次：Actions 的 IP 打不打得到論壇 lastpost RSS、討論串頁面與 Lodestone category/3。
+# 不寫資料、不需要憑證。結果寫回 specs/BACKLOG.md 的 GNS-20261019-a0r 節後，同一個 PR 移除本檔。
+
+on:
+  push:
+    branches: [docs/a0r-actions-reachability]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 設定 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 探針
+        run: python scripts/probe_a0r_reachability.py
