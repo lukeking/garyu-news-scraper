@@ -643,9 +643,18 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 3. Lodestone 修 selector 與分類網址。
 4. HTML 爬蟲「200 但 0 筆」要出聲——與 `GNS-016` 的 PTT 同一個形狀，可以一起做。
 
+**Actions 的 IP 打得到**（2026-10-20 探針，run `39416499596`；同一分鐘本機重跑，每行數字相同）：
+
+- 五個版的 `lastpost=1` RSS 都回應（537＝0、550＝2、551＝9、552＝3、553＝15），每篇都帶 `content:encoded`。
+  現行不帶 `lastpost=1` 的 RSS 與列表頁本來就打得到（10-19 週報 log：`來源失敗：0/9`）。
+- 討論串連結帶 `goto=newpost`，會轉到最後一則所在的那一頁（`?p=…#post…`）；553、551 各一串，回 200、
+  頁面有 4／3 則內文，RSS 的全文在頁面上找得到。不必登入。
+- Lodestone `category/3` 用 `li.news__list` 對到 20 筆（第一筆「更新のお知らせ(10/20)」）。
+- 探針走 collector 自己的 HTTP 層（`_fetch_rss_bytes`、`HEADERS`、`_fetch_html_patch`）。重跑：checkout
+  `c1e0019` 後 `python scripts/probe_a0r_reachability.py`（之後的 commit 已移除該檔與它的 workflow）。
+
 **還沒驗的**：
 
-- Actions 的 IP 打論壇 RSS 與討論串頁面會不會被擋（以上都是本機量的）。
 - 537 的 0 是沒人發文還是壞掉，從筆數分不出來：PLL 不定期，0 是常態。最新的 `第N回` 子版（1618「第8回14時間生放送」、
   1597「第68回」）最大串 id 是 47 萬與 45 萬，現在約 53 萬，所以近期的 PLL 應該不再開子版（推論）；
   父版 RSS 含不含子版沒驗。
