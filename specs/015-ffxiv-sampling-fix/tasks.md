@@ -54,21 +54,21 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 ### Tests（先寫、先紅）
 
-- [-] T002 [P] `tests/unit/test_ffxiv_ranking.py`：
+- [X] T002 [P] `tests/unit/test_ffxiv_ranking.py`：
       (a) `collect_sources` 對帶 `weight` 的來源把 `source_weight` 蓋到每篇文章；沒帶的不蓋。
       (b) 排序鍵：權重降冪 → `published` 降冪 → 沒有 `published` 的排最後；沒有 `source_weight` 的當 0。
       (c) `game_deduplicate` 依排序鍵取前 20；沒有任何權重時結果與現行（依時間）相同——既有 `test_game_deduplicate.py` 不改、仍綠。
       (d) 候選池與入選兩行的格式完全等於 contracts/log-lines.md（依篇數降冪、`、` 分隔），用 `caplog` 斷言整行字面值。
-- [-] T003 [P] `tests/unit/test_ffxiv_filter_order.py`：`FFXIVCategory.filter()`（patch `is_configured` 為 False）收到同標題的兩篇——
+- [X] T003 [P] `tests/unit/test_ffxiv_filter_order.py`：`FFXIVCategory.filter()`（patch `is_configured` 為 False）收到同標題的兩篇——
       論壇列表頁（`source_weight` 10、只有標題）在前、論壇版（80、有全文）在後——留下的是論壇版那篇。
       另一條：來源沒有 `source_weight` 時，每個來源印一次 `<來源>: 未設 weight，排在最後`。
 
 ### Implementation
 
-- [-] T004 `src/collector.py`：`collect_sources` 依來源的 `weight` 蓋 `source_weight`（與 `relevance_exempt`、`lookback_days` 同一處、同一做法）。
-- [-] T005 `src/filter.py`：新增 FFXIV 排序鍵函式；`game_deduplicate` 改依排序鍵排序與取前 20，並印候選池（Jaccard 去重後、截斷前）
+- [X] T004 `src/collector.py`：`collect_sources` 依來源的 `weight` 蓋 `source_weight`（與 `relevance_exempt`、`lookback_days` 同一處、同一做法）。
+- [X] T005 `src/filter.py`：新增 FFXIV 排序鍵函式；`game_deduplicate` 改依排序鍵排序與取前 20，並印候選池（Jaccard 去重後、截斷前）
       與入選兩行；docstring 跟著改（≤ 3 行）。
-- [-] T006 `src/pipeline/ffxiv.py`：`filter()` 在 `freshness_filter` 之後、`filter_and_deduplicate` 之前依排序鍵排序；
+- [X] T006 `src/pipeline/ffxiv.py`：`filter()` 在 `freshness_filter` 之後、`filter_and_deduplicate` 之前依排序鍵排序；
       對沒有 `source_weight` 的來源各印一次警告。
 
 **Checkpoint**: `pytest tests/unit` 全綠；T002、T003 在實作前是紅的（記在 commit 內文）。
@@ -115,8 +115,8 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 **Independent Test**: T015 綠；把 PLL 權重改低後 T015 紅（T025）。
 
-- [-] T014 [US2] 先確認 Phase 2 之後這條是否已綠：若是，T015 直接寫成回歸測試並在 T025 證明它咬得到；若否，補實作到綠。
-- [-] T015 [US2] `tests/unit/test_pll_priority.py`：PLL（`source_weight` 100、`published` 比 Reddit 舊 6 天）＋ 25 篇 Reddit（20、最近 16 小時）
+- [X] T014 [US2] 先確認 Phase 2 之後這條是否已綠：若是，T015 直接寫成回歸測試並在 T025 證明它咬得到；若否，補實作到綠。
+- [X] T015 [US2] `tests/unit/test_pll_priority.py`：PLL（`source_weight` 100、`published` 比 Reddit 舊 6 天）＋ 25 篇 Reddit（20、最近 16 小時）
       ＋ 論壇版 3 篇（80）＋ 論壇列表頁 15 篇（10、沒有時間）→ 入選 20 篇裡有 PLL、3 篇論壇版、16 篇 Reddit、0 篇列表頁。
       權重寫字面值，不讀設定檔。
 
