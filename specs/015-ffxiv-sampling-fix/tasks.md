@@ -178,7 +178,7 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
       把窗口改回「現在往前 7 天」→ T007 紅。每一項記下「紅的是哪幾條」。
 - [X] T026 SC-004 實測（改 Lodestone 設定之前）：照 quickstart 用 prod 現行的 `SOURCES_FFXIV_YML` 跑一次收集，
       `來源失敗` 名單有 `FFXIV Lodestone JP 更新資訊`、有「回 200 但解析出 0 項」那一句。結果寫進 evaluation.md。
-- [ ] T027 merge 之後（[你]）：`gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.example.yml`，
+- [X] T027 merge 之後（[你]）：`gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.example.yml`，
       `gh variable get … | diff - config/sources_ffxiv.example.yml` 逐位元組相同，本機 `config/sources_ffxiv.yml` 換成同一份；
       同一天、避開週一 00:00 UTC 前後。
 

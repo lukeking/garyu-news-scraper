@@ -75,3 +75,13 @@ collect 26.8s, filter 0.7s, requests.get 18 次（含 6 個 RSS）
 | 窗口改回「現在往前 7 天」 | 12 failed | `test_vb_forum_window.py` 6 條、`test_vb_forum_collect.py` 6 條（邊界、真實頁面） |
 
 每一項紅的都是守那件事的測試，沒有無關的測試跟著紅。
+
+## T027 prod 變數換上新設定（merge 之後）
+
+**時間**：2026-10-20 約 13:35Z（台灣 21:35，週二），`#174` merge 後（`e91af28`）。Luke 同意由 main 執行。
+
+- 寫入前重讀 prod 的 `SOURCES_FFXIV_YML`：與 12:59Z 讀到的逐位元組相同（期間沒人改）；改前的值備份在 session scratchpad。
+- `gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.example.yml`，再
+  `gh variable get … | diff - config/sources_ffxiv.example.yml`：無差異（逐位元組相同）。
+- 本機 `config/sources_ffxiv.yml` 換成同一份；`scripts/check_config_drift.py` 四組都是「相符」。
+- 下一次 daily 漂移檢查是 10-21 00:00Z；第一個用到新設定的週報是 10-26（週驗收 routine 照 `FOCUS.md` (7)）。
