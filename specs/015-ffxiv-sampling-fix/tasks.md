@@ -39,7 +39,7 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 **Purpose**: 測試要的 HTML 片段，取自真實頁面（research R2、R6），裁到最小。
 
-- [-] T001 [P] 抓真實頁面存成 fixtures，裁到每檔只剩測試需要的節點、不加註解：
+- [X] T001 [P] 抓真實頁面存成 fixtures，裁到每檔只剩測試需要的節點、不加註解：
       `tests/fixtures/ffxiv/thread_last_page.html`（含 `Today`／`Yesterday` 時間各至少 1 則、`li[id^=post_]`、`span.date`、
       `[id^=post_message_]`、「Page N of N」）、`tests/fixtures/ffxiv/thread_prev_page.html`（絕對日期 `MM-DD-YYYY hh:mm AM/PM`）、
       `tests/fixtures/ffxiv/lodestone_category3.html`（至少 4 個 `li.news__list`：遊戲更新 2 則、`Lodestone` 開頭 1 則、
@@ -128,11 +128,11 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 **Independent Test**: T016 綠；T021 本機真實入口 Lodestone 解析 > 0。
 
-- [-] T016 [P] [US3] `tests/unit/test_html_patch_options.py`（用 T001 的 Lodestone fixtures，patch `requests.get`）：
+- [X] T016 [P] [US3] `tests/unit/test_html_patch_options.py`（用 T001 的 Lodestone fixtures，patch `requests.get`）：
       `date_pattern` 抽出 UTC epoch 當 `published`、只收 `CUTOFF` 之後的；`exclude_title_prefixes` 排除兩種前綴；
       `detail_selector` 有寫時 `summary` 是詳細頁文字（截到 `max_chars`）；詳細頁請求失敗時只用標題並印一句原因；
       log 行「解析 N 則、收進 M 則（窗口外 a、排除 b）」格式等於 contracts/log-lines.md；三個選項都不寫時行為與現行相同。
-- [-] T017 [US3] `src/collector.py`：`_fetch_html_patch` 加 `date_pattern`、`exclude_title_prefixes`、`detail_selector`、`max_chars` 四個選用設定與 log 行；
+- [X] T017 [US3] `src/collector.py`：`_fetch_html_patch` 加 `date_pattern`、`exclude_title_prefixes`、`detail_selector`、`max_chars` 四個選用設定與 log 行；
       詳細頁請求之間 `time.sleep(1)`。
 
 ---
