@@ -35,10 +35,10 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
 | `GNS-20261020-sbe` | FFXIV 週報取樣修正（spec 015）上線後的報告驗收 | 015 merge、prod 的 `SOURCES_FFXIV_YML` 改完之後的每一次週報（週驗收 routine 照 `FOCUS.md` 的「015 上線後」那項判讀） | 連兩週 SC-001 Gate 過（入選 20 篇裡至少 1 篇來自五個論壇版）、SC-002 Gate 過（Lodestone 解析 > 0）、週報 ≤ 30 分（SC-005），結果寫回本節；SC-006 的候選池總數逐週記下，約一週後據此判斷 `GNS-20261019-3cq` 的輸出形式；或寫明為什麼不再追 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」） | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
-| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | 兩個觸發都已成立（7.56 於 09-08 上線；traffic digest 07-20 驗收）；`GNS-20261019-a0r` 開 spec 時一起談。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
-| `GNS-20261019-a0r` | FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重 | 已觸發：Luke 10-19 裁示排在模型評比之後，評比 10-19 已完成；或下次動 `src/filter.py` 的 `game_deduplicate`、`src/collector.py` 的 `_entry_to_dict`／`_fetch_html_patch` 時 | 連兩週週報的 FFXIV 分析裡，來自五個論壇版（550／551／552／553／537）的至少 1 篇（09-21～10-19 五週都是 0／20）；Lodestone 不再是 `0 筆`；PLL 來源在篩選時優先，有 unit test 鎖住；或寫明不做的理由 |
+| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | spec 015（驗收列 `GNS-20261020-sbe`）上線約一週後，候選池遠大於 20 篇時，考慮調整輸出形式——對齊交通週報的彙整，或第三套方法（Luke 10-20）。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
@@ -50,7 +50,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 | 兩批拉齊充實天數後重跑 `measure_input_quality.py`，「已分析 vs 未分析」的實質正文落差留下或消失寫回本節；再以多週多桶取樣量出杜撰比率，據此改 prompt 或寫明不改的理由 |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | 有新解法可比時（降門檻、改用過濾前分數兩條捷徑已量測否決）；或基準集再量到同形狀的 on-topic 損失 | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
 | `GNS-007` | 政策 digest 的離題雜訊 | Luke 裁示重開時（重開條件 2 已於 09-07 成立，做法須換成判實質而非判詞彙）；或本節重開條件 1、3 成立 | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
-| `GNS-016` | PTT 兩個看板 09-17 起每天失敗 | 下次動 `src/collector.py` 時 | daily log 的 `來源失敗` 名單不再有 `PTT/biker`、`PTT/SuperBike`，或查明 403 成因後寫明放棄；本機「200 但 0 列」會印失敗 |
+| `GNS-016` | PTT 兩個看板 09-17 起每天失敗 | 要查 PTT 在 Actions 上的 403 時（10-20 spec 015 動過 `src/collector.py`，只接了「200 但 0 列」那一半） | daily log 的 `來源失敗` 名單不再有 `PTT/biker`、`PTT/SuperBike`，或查明 403 成因後寫明放棄；本機「200 但 0 列」會印失敗 |
 | `GNS-006` | 前端測試框架的 layout 那一半（Storybook／E2E） | 已於 2026-09-05 觸發（GNS-005 留下兩個 jsdom 測不到的常數）；下次動 `pages/` 的版面常數時一併做 | `560px` 斷點與 `.tr-time` 的 `5em` 各有一個在真實 layout 引擎上跑、把常數改錯就會紅的測試，且在 CI 跑 |
 
 **項目欄只寫一行**；原話、證據、進度寫進下面以 id 開頭的小節。
@@ -470,6 +470,10 @@ W34 57/87、W35 50/84、W36 62/77）。**成因未查，不下結論。** 兩個
 
 ## GNS-016 PTT 兩個看板 09-17 起每天失敗（09-30 新增）
 
+**2026-10-20（spec 015）**：觸發點「下次動 `src/collector.py`」被 015 踩到。Luke 10-20 裁示只接共用的「回 200 但解析出 0 項」：
+完成標準第三句（本機「200 但 0 列」會印失敗）已由 `_flag_parsed_zero` 達成——PTT 的 `div.r-ent` 0 列現在記成來源失敗。
+403 成因（前兩句）仍開著。
+
 **提出**: 2026-09-30，量 GNS-015 門檻時撞到。
 **分數**: **3.3**（C1 1／C2 0／C3 3）。C1 = 1：每天在漏，但量很小；C2 = 0：沒有下游在等它；C3 = 3：本機那半一個 PR。
 
@@ -614,53 +618,6 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 **10-19**（spec 014 上線後第一個週報，run `39188558601`，讀自「最大來源」行）：最大來源 `Google News 人本交通` 18/78。
 池含 10-16 新來源一次進來的 30 天存量（匯流四類 51 篇），穩態從 10-26 起看；C1／C2 對帳見上面那份 `evaluation.md`。
 
-## GNS-20261019-a0r FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重
-
-**提出**：2026-10-19，談 FFXIV pipeline 方向（`GNS-20261019-3cq`）時查出。Luke 裁示先記下、排在模型評比之後。
-
-**現況**（實測：09-21～10-19 五次週報的 log，加上本機重跑 collector 的真入口）：
-
-- 每週分析 20 篇，標題含漢字或假名的 0 篇——五週都是 Reddit 的英文貼文。成因在 `game_deduplicate`
-  （`src/filter.py`）：依 `published` 由新到舊取前 20，沒有來源權重。Reddit `new/.rss` 的 25 篇是最近約半天
-  （10-19 本機量 15.7 小時），永遠排最前；HTML 來源的 `published` 是空字串，排到最後。
-- `FFXIV Lodestone JP 更新資訊` 五週都是 `0 筆`（記成 INFO，不算失敗）：回 200、頁面有 22 個 `li.news__list`，
-  設定的 selector `li.news__list--topics` 對到 0 個。而且 `category/2` 是「メンテナンス」，アップデート在 `category/3`。
-- 論壇 RSS 只取 `summary`（`src/collector.py` 的 `_entry_to_dict`，vBulletin 截在約 100 字），`content:encoded`
-  有第一則全文（551 那篇 118 對 760 字）。討論串頁面本機不登入讀得到，與 RSS 全文逐字相同。
-
-**論壇的發現路徑**（實測）：`external.php?type=RSS2&forumids=N&lastpost=1` 依最後回覆排序，順序與版面列表頁
-一致；`pubDate` 是最後一則的時間、`author` 是最後回覆者、`content:encoded` 是那則回覆的全文。每次最多 15 串。
-不加 `lastpost=1` 是依開串時間，舊串有新回覆不會出現。時間窗約四週（推論：551 最舊一則 09-21）。
-10-19 各版筆數：550＝2、551＝9、552＝3、553＝15（滿）、537＝0。
-
-**Luke 定的範圍**（10-19）：先追四個 class & jobs 版（550 TANK、551 DPS、552 HEALER、553 その他バトルシステム）
-與 537 プロデューサーレターLIVE。PLL 更新週期長而且不固定，權重拉高。
-
-**要做的**：
-
-1. 五個版改用 `lastpost=1`、讀 `content:encoded`；第 15 串的時間比上次抓取還新時印截斷警告（可能漏了）。
-2. `game_deduplicate` 的「最新 20 篇」改成看來源權重，PLL 最高。traffic 的 `source_weights`（`src/filter.py`
-   的 quality score）是現成的形狀。
-3. Lodestone 修 selector 與分類網址。
-4. HTML 爬蟲「200 但 0 筆」要出聲——與 `GNS-016` 的 PTT 同一個形狀，可以一起做。
-
-**Actions 的 IP 打得到**（2026-10-20 探針，run `39416499596`；同一分鐘本機重跑，每行數字相同）：
-
-- 五個版的 `lastpost=1` RSS 都回應（537＝0、550＝2、551＝9、552＝3、553＝15），每篇都帶 `content:encoded`。
-  現行不帶 `lastpost=1` 的 RSS 與列表頁本來就打得到（10-19 週報 log：`來源失敗：0/9`）。
-- 討論串連結帶 `goto=newpost`，會轉到最後一則所在的那一頁（`?p=…#post…`）；553、551 各一串，回 200、
-  頁面有 4／3 則內文，RSS 的全文在頁面上找得到。不必登入。
-- Lodestone `category/3` 用 `li.news__list` 對到 20 筆（第一筆「更新のお知らせ(10/20)」）。
-- 探針走 collector 自己的 HTTP 層（`_fetch_rss_bytes`、`HEADERS`、`_fetch_html_patch`）。重跑：checkout
-  `c1e0019` 後 `python scripts/probe_a0r_reachability.py`（之後的 commit 已移除該檔與它的 workflow）。
-
-**還沒驗的**：
-
-- 537 的 0 是沒人發文還是壞掉，從筆數分不出來：PLL 不定期，0 是常態。最新的 `第N回` 子版（1618「第8回14時間生放送」、
-  1597「第68回」）最大串 id 是 47 萬與 45 萬，現在約 53 萬，所以近期的 PLL 應該不再開子版（推論）；
-  父版 RSS 含不含子版沒驗。
-- 每串只給最後一則；兩次抓取之間的其他回覆要去討論串頁面拿。
-
 ## GNS-20261020-sbe FFXIV 週報取樣修正（spec 015）上線後的報告驗收
 
 **提出**：2026-10-20，Luke 裁示功能實作與報告驗收分成兩列追：實作是 `GNS-20261019-a0r`（spec 015 的 PR 移出），
@@ -674,6 +631,15 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 
 **逐週紀錄**：上線後填。
 
+## GNS-20261020-rhd FFXIV TW 修正說明 來源壞掉
+
+**發現**：2026-10-20，spec 015 的 T021（本機真實入口）。純權重排序把它（權重 50）排在 Reddit（20）前面，入選的 5 筆標題是
+`home`、`å®æ¹æå ±ç«`、`åå¾7.2çæ¬å°é` 之類、內容 0 字——selector `li` 對到的是導覽列，網站沒宣告編碼、
+`requests` 當成 Latin-1 解碼。以前它沒有發布時間、永遠排最後，從沒進過 20 篇，所以一直沒人發現。
+「解析出 0 項要出聲」抓不到它：它解析得出東西，只是解析錯了。
+
+**處置**：Luke 10-20 裁示先停用（`enabled: false`，權重 50 留著），這次不修。
+
 ## GNS-20261019-3cq FFXIV 改 patch-triggered、套用聚合 digest
 
 **提出**：2026-07-13 的方向決定，原本只在本機 memory（`project_ffxiv_pipeline_direction`），10-19 搬進這裡。
@@ -683,7 +649,7 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
   理由：成熟的老遊戲，有意義的討論集中在 patch 之後（大 patch 每 3–4 個月、小 patch 每 6 週）。
 - **聚合 digest**：traffic 驗證可行之後套用到 FFXIV（spec 010 的 deferred 項）。前置是日文來源不足；
   10-19 Luke：沒有進展。
-- **10-19 查到、會影響原設計的事**（證據見 `GNS-20261019-a0r`）：週報的雜訊主要來自取樣——Reddit 只抓最近半天、
+- **10-19 查到、會影響原設計的事**（證據見 `specs/015-ffxiv-sampling-fix/` 的 spec 背景與 research R0）：週報的雜訊主要來自取樣——Reddit 只抓最近半天、
   篩選只留最新 20 篇——不只是 patch 空窗。原設計的 patch 偵測器（Lodestone）現在是 `0 筆`。
   `hot.json` 從 Actions 的 IP 打不打得到沒驗（Reddit 有時會擋沒有認證的雲端 IP，推測）。
 

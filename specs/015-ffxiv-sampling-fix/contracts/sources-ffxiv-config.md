@@ -44,7 +44,7 @@
 | FFXIV JP Forum - プロデューサーレターLIVE | 100 |
 | FFXIV JP Forum - TANK／DPS／HEALER／その他バトルシステム | 80 |
 | FFXIV Lodestone JP 更新資訊 | 60 |
-| FFXIV TW 修正說明 | 50 |
+| FFXIV TW 修正說明 | 50（2026-10-20 起 `enabled: false`，BACKLOG `GNS-20261020-rhd`） |
 | Reddit r/ffxiv | 20 |
 | FFXIV JP Forum（列表頁） | 10 |
 
