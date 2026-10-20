@@ -123,6 +123,21 @@ def test_article_fields_point_at_the_newest_reply_inside_the_window(caplog):
     assert a["content_type"] == "ffxiv"
 
 
+def test_window_includes_its_start_and_excludes_its_end(caplog):
+    # 終點那一則（10-19 00:00Z）屬於下一週；算進來就會被兩週各分析一次（FR-003）
+    rss = _rss(_item(301, "邊界串", _utc(2026, 10, 19, 0)))
+    posts = [
+        (3001, "10-12-2026 08:59 AM", "起點前一分鐘"),
+        (3002, "10-12-2026 09:00 AM", "剛好起點"),
+        (3003, "10-19-2026 08:59 AM", "終點前一分鐘"),
+        (3004, "10-19-2026 09:00 AM", "剛好終點"),
+    ]
+    articles, _, _ = _run(rss, {_goto(301): _page(posts)}, caplog)
+    assert articles[0]["summary"] == "[10/12 09:00] 剛好起點\n[10/19 08:59] 終點前一分鐘"
+    assert articles[0]["link"] == f"{BASE}/301-x?p=3003"
+    assert _thread_line("邊界串", 2, 2, 1) in caplog.text
+
+
 def test_page_cap_stops_the_walk_and_says_so(caplog):
     articles, requested, _ = _run(_WALK_RSS, _FOUR_PAGES, caplog, max_pages=2)
     assert requested == [_goto(201), f"{BASE}/201-x/page3"]
