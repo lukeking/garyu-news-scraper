@@ -6,8 +6,11 @@
 
 | 行 | 何時 | 格式 | 對應 |
 |---|---|---|---|
-| 候選池 | 每次 FFXIV 篩選 | `FFXIV 候選池 N 篇：<來源> a、<來源> b、…`（依篇數降冪） | FR-010、SC-006 |
-| 入選 | 每次 FFXIV 篩選 | `FFXIV 入選 M 篇：<來源> a、<來源> b、…`（依篇數降冪） | FR-010、SC-001 |
+| 候選池 | 每次 FFXIV 篩選 | `FFXIV 候選池 N 篇：<來源> a、<來源> b、…`（依篇數降冪，同篇數依來源名稱排序；0 篇時 `FFXIV 候選池 0 篇`） | FR-010、SC-006 |
+| 入選 | 每次 FFXIV 篩選 | `FFXIV 入選 M 篇：<來源> a、<來源> b、…`（同上） | FR-010、SC-001 |
+
+範例：`FFXIV 候選池 31 篇：Reddit r/ffxiv 25、FFXIV JP Forum - DPS 2、FFXIV JP Forum - その他バトルシステム 2、FFXIV TW 修正說明 2`
+（來源名稱與篇數之間一個半形空格；篇數後面不加「篇」）。
 | 解析出 0 項 | html_patch／html_forum／PTT 回 200 但 selector 對到 0 | `<來源>: 回 200 但解析出 0 項（selector 可能失效）`，並列入 `來源失敗` | FR-007、SC-004 |
 | Lodestone 收進 | 每次收集 | `<來源>: 解析 N 則、收進 M 則（窗口外 a、排除 b）` | FR-006、SC-002 |
 
