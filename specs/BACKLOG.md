@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261020-sbe` | FFXIV 週報取樣修正（spec 015）上線後的報告驗收 | 015 merge、prod 的 `SOURCES_FFXIV_YML` 改完之後的每一次週報（週驗收 routine 照 `FOCUS.md` 的「015 上線後」那項判讀） | 連兩週 SC-001 Gate 過（入選 20 篇裡至少 1 篇來自五個論壇版）、SC-002 Gate 過（Lodestone 解析 > 0）、週報 ≤ 30 分（SC-005），結果寫回本節；SC-006 的候選池總數逐週記下，約一週後據此判斷 `GNS-20261019-3cq` 的輸出形式；或寫明為什麼不再追 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」） | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | 兩個觸發都已成立（7.56 於 09-08 上線；traffic digest 07-20 驗收）；`GNS-20261019-a0r` 開 spec 時一起談。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-a0r` | FFXIV 週報只剩 Reddit：論壇來源改追最後回覆、篩選加來源權重 | 已觸發：Luke 10-19 裁示排在模型評比之後，評比 10-19 已完成；或下次動 `src/filter.py` 的 `game_deduplicate`、`src/collector.py` 的 `_entry_to_dict`／`_fetch_html_patch` 時 | 連兩週週報的 FFXIV 分析裡，來自五個論壇版（550／551／552／553／537）的至少 1 篇（09-21～10-19 五週都是 0／20）；Lodestone 不再是 `0 筆`；PLL 來源在篩選時優先，有 unit test 鎖住；或寫明不做的理由 |
@@ -659,6 +660,19 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
   1597「第68回」）最大串 id 是 47 萬與 45 萬，現在約 53 萬，所以近期的 PLL 應該不再開子版（推論）；
   父版 RSS 含不含子版沒驗。
 - 每串只給最後一則；兩次抓取之間的其他回覆要去討論串頁面拿。
+
+## GNS-20261020-sbe FFXIV 週報取樣修正（spec 015）上線後的報告驗收
+
+**提出**：2026-10-20，Luke 裁示功能實作與報告驗收分成兩列追：實作是 `GNS-20261019-a0r`（spec 015 的 PR 移出），
+驗收是這一列（週報判讀完才移出）。判準在 `specs/015-ffxiv-sampling-fix/spec.md` 的 Success Criteria。
+
+**每週讀什麼**（週報 log）：
+
+- `FFXIV 候選池 N 篇：…`／`FFXIV 入選 M 篇：…`：SC-001（五個論壇版的入選數；L1 對照窗口內的串數）、SC-006（候選池總數）。
+- Lodestone 那行「解析 N 則、收進 M 則」：SC-002 Gate。
+- 週報總耗時與 FFXIV 那段：SC-005。
+
+**逐週紀錄**：上線後填。
 
 ## GNS-20261019-3cq FFXIV 改 patch-triggered、套用聚合 digest
 
