@@ -1,47 +1,39 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 1.3.0 → 2.0.0
-**Bump rationale**: MAJOR — Principle IV is redefined (Free Tier Discipline → Explicit Budgets)
-  and Technology Constraints stops fixing versions, models, plans and schedules. The rule this
-  amendment adopts: the constitution states intent and invariants; values that change in
-  routine operation live where they are enforced (config, workflow files, code next to the
-  call), indexed in `docs/external-services.md`. Evidence that the old text had decayed
-  silently: it named the `google-generativeai` SDK (not in `requirements.txt`; calls are REST),
-  default model `gemini-2.0-flash` (code default `gemini-2.5-pro`, prod `gemini-3.7-flash`), a
-  2.5-second delay (code uses per-model 4–12 s), a free-tier rule (pay-as-you-go since
-  2026-06-22), and Gmail SMTP delivery (`src/mailer.py` removed as dead code in `ddf6c84`).
-  1.3.0 itself wrote minute counts and timeout values into IV — the same mistake.
+**Version change**: 2.0.0 → 2.1.0
+**Bump rationale**: MINOR — the four items 2.0.0 deferred. Principle I gains guidance on how its
+  stage order holds when traffic runs across two workflows (a daily buffer and the weekly
+  analysis); that is materially expanded guidance, the same class as 1.3.0. Nothing is removed
+  or made stricter: every change makes the text describe the system as it already runs. Notify
+  became Publish because email delivery is gone (`src/mailer.py` removed in `ddf6c84`) and
+  `src/publisher.py` was already listed as a stage module in Principle V.
 
 ### Modified Principles
-- II. Configuration over Code → adds: an example file that mirrors a production variable is
-  committed; the variable remains the source of truth; the mirror list is the one in
-  `scripts/check_config_drift.py` (spec 014 adds the two sources files to it).
-- Operations: source changes update the mirror in a PR when one exists, replacing "Neither
-  sources update requires a PR"; the canonical pipeline test no longer cites the removed email step.
-- IV. Free Tier Discipline → **IV. Explicit Budgets**: every external service runs inside a
-  written budget, overruns are visible, rate limits and per-run caps are explicit where the call
-  is made; values live in `docs/external-services.md` and the files it points to.
+- I. Pipeline Integrity → the stage list ends in **Publish** instead of **Notify**; the
+  authoritative execution environment is the scheduled GitHub Actions workflows (daily buffer
+  and weekly) instead of the weekly workflow alone, and the buffer is named as the weekly
+  Analyze stage's upstream input.
+- V. Single Responsibility per Module → drops the `src/mailer.py` line.
+- Governance → compliance review drops `src/mailer.py` from the pipeline module list.
 
 ### Added Sections
-- None (the new file `docs/external-services.md` is an operational doc, not a section).
+- None
 
 ### Removed Sections
-- Technology Constraints: SDK name, default model, FFXIV source list, schedule time, email delivery.
+- None
 
 ### Templates Checked
-- ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic.
-    No changes required.
+- ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic; no
+    stage names or module paths are restated. No changes required.
 - ✅ `.specify/templates/spec-template.md` — No principle text restated. No changes required.
 - ✅ `.specify/templates/tasks-template.md` — Phase/parallel model is content-agnostic.
     No changes required.
 - ✅ `.specify/templates/commands/` — Directory does not exist; skipped.
-- ✅ `.github/workflows/*.yml` — every job already sets `timeout-minutes` (1.3.0).
+- ✅ `README.md`, `CLAUDE.md`, `docs/` — no reference to the Notify stage or `src/mailer.py`.
 
 ### Deferred Items
-- Principle I still names a **Notify** stage and Principle V still lists `src/mailer.py`; email
-  was removed in `ddf6c84`. Principle I also calls the weekly workflow the authoritative
-  environment, while a daily workflow now writes the buffer. Left for a separate decision.
+- None
 -->
 
 # Garyu News Scraper Constitution
@@ -52,15 +44,20 @@
 ### I. Pipeline Integrity
 
 The system is a strictly ordered data pipeline:
-**Collect → Filter → Analyze → Store → Notify**.
+**Collect → Filter → Analyze → Store → Publish**.
 
 - Each stage MUST complete successfully before the next begins.
 - Stage failures MUST surface with actionable error messages; silent failures are forbidden.
 - No stage may skip upstream output or produce output without valid upstream input.
 - Both content types (traffic news and FFXIV information) MUST pass through the same
   pipeline stage contract; content-type-specific logic is encapsulated within each stage.
-- The weekly GitHub Actions workflow is the authoritative execution environment; local runs
-  are for development and debugging only.
+- The scheduled pipeline workflows on GitHub Actions (the daily traffic buffer and the weekly
+  run) are the authoritative execution environment; local runs are for development and
+  debugging only.
+- Traffic runs across two workflows: every run, daily and weekly, collects, filters and stores
+  into a buffer, and the weekly workflow then analyzes that buffer and publishes. The buffer is
+  the upstream output the weekly Analyze stage consumes. FFXIV runs entirely in the weekly
+  workflow.
 
 ### II. Configuration over Code
 
@@ -121,7 +118,6 @@ Each Python module in `src/` owns exactly one pipeline stage or concerns.
 - `src/analyzer.py` analyzes, dispatching to content-type-specific prompts internally.
 - `src/storage.py` persists to Supabase.
 - `src/publisher.py` builds and publishes the static site output.
-- `src/mailer.py` composes and sends the weekly digest email.
 - As the FFXIV scraper grows, traffic-specific and FFXIV-specific collection logic MAY be
   promoted to `src/scrapers/traffic/` and `src/scrapers/ffxiv/` sub-modules; this
   reorganization MUST be done as a single, complete migration — not piecemeal.
@@ -205,10 +201,10 @@ wins unless the constitution is formally amended.
 
 **Compliance review**:
 - All PRs that touch a pipeline module (`src/collector.py`, `src/filter.py`,
-  `src/analyzer.py`, `src/storage.py`, `src/publisher.py`, `src/mailer.py`) MUST verify
+  `src/analyzer.py`, `src/storage.py`, `src/publisher.py`) MUST verify
   compliance with Principles I–III in the PR description.
 - PRs that touch FFXIV analysis logic MUST also verify compliance with Principle VI.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 2.0.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-13
+**Version**: 2.1.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-20
