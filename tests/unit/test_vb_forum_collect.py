@@ -357,3 +357,52 @@ def test_real_thread_pages_from_the_capture_day(caplog):
     assert a["summary"].endswith("等の変更が必要かなと思いました。")
     assert _thread_line("獣使いスレ", 4, 4, 2) in caplog.text
     assert f"{NAME}: 獣使いスレ 翻到上限 2 頁仍未到窗口起點" in caplog.text
+
+
+# ── 邊界：窗口起點／終點、上限剛好等於（每一個比較運算子都有一條測試會在它被改時轉紅） ──
+
+def test_thread_whose_last_reply_is_exactly_at_window_start_is_processed(caplog):
+    rss = _rss(_item(901, "起點那一刻的串", _utc(2026, 10, 12, 0)), _item(902, "早一秒的串", _utc(2026, 10, 11, 23, 59, 59)))
+    pages = {_goto(901): _page([(9011, "10-12-2026 09:00 AM", "剛好起點")])}
+    articles, requested, _ = _run(rss, pages, caplog)
+    assert requested == [_goto(901)]
+    assert [a["title"] for a in articles] == ["起點那一刻的串"]
+
+
+def test_full_feed_with_oldest_exactly_at_window_start_warns(caplog):
+    _run(_feed(15, _utc(2026, 10, 12, 0)), _any_page, caplog)
+    assert f"{NAME}: 回滿 15 串且最舊一串仍在窗口內，可能有串被截掉（最舊 2026-10-12T00:00:00+00:00）" in caplog.text
+
+
+def test_fallback_whose_rss_reply_is_exactly_at_window_end_is_outside(caplog):
+    rss = _rss(_item(903, "終點那一刻的串", _utc(2026, 10, 19, 0)))
+    articles, _, _ = _run(rss, {_goto(903): requests.exceptions.ConnectionError("boom")}, caplog)
+    assert articles == []
+    assert "終點那一刻的串 討論串頁面請求失敗（boom），退回 RSS 最後一則，但它不在窗口內，這串略過" in caplog.text
+
+
+def test_page_starting_exactly_at_window_start_still_walks_back(caplog):
+    pages = {
+        _goto(904): _page([(9042, "10-12-2026 09:00 AM", "後頁起點"), (9043, "10-15-2026 09:00 PM", "後頁")], 2, 2),
+        f"{BASE}/904-x/page1": _page([(9041, "10-12-2026 09:00 AM", "前頁同一分鐘")], 1, 2),
+    }
+    articles, requested, _ = _run(_rss(_item(904, "起點跨頁的串", _utc(2026, 10, 18, 12))), pages, caplog)
+    assert requested == [_goto(904), f"{BASE}/904-x/page1"]
+    assert articles[0]["summary"] == "[10/12 09:00] 前頁同一分鐘\n[10/12 09:00] 後頁起點\n[10/15 21:00] 後頁"
+
+
+def test_walk_stops_as_soon_as_the_reply_cap_is_exactly_reached(caplog):
+    pages = {
+        _goto(905): _page([(9052, "10-16-2026 09:00 PM", "乙"), (9053, "10-17-2026 09:00 PM", "丙")], 2, 2),
+        f"{BASE}/905-x/page1": _page([(9051, "10-15-2026 09:00 PM", "甲")], 1, 2),
+    }
+    articles, requested, _ = _run(_rss(_item(905, "剛好收滿的串", _utc(2026, 10, 18, 12))), pages, caplog, max_replies=2)
+    assert requested == [_goto(905)]
+    assert articles[0]["summary"] == "[10/16 21:00] 乙\n[10/17 21:00] 丙"
+
+
+def test_merged_text_exactly_at_the_char_cap_is_kept_whole(caplog):
+    rss, pages = _one_page_thread(46, ["あ" * 10, "い" * 10])
+    articles, _, _ = _run(rss, pages, caplog, max_chars=49)
+    # 兩則各 24 字加一個換行＝49 字，剛好等於上限
+    assert articles[0]["summary"] == "[10/13 21:00] " + "あ" * 10 + "\n[10/14 21:00] " + "い" * 10
