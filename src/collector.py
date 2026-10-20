@@ -370,7 +370,10 @@ def _fetch_html_patch(source: dict) -> list:
     title_selector = source.get("title_selector", "a")
     max_items = source.get("max_items", 10)
     content_type = source.get("content_type", "ffxiv")
+    date_pattern = source.get("date_pattern")
+    exclude_prefixes = tuple(source.get("exclude_title_prefixes") or ())
     articles = []
+    out_of_window = excluded = 0
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
@@ -384,6 +387,18 @@ def _fetch_html_patch(source: dict) -> list:
             title = title_el.get_text(strip=True)
             if len(title) < 3:
                 continue
+            if title.startswith(exclude_prefixes):
+                excluded += 1
+                continue
+            published = ""
+            if date_pattern:
+                # 找不到發布時間就證明不了在窗口內，當窗口外（015 FR-006）
+                m = re.search(date_pattern, str(item))
+                pub = datetime.fromtimestamp(int(m.group(1)), tz=timezone.utc) if m else None
+                if pub is None or pub < CUTOFF:
+                    out_of_window += 1
+                    continue
+                published = pub.isoformat()
             link_el = item.select_one("a") or title_el
             href = link_el.get("href", "") if link_el else ""
             href = _abs_url(href, url)
@@ -392,16 +407,41 @@ def _fetch_html_patch(source: dict) -> list:
                 "link": href,
                 "summary": "",
                 "source": name,
-                "published": "",
+                "published": published,
                 "content_type": content_type,
             })
             if len(articles) >= max_items:
                 break
+        if date_pattern or exclude_prefixes:
+            logger.info("%s: 解析 %d 則、收進 %d 則（窗口外 %d、排除 %d）",
+                        name, len(items), len(articles), out_of_window, excluded)
+        if source.get("detail_selector"):
+            for article in articles:
+                article["summary"] = _fetch_patch_detail(source, article)
         logger.info("%s: %d 筆", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
         _mark_failed(name)
     return articles
+
+
+def _fetch_patch_detail(source: dict, article: dict) -> str:
+    """收進的一則 → 詳細頁 detail_selector 節點的文字（截到 max_chars）；抓不到回 "" 並印原因。"""
+    selector = source["detail_selector"]
+    time.sleep(1)
+    try:
+        resp = requests.get(article["link"], headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+    except Exception as e:
+        reason = str(e)
+    else:
+        node = BeautifulSoup(resp.text, "lxml").select_one(selector)
+        if node:
+            text = re.sub(r"\s+", " ", node.get_text(" ")).strip()
+            return text[:source.get("max_chars", 2000)]
+        reason = f"找不到 {selector}"
+    logger.warning("%s: %s 詳細頁抓不到（%s），只用標題", source["name"], article["title"], reason)
+    return ""
 
 
 def _fetch_html_forum(source: dict) -> list:

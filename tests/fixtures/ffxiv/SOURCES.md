@@ -12,3 +12,16 @@
 其餘節點與 HTML 註解都拿掉。
 
 抓的當下最後一頁只有 3 則、全是 `Today`，所以 `Yesterday` 落在前一頁（tasks.md T001 原本預期兩者都在最後一頁）。
+
+## Lodestone
+
+抓取日：2026-10-20（13:02 UTC，回應的 `Date` 標頭），用 `collector.HEADERS`。
+
+| 檔案 | 來源網址 | 留下的節點 |
+|---|---|---|
+| `lodestone_category3.html` | `https://jp.finalfantasyxiv.com/lodestone/news/category/3`（アップデート，當下 20 則） | 最新的 5 個 `li.news__list`，照頁面順序：`更新のお知らせ(10/20)`、`Lodestone 更新のお知らせ(10/13)`、`コンパニオンアプリ 更新のお知らせ(10/13)`、`更新のお知らせ(10/13)`、`更新のお知らせ(9/19)` |
+| `lodestone_detail.html` | `https://jp.finalfantasyxiv.com/lodestone/news/detail/148f852faaa79f79a8542a9450e9361b17940884`（上表第一則，10/20 hotfix） | `article.news__detail` 裡的 `header`（標題與時間）和 `div.news__detail__wrapper`（內文約 414 字） |
+
+每個 `li` 照抓到的原樣，含 `<a href>`、`p.news__list--title` 與 `ldst_strftime(<epoch>, 'YMD')`。五則的 epoch（UTC）：
+10-20 06:50、10-13 11:00、10-13 07:27、10-13 07:13、09-19 02:38。
+詳細頁拿掉了 `div.news__footer`；留下 `header` 是為了讓測試分得出「取 `detail_selector` 的節點」與「取整頁」。
