@@ -155,21 +155,21 @@ US1、US2 都是 P1，但都依賴 Phase 2 的排序基礎（權重蓋章、排�
 
 **Purpose**: 鏡像 example、真實入口驗證、咬合實驗、routine、BACKLOG。prod 變數在 merge 後才改（plan「上線順序」）。
 
-- [-] T020 `config/sources_ffxiv.example.yml`：五個論壇版改 `type: vb_forum`、網址加 `lastpost=1`、加三個上限；Lodestone 改 `category/3`、
+- [X] T020 `config/sources_ffxiv.example.yml`：五個論壇版改 `type: vb_forum`、網址加 `lastpost=1`、加三個上限；Lodestone 改 `category/3`、
       `selector: li.news__list`、加 `date_pattern`／`exclude_title_prefixes`／`detail_selector`／`max_chars`；每個來源加 `weight`
       （contracts/sources-ffxiv-config.md 的初值）。檔頭的型別說明加 `vb_forum`。
 - [X] T021 [US1] 驗證型：照 quickstart「本機驗證」用 T020 的設定跑 `FFXIVCategory().collect()` 與 `.filter()`（不分析、不寫庫），
       把候選池／入選逐來源篇數、每串的回覆數與退回、Lodestone 解析／收進、收集耗時與請求數寫進 `specs/015-ffxiv-sampling-fix/evaluation.md`。
       通過條件：論壇版至少產出 1 篇（若窗口內有串）、Lodestone 解析 > 0、沒有未預期的退回。
-- [-] T022 `routines/weekly-verify/FOCUS.md`：加一項「015 上線後」——讀候選池與入選兩行，判 SC-001 Gate／L1（論壇版入選數 vs 窗口內串數）、
+- [X] T022 `routines/weekly-verify/FOCUS.md`：加一項「015 上線後」——讀候選池與入選兩行，判 SC-001 Gate／L1（論壇版入選數 vs 窗口內串數）、
       SC-002 Gate（Lodestone 解析 > 0）、SC-005（週報 ≤ 30 分、FFXIV 那段耗時）、記 SC-006 候選池總數，結果寫回 BACKLOG
       `GNS-20261020-sbe` 的「逐週紀錄」；適用週照現行不動。
-- [-] T023 `specs/BACKLOG.md`（實作那一列的 closeout）：用 `python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261019-a0r`
+- [X] T023 `specs/BACKLOG.md`（實作那一列的 closeout）：用 `python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261019-a0r`
       移出 `a0r`（連同小節）。驗收那一列 `GNS-20261020-sbe` 已在 tasks 階段建立（Luke 10-20 裁示實作與驗收分兩列），
       這裡只核對它的觸發點與完成標準仍與 spec 一致；`GNS-20261019-3cq` 的觸發點改成「`sbe` 記到約一週的候選池、
       遠大於 20 篇時，考慮調整輸出形式（對齊交通週報的彙整，或第三套方法）」；`GNS-016` 小節記下觸發點被 015 踩到、
       只接了「0 項出聲」那一半，403 成因仍開著。
-- [-] T024 `specs/015-ffxiv-sampling-fix/spec.md`：「達成階數」小節（同 014 的形狀），填 merge 前已有的數字（SC-003、SC-004、T021），其餘標「交給 routine」。
+- [X] T024 `specs/015-ffxiv-sampling-fix/spec.md`：「達成階數」小節（同 014 的形狀），填 merge 前已有的數字（SC-003、SC-004、T021），其餘標「交給 routine」。
 
 ### 驗證型（main 驗證，不派 reviewer）
 
