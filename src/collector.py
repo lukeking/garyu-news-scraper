@@ -672,7 +672,7 @@ def _collect_vb_thread(source: dict, entry, last: datetime, window: tuple, now: 
             reason = f"回覆時間解析不出來（{unparsed[0]['raw_time']}）" if posts else "頁面解析不到回覆"
             break
         replies = [p for p in posts if start <= p["time"] < end] + replies
-        if min(p["time"] for p in posts) < start or len(replies) >= max_replies:
+        if min(p["time"] for p in posts) < start or len(replies) >= max_replies or not prev_url:
             break
         if pages >= max_pages:
             logger.info("%s 翻到上限 %d 頁仍未到窗口起點，可能還有更早的回覆沒收", label, pages)

@@ -406,3 +406,35 @@ def test_merged_text_exactly_at_the_char_cap_is_kept_whole(caplog):
     articles, _, _ = _run(rss, pages, caplog, max_chars=49)
     # 兩則各 24 字加一個換行＝49 字，剛好等於上限
     assert articles[0]["summary"] == "[10/13 21:00] " + "あ" * 10 + "\n[10/14 21:00] " + "い" * 10
+
+
+# ── 核准時的非阻擋發現（main 修） ──────────────────────────────
+
+def test_reaching_page_one_at_the_page_cap_is_not_reported_as_a_cap(caplog):
+    pages = {
+        _goto(906): _page([(9062, "10-17-2026 09:00 PM", "後頁")], 2, 2),
+        f"{BASE}/906-x/page1": _page([(9061, "10-15-2026 09:00 PM", "前頁")], 1, 2),
+    }
+    articles, requested, _ = _run(_rss(_item(906, "兩頁的串", _utc(2026, 10, 18, 12))), pages, caplog, max_pages=2)
+    assert requested == [_goto(906), f"{BASE}/906-x/page1"]
+    assert "翻到上限" not in caplog.text
+    assert _thread_line("兩頁的串", 2, 2, 2) in caplog.text
+
+
+def test_default_char_cap_is_exactly_six_thousand(caplog):
+    # 兩則：14 字前綴＋內文，加一個換行；內文 2,971＋3,000 → 剛好 6,000，2,972＋3,000 → 6,001
+    for older, kept in ((2971, 2), (2972, 1)):
+        caplog.clear()
+        rss, pages = _one_page_thread(47, ["あ" * older, "い" * 3000])
+        articles, _, _ = _run(rss, pages, caplog)
+        assert _thread_line("串47", 2, kept, 1) in caplog.text
+
+
+def test_content_type_defaults_to_ffxiv(caplog):
+    source = {k: v for k, v in SOURCE.items() if k != "content_type"}
+    rss, pages = _one_page_thread(48, ["x"])
+    with patch.object(collector, "_fetch_rss_bytes", return_value=rss), \
+         patch.object(collector.requests, "get", side_effect=lambda url, **kw: _resp(pages[url])), \
+         patch.object(collector.time, "sleep"):
+        articles = collector._fetch_vb_forum(source, now=NOW)
+    assert articles[0]["content_type"] == "ffxiv"
