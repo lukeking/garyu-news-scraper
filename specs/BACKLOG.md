@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261021-5yg` | 研究 Gemini API 官方的 Batch API，評估本專案哪些呼叫端改用它有好處 | 下一輪模型評比（`GNS-20261019-1vk`）開跑之前；或 `gemini-3.8-flash` 的優惠價 2026-12-31 結束之前；或下次動 `src/analyzer.py` 的 `_call_gemini` 時 | 本節寫進逐字核對過的事實（折扣、完成時限與過期、`gemini-3.8-flash` 與 `gemini-embedding-2` 支不支援、配額是否與一般呼叫分開、與優惠價疊不疊加；各附出處與查證日期），以及本節呼叫端表每一列的判定（採用／不採用、理由、估算每月省多少）；有採用的就開 spec，全部不採用就寫明理由並設重開條件 |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
 | `GNS-20261020-sbe` | FFXIV 週報取樣修正（spec 015）上線後的報告驗收 | 015 merge、prod 的 `SOURCES_FFXIV_YML` 改完之後的每一次週報（週驗收 routine 照 `FOCUS.md` 的「015 上線後」那項判讀） | 連兩週 SC-001 Gate 過（入選 20 篇裡至少 1 篇來自五個論壇版）、SC-002 Gate 過（Lodestone 解析 > 0）、週報 ≤ 30 分（SC-005），結果寫回本節；SC-006 的候選池總數逐週記下，約一週後據此判斷 `GNS-20261019-3cq` 的輸出形式；或寫明為什麼不再追 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」） | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
@@ -679,6 +680,39 @@ argon 對 3.8 過不了 L1（觸發制紀律 −1.22、文本依據 −0.50）�
 週報耗時連兩週上升（FFXIV 那段 3.7 時期 199–218 秒、3.8 時期 292–352 秒）也沒有人連到換了模型。
 要讓觸發點變成一個事件，可以在 `src/analyzer.py` 的 `_call_gemini` 比對回應的 `modelVersion` 與 `GEMINI_MODEL`，
 不符時印 warning，週驗收 routine 讀得到週報 log。這是提議，還沒做。
+
+## GNS-20261021-5yg 研究 Gemini API 官方的 Batch API
+
+**出處**：Luke 2026-10-21，原話：「研究 gemini batch api 並進一步分析專案是否有可採用有益的部分」。
+指的是 Gemini API 官方的 Batch API 功能（<https://ai.google.dev/gemini-api/docs/batch-api>），
+**不是**把我們自己的呼叫湊成一批送出。
+
+**10-21 粗讀**（WebFetch 的摘要，還沒逐字核對；完成標準要的是核對過的版本）：單價是一般呼叫的 50%；
+目標完成時間 24 小時，pending／running 超過 48 小時就 `JOB_STATE_EXPIRED`；送件可以 inline（總量 20MB 以下）
+或 JSONL 檔；embedding 有 `batches.create_embeddings`；結果保留 6 週。支援的模型清單不在那一頁（指向 Models 頁），
+範例用了 `gemini-3.8-flash` 與 `gemini-embedding-2`，但沒說那是支援清單；配額數字也不在那一頁。頁面標示最後更新 2026-09-17。
+
+**呼叫端**（每一列都要判定；位置與時程從程式碼和 workflow 讀出來，10-21）：
+
+| 呼叫端 | 位置 | 什麼時候跑 |
+|---|---|---|
+| FFXIV 單篇分析（`analyze_all` → `analyze_article`，每篇之間 `delay=6`） | `src/pipeline/ffxiv.py:39` | 週報 `weekly.yml`，週一 00:00 UTC，`timeout-minutes: 30` |
+| 熱點／彙整（`analyze_hot_topic`、`analyze_category_digest`） | `scripts/traffic_weekly_analysis.py:44` | 同上 |
+| embedding（`attach_embeddings`，`filter()` → `_embedding_dedup`） | `src/pipeline/traffic.py:174` | 每天（`traffic_daily.yml`；週一由 `weekly.yml` 代跑） |
+| auto-KB（`call_gemini`） | `scripts/auto_kb.py:250` | 週報跑完之後（`auto-kb.yml` 的 `workflow_run`） |
+| 模型評比（`quality_ab.py`，含裁判） | `experiments/*/scripts/` | 本機手動，沒有時限 |
+
+**量級**（實測，`experiments/model-quality-3p8flash-vs-argon/README.md`，10-19）：全部正式呼叫端每月 US$0.80（優惠價）／
+US$1.60（2026-12-31 之後），月上限 NT$300；一輪模型評比實花約 US$1.82。這個月成本只算熱點＋彙整（每週 3 次）與
+FFXIV 單篇（每週 20 次），embedding 與 auto-KB 沒算進去（依同檔的月成本公式）。照粗讀的 50% 算，這兩類呼叫每月最多
+省 US$0.40–0.80（推論）。所以要先把絕對金額算出來，再看其他面向：配額（Batch 是否另計、能不能拿掉 `delay=6` 的節流）、
+延遲對排程的影響。
+
+**結構限制**（推論）：週報是單一 job、在 job 裡同步等每個回應，限時 30 分。Batch 的工作若要幾小時才完成，
+就得拆成「送件」與「收件」兩次執行——這跟 `GNS-20261013-4g9`（週報拆成兩個 workflow）動的是同一個檔，兩條一起看。
+模型評比沒有時限，是最不受延遲影響的呼叫端，它的下一輪是 `GNS-20261019-1vk`。
+
+**計費**：本機 key 就是 prod key（同上 README）——試打 Batch 會計費，也吃同一個 NT$300 月上限。
 
 ---
 
