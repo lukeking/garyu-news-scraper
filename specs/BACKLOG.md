@@ -44,16 +44,16 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
-| `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 job 耗時逼近 timeout（30 分）時 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
+| `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt） `pre-edit: {"paths":[".github/workflows/weekly.yml"]}` | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-yjb` | 跨期重複：舊文章換個網址又進來（方向 B） | 影子模式滿兩週（10-19 那週的 daily 跑完） | 兩週影子 log 的「會擋」行逐行判讀完，門檻 0.88 與 0.92 各自的誤殺率寫回本節，據此開（選定門檻）或關並寫明理由 |
-| `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時 | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
+| `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}` | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-654` | `measure_relevance.py --add` 不帶 `--ablate` 時靜默忽略 | 下次動 `scripts/measure_relevance.py` 時 | `--add` 不帶 `--ablate` 時以非零 exit 結束並說明原因，有一條 unit test 鎖住 |
-| `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403 | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
+| `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄） `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口` | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
 | `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 | 兩批拉齊充實天數後重跑 `measure_input_quality.py`，「已分析 vs 未分析」的實質正文落差留下或消失寫回本節；再以多週多桶取樣量出杜撰比率，據此改 prompt 或寫明不改的理由 |
-| `GNS-009` | 桶分數門檻殺乾淨小桶 | 有新解法可比時（降門檻、改用過濾前分數兩條捷徑已量測否決）；或基準集再量到同形狀的 on-topic 損失 | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
-| `GNS-007` | 政策 digest 的離題雜訊 | Luke 裁示重開時（重開條件 2 已於 09-07 成立，做法須換成判實質而非判詞彙）；或本節重開條件 1、3 成立 | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
+| `GNS-009` | 桶分數門檻殺乾淨小桶 | 基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴` | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
+| `GNS-007` | 政策 digest 的離題雜訊 | 已觸發：Luke 2026-10-28 裁示重開（重開條件 2 於 09-07 成立）；下一步開 spec，做法須換成判實質而非判詞彙 `trigger: none — 已觸發，等開 spec；做法未定，還沒有對應的檔案` | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
 | `GNS-016` | PTT 兩個看板 09-17 起每天失敗 | 要查 PTT 在 Actions 上的 403 時（10-20 spec 015 動過 `src/collector.py`，只接了「200 但 0 列」那一半） | daily log 的 `來源失敗` 名單不再有 `PTT/biker`、`PTT/SuperBike`，或查明 403 成因後寫明放棄；本機「200 但 0 列」會印失敗 |
-| `GNS-006` | 前端測試框架的 layout 那一半（Storybook／E2E） | 已於 2026-09-05 觸發（GNS-005 留下兩個 jsdom 測不到的常數）；下次動 `pages/` 的版面常數時一併做 | `560px` 斷點與 `.tr-time` 的 `5em` 各有一個在真實 layout 引擎上跑、把常數改錯就會紅的測試，且在 CI 跑 |
+| `GNS-006` | 前端測試框架的 layout 那一半（Storybook／E2E） | 已於 2026-09-05 觸發（GNS-005 留下兩個 jsdom 測不到的常數）；下次動 `pages/` 的版面常數時一併做；2026-10-28 延後：C1 0，沒有東西在壞 `pre-edit: {"paths":["pages/shared/shared.css"]}` | `560px` 斷點與 `.tr-time` 的 `5em` 各有一個在真實 layout 引擎上跑、把常數改錯就會紅的測試，且在 CI 跑 |
 
 **項目欄只寫一行**；原話、證據、進度寫進下面以 id 開頭的小節。
 **觸發點必須綁在會自然發生的事件上**（下次動某個檔、某週的判讀、某指標跌破門檻、某件事被記下第 N 次），
@@ -145,6 +145,8 @@ dismiss 狀態）與 `workers/api/src/index.js`（約 363 行，含全部端點�
 政策側的雜訊不是主題離題，是同一則政策新聞的低實質改寫重複，標題 token 表對此是盲的。
 **不是放棄，是換位置**：真因指向 GNS-011（入料正文品質）與 OQ#2（`embed_dedup`
 抓不到跨來源改寫）。詳見本節末「08-31：儀器錯了」。reopen 條件也寫在那裡。
+**2026-10-28 重開**：Luke 裁示（重開條件 2 於 09-07 成立）。下一步開 spec，做法判實質而非判詞彙；
+條件 3 的「重複那半」在 `GNS-20261005-yjb`（跨期重複），它的判讀結論是這個 spec 的輸入之一。
 **相關（同根、更大）**: 「機車事故熱點的關鍵字選材離題」（spec 012／PR #83，已完成；原節用 `git log -S "機車事故熱點的關鍵字選材離題" -p -- specs/BACKLOG.md` 撈回）——同一個「相關性沒被量」
 的根因，但在機車事故分群路徑、量級大得多（08-03 三席二席離題）。GNS-007 是這個問題最小的一角。
 **⚠️ 前提變了（2026-08-08）**：那個「更大的一角」已由 spec 012／PR #83 解決，**相關性閘的機制
@@ -519,6 +521,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 |---|---|---|
 | 07-20 | 403 網域 5 個：n.yam／pchome／cdns／mobile01／newstaiwan | 基準 |
 | 08-10（滿週全量，實測） | 7 個：`n.yam.com`、`news.pchome.com.tw`、`www.cdns.com.tw`、`leho.com.tw`、`www.gov.tw`、`rise-mediacorp.com`、`www.allnews.tw`；覆蓋率 84.8% | (1)(2) 皆未成立：新增的都不是主流原生媒體，UDN／自由／中時／中央社／TVBS／三立全部正常；`www.cdns.com.tw`（中華日報）07-20 就在名單上 |
+| 10-25、10-27、10-28（3 次 daily，實測；只抽這 3 天） | 7 個：`n.yam.com`、`www.cdns.com.tw`、`news.pchome.com.tw`（502，不是 403）、`www.teepr.com`、`www.watchmedia01.com`、`pronews.tw`、`www.marketersgo.com` | (1)(2) 皆未成立：主流原生媒體一個都沒有；`n.yam.com`、`www.cdns.com.tw` 07-20 起就在名單上 |
 
 ## GNS-20261005-654 `measure_relevance.py --add` 不帶 `--ablate` 時靜默忽略
 
