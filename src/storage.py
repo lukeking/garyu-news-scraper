@@ -334,7 +334,7 @@ def get_traffic_buffer(max_age_weeks: int = 8) -> list:
 
 
 def get_recent_consumed_traffic(days: int = 35) -> list:
-    """days 天內進庫、已被週報消耗的 traffic 列，只取跨期比對要的欄位（GNS-20261005-nwn 的影子判定）。
+    """days 天內進庫、已被週報消耗的 traffic 列，只取跨期比對要的欄位（GNS-20261005-yjb 的跨期擋法）。
     35＝帶 lookback_days 的來源最長 30 天再加一點：更舊的文章收集端就收不進來了。"""
     from datetime import datetime, timedelta, timezone
 

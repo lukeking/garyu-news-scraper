@@ -173,21 +173,24 @@ class TrafficCategory:
         # 生成向量（不純、會打 Gemini）與去重（純）刻意分成兩步，見 BACKLOG #4。
         attach_embeddings(deduped)
         deduped = embed_dedup(deduped, window, threshold=threshold)
+        cross_threshold = config.get("embed_dedup", {}).get("cross_run_threshold", 0.92)
         try:
-            self._shadow_cross_run(deduped, threshold)
+            deduped = self._drop_cross_run_repeats(deduped, cross_threshold)
         except Exception as e:
-            logger.warning("[embed_dedup 影子] 跨期比對失敗，略過（只記錄，不影響去重）：%s", e)
+            logger.warning("[embed_dedup 跨期] 比對失敗，本次不擋：%s", e)
         return deduped
 
-    def _shadow_cross_run(self, candidates: list, threshold: float) -> None:
+    def _drop_cross_run_repeats(self, candidates: list, threshold: float) -> list:
         from src.storage import get_recent_consumed_traffic
         from src.analyzer import find_cross_run_repeats
         hits = find_cross_run_repeats(candidates, get_recent_consumed_traffic(), threshold=threshold)
         for cand, old, cos, gap_h in hits:
-            logger.info("[embed_dedup 影子] 會擋 cos=%.4f 發布差 %.1fh：「%s」↔ 已消耗 id=%s「%s」",
+            logger.info("[embed_dedup 跨期] 擋下 cos=%.4f 發布差 %.1fh：「%s」↔ 已消耗 id=%s「%s」",
                         cos, gap_h, cand.get("title"), old.get("id"), old.get("title"))
-        logger.info("[embed_dedup 影子] 跨期重複：%d/%d 篇候選會被擋（發布差 < 24h、餘弦 ≥ %.2f；只記錄、不擋）",
+        logger.info("[embed_dedup 跨期] 擋下 %d/%d 篇候選（發布差 < 24h、餘弦 ≥ %.2f）",
                     len(hits), len(candidates), threshold)
+        dropped = {id(cand) for cand, _, _, _ in hits}
+        return [a for a in candidates if id(a) not in dropped]
 
     def prefetch(self, articles: list) -> list:
         # Google News link resolution + og:description/og:image enrichment. No LLM —

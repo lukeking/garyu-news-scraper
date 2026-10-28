@@ -1,4 +1,4 @@
-"""GNS-20261005-nwn：embed_dedup 比對窗（本週＋上週未消耗）與跨期重複的影子判定。
+"""GNS-20261005-nwn：embed_dedup 比對窗（本週＋上週未消耗）；GNS-20261005-yjb：跨期重複的擋法。
 向量用二維（同 test_embed_dedup.py）：二維餘弦可以手算。"""
 import logging
 import os
@@ -107,26 +107,41 @@ def test_last_weeks_leftover_blocks_but_older_does_not(boundary, caplog):
     assert "[embed_dedup] 已在緩衝區（2026-W40 id=91），略過（相似度≥0.88）：標題1" in caplog.text
 
 
-def test_shadow_logs_but_never_drops(boundary, caplog):
-    boundary["consumed"] = [{"id": 77, "title": "舊的那篇", "published": PUB, "embedding": NEAR_OTHER}]
+OLD = {"id": 77, "title": "舊的那篇", "published": PUB}
+SAME_AS_OTHER = [0.28, 0.96]                  # 與 OTHER 0.960
+
+
+def test_cross_run_repeat_is_dropped(boundary, caplog):
+    """已被週報消耗的舊文換個網址又進來：餘弦 ≥ 0.92 且發布差 < 24h 就擋（GNS-20261005-yjb，Luke 10-28 裁示）。"""
+    boundary["consumed"] = [{**OLD, "embedding": SAME_AS_OTHER}]
+    with caplog.at_level(logging.INFO, logger="src.pipeline.traffic"):
+        kept = TrafficCategory()._embedding_dedup([_art(1, BASE), _art(2, OTHER)], {}, now=NOW)
+    assert kept == []
+    assert "[embed_dedup 跨期] 擋下 cos=0.9600 發布差 0.0h：「標題2」↔ 已消耗 id=77「舊的那篇」" in caplog.text
+    assert "[embed_dedup 跨期] 擋下 1/1 篇候選（發布差 < 24h、餘弦 ≥ 0.92）" in caplog.text
+
+
+def test_cross_run_band_below_092_is_kept(boundary, caplog):
+    """影子兩週裡 0.88～0.92 那段有不同事件，所以跨期門檻與 A 的 0.88 分開；0 也印。"""
+    boundary["consumed"] = [{**OLD, "embedding": NEAR_OTHER}]
     with caplog.at_level(logging.INFO, logger="src.pipeline.traffic"):
         kept = TrafficCategory()._embedding_dedup([_art(1, BASE), _art(2, OTHER)], {}, now=NOW)
     assert [a["id"] for a in kept] == [2]
-    assert "[embed_dedup 影子] 會擋 cos=0.9138 發布差 0.0h：「標題2」↔ 已消耗 id=77「舊的那篇」" in caplog.text
-    assert "[embed_dedup 影子] 跨期重複：1/1 篇候選會被擋（發布差 < 24h、餘弦 ≥ 0.88；只記錄、不擋）" in caplog.text
+    assert "[embed_dedup 跨期] 擋下 0/1 篇候選（發布差 < 24h、餘弦 ≥ 0.92）" in caplog.text
 
 
-def test_shadow_prints_zero_too(boundary, caplog):
-    with caplog.at_level(logging.INFO, logger="src.pipeline.traffic"):
-        TrafficCategory()._embedding_dedup([_art(2, OTHER)], {}, now=NOW)
-    assert "[embed_dedup 影子] 跨期重複：0/1 篇候選會被擋" in caplog.text
+def test_cross_run_threshold_has_its_own_config_key(boundary):
+    boundary["consumed"] = [{**OLD, "embedding": NEAR_OTHER}]
+    config = {"embed_dedup": {"cross_run_threshold": 0.9}}
+    kept = TrafficCategory()._embedding_dedup([_art(1, BASE), _art(2, OTHER)], config, now=NOW)
+    assert kept == []
 
 
-def test_shadow_failure_does_not_touch_dedup(boundary, monkeypatch, caplog):
+def test_cross_run_failure_blocks_nothing(boundary, monkeypatch, caplog):
     def boom(*a, **k):
         raise RuntimeError("consumed boom")
     monkeypatch.setattr("src.storage.get_recent_consumed_traffic", boom)
     with caplog.at_level(logging.WARNING, logger="src.pipeline.traffic"):
         kept = TrafficCategory()._embedding_dedup([_art(1, BASE), _art(2, OTHER)], {}, now=NOW)
     assert [a["id"] for a in kept] == [2]
-    assert "[embed_dedup 影子] 跨期比對失敗，略過（只記錄，不影響去重）：consumed boom" in caplog.text
+    assert "[embed_dedup 跨期] 比對失敗，本次不擋：consumed boom" in caplog.text
