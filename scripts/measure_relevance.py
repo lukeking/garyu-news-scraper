@@ -459,6 +459,8 @@ def main():
                     help="try a whole replacement require_any without touching config; "
                          "the only way to measure a swap (drop X, add Y) as one change")
     args = ap.parse_args()
+    if args.add and not args.ablate:
+        ap.error("--add 只在 --ablate 之下才會被讀；沒帶 --ablate 量到的是沒改過的表")
 
     logging.basicConfig(level=logging.WARNING)
 

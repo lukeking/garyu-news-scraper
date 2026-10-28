@@ -111,3 +111,18 @@ def test_replay_is_re_runnable_so_the_counterfactual_is_real():
 
     mr.replay(slates, RULES, _config(1.0))
     assert {k: repr(slates[0][k]) for k in keys} == first, "回到原規則要逐鍵還原，不能有殘留"
+
+
+def test_add_without_ablate_refuses_before_touching_the_db(monkeypatch, capsys):
+    """`--add` 只在 `--ablate` 之下才會被讀；沒帶時要拒跑，不能靜默量到沒改過的表（GNS-20261005-654）。"""
+    def _no_db(*_a, **_k):
+        raise AssertionError("拒跑要發生在讀 DB 之前")
+
+    monkeypatch.setattr(mr, "fetch_reports", _no_db)
+    monkeypatch.setattr(mr, "fetch_articles", _no_db)
+    monkeypatch.setattr(sys, "argv", ["measure_relevance.py", "--add", "自撞"])
+
+    with pytest.raises(SystemExit) as exc:
+        mr.main()
+    assert exc.value.code != 0
+    assert "--ablate" in capsys.readouterr().err
