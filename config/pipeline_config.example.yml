@@ -65,6 +65,7 @@ category_digest:
 
 embed_dedup:
   threshold: 0.88            # Cosine similarity ≥ this → same event (Gemini Embedding 2, 768d)
+  cross_run_threshold: 0.92  # vs already-consumed rows, published < 24h apart (GNS-20261005-yjb)
 
 quality_score_weights:       # Must sum to 1.0
   keyword_match_ratio: 0.4
