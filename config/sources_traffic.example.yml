@@ -174,15 +174,16 @@ sources:
     url: "https://news.google.com/rss/search?q=%E9%A1%98%E6%99%AF%E9%9B%B6%E6%AD%BB%E4%BA%A1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
   # ── PTT 類型 ────────────────────────────────────────────────
+  # 2026-10-31 停用：Actions 上 /bbs/ 被 Cloudflare managed challenge 擋（任何請求形狀都 403，家用 IP 正常；GNS-016），重開見 BACKLOG GNS-20261005-24s
   - name: PTT/biker
     type: ptt
-    enabled: true
+    enabled: false
     board: biker       # 白牌機車板
     min_pushes: 5
 
   - name: PTT/SuperBike
     type: ptt
-    enabled: true
+    enabled: false
     board: SuperBike   # 紅黃牌重機板（注意大小寫）
     min_pushes: 5
 
