@@ -35,6 +35,8 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261031-s3h` | 週報熱點分析發布前沒有審核者：觀點有盲點或偏頗、措辭不精確造成歧義 | 已提出：Luke 2026-10-31；卡在實例：Luke 給 2–3 個（哪份報告、哪一句、錯在哪）當審稿標準的錨點，再選做法（見本節）。或下次動 `src/analyzer.py` 的 `analyze_hot_topic`／`analyze_category_digest` prompt 時 `pre-edit: {"paths":["src/analyzer.py"]}` | 有一份用實例錨定的審稿標準；週報在讀者看到之前經過審核（做法由 Luke 裁示），連兩週的審核紀錄查得到；或寫明不做的理由 |
+| `GNS-20261031-005` | 交通頁的週報熱點掛在產生那週，內容卻是上一週的 buffer，跟同頁下方的文章差一週 | 已提出：Luke 2026-10-31；下一步選修法（改標籤／只改呈現／只補標示，見本節）。或下次動 `pages/shared/app.js` 的熱點區塊、`scripts/traffic_weekly_analysis.py` 的 `_week_start_date` 時 `pre-edit: {"paths":["pages/shared/app.js","scripts/traffic_weekly_analysis.py"]}` | 同一個週次頁面上，熱點報告的來源與下方文章屬於同一段收集期間，或頁面寫明報告涵蓋的日期區間；已分享出去的 `?week=…#topic-…` 連結仍指到原本那份報告；或寫明不改的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | 每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 `pre-edit: {"paths":["scripts/auto_kb.py"]}` | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261021-5yg` | 研究 Gemini API 官方的 Batch API，評估本專案哪些呼叫端改用它有好處 | 下一輪模型評比（`GNS-20261019-1vk`）開跑之前；或 `gemini-3.8-flash` 的優惠價 2026-12-31 結束之前；或下次動 `src/analyzer.py` 的 `_call_gemini` 時 | 本節寫進逐字核對過的事實（折扣、完成時限與過期、`gemini-3.8-flash` 與 `gemini-embedding-2` 支不支援、配額是否與一般呼叫分開、與優惠價疊不疊加；各附出處與查證日期），以及本節呼叫端表每一列的判定（採用／不採用、理由、估算每月省多少）；有採用的就開 spec，全部不採用就寫明理由並設重開條件 |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
@@ -42,8 +44,8 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」） | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | spec 015（驗收列 `GNS-20261020-sbe`）上線約一週後，候選池遠大於 20 篇時，考慮調整輸出形式——對齊交通週報的彙整，或第三套方法（Luke 10-20）。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
-| `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
-| `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
+| `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時；2026-10-31 延後：兩個觸發點都還沒發生 `pre-edit: {"paths":["src/collector.py","config/sources_traffic.example.yml"]}` | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
+| `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時；2026-10-31 延後：兩個觸發點都還沒發生，新增 example 檔沒有既有路徑可綁 `pre-edit: {"paths":["scripts/check_config_drift.py"]}` | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt） `pre-edit: {"paths":[".github/workflows/weekly.yml"]}` | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}` | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄） `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口` | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
@@ -495,6 +497,19 @@ W34 57/87、W35 50/84、W36 62/77）。**成因未查，不下結論。** 兩個
 2. 本機的靜默 0 篇：`Accept-Encoding` 拿掉 `br`（或把 brotli 加進 requirements）即可；**同時要讓「200 但 0 列」發出聲音**，
    否則下一次換成別的原因又是沉默。
 
+### 診斷工具（2026-10-31）
+
+`scripts/measure_ptt_access.py` 對兩個看板各用 6 種請求打一次（與 `_fetch_ptt` 相同、拿掉 `br`、不帶 over18 cookie、只留 UA、
+不帶自訂標頭、改用 curl），加上 `robots.txt`；印狀態碼、回應標頭（Set-Cookie 只印名稱，log 是公開的）與內文開頭，最後一行是判讀。
+Actions 上跑 `gh workflow run measure-ptt-access.yml`——workflow 檔要在 `main` 上才觸發得了（GitHub 文件：「This event will only
+trigger a workflow run if the workflow file exists on the default branch.」）。
+
+- **本機基準**（實測，10-31，家用 IP）：13 個請求全部 200。PTT 前面是 Cloudflare（`Server: cloudflare`）；`prod`、`no-cookie`
+  回 `br`、解析出 0 列，跟上面第 2 點一致。同一天 03:32Z 的 daily 兩個看板仍是 403。
+- **判讀 → 處置**：全部 403（含 curl）＝跟標頭、cookie、TLS 指紋都無關，指向 IP 層，照 10-28 的處置寫明放棄、兩個看板改
+  `enabled: false`（prod 變數與鏡像同一天），重開條件掛到 `GNS-20261005-24s`；Python 的變體 403、curl 200＝擋 TLS 指紋，換 client 可修；
+  只有部分標頭組合 403＝改標頭。
+
 ---
 
 ## GNS-20261005-24s 重新考慮正文抓取的做法（Actions IP 被媒體擋）
@@ -719,6 +734,49 @@ Luke 10-26 裁示人工條目新增類別 `魔物`，兩列已改；`auto_kb.py`
 `ゲイラキャット等の動物は討伐時の鳴き声消したい`），每個詞出自哪篇見上面。
 
 ---
+
+## GNS-20261031-005 交通頁的週報熱點與同頁下方的文章差一週
+
+**提出**：2026-10-31，Luke：「traffic daily buffer 和週報產生週期跟 UI 呈現已經脫鉤，我打開介面看到的週報熱點分析是從上禮拜的
+buffer 來的，但下方的 daily buffer 卻都是這週的。」
+
+**機制**（讀程式碼）：
+
+- 報告的 `week_start_date` 是週報執行當天的週一（`scripts/traffic_weekly_analysis.py` 的 `_week_start_date`；週報在台灣週一 08:00 跑）。
+- 報告分析的是 buffer 池：以上一週 daily 收的文章為主（文章的 `week_id` 是收集當週，`src/pipeline/traffic.py` 的 `_current_week_id`），
+  加上週一早上週報自己收的，與 `buffer.max_age_weeks` 內還沒被消耗的舊列。
+- 前端以同一個週次對兩邊：熱點取 `isoWeekId(week_start_date)` 等於該週的報告，文章列取 `week_id` 等於該週的文章
+  （`pages/shared/app.js` 的 `groupHotTopicsByWeek`、`loadWeek`）。
+
+**實測**（2026-10-31，公開 Worker API）：10-26 的兩份報告（掛在 W44）共 31 篇來源，在 W43 的文章列找到 6 篇、W44 找到 1 篇；
+★（`hot_topic_analyzed`）W43 有 32 篇、W44 有 2 篇。`/api/weeks/<week>` 每週最多回 100 篇（W43 有 149、W44 有 124），所以是下限。
+重跑：抓 `/api/hot-topics` 與 `/api/weeks/2026-W43?content_type=traffic`，比對 `source_article_links[].link` 與文章的 `link`。
+
+**修法候選**（未裁示）：
+
+- 改標籤：`week_start_date` 改成涵蓋的那週。代價：最新那週整週沒有報告（預設畫面就是最新週）；既有列要搬；已分享的
+  `?week=…#topic-…` 連結會指錯；novelty gate 的 `exclude_week` 與週驗收 routine 都讀這個欄位。
+- 只改呈現：資料不動，前端把報告放到它來源所在的那週，或把熱點區塊從週次導覽拆出來、標出涵蓋區間。
+- 只補標示：卡片寫出涵蓋的日期區間。不修錯位，只防誤讀。
+- 三者共同的前提：一份報告的來源可能橫跨數週（buffer 留 8 週），「報告屬於哪一週」沒有唯一答案。
+
+## GNS-20261031-s3h 週報熱點分析發布前沒有審核者
+
+**提出**：2026-10-31，Luke：「週報的產生沒有經過適當的審核者，觀點有時候會有盲點或偏頗或措辭不夠精準造成歧義/誤讀」。
+
+**現況**（讀程式碼與 routine）：`analyze_hot_topic`／`analyze_category_digest` 的輸出直接 `upsert_hot_topic_report` 後發布，
+中間沒有審稿步驟。週驗收 routine 在發布後約 7 小時跑（週一 07:00Z），`routines/weekly-verify/PROMPT.md` 沒有觀點或措辭的檢查項目——
+它查的是管線健康。`GNS-011` 管的是「來源沒有的事實」（杜撰），跟這條是不同的缺陷。
+
+**做法候選**（未裁示）：
+
+- 發布前 LLM 審稿一輪（生成 → 審 → 修）：週報本來就是呼叫 LLM 的那一側。要避開：同一個模型審自己；審稿者看到的輸入要與生成相同
+  （`GNS-20261019-1vk` 那套評比的裁判只看來源前 200 字、生成拿 600 字，把兩句判成杜撰）；要有嚴重度下限與一輪上限。
+- 人審：先存草稿，Luke 核可才發布。最準；每週要花時間，發布延後。
+- 發布後審：週驗收 routine 加審稿標準，標出問題後人工修。最便宜；讀者先看到未審版本。
+
+**卡在實例**：審稿標準要用 2–3 個真實案例錨定（哪份報告、哪一句、錯在哪），否則 LLM 審稿者每次重抽一個標準
+（`~/.agents/instructions/rules/review-loop-bounds.md`「尺度」）。
 
 ## 這份清單自己的訊號
 
