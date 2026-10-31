@@ -1,21 +1,19 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 2.0.0 → 2.1.0
-**Bump rationale**: MINOR — the four items 2.0.0 deferred. Principle I gains guidance on how its
-  stage order holds when traffic runs across two workflows (a daily buffer and the weekly
-  analysis); that is materially expanded guidance, the same class as 1.3.0. Nothing is removed
-  or made stricter: every change makes the text describe the system as it already runs. Notify
-  became Publish because email delivery is gone (`src/mailer.py` removed in `ddf6c84`) and
-  `src/publisher.py` was already listed as a stage module in Principle V.
+**Version change**: 2.1.0 → 2.1.1
+**Bump rationale**: PATCH — one Operations & Deployment sentence corrected so that following it
+  produces the evidence it asks for. A manual dispatch of the weekly workflow is confirmed by the
+  run concluding successfully; the weekly verification routine verifies the scheduled weekly run,
+  so its report confirms a manual dispatch only when that dispatch is the run it verified. Found by
+  the retroactive cold review of #161, #163 and #172 (2026-10-31). No principle changes.
 
 ### Modified Principles
-- I. Pipeline Integrity → the stage list ends in **Publish** instead of **Notify**; the
-  authoritative execution environment is the scheduled GitHub Actions workflows (daily buffer
-  and weekly) instead of the weekly workflow alone, and the buffer is named as the weekly
-  Analyze stage's upstream input.
-- V. Single Responsibility per Module → drops the `src/mailer.py` line.
-- Governance → compliance review drops `src/mailer.py` from the pipeline module list.
+- None
+
+### Modified Sections
+- Operations & Deployment → the canonical-test bullet no longer asks for the routine's report as
+  the confirmation of every manual dispatch.
 
 ### Added Sections
 - None
@@ -25,12 +23,10 @@
 
 ### Templates Checked
 - ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic; no
-    stage names or module paths are restated. No changes required.
-- ✅ `.specify/templates/spec-template.md` — No principle text restated. No changes required.
-- ✅ `.specify/templates/tasks-template.md` — Phase/parallel model is content-agnostic.
-    No changes required.
-- ✅ `.specify/templates/commands/` — Directory does not exist; skipped.
-- ✅ `README.md`, `CLAUDE.md`, `docs/` — no reference to the Notify stage or `src/mailer.py`.
+    operations procedure restated. No changes required.
+- The other spec-kit templates are user-level since #179 and not in this repo; not checked here.
+- ✅ `README.md`, `CLAUDE.md`, `docs/`, `routines/weekly-verify/` — none restates the
+    canonical-test bullet. No changes required.
 
 ### Deferred Items
 - None
@@ -168,8 +164,9 @@ they are configuration and live where they are set (Principles II and IV).
 Standard operating procedures that all contributors MUST follow.
 
 - The canonical test for a full pipeline run is a manual dispatch of
-  `.github/workflows/weekly.yml`. Confirm success by the run concluding successfully and by
-  the weekly verification routine's report (`routines/weekly-verify/`).
+  `.github/workflows/weekly.yml`, confirmed by the run concluding successfully. The weekly
+  verification routine (`routines/weekly-verify/`) verifies the scheduled weekly run; its report
+  confirms a manual dispatch only when that dispatch is the run it verified.
 - Local development MUST use `.env` (copied from `.env.example`) and local copies of both
   `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example`
   counterparts). All four files MUST remain in `.gitignore`.
@@ -207,4 +204,4 @@ wins unless the constitution is formally amended.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 2.1.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-20
+**Version**: 2.1.1 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-31

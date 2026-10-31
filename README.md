@@ -27,7 +27,7 @@
 關鍵字過濾 + 去重（filter.py）
         ↓
 AI 分析（analyzer.py）── Gemini（可設定模型）
-  └── FFXIV pipeline 額外載入 knowledge-base.md 術語對照
+  └── FFXIV pipeline 額外查詢 Supabase `knowledge_base` 表的術語對照
         ↓
 寫入 Supabase（storage.py）
         ↓
@@ -176,9 +176,9 @@ Dashboard → Pages 專案 → Settings → Functions → Service bindings → A
 
 ## FFXIV 知識庫
 
-`knowledge-base.md` 提供術語對照表（JP → TW / EN），供 Gemini 分析時使用。格式說明見 `config/knowledge-base-template.md`。
+術語對照表（JP → TW / EN）存在 Supabase 的 `knowledge_base` 表，`src/analyzer.py` 分析時查詢，供 Gemini 分析時使用。
 
-Pipeline 執行後若出現 `[KB MISS]` 日誌，代表出現未收錄術語。使用 `ffxiv-term-translator` subagent 查詢後，將新詞條加入 `knowledge-base.md`。
+Pipeline 執行後若出現 `[KB MISS]` 日誌，代表分析結果裡有未收錄的術語（以 `[[term]]` 標記）。週報跑完後，`scripts/auto_kb.py`（`auto-kb.yml`）會自動收錄有把握的術語並修補文章；剩下的用 `ffxiv-term-translator` subagent 查詢後，直接寫進 `knowledge_base` 表（`auto_generated = false`），不需要 PR。
 
 ---
 
@@ -222,14 +222,13 @@ cd workers/api && npx wrangler dev
 | `src/publisher.py` | 靜態檔案輸出（feed.xml、week/*.html） |
 | `src/pipeline/traffic.py` | Traffic pipeline 設定 |
 | `src/pipeline/ffxiv.py` | FFXIV pipeline 設定 |
-| `knowledge-base.md` | FFXIV 術語對照表（JP/TW/EN） |
+| `scripts/auto_kb.py` | 週報後自動擴充 Supabase `knowledge_base` 術語表（FFXIV，JP/TW/EN） |
 | `workers/api/src/index.js` | CF Worker API（讀取 Supabase） |
 | `functions/api/[[path]].js` | CF Pages Function（代理 `/api/*` 至 Worker） |
 | `pages/traffic/index.html` | Traffic 前端（含深色模式、過時標記） |
 | `pages/ffxiv/index.html` | FFXIV 前端（含深色模式、過時標記） |
 | `config/sources_traffic.example.yml` | Traffic 來源設定的 prod 鏡像（`SOURCES_TRAFFIC_YML`，daily 漂移檢查比對） |
 | `config/sources_ffxiv.example.yml` | FFXIV 來源設定的 prod 鏡像（`SOURCES_FFXIV_YML`，daily 漂移檢查比對） |
-| `config/knowledge-base-template.md` | KB 詞條格式說明 |
 | `db/supabase_schema.sql` | 資料庫 schema |
 | `db/supabase_migrations/` | 增量 migration SQL |
 | `.github/workflows/weekly.yml` | 週報 pipeline + 部署 |
