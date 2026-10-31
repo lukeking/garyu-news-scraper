@@ -1,0 +1,75 @@
+# PR 頁的 cold review 紅燈。規則：~/.claude/rules/review-loop-bounds.md「什麼時候開一輪」。
+# 動到 .github/cold-review-paths 列的路徑、又沒有 cold-reviewed / cold-review-waived 標籤 → 失敗。
+# 本 repo 把它設為 main 的 required status check（2026-10-31），缺標籤的 PR merge 不了。
+# draft 期間不查標籤：cold review 一定在 PR 開出來之後才做，開出來就查只會每次先紅一次。
+# draft 本來就不能 merge，所以轉 ready 時才查，merge 前的訊號不會少；清單與 regex 壞掉照樣在 draft 就紅。
+name: cold-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review, converted_to_draft]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  cold-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 動到 cold review 路徑的 PR 要有標籤
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          LIST_REF: ${{ github.event.repository.default_branch }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          set -euo pipefail
+          # 讀預設分支的清單，不讀 PR 自己的：PR 不能靠改清單把自己豁免掉。也不讀 base 分支的：疊在別的 PR 上時，
+          # base 是下層分支，它的清單可能少了路徑，上層 PR 就無聲過關（GUB-013，bare-repo #248、#250 實測）。
+          if ! gh api -H 'Accept: application/vnd.github.raw' \
+              "repos/$REPO/contents/.github/cold-review-paths?ref=$LIST_REF" > paths.txt 2> err.txt; then
+            if grep -q 'HTTP 404' err.txt; then
+              echo "::notice::$LIST_REF 上沒有 .github/cold-review-paths，這個 repo 還沒啟用 cold review。"
+              exit 0
+            fi
+            echo "::error::讀不到 .github/cold-review-paths：$(head -1 err.txt)"
+            exit 1
+          fi
+
+          # 空行若被當成 regex 會命中所有路徑，所以連同註解一起濾掉。
+          grep -vE '^[[:space:]]*(#|$)' paths.txt > patterns.txt || true
+          if [ ! -s patterns.txt ]; then
+            echo "::error::.github/cold-review-paths 沒有任何 regex。"
+            exit 1
+          fi
+
+          gh api --paginate "repos/$REPO/pulls/$PR/files" --jq '.[].filename' > files.txt
+          # grep：0 有命中、1 沒命中、2 出錯（例如清單裡的 regex 寫壞了）。出錯要亮紅燈，不能當成沒命中放行。
+          rc=0
+          grep -E -f patterns.txt files.txt > hits.txt || rc=$?
+          if [ "$rc" -gt 1 ]; then
+            echo "::error::.github/cold-review-paths 裡有 grep -E 讀不懂的 regex（exit $rc）。"
+            exit 1
+          fi
+          if [ ! -s hits.txt ]; then
+            echo "沒動到 cold review 路徑。"
+            exit 0
+          fi
+          echo "動到的 cold review 路徑："
+          sed 's/^/  /' hits.txt
+
+          if [ "$DRAFT" = "true" ]; then
+            echo "::notice::draft 中，先不查標籤。cold review 做完、貼上標籤後再轉 ready。"
+            exit 0
+          fi
+
+          gh api "repos/$REPO/issues/$PR/labels" --jq '.[].name' > labels.txt
+          if grep -qxE 'cold-reviewed|cold-review-waived' labels.txt; then
+            echo "已標記：$(grep -xE 'cold-reviewed|cold-review-waived' labels.txt | paste -sd, -)"
+            exit 0
+          fi
+          echo "::error::動到 cold review 路徑，還沒有 cold-reviewed 或 cold-review-waived 標籤。"
+          exit 1

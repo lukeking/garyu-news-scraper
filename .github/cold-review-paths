@@ -1,0 +1,21 @@
+# 哪些路徑的改動要 cold review。規則：~/.agents/instructions/rules/review-loop-bounds.md「什麼時候開一輪」。
+# 一行一條 regex（只用 grep -E 與 Python re 共通的寫法），對 PR 動到的每個路徑做 search。
+# 以 # 開頭的行與空行略過——空行若被當成 regex，會命中所有路徑。
+#
+# 讀這份的有兩個，改觸發條件只改這裡：
+#   .github/workflows/cold-review.yml                         讀預設分支的版本（PR 不能靠改這份把自己豁免掉）
+#   ~/.agents/adapters/claude/hooks/cold_review_reconcile.py  先讀 origin/HEAD 的版本，沒有才讀本機工作樹（開 session 時對帳）
+#
+# 規則：憲章。程序：/speckit-plan 照抄的範本，週報驗收 routine 的常設指示、週三檢查與維護說明。
+# 常設提醒（動某一塊之前要先知道的事）也列。
+# reviewer 契約：.github/cold-review-repo.md，每一輪 reviewer prompt 的權威順序與硬邊界從這裡填。
+# 不列（2026-10-31 裁示）：
+#   CLAUDE.md                          內容只有一行指向當前 plan 的路徑，每次 /speckit-plan 都會改寫
+#   routines/weekly-verify/FOCUS.md    每週滾一次的本週重點與比較數字
+#   .githooks/、.github/workflows/、scripts/   是程式（會被執行的東西），不是給人或 agent 讀的規則文字
+#   specs/、docs/ 的其他檔             設計紀錄與狀態紀錄，不是工作方式的規則
+^\.specify/memory/constitution\.md$
+^\.specify/templates/
+^routines/weekly-verify/(PROMPT|FOCUS-CHECK|README)\.md$
+^docs/standing-cautions\.md$
+^\.github/cold-review-repo\.md$
