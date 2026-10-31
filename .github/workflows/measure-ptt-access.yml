@@ -1,0 +1,39 @@
+name: PTT 403 診斷（唯讀）
+
+# 手動觸發專用（GNS-016）。回答一個問題：PTT 在 Actions 上的 403 是擋 IP，還是擋請求的形狀？
+# 本 workflow 不寫任何資料、不需要憑證。runner 與 Python 版本跟 traffic_daily.yml 相同。
+
+on:
+  workflow_dispatch:
+    inputs:
+      boards:
+        description: '要測的看板，空白分隔；留空＝biker SuperBike'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 設定 Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 測量 PTT 的回應
+        # 經 env 傳遞：不要把 workflow 輸入直接插進 shell 指令；不加引號是為了讓空白分隔成多個看板
+        run: python scripts/measure_ptt_access.py $BOARDS
+        env:
+          BOARDS: ${{ inputs.boards }}
