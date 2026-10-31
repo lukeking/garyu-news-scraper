@@ -1,6 +1,6 @@
 # PR 頁的 cold review 紅燈。規則：~/.claude/rules/review-loop-bounds.md「什麼時候開一輪」。
 # 動到 .github/cold-review-paths 列的路徑、又沒有 cold-reviewed / cold-review-waived 標籤 → 失敗。
-# 刻意不設成 required check（2026-10-31 裁示；本 repo 是 public，設得了），所以不擋 merge，只讓 merge 按鈕旁看得到。
+# 本 repo 把它設為 main 的 required status check（2026-10-31），缺標籤的 PR merge 不了。
 # draft 期間不查標籤：cold review 一定在 PR 開出來之後才做，開出來就查只會每次先紅一次。
 # draft 本來就不能 merge，所以轉 ready 時才查，merge 前的訊號不會少；清單與 regex 壞掉照樣在 draft 就紅。
 name: cold-review
