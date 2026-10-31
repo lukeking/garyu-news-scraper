@@ -85,3 +85,5 @@ sequences 一併撤銷；既有的表不受影響。本 repo 的 Python、Action
 - 只給 `service_role`。不要照通知信的範本也給 `anon`／`authenticated`：沒有任何元件用這兩個角色。
 - **本機整合測試抓不到漏寫**：`scripts/setup_test_db.sh` 在所有 SQL 套用完之後，把 public 的每張表都授權給
   `service_role`，所以漏寫 GRANT 的新表本機照樣會過，要到 prod 第一次排程執行才失敗。
+
+<!-- 測試 PR：實測 cold-review required check 會擋 merge，測完關閉、不 merge -->
