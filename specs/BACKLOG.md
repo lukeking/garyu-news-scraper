@@ -52,7 +52,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 | 兩批拉齊充實天數後重跑 `measure_input_quality.py`，「已分析 vs 未分析」的實質正文落差留下或消失寫回本節；再以多週多桶取樣量出杜撰比率，據此改 prompt 或寫明不改的理由 |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | 基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴` | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
 | `GNS-007` | 政策 digest 的離題雜訊 | 已觸發：Luke 2026-10-28 裁示重開（重開條件 2 於 09-07 成立）；下一步開 spec，做法須換成判實質而非判詞彙 `trigger: none — 已觸發，等開 spec；做法未定，還沒有對應的檔案` | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
-| `GNS-016` | PTT 兩個看板 09-17 起每天失敗 | 要查 PTT 在 Actions 上的 403 時（10-20 spec 015 動過 `src/collector.py`，只接了「200 但 0 列」那一半） | daily log 的 `來源失敗` 名單不再有 `PTT/biker`、`PTT/SuperBike`，或查明 403 成因後寫明放棄；本機「200 但 0 列」會印失敗 |
 | `GNS-006` | 前端測試框架的 layout 那一半（Storybook／E2E） | 已於 2026-09-05 觸發（GNS-005 留下兩個 jsdom 測不到的常數）；下次動 `pages/` 的版面常數時一併做；2026-10-28 延後：C1 0，沒有東西在壞 `pre-edit: {"paths":["pages/shared/shared.css"]}` | `560px` 斷點與 `.tr-time` 的 `5em` 各有一個在真實 layout 引擎上跑、把常數改錯就會紅的測試，且在 CI 跑 |
 
 **項目欄只寫一行**；原話、證據、進度寫進下面以 id 開頭的小節。
@@ -72,7 +71,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | 5.6 | GNS-011 | 2·1·2 |
 | 5.0 | GNS-009 | 1·2·2 |
 | 4.4 | GNS-007 | 2·0·2 |
-| 3.3 | GNS-016 | 1·0·3 |
 | 1.7 | GNS-006 | 0·1·1 |
 
 **尺規**（0–3 分，每級錨定本檔的條目，含已移出的；移出的用 `git log -S "<id>" -p -- specs/BACKLOG.md` 撈回）：
@@ -473,45 +471,6 @@ W34 57/87、W35 50/84、W36 62/77）。**成因未查，不下結論。** 兩個
 
 ---
 
-## GNS-016 PTT 兩個看板 09-17 起每天失敗（09-30 新增）
-
-**2026-10-20（spec 015）**：觸發點「下次動 `src/collector.py`」被 015 踩到。Luke 10-20 裁示只接共用的「回 200 但解析出 0 項」：
-完成標準第三句（本機「200 但 0 列」會印失敗）已由 `_flag_parsed_zero` 達成——PTT 的 `div.r-ent` 0 列現在記成來源失敗。
-403 成因（前兩句）仍開著。
-
-**提出**: 2026-09-30，量 GNS-015 門檻時撞到。
-**分數**: **3.3**（C1 1／C2 0／C3 3）。C1 = 1：每天在漏，但量很小；C2 = 0：沒有下游在等它；C3 = 3：本機那半一個 PR。
-
-### 證據
-
-- **Actions（實測）**：`PTT/biker`、`PTT/SuperBike` 09-17 起每個 daily 都是 `403 Client Error: Forbidden`（09-16 還是 0 失敗）。
-- **本機（實測）**：同一個 `_fetch_ptt` 不會 403，但**兩個看板都靜默回 0 篇、不印失敗**。原因：`PTT_HEADERS` 宣告
-  `Accept-Encoding: gzip, deflate, br`，PTT 回 `br`，本機沒裝 brotli → `resp.text` 是亂碼、`div.r-ent` 0 列。
-  只宣告 `gzip, deflate` 時回 gzip、10 列正常。
-- **損失量（實測）**：`articles` 裡 `PTT/%` 08-01～09-16 共 14 篇（biker 10、SuperBike 4），約一週 2 篇；最後一篇 09-16。
-
-### 成因假說與下一步
-
-1. Actions 的 403：可能與媒體擋 Actions IP 同形狀（見 memory `project_actions_ip_blocked_fetch`），**未查證**。
-   查法：`workflow_dispatch` 跑一次只抓 PTT 的診斷，或比對 Actions 上的回應標頭（`cf-mitigated` 等）。
-2. 本機的靜默 0 篇：`Accept-Encoding` 拿掉 `br`（或把 brotli 加進 requirements）即可；**同時要讓「200 但 0 列」發出聲音**，
-   否則下一次換成別的原因又是沉默。
-
-### 診斷工具（2026-10-31）
-
-`scripts/measure_ptt_access.py` 對兩個看板各用 6 種請求打一次（與 `_fetch_ptt` 相同、拿掉 `br`、不帶 over18 cookie、只留 UA、
-不帶自訂標頭、改用 curl），加上 `robots.txt`；印狀態碼、回應標頭（Set-Cookie 只印名稱，log 是公開的）與內文開頭，最後一行是判讀。
-Actions 上跑 `gh workflow run measure-ptt-access.yml`——workflow 檔要在 `main` 上才觸發得了（GitHub 文件：「This event will only
-trigger a workflow run if the workflow file exists on the default branch.」）。
-
-- **本機基準**（實測，10-31，家用 IP）：13 個請求全部 200。PTT 前面是 Cloudflare（`Server: cloudflare`）；`prod`、`no-cookie`
-  回 `br`、解析出 0 列，跟上面第 2 點一致。同一天 03:32Z 的 daily 兩個看板仍是 403。
-- **判讀 → 處置**：全部 403（含 curl）＝跟標頭、cookie、TLS 指紋都無關，指向 IP 層，照 10-28 的處置寫明放棄、兩個看板改
-  `enabled: false`（prod 變數與鏡像同一天），重開條件掛到 `GNS-20261005-24s`；Python 的變體 403、curl 200＝擋 TLS 指紋，換 client 可修；
-  只有部分標頭組合 403＝改標頭。
-
----
-
 ## GNS-20261005-24s 重新考慮正文抓取的做法（Actions IP 被媒體擋）
 
 **出處**：正文抓取在 07-20 量測後的決定是**不為了正文抓取更換執行環境**。重開條件有兩條：
@@ -536,6 +495,17 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 | 07-20 | 403 網域 5 個：n.yam／pchome／cdns／mobile01／newstaiwan | 基準 |
 | 08-10（滿週全量，實測） | 7 個：`n.yam.com`、`news.pchome.com.tw`、`www.cdns.com.tw`、`leho.com.tw`、`www.gov.tw`、`rise-mediacorp.com`、`www.allnews.tw`；覆蓋率 84.8% | (1)(2) 皆未成立：新增的都不是主流原生媒體，UDN／自由／中時／中央社／TVBS／三立全部正常；`www.cdns.com.tw`（中華日報）07-20 就在名單上 |
 | 10-25、10-27、10-28（3 次 daily，實測；只抽這 3 天） | 7 個：`n.yam.com`、`www.cdns.com.tw`、`news.pchome.com.tw`（502，不是 403）、`www.teepr.com`、`www.watchmedia01.com`、`pronews.tw`、`www.marketersgo.com` | (1)(2) 皆未成立：主流原生媒體一個都沒有；`n.yam.com`、`www.cdns.com.tw` 07-20 起就在名單上 |
+
+### PTT 兩個看板（`GNS-016` 移入，2026-10-31）
+
+- **事實**（實測）：Actions 上 `PTT/biker`、`PTT/SuperBike` 09-17 起每天 403。10-31 的診斷（`measure-ptt-access.yml`，run `41165997831`）：
+  6 種請求（含 TLS 指紋不同的 curl）全部 403，且都帶 `cf-mitigated: challenge`；同樣的請求從家用 IP 全部 200 → 擋的是 Actions 的網路來源，
+  不是請求形狀。損失量：`articles` 裡 08-01～09-16 共 14 篇，約一週 2 篇。
+- **處置**：10-31 兩個看板改 `enabled: false`（prod `SOURCES_TRAFFIC_YML` 與鏡像同一天）。用瀏覽器解 challenge 沒有列為選項：那是繞過網站刻意設的防護。
+- **停用之後不會出聲**：daily 不再印 PTT 的 403，PTT 自己不構成這一列的觸發點；它的狀態只有重跑診斷才看得到，跟著這一列的評估走。
+- **重新啟用之前**：(a) 在新的出口上重跑 `python scripts/measure_ptt_access.py`（Actions 上是 `gh workflow run measure-ptt-access.yml`），判讀要是全部 200；
+  (b) 家用 IP 下 PTT 回 `br`，`requests` 沒有 brotli 可解，`prod` 變體解析出 0 列（10-31 本機實測）——`PTT_HEADERS` 的 `Accept-Encoding`
+  拿掉 `br`，或把 brotli 加進 requirements；`_flag_parsed_zero` 會把 0 列記成來源失敗，不會再沉默。
 
 ## GNS-20261005-gg3 機車事故 require 表的真實 recall 未量
 

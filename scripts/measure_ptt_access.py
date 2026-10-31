@@ -1,5 +1,5 @@
 """GNS-016 診斷（唯讀、不需憑證）：PTT 在 Actions 上的 403 是擋 IP 還是擋請求形狀（標頭、cookie、TLS 指紋）。
-`prod` 變體的標頭直接 import 自 collector，跟 `_fetch_ptt` 相同；其餘各只改一項，執行時印出。最後一行是判讀。
+`prod` 變體的標頭直接 import 自 collector，跟 `_fetch_ptt` 相同；其餘各只改一項，執行時印出。最後一行是判讀，robots.txt 只當對照。
 用法：python scripts/measure_ptt_access.py [board ...]（預設 biker SuperBike）"""
 import subprocess
 import sys
@@ -18,6 +18,7 @@ TIMEOUT = 15
 PAUSE = 1.5
 BODY_PREVIEW = 200
 UA = PTT_HEADERS["User-Agent"]
+CONTROL = "robots.txt"
 
 VARIANTS = [
     ("prod", "與 _fetch_ptt 相同", dict(PTT_HEADERS), True),
@@ -96,21 +97,29 @@ def print_result(label: str, url: str, r: dict) -> None:
     print(f"  內文開頭：{r['body']!r}")
 
 
+def _mitigated(r: dict):
+    return next((v for k, v in r.get("headers", {}).items() if k.lower() == "cf-mitigated"), None)
+
+
 def verdict(rows: list) -> str:
-    answered = [(f"{b}/{n}", r["status"]) for b, n, r in rows if r["status"] is not None]
-    if not answered:
-        return "判讀：沒有任何請求拿到 HTTP 回應，這次沒有量到東西"
-    codes = {s for _, s in answered}
+    boards = [(f"{b}/{n}", r) for b, n, r in rows if b != CONTROL and r["status"] is not None]
+    control = next((r for b, _, r in rows if b == CONTROL), None)
+    note = "" if not control or control["status"] is None else f"（對照：{CONTROL} {control['status']}）"
+    if not boards:
+        return "判讀：看板的請求都沒拿到 HTTP 回應，這次沒有量到東西"
+    codes = {r["status"] for _, r in boards}
     if codes == {200}:
-        return f"判讀：{len(answered)} 個請求全部 200，這個出口沒有被擋"
+        return f"判讀：看板的 {len(boards)} 個請求全部 200，這個出口沒有被擋{note}"
     if codes == {403}:
-        if not any(k.endswith("/curl") for k, _ in answered):
-            return f"判讀：{len(answered)} 個請求全部 403，但 curl 沒拿到回應，分不出擋 IP 還是擋 TLS 指紋"
-        return f"判讀：{len(answered)} 個請求全部 403（含 curl），跟標頭、cookie、TLS 指紋都無關，指向 IP 層"
-    ok = [k for k, s in answered if s == 200]
+        how = "，全部是 Cloudflare challenge（cf-mitigated: challenge）" if all(
+            _mitigated(r) == "challenge" for _, r in boards) else ""
+        if not any(k.endswith("/curl") for k, _ in boards):
+            return f"判讀：看板的 {len(boards)} 個請求全部 403{how}，但 curl 沒拿到回應，分不出擋 IP 還是擋 TLS 指紋{note}"
+        return f"判讀：看板的 {len(boards)} 個請求全部 403（含 curl）{how}，跟標頭、cookie、TLS 指紋都無關，指向 IP 層{note}"
+    ok = [k for k, r in boards if r["status"] == 200]
     if ok:
-        return f"判讀：有的 200、有的不是，跟請求形狀有關；200 的是 {'、'.join(ok)}"
-    return "判讀：沒有 200 也不全是 403，看上面的狀態碼逐條判斷"
+        return f"判讀：看板的請求有的 200、有的不是，跟請求形狀有關；200 的是 {'、'.join(ok)}{note}"
+    return f"判讀：看板的請求沒有 200 也不全是 403，看上面的狀態碼逐條判斷{note}"
 
 
 def main() -> int:
@@ -127,10 +136,10 @@ def main() -> int:
             print_result(f"{board} / {name}", url, r)
             rows.append((board, name, r))
             time.sleep(PAUSE)
-    robots = "https://www.ptt.cc/robots.txt"
+    robots = f"https://www.ptt.cc/{CONTROL}"
     r = fetch_requests(robots, {"User-Agent": UA}, False)
-    print_result("robots.txt / ua-only", robots, r)
-    rows.append(("robots.txt", "ua-only", r))
+    print_result(f"{CONTROL} / ua-only", robots, r)
+    rows.append((CONTROL, "ua-only", r))
 
     print("\n=== 摘要")
     for board, name, r in rows:
