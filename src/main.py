@@ -56,10 +56,10 @@ def main():
     kb_misses = get_kb_miss_summary()
     if kb_misses:
         logger.warning("========== ⚠️  KB MISS 術語待審查 ==========")
-        logger.warning("以下術語出現在 FFXIV 分析結果中但未收錄於 knowledge-base.md：")
+        logger.warning("以下術語出現在 FFXIV 分析結果中但未收錄於 Supabase knowledge_base 表：")
         for term in kb_misses:
             logger.warning("  • %s", term)
-        logger.warning("請更新 knowledge-base.md 後提交 PR，避免下次執行再次出現 [[term]] 標記。")
+        logger.warning("週報後的 auto-kb job 會收錄有把握的術語；其餘請直接寫進 knowledge_base 表（auto_generated = false），不需要 PR。")
         logger.warning("==============================================")
 
     logger.info("========== 執行完成，共 %d 篇 ==========", len(all_analyzed))
