@@ -7,7 +7,7 @@
 
 ## 權威順序
 
-.specify/memory/constitution.md 是本 repo 的規則，效力高於其他開發慣例（憲章 Governance）；衝突時以憲章為準，或先修訂憲章。憲章只寫意圖與結構性選擇，會浮動的值（模型、排程、門檻、來源）住在設定與執行它們的地方。.specify/templates/plan-template.md 是 /speckit-plan 產出 plan 時優先讀的本專案範本；其餘 spec-kit 程序與範本在 user 層，不在本 repo。routines/weekly-verify/ 是週報驗收 cloud routine 的程序：PROMPT.md 是常設指示，FOCUS-CHECK.md 是週三的過期檢查，兩者執行時從 main 讀，改它們就是改 routine 的行為；FOCUS.md 是每週更新的本週重點，README.md 寫給維護者（怎麼滾 FOCUS、怎麼重建 routine）。docs/standing-cautions.md 是常設提醒，動到某一塊之前要先知道的事。specs/BACKLOG.md 是待辦紀錄（只列還沒做完的條目，完成就移出）。specs/ 下每個 feature 目錄是設計與狀態紀錄，不是工作方式的規則。CLAUDE.md 只指向當前的 plan。config/ 下的 example 檔是 GitHub production environment variables 的鏡像，正式設定的真身在 GitHub。
+.specify/memory/constitution.md 是本 repo 的規則，效力高於其他開發慣例（憲章 Governance）；衝突時以憲章為準，或先修訂憲章。憲章只寫意圖與結構性選擇，會浮動的值（模型、排程、門檻、來源）住在設定與執行它們的地方。spec-kit 的程序與範本都在 user 層，不在本 repo。routines/weekly-verify/ 是週報驗收 cloud routine 的程序：PROMPT.md 是常設指示，FOCUS-CHECK.md 是週三的過期檢查，兩者執行時從 main 讀，改它們就是改 routine 的行為；FOCUS.md 是每週更新的本週重點，README.md 寫給維護者（怎麼滾 FOCUS、怎麼重建 routine）。docs/standing-cautions.md 是常設提醒，動到某一塊之前要先知道的事。specs/BACKLOG.md 是待辦紀錄（只列還沒做完的條目，完成就移出）。specs/ 下每個 feature 目錄是設計與狀態紀錄，不是工作方式的規則。CLAUDE.md 只指向當前的 plan。config/ 下的 example 檔是 GitHub production environment variables 的鏡像，正式設定的真身在 GitHub。
 
 ## 硬邊界
 

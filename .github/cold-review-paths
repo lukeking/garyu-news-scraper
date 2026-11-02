@@ -6,8 +6,10 @@
 #   .github/workflows/cold-review.yml                         讀預設分支的版本（PR 不能靠改這份把自己豁免掉）
 #   ~/.agents/adapters/claude/hooks/cold_review_reconcile.py  先讀 origin/HEAD 的版本，沒有才讀本機工作樹（開 session 時對帳）
 #
-# 規則：憲章。程序：/speckit-plan 照抄的範本，週報驗收 routine 的常設指示、週三檢查與維護說明。
+# 規則：憲章。程序：週報驗收 routine 的常設指示、週三檢查與維護說明。
 # 常設提醒（動某一塊之前要先知道的事）也列。
+# .specify/templates/ 現在沒有檔（範本都在 user 層）；`specify init` 會把副本寫回來，plan-template 的副本會蓋過 user 層那份，
+# 所以照樣列著：寫回副本的 PR 要被看到。
 # reviewer 契約：.github/cold-review-repo.md，每一輪 reviewer prompt 的權威順序與硬邊界從這裡填。
 # 不列（2026-10-31 裁示）：
 #   CLAUDE.md                          內容只有一行指向當前 plan 的路徑，每次 /speckit-plan 都會改寫
