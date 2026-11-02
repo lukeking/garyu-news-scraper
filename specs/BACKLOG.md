@@ -35,18 +35,18 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261102-akc` | `Google News 報導者交通` 每天收集到的文章在關鍵字過濾全部被擋：10-20～11-01 的 daily 寫入都是 0 | 下次動這個來源的設定（prod `SOURCES_TRAFFIC_YML` 與鏡像），或檢討交通來源清單時 `pre-edit: {"paths":["config/sources_traffic.example.yml"]}` | 查出過濾全擋的原因（query `交通 site:twreporter.org` 撈到的是什麼、擋在哪一條），決定改 query、停用，或寫明保留的理由 |
 | `GNS-20261031-s3h` | 週報熱點分析發布前沒有審核者：觀點有盲點或偏頗、措辭不精確造成歧義 | 已提出：Luke 2026-10-31；卡在實例：Luke 給 2–3 個（哪份報告、哪一句、錯在哪）當審稿標準的錨點，再選做法（見本節）。或下次動 `src/analyzer.py` 的 `analyze_hot_topic`／`analyze_category_digest` prompt 時 `pre-edit: {"paths":["src/analyzer.py"]}` | 有一份用實例錨定的審稿標準；週報在讀者看到之前經過審核（做法由 Luke 裁示），連兩週的審核紀錄查得到；或寫明不做的理由 |
 | `GNS-20261031-005` | 交通頁的週報熱點掛在產生那週，內容卻是上一週的 buffer，跟同頁下方的文章差一週 | 已提出：Luke 2026-10-31；下一步選修法（改標籤／只改呈現／只補標示，見本節）。或下次動 `pages/shared/app.js` 的熱點區塊、`scripts/traffic_weekly_analysis.py` 的 `_week_start_date` 時 `pre-edit: {"paths":["pages/shared/app.js","scripts/traffic_weekly_analysis.py"]}` | 同一個週次頁面上，熱點報告的來源與下方文章屬於同一段收集期間，或頁面寫明報告涵蓋的日期區間；已分享出去的 `?week=…#topic-…` 連結仍指到原本那份報告；或寫明不改的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | 每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 `pre-edit: {"paths":["scripts/auto_kb.py"]}` | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261021-5yg` | 研究 Gemini API 官方的 Batch API，評估本專案哪些呼叫端改用它有好處 | 下一輪模型評比（`GNS-20261019-1vk`）開跑之前；或 `gemini-3.8-flash` 的優惠價 2026-12-31 結束之前；或下次動 `src/analyzer.py` 的 `_call_gemini` 時 | 本節寫進逐字核對過的事實（折扣、完成時限與過期、`gemini-3.8-flash` 與 `gemini-embedding-2` 支不支援、配額是否與一般呼叫分開、與優惠價疊不疊加；各附出處與查證日期），以及本節呼叫端表每一列的判定（採用／不採用、理由、估算每月省多少）；有採用的就開 spec，全部不採用就寫明理由並設重開條件 |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
-| `GNS-20261020-sbe` | FFXIV 週報取樣修正（spec 015）上線後的報告驗收 | 015 merge、prod 的 `SOURCES_FFXIV_YML` 改完之後的每一次週報（週驗收 routine 照 `FOCUS.md` 的「015 上線後」那項判讀） | 連兩週 SC-001 Gate 過（入選 20 篇裡至少 1 篇來自五個論壇版）、SC-002 Gate 過（Lodestone 解析 > 0）、週報 ≤ 30 分（SC-005），結果寫回本節；SC-006 的候選池總數逐週記下，約一週後據此判斷 `GNS-20261019-3cq` 的輸出形式；或寫明為什麼不再追 |
-| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」） | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
-| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | spec 015（驗收列 `GNS-20261020-sbe`）上線約一週後，候選池遠大於 20 篇時，考慮調整輸出形式——對齊交通週報的彙整，或第三套方法（Luke 10-20）。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
+| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：Gemini API changelog 讀到 10-30 那則，沒有新的 flash／pro GA（10-13 GA 的 `gemini-4-argon` 已在 10-19 那輪評過），也沒有 `gemini-3.8-flash` deprecated 或被轉送 `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口` | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
+| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | 11-09 週報後讀它的 `ffxiv-pool` artifact（整個候選池，含沒入選的全文），看被擠掉的值不值得進分析，再決定要不要調整輸出形式——對齊交通週報的彙整，或第三套方法（Luke 10-20；11-02 裁示先看內容，見本節）。聚合那半另卡在日文來源（10-19 Luke：沒有進展） `trigger: none — 觸發是 11-09 週報產生的 artifact，沒有檔案或指令是它的入口` | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | 下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時；2026-10-31 延後：兩個觸發點都還沒發生 `pre-edit: {"paths":["src/collector.py","config/sources_traffic.example.yml"]}` | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | 下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時；2026-10-31 延後：兩個觸發點都還沒發生，新增 example 檔沒有既有路徑可綁 `pre-edit: {"paths":["scripts/check_config_drift.py"]}` | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
-| `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt） `pre-edit: {"paths":[".github/workflows/weekly.yml"]}` | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
+| `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt）；2026-11-02 動了 `weekly.yml`（加 FFXIV 候選池 artifact 上傳）但不拆，Luke 裁示延後：11-02 是 14.3 分（job 14m20s，多出的 215 秒拆解在 `routines/weekly-verify/FOCUS.md` 的 runtime 基準），還沒到 20 分 `pre-edit: {"paths":[".github/workflows/weekly.yml"]}` | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}` | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄） `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口` | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
 | `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 | 兩批拉齊充實天數後重跑 `measure_input_quality.py`，「已分析 vs 未分析」的實質正文落差留下或消失寫回本節；再以多週多桶取樣量出杜撰比率，據此改 prompt 或寫明不改的理由 |
@@ -565,31 +565,15 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 | **10-12** | **6** | ❌ | **2** | 75.0% |
 | 10-19 | 60 | ✅ | 沒跑 | 23.1% |
 | 10-26 | 54 | ✅ | 沒跑 | 22.9% |
+| 11-02 | 42 | ✅ | 沒跑 | 27.6% |
 
 **10-19**（spec 014 上線後第一個週報，run `39188558601`，讀自「最大來源」行）：最大來源 `Google News 人本交通` 18/78。
 池含 10-16 新來源一次進來的 30 天存量（匯流四類 51 篇），穩態從 10-26 起看；C1／C2 對帳見上面那份 `evaluation.md`。
 
 **10-26**（第一個不含存量的週報，run `40257235333`）：最大來源 `Google News 交通安全教育` 16/70。
 
-## GNS-20261020-sbe FFXIV 週報取樣修正（spec 015）上線後的報告驗收
-
-**提出**：2026-10-20，Luke 裁示功能實作與報告驗收分成兩列追：實作是 `GNS-20261019-a0r`（spec 015 的 PR 移出），
-驗收是這一列（週報判讀完才移出）。判準在 `specs/015-ffxiv-sampling-fix/spec.md` 的 Success Criteria。
-
-**每週讀什麼**（週報 log）：
-
-- `FFXIV 候選池 N 篇：…`／`FFXIV 入選 M 篇：…`：SC-001（五個論壇版的入選數；L1 對照窗口內的串數）、SC-006（候選池總數）。
-- Lodestone 那行「解析 N 則、收進 M 則」：SC-002 Gate。
-- 週報總耗時與 FFXIV 那段：SC-005。
-
-**逐週紀錄**（讀自週報 log；完成標準的「連兩週」看 SC-001 Gate、SC-002 Gate、SC-005 三欄）：
-
-| 週 | run | 候選池（SC-006） | 入選 | SC-001 Gate（五個論壇版） | SC-001 L1（N ≥ 1 的串） | SC-002 Gate（Lodestone 解析） | SC-005（週報耗時） |
-|---|---|---|---|---|---|---|---|
-| 10-26 | `40257235333` | 43：Reddit 25、論壇列表頁 10、論壇版 7、Lodestone 1 | Reddit 12、論壇版 7、Lodestone 1 | 7 ✅ | 7 串＝7 篇 ✅ | 20 則、收進 1 ✅ | 10m45s ✅ |
-
-- **10-26**：第一週。FFXIV `來源失敗：0/8`；`退回 RSS 最後一則`、`翻到上限`、`回滿 15 串`、`詳細頁抓不到` 都沒有。
-  候選池比本機基準（T021，45）少 2。FFXIV 分析間隔平均 19.5 秒（10-19 是 17.6）。`3cq` 的判斷時點見該節。
+**11-02**（run `41380898996`）：最大來源 `Google News 科技執法` 16/58。池比 10-26 少 12 篇；`Google News 交通部道安` 在池裡從 6 篇降到 1 篇，
+那週它的收集量逐日是 1／9／9／45／44／5、週報 21（10-27～11-02，Google News 逐日波動，log 沒有錯誤行）。
 
 ## GNS-20261020-rhd FFXIV TW 修正說明 來源壞掉
 
@@ -612,7 +596,21 @@ L2＝連續 4 週最大來源佔比 ≤ 50%。四週＝10-19、10-26、11-02、1
 - **10-19 查到、會影響原設計的事**（證據見 `specs/015-ffxiv-sampling-fix/` 的 spec 背景與 research R0）：週報的雜訊主要來自取樣——Reddit 只抓最近半天、
   篩選只留最新 20 篇——不只是 patch 空窗。原設計的 patch 偵測器（Lodestone）現在是 `0 筆`。
   `hot.json` 從 Actions 的 IP 打不打得到沒驗（Reddit 有時會擋沒有認證的雲端 IP，推測）。
-- **10-26**：015 上線後第一週，候選池 43 篇（入選上限 20）。只有一週的樣本，Luke 裁示再看一週：11-02 週報後依兩週的候選池判斷（逐週數字在 `GNS-20261020-sbe`）。
+- **015 上線後兩週的候選池**（讀自週報 log 的 `FFXIV 候選池`／`FFXIV 入選` 兩行；015 的驗收列 `GNS-20261020-sbe` 11-02 連兩週達標移出，
+  全表用 `git log -S "GNS-20261020-sbe" -p -- specs/BACKLOG.md` 撈回）：
+
+  | 週 | run | 候選池 | 入選 |
+  |---|---|---|---|
+  | 10-26 | `40257235333` | 43：Reddit 25、論壇列表頁 10、論壇版 7、Lodestone 1 | Reddit 12、論壇版 7、Lodestone 1 |
+  | 11-02 | `41380898996` | 40：Reddit 25、論壇列表頁 11、論壇版 4 | Reddit 16、論壇版 4 |
+
+  論壇版與 Lodestone 兩週都全部入選；被擠掉的是論壇列表頁全部（兩週都 0 篇入選）加上 9～13 篇 Reddit。列表頁在 015 的本機量測裡是
+  「只有標題」（`specs/015-ffxiv-sampling-fix/evaluation.md` T021），Reddit 被擠掉的那幾篇是什麼不知道。11-02 有兩個論壇版
+  （HEALER 讀取逾時、その他バトルシステム 502）整版沒收到，那週的論壇版偏少。
+- **11-02 Luke 裁示：光看篇數判斷不了，先看被擠掉的內容**。被擠掉的候選原本不存在任何地方（log 只印篇數）；只留標題＋連結不夠
+  （連結事後會變），本機重播拿到的是重播當下那批，所以改成週報在入選當下把整個候選池連同 `summary` 全文存成 artifact
+  （`ffxiv-pool`，`src/filter.py` 的 `_dump_ffxiv_pool`，log 印 `FFXIV 候選池內容：寫入 …`）。11-09 是第一份有 artifact 的週報：
+  `gh run download <run id> -n ffxiv-pool`（保留 90 天）。
 
 ## GNS-20261019-1vk 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送
 
@@ -684,6 +682,11 @@ FFXIV 單篇（每週 20 次），embedding 與 auto-KB 沒算進去（依同檔
 | 10-26 | `40258133940` | 17 | 7 | 10 |
 | 10-26 手動重跑 | `40303445100` | 5 | 2 | 3 |
 | 10-26 手動重跑（二） | `40305794901` | 0 | 0 | 0 |
+| 11-02 | `41382254076` | 10 | 6 | 4 |
+
+11-02 待審的 4 個：`エーテルチェンジ`、`クロスボウ`、`ゼファー`、`ネフェレ`。自動收錄的 6 個（沒有人審過）：`獣使い` → `魔獸使`、
+`リキャスト` → `複唱時間`、`アクション` → `技能`、`フェザーレイン` → `飛羽雨`、`エーテルコピー` → `以太複製`、`迅速魔` → `即刻詠唱`；
+修補了文章 5697、5698、5699。這週入選的論壇版只有 DPS 4 串（`ゼファースレ`、`黒魔導士`、`青魔道士`、`獣使いスレ`），術語都出自這幾串的職業討論。
 
 10-26 待審的 10 個：`はなつ`、`シンク`、`ステップ`、`バフアビ`、`ビーストランク`、`フライングキャット`、`ブリンク`、`ランクマッチ`、`獣道III`、`魔獣図鑑`。
 出自哪篇（10-26 唯讀查 prod `articles.analysis`）：5524 `シンク`／`ビーストランク`／`魔獣図鑑`、5525 `ステップ`、5526 `バフアビ`／`ブリンク`、
@@ -747,6 +750,22 @@ buffer 來的，但下方的 daily buffer 卻都是這週的。」
 
 **卡在實例**：審稿標準要用 2–3 個真實案例錨定（哪份報告、哪一句、錯在哪），否則 LLM 審稿者每次重抽一個標準
 （`~/.agents/instructions/rules/review-loop-bounds.md`「尺度」）。
+
+## GNS-20261102-akc `Google News 報導者交通` 寫入一直是 0
+
+**發現**：2026-11-02，查 11-02 驗收報告（GAR-63）說的「多來源本週收集量明顯偏低」時。Luke 裁示另開一列。
+
+**證據**（daily log 的 `[來源漏斗] Google News 報導者交通：…` 行，`gh run view <run id> --log`）：
+
+| 日 | 收集 | 新鮮度 | 過濾 | 寫入上限 |
+|---|---|---|---|---|
+| 10-20～10-25（6 個 daily） | 100 | 100 | 0 | 0 |
+| 10-27～11-01（6 個 daily） | 4～5 | 4～5 | 0 | 0 |
+
+- 收集量 10-26 週報還是 100，10-27 daily 起每天 4～5。鏡像 `config/sources_traffic.example.yml` 在 10-21～10-30 沒有 commit
+  （下一次是 10-31 停 PTT），prod 變數那段期間有沒有另外改沒查；推論是 Google News 那端變了。這一掉就讓 daily 的 `過濾後剩 X 筆（原 Y 筆）` 的 Y 每天少約 95，週驗收 routine 照 FOCUS 的舊範圍判成「偏低」；
+  但前後寫入都是 0，對輸出沒有影響。
+- 看過的只有上表 12 個 daily；10-20 以前是不是也全擋沒查。query 是 `交通 site:twreporter.org`。
 
 ## 這份清單自己的訊號
 
