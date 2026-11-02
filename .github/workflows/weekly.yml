@@ -89,6 +89,16 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          # FFXIV 整個候選池（含沒入選的、summary 全文）寫成 JSON，下一步上傳成 artifact（BACKLOG GNS-20261019-3cq）
+          FFXIV_POOL_DUMP: ffxiv_pool.json
+
+      - name: 上傳 FFXIV 候選池內容
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ffxiv-pool
+          path: ffxiv_pool.json
+          if-no-files-found: warn
 
       - name: 驗證本週資料可由 Supabase 讀取
         run: |
