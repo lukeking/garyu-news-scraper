@@ -82,3 +82,15 @@ Chromium（`~/.cache/ms-playwright/chromium-1223/`）以 412 px 寬截亮、暗�
 
 `/speckit-plan` 觸發了 bare 的這條提醒。查證：garyu 的 plan-template 副本沒有 gate、與 user 層共用範本逐位元組相同，不在 9qe
 的四個 repo 名單上。Luke 2026-11-02 裁示不併入本 spec，另以 PR #196 刪掉副本（已 merge）。本 plan 用的是 user 層範本。
+
+## R7 SC-003 由 routine 讀 log 驗（`/speckit-analyze` 之後補）
+
+**Decision**: `src/storage.py` 的 `upsert_hot_topic_report` 寫完每份報告，多印一行「焦點事件帶發布時間 n/m」
+（格式見 contracts/log-lines.md）；週驗收 routine 讀這一行判 SC-003。
+
+**Rationale**: `/speckit-analyze` 指出原本的 T013 要 routine 讀 `/api/hot-topics`，但 routine 跑在雲端，`routines/weekly-verify/PROMPT.md`
+第 18 行寫明 Worker API 打不通（實測 CONNECT 403）；它讀得到的只有 Actions log。一般報告與彙整報告都經過 `upsert_hot_topic_report`，
+放在這裡一個位置涵蓋兩條路；既有的 `✓ hot_topic_report upserted:` 那行有讀者，不改它，另起一行。Luke 2026-11-02 選這個做法。
+
+**Alternatives considered**: FOCUS 的新項目標 out of scope、交給本地 session——不改程式，但要靠本地 session 記得去做，
+沒有每週自己出聲的執行者。

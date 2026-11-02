@@ -8,7 +8,7 @@ description: "Task list for 016-hot-topic-source-range"
 > Markers: [ ] not started · [-] implemented, awaiting review · [X] reviewed + verified (verification-only task: main-verified)
 
 **Input**: Design documents from `/specs/016-hot-topic-source-range/`
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/hot-topics-api.md, contracts/hot-topic-card-ui.md, quickstart.md
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/hot-topics-api.md, contracts/hot-topic-card-ui.md, contracts/log-lines.md, quickstart.md
 
 **Tests**: **要。** 本 repo 接了 delegated-TDD；每個實作 task 前面有一個會因為「還沒實作」而紅的測試 task。
 JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.js`。
@@ -103,9 +103,13 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Independent Test**: 對兩個分析函式給一批帶 `published` 的文章，回傳的每一項都帶同一個值。
 
-- [ ] T010 [P] [US3] [FR-006] `tests/unit/test_hot_topic_source_dates.py`：`analyze_hot_topic`、`analyze_category_digest` 回傳的每一項帶來源的
-      `published`；來源沒有 `published` 時該項不帶這欄；`title`、`link`、`summary` 不變（替換 `_get_api_key`、`_call_gemini`）。先紅。
-- [ ] T011 [US3] [FR-006] `src/analyzer.py`：兩個函式組 `ordered_articles` 時加上 `published`（來源有值才帶）。
+- [ ] T010 [P] [US3] [FR-006, FR-010] `tests/unit/test_hot_topic_source_dates.py`：`analyze_hot_topic`、`analyze_category_digest` 回傳的每一項帶來源的
+      `published`；來源沒有 `published` 時該項不帶這欄；`title`、`link`、`summary` 不變（替換 `_get_api_key`、`_call_gemini`）。
+      `upsert_hot_topic_report`（假 client＋caplog，照 `tests/unit/test_digest_consume.py` 的做法）：照 contracts/log-lines.md 用字面值斷言
+      那一行——全部帶（`2/2`）、部分帶（純字串與沒有 `published` 的 dict 算沒帶）、`0/0` 也印、upsert 失敗時不印；既有的
+      `✓ hot_topic_report upserted:` 那行不變。先紅。
+- [ ] T011 [US3] [FR-006, FR-010] `src/analyzer.py`：兩個函式組 `ordered_articles` 時加上 `published`（來源有值才帶）。
+      `src/storage.py`：`upsert_hot_topic_report` 在既有的成功訊息之後印 contracts/log-lines.md 那一行。
 
 ---
 
@@ -114,8 +118,9 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [ ] T012 [SC-001, SC-005, FR-009] 驗證型：回填（T009）之後，本機用本分支的 `app.js` 對 prod 公開 API 渲染（`__API_BASE__` 指 prod，只讀）：
       55 份真報告的區間與 DB 算出的最早／最晚逐份比對；W44、W45 兩頁的每個 ★ 對得到報告焦點事件、提示週次正確，只被彙整消耗的沒有 ★；
       FFXIV 頁照舊。結果寫進 `specs/016-hot-topic-source-range/evaluation.md`。
-- [ ] T013 [SC-003] `routines/weekly-verify/FOCUS.md`：在 merge 後第一個週報那週加一項「016 上線後」——讀 `/api/hot-topics`，新報告的
-      每一項焦點事件都有 `published`、卡片顯示區間；適用週照現行不動。
+- [ ] T013 [SC-003, FR-010] `routines/weekly-verify/FOCUS.md`：在 merge 後第一個週報那週加一項「016 上線後」——讀週報 Actions log 裡每份報告的
+      `✓ hot_topic_report 焦點事件帶發布時間：n/m`（contracts/log-lines.md），全部 `m/m` 為通過；`n < m` 或找不到這一行就標待查、交給本地。
+      routine 打不到 Worker API（`PROMPT.md` 的環境段落），不要寫成去讀 `/api/hot-topics`。適用週照現行不動。
 - [ ] T014 [SC-001, SC-002, SC-004, SC-005] `specs/016-hot-topic-source-range/spec.md`：加「達成階數」小節（同 015 的形狀），填 merge 前已有的
       結果（T001、T009、T012），SC-003 標「交給 routine」。
 - [ ] T015 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），
@@ -123,8 +128,9 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [ ] T016 PR 內文（`gh pr edit`）：Principles I–III 的符合情形（Governance 的 Compliance review）；bare `GUB-20261101-9qe` 與
       `GUB-20261024-rcf` 的處置；rcf 的樣本資料（step 2a 停了幾次、Unchecked 幾條與 T001 的結果、plan 階段改寫的假設、
       第一個 review unit 推翻了什麼）；`Backlog:` 行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出。
-- [ ] T017 [SC-001, SC-002, SC-005] 驗證型（merge 之後）：`deploy-pages-traffic.yml` 部署完，prod 頁面抽查——兩份報告的分享連結打開到
-      原本的週次與卡片、卡片顯示區間、W44 的 ★ 正確；結果留言在本 PR 上。
+- [ ] T017 [SC-001, SC-002, SC-004, SC-005] 驗證型（merge 之後）：`deploy-pages-traffic.yml` 部署完，prod 頁面抽查——兩份報告的分享連結打開到
+      原本的週次與卡片、卡片顯示區間、W44 的 ★ 正確；用與 T001 相同的寬度與主題（412 px 亮、暗，加桌面）截 prod 頁面，與簽核的截圖並排比對。
+      結果留言在本 PR 上。
 
 ---
 
@@ -186,17 +192,20 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 ### Unit 5: 新報告的焦點事件帶發布時間
 
 - Tasks: T010, T011
-- Outcome: `analyze_hot_topic`、`analyze_category_digest` 回傳的每一項帶來源的 `published`。
+- Outcome: `analyze_hot_topic`、`analyze_category_digest` 回傳的每一項帶來源的 `published`；每寫入一份報告，log 印出
+  contracts/log-lines.md 那一行。
 - Prerequisites: 無。
-- Verification: `.venv/bin/python -m pytest tests/unit -q`；上線後的實際週報由 T013 交給 routine。
-- Review: `src/analyzer.py`（兩個函式組 `ordered_articles` 的段落）、`tests/unit/test_hot_topic_source_dates.py`（分析那幾條）。
-- Merge or split: 測試與實作同一個產出；跟回填腳本分開（見 Unit 2）。
+- Verification: `.venv/bin/python -m pytest tests/unit -q`；上線後的實際週報由 T013 交給 routine 讀那一行。
+- Review: `src/analyzer.py`（兩個函式組 `ordered_articles` 的段落）、`src/storage.py`（`upsert_hot_topic_report`）、
+  `tests/unit/test_hot_topic_source_dates.py`（分析與 log 那幾條）、contracts/log-lines.md。
+- Merge or split: 產生端帶日期與「帶了幾項」的 log 是同一個產出（新報告自動帶上、而且每週看得到）；跟回填腳本分開（見 Unit 2）。
 - Unchecked assumptions: none。
 
 ### Unit 6: 回填與真實資料上的驗收 (verification-only)
 
 - Tasks: T009, T012, T017
-- Outcome: 56 份報告回填完成並讀回一致、錨點未變；本分支的前端在 prod 資料上 SC-001、SC-005 成立；merge 後 prod 頁面抽查通過。
+- Outcome: 56 份報告回填完成並讀回一致、錨點未變；本分支的前端在 prod 資料上 SC-001、SC-005 成立；merge 後 prod 頁面抽查通過，
+  畫面與簽核的截圖一致（SC-004 的後半）。
 - Prerequisites: Unit 2 審過（T009）；Unit 3、4 審過（T012）；merge 與部署（T017）。
 - Verification: 腳本讀回、三元組比對、渲染比對，數字寫進 evaluation.md；T017 的結果留言在 PR 上。
 - Review: main 驗證；T009 的 `--apply` 要 Luke 同意。
