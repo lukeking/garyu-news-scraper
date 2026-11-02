@@ -66,9 +66,30 @@
 
 - `GEMINI_API_KEY` 那道閘**刻意留 fail-fast**（沒有金鑰就整支中止），不要在補測試時
   順手改成「靜靜跳過」——那會讓排程失敗變成無聲。
-- `auto_kb.py` 的 Step 2 有一個 `sys.exit(0)` 早退（沒有未知術語就結束），
-  Step 5 的職責會把未知集清空因而觸發它——**這正是當初要求「跑真 `main()` 而非重寫邏輯」的原因**
-  （PR #103）。新測試一律走 `run_main`，不要另外乾跑某個函式。
+- `auto_kb.py` 的 Step 2 曾經有一個 `sys.exit(0)` 早退（沒有未知術語就結束）：Step 5 的職責會把
+  未知集清空因而觸發它，修補永遠到不了；PR #103 改成只跳過 Gemini。重寫一份邏輯來乾跑的測試抓不到
+  這種控制流 bug——**這正是當初要求「跑真 `main()` 而非重寫邏輯」的原因**。新測試一律走 `run_main`，
+  不要另外乾跑某個函式。
+
+## FFXIV 的 `articles.summary` 欄留著 `[[…]]`
+
+原出處：2026-11-02 handoff 的 Open Question「`articles.summary` 欄的 `[[…]]`」（`GNS-20261026-fwz` 人工審時發現）；
+Luke 同日裁示不修，記在這裡。
+
+`upsert_articles`（`src/storage.py`）把 `analysis.summary` 複製一份寫進 `summary` 欄；auto-kb Step 5 只修補
+`analysis`，不碰這一欄。所以這一欄停在寫入當下的樣子：未知術語的 `[[…]]` 標記留著，而且每週隨新文章增加。
+
+目前沒有讀者看得到它。Worker 的 `normalizeRow`（週次 API：FFXIV 卡片、`q` 搜尋）、`feedItem`（RSS）與交通頁的
+`trafficRow` 都寫成 `analysis.summary || summary`，前者空的時候才退回這一欄；Python 端讀這一欄的都只讀 traffic。
+
+2026-11-02 對 prod 唯讀量測：FFXIV 599 篇，`analysis.summary` 空的 0 篇；`summary` 欄含 `[[` 的 27 篇
+（id 163～5699，56 種詞），`analysis` 含 `[[` 的 0 篇。traffic 1697 篇的 `analysis` 全空、一律退回這一欄，
+但欄裡沒有 `[[`。
+
+動到下面任一處之前，先處理這一欄（讓 auto-kb Step 5 也修補它並回填，或讓讀者改讀 `analysis.summary`）：
+
+- 新增讀 FFXIV `articles.summary` 的地方，或把既有讀者改成優先讀這一欄；
+- 讓 FFXIV 的 `analysis.summary` 可能是空的（analyzer 的退回值、auto-kb 的修補）。
 
 ## Supabase schema
 
