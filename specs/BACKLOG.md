@@ -49,7 +49,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | 下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt）；2026-11-02 動了 `weekly.yml`（加 FFXIV 候選池 artifact 上傳）但不拆，Luke 裁示延後：11-02 是 14.3 分（job 14m20s，多出的 215 秒拆解在 `routines/weekly-verify/FOCUS.md` 的 runtime 基準），還沒到 20 分 `pre-edit: {"paths":[".github/workflows/weekly.yml"]}` | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | 下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}` | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄） `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口` | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
-| `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 | 兩批拉齊充實天數後重跑 `measure_input_quality.py`，「已分析 vs 未分析」的實質正文落差留下或消失寫回本節；再以多週多桶取樣量出杜撰比率，據此改 prompt 或寫明不改的理由 |
+| `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 `pre-edit: {"paths":["src/analyzer.py"]}` | 以多週多桶取樣量出杜撰比率（報告本文出現來源查無的具體事實），據此改 prompt 或寫明不改的理由（入料缺口只剩政策類這一個維度，見本節「11-02」） |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | 基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴` | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
 | `GNS-007` | 政策 digest 的離題雜訊 | 已觸發：Luke 2026-10-28 裁示重開（重開條件 2 於 09-07 成立）；下一步開 spec，做法須換成判實質而非判詞彙 `trigger: none — 已觸發，等開 spec；做法未定，還沒有對應的檔案` | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
 | `GNS-006` | 前端測試框架的 layout 那一半（Storybook／E2E） | 已於 2026-09-05 觸發（GNS-005 留下兩個 jsdom 測不到的常數）；下次動 `pages/` 的版面常數時一併做；2026-10-28 延後：C1 0，沒有東西在壞 `pre-edit: {"paths":["pages/shared/shared.css"]}` | `560px` 斷點與 `.tr-time` 的 `5em` 各有一個在真實 layout 引擎上跑、把常數改錯就會紅的測試，且在 CI 跑 |
@@ -315,6 +315,9 @@ score=0.1842  選中=False  AUTO ONLINE 汽車線上 - AUTO ONLINE 汽車線上
 
 ## GNS-011 熱點分析杜撰來源沒有的事實（grounding 缺陷，08-14 新增）
 
+**2026-11-02**：09-03 的「已分析 vs 未分析」維度查完，是政策類別的組成，不是消耗時序；入料缺口只剩政策類
+（見節末「11-02」）。
+
 **敘事在 2026-09-03 改過（PR #105 的量測）**，見節末
 「09-03 量測結果」。一句話：**正文缺口確實存在且系統性，但主體早在 08-03 就被 BACKLOG GNS-003
 修掉了**（固定 `hot_topic_analyzed` 比較：W20–W31 **8.4%** → W32–W36 **58.9%**）。
@@ -468,6 +471,41 @@ W34 57/87、W35 50/84、W36 62/77）。**成因未查，不下結論。** 兩個
 
 **下一步**：先查上面那個未解的維度，再決定要不要動 `analyze_hot_topic` 的 prompt。
 (b) 那個「證據標註只覆蓋人因側」的缺陷**與輸入品質無關**，可獨立修。
+
+### 11-02 消耗時序查完——落差是類別組成，不是充實天數
+
+**機制（推論，讀程式碼）：「留在 buffer 的列每天累積充實機會」在現行程式裡不存在。** 每日 runner 只充實當天新收集、
+通過 filter 的文章（`scripts/traffic_buffer.py` 的 `cat.prefetch(filtered)`）；`freshness_filter` 先擋掉 DB 裡已有的標題指紋
+（05-04 起），`upsert_traffic_buffer` 用 `ignore_duplicates=True`，link 已存在就跳過（07-06 起）；repo 裡沒有任何地方回頭改
+traffic 的 `summary`，週報路徑也不再充實（`get_traffic_buffer` 之後直接 `analyze_hot_topic`）。所以 08-03 起每一列只在寫入當天
+充實一次，「充實天數」在兩批之間沒有差別，沒有東西可拉齊。
+
+**另外兩個機制讓「已分析」不等於「模型看過」**：`expire_buffer_articles` 把過期的未分析列刪掉（表裡的未分析列只剩 8 週內的）；
+digest 消耗時把沒選進 prompt 的 residual 也標成已分析。所以這次分三組：
+
+- 進 prompt：link 出現在某份 `hot_topic_reports.source_article_links`（bucket 前 10 篇、digest 前 15 篇）
+- 標了沒進：`hot_topic_analyzed=True`，但不在任何報告的 links 裡（digest residual）
+- 還在等：`hot_topic_analyzed=False`
+
+**量測（實測，prod 唯讀，2026-11-02）**：分類用 `measure_input_quality.py` 的 `boilerplate_keys`／`classify_row`（與 09-03 同一套判準）；
+範圍是 `buffered_at` 從最早一筆還在等的列到最後一份報告（09-08～11-02），1190 列。
+
+| 組 | n | substantive | 政策四類佔比 |
+|---|---|---|---|
+| 進 prompt | 242 | 71.1% | 86% |
+| 標了沒進 | 205 | 49.8% | 100% |
+| 還在等 | 743 | 79.0% | 0% |
+| 09-03 的切法：`hot_topic_analyzed` 真／假 | 447／743 | 61.3%／79.0% | — |
+
+- **「已分析 vs 未分析」就是「政策 vs 非政策」**：還在等的 743 列沒有一篇政策四類，digest 每週把政策池整個消耗掉。
+  09-03 看到的兩個維度其實是同一個。
+- **只比非政策類，進 prompt 的不比較差**：85.7%（n=35）vs 還在等的 79.0%，方向與 09-05 從 quality score 長度項推的一致；
+  n=35 太小，只能說沒有證據顯示比較差。
+- **模型實際看到的**：進 prompt 的 242 篇裡 59 篇是標題複讀（24%）、6 篇 thin、5 篇樣板。政策類進 prompt 的 68.6%、
+  沒選上的 residual 49.8%——digest 的選材已經偏向有正文的。
+
+**所以**：消耗時序這一半關掉，入料缺口只剩政策四類這一個維度。下一步回到本列完成標準的取樣（多週多桶量杜撰比率）。
+這次的腳本是 scratch、沒有進 repo，三組的定義與範圍寫在上面。
 
 ---
 
