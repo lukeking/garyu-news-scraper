@@ -4,6 +4,7 @@ filter.py
 """
 
 import hashlib
+import json
 import logging
 import os
 import re
@@ -492,6 +493,35 @@ def _ffxiv_source_counts(label: str, articles: list) -> str:
     return f"FFXIV {label} {len(articles)} 篇：" + "、".join(f"{s} {n}" for s, n in counts)
 
 
+def _dump_ffxiv_pool(pool: list, selected_count: int) -> None:
+    """FFXIV_POOL_DUMP 有設才把整個候選池（排序後、summary 不截斷）寫成 JSON；沒設或寫不進去都印一行。"""
+    path = os.environ.get("FFXIV_POOL_DUMP", "").strip()
+    if not path:
+        logger.info("FFXIV 候選池內容：未設 FFXIV_POOL_DUMP，不寫檔")
+        return
+    rows = [
+        {
+            "rank": rank,
+            "selected": rank <= selected_count,
+            "source": a.get("source"),
+            "source_weight": a.get("source_weight"),
+            "title": a.get("title"),
+            "link": a.get("link"),
+            "published": a.get("published"),
+            "summary": a.get("summary"),
+        }
+        for rank, a in enumerate(pool, start=1)
+    ]
+    dump = {"pool_count": len(pool), "selected_count": selected_count, "articles": rows}
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(dump, f, ensure_ascii=False, indent=1, default=str)
+    except OSError as e:
+        logger.warning("FFXIV 候選池內容：寫入 %s 失敗（%s）", path, e)
+        return
+    logger.info("FFXIV 候選池內容：寫入 %s（%d 篇，入選 %d 篇）", path, len(pool), selected_count)
+
+
 def game_deduplicate(articles: list, config: dict) -> list:
     """FFXIV 去重：排除包含關係與 Jaccard > game_threshold 的標題，重複時留先出現的（呼叫端先依 ffxiv_rank_key
     排好，留下的就是權重高的那份）；再依同一個鍵取前 20，並印候選池與入選的逐來源篇數。"""
@@ -527,4 +557,5 @@ def game_deduplicate(articles: list, config: dict) -> list:
     selected = retained[:20]
     logger.info("%s", _ffxiv_source_counts("候選池", retained))
     logger.info("%s", _ffxiv_source_counts("入選", selected))
+    _dump_ffxiv_pool(retained, len(selected))
     return selected

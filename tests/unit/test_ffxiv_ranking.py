@@ -159,3 +159,65 @@ def test_empty_pool_lines(caplog):
     msgs = _messages(caplog)
     assert "FFXIV 候選池 0 篇" in msgs
     assert "FFXIV 入選 0 篇" in msgs
+
+
+# ── (e) 候選池全文寫檔（BACKLOG GNS-20261019-3cq：判斷要看被擠掉的內容）──
+
+def _pool_articles():
+    forum = [
+        dict(_a(f"forum{i}", "FFXIV JP Forum - DPS", 80, _ago(days=1, hours=i)), link=f"https://f/{i}", summary=f"forum body {i}")
+        for i in range(2)
+    ]
+    reddit = [
+        dict(_a(f"reddit{i:02d}", "Reddit r/ffxiv", 20, _ago(hours=i)), link=f"https://r/{i}", summary=f"reddit body {i}")
+        for i in range(20)
+    ]
+    reddit[-1]["summary"] = "長" * 7000
+    return forum + reddit
+
+
+def test_pool_dump_writes_whole_pool_with_full_summary(caplog, monkeypatch, tmp_path):
+    import json
+
+    path = tmp_path / "pool.json"
+    monkeypatch.setenv("FFXIV_POOL_DUMP", str(path))
+    articles = _pool_articles()
+    with caplog.at_level(logging.INFO, logger="src.filter"):
+        selected = game_deduplicate(articles, CONFIG)
+
+    dump = json.loads(path.read_text(encoding="utf-8"))
+    assert dump["pool_count"] == 22
+    assert dump["selected_count"] == 20
+    rows = dump["articles"]
+    assert [r["rank"] for r in rows] == list(range(1, 23))
+    assert [r["title"] for r in rows] == ["forum0", "forum1"] + [f"reddit{i:02d}" for i in range(20)]
+    assert [r["selected"] for r in rows] == [True] * 20 + [False] * 2
+    assert [r["title"] for r in rows if r["selected"]] == [a["title"] for a in selected]
+    assert rows[0] == {
+        "rank": 1, "selected": True, "source": "FFXIV JP Forum - DPS", "source_weight": 80,
+        "title": "forum0", "link": "https://f/0", "published": _ago(days=1, hours=0), "summary": "forum body 0",
+    }
+    assert rows[-1]["summary"] == "長" * 7000
+    assert f"FFXIV 候選池內容：寫入 {path}（22 篇，入選 20 篇）" in _messages(caplog)
+
+
+def test_pool_dump_says_so_when_not_configured(caplog, monkeypatch, tmp_path):
+    monkeypatch.delenv("FFXIV_POOL_DUMP", raising=False)
+    monkeypatch.chdir(tmp_path)
+    with caplog.at_level(logging.INFO, logger="src.filter"):
+        game_deduplicate(_pool_articles(), CONFIG)
+
+    assert list(tmp_path.iterdir()) == []
+    assert "FFXIV 候選池內容：未設 FFXIV_POOL_DUMP，不寫檔" in _messages(caplog)
+
+
+def test_pool_dump_failure_is_logged_and_selection_still_returned(caplog, monkeypatch, tmp_path):
+    path = tmp_path / "missing-dir" / "pool.json"
+    monkeypatch.setenv("FFXIV_POOL_DUMP", str(path))
+    with caplog.at_level(logging.INFO, logger="src.filter"):
+        selected = game_deduplicate(_pool_articles(), CONFIG)
+
+    assert len(selected) == 20
+    warnings = [r.getMessage() for r in caplog.records if r.name == "src.filter" and r.levelno == logging.WARNING]
+    assert len(warnings) == 1
+    assert warnings[0].startswith(f"FFXIV 候選池內容：寫入 {path} 失敗（")
