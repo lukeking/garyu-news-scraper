@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261103-f71` | 交通的週次清單被截在 1000 列：W30～W37 不在週次導覽裡，最舊那週的篇數算少 | 下次動 `workers/api/src/index.js` 的 `handleWeeks` 時；或讀者發現週次導覽缺週時 `pre-edit: {"paths":["workers/api/src/index.js"]}` | `/api/weeks?content_type=traffic` 列出所有有文章的週次，每週篇數與 `/api/weeks/<週>` 的 `article_count` 一致；Worker 有測試 runner，並有一條在超過 1000 列時會紅的測試（故意改壞看它紅）；或寫明不修的理由 |
 | `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | 等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
 | `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261102-akc` | `Google News 報導者交通` 每天收集到的文章在關鍵字過濾全部被擋：10-20～11-01 的 daily 寫入都是 0 | 下次動這個來源的設定（prod `SOURCES_TRAFFIC_YML` 與鏡像），或檢討交通來源清單時 `pre-edit: {"paths":["config/sources_traffic.example.yml"]}` | 查出過濾全擋的原因（query `交通 site:twreporter.org` 撈到的是什麼、擋在哪一條），決定改 query、停用，或寫明保留的理由 |
@@ -837,6 +838,22 @@ buffer 來的，但下方的 daily buffer 卻都是這週的。」
   （下一次是 10-31 停 PTT），prod 變數那段期間有沒有另外改沒查；推論是 Google News 那端變了。這一掉就讓 daily 的 `過濾後剩 X 筆（原 Y 筆）` 的 Y 每天少約 95，週驗收 routine 照 FOCUS 的舊範圍判成「偏低」；
   但前後寫入都是 0，對輸出沒有影響。
 - 看過的只有上表 12 個 daily；10-20 以前是不是也全擋沒查。query 是 `交通 site:twreporter.org`。
+
+## GNS-20261103-f71 交通的週次清單被截在 1000 列
+
+**發現**：2026-11-03，spec 017 的 plan（量「跨週數新文章」要打幾次 API 時）。
+
+**實測**（2026-11-03，公開 Worker API）：`/api/weeks?content_type=traffic` 回 8 週（W45～W38），`article_count` 加總剛好 1000；
+其中 W38 寫 85 篇，逐頁抓 `/api/weeks/2026-W38?content_type=traffic&limit=100&offset=…` 是 181 篇；W30～W37 用同樣方式抓得到文章
+（各 35～140 篇），卻不在清單裡。FFXIV 的清單 27 週、加總 599，沒有撞到。
+
+**機制**（讀程式碼＋推論）：`workers/api/src/index.js` 的 `handleWeeks` 把該類別的每一列文章（`week_id,analysis,content_type`）都撈回來，
+在 Worker 裡彙總；Supabase REST 一次最多回的列數把它截在 1000 列（加總剛好 1000 是實測；上限的設定值沒查）。前端的週次導覽只畫這份清單，
+所以舊週次無聲消失。
+
+**Luke 2026-11-03**：記成一條 BACKLOG，017 不修；「沒有測試的部分也要補上」——修的時候 Worker 要有測試 runner，鎖住這個情況。
+
+重跑：抓 `/api/weeks?content_type=traffic` 加總 `article_count`，再對最舊那週逐頁抓 `/api/weeks/<週>` 比對篇數。
 
 ## 這份清單自己的訊號
 
