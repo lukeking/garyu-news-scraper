@@ -8,7 +8,7 @@
 
 | 欄位 | 本 spec 怎麼用 |
 |---|---|
-| `week_start_date` | 分批的鍵（產生那天的週一，`YYYY-MM-DD`）；卡片的「產生」日期；新分享連結的 `batch` |
+| `week_start_date` | 分批的鍵（那次週報的週一，`YYYY-MM-DD`；手動 dispatch 也是那週的週一）；卡片上的所屬週報；新分享連結的 `batch` |
 | `topic_label` | 卡片標題；`slugify()` 之後是卡片錨點與新分享連結的 slug |
 | `created_at` | 「有新報告」的判斷 |
 | `source_article_links[]` | 焦點事件；項目是 `{link, title, summary}`，舊格式是只有連結的字串 |
@@ -19,7 +19,7 @@
 | 欄位 | 本 spec 怎麼用 |
 |---|---|
 | `created_at` | 「新文章」的判斷（第一次收進來的時間，見 research R4） |
-| `week_id` | 文章那一條的週次（照舊） |
+| `week_id` | 新文章那一條的週次（照舊） |
 | `hot_topic_analyzed` | 不再使用（拿掉 ★） |
 
 ## 前端推導的
@@ -46,7 +46,7 @@
 
 之後每次打開
   → 讀兩條的「上次看過」當這次的基準
-  → 依 landingStream 落地
+  → 依 landingStream 落地；窄螢幕時把落地的那一條寫進「上次離開時在哪一條」
   → 被顯示的那一條（寬螢幕是兩條）：「上次看過」寫成這次打開的時間
   → badge：基準之後的報告份數／文章篇數
 

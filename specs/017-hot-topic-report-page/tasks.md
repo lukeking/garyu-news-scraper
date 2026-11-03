@@ -45,7 +45,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [ ] T002 [FR-004, SC-002] 驗證型：在 scratch 寫一支 Node 腳本，照 research R4 的掃法對 prod 公開 API 實測「數新文章」：基準分別是
       3 天前、3 週前、10 週前（超過 8 週上限），每種記下要打幾個請求、並行的總時間、算出的篇數與是否觸頂（`N+`）。
       結果寫進 `specs/017-hot-topic-report-page/research.md` R4 的「量測」。這條驗 spec 的 Unchecked 假設「數新文章不會讓打開變慢到不能接受」：
-      3 週前那種的並行總時間超過 5 秒，就把數字帶回 T001 請 Luke 判（備案：只標「有新的」不標篇數）。
+      3 週前那種的並行總時間超過 5 秒，就把數字帶回 T001 請 Luke 判（備案：只標「有新的」不標篇數）。5 秒是純判斷（手機上等 badge
+      出現的容忍度，沒有量過），不是門檻的推導；數字一律帶給 Luke 看，5 秒只決定要不要主動提備案。
 
 ---
 
@@ -62,16 +63,17 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Goal**: 熱點依產生批次、新文章依收集週次，各自有導覽；窄螢幕一次一條可切換、寬螢幕並排；文章列沒有 ★。
 
-**Independent Test**: 412 px 下切換兩條、各自的導覽只動自己；桌機寬度並排；文章那一條任何週次都沒有報告與 ★。
+**Independent Test**: 412 px 下切換兩條、各自的導覽只動自己；桌機寬度並排；新文章那一條任何週次都沒有報告與 ★。
 
 - [ ] T004 [P] [US1] [FR-001, FR-003, FR-011, FR-013] `tests/js/traffic-streams.test.mjs`（新檔）：
       `reportBatches(reports)` 依 `week_start_date` 分組、新的在前、標籤字面值是 `11-02 · 2 份`；`renderReportStream(batches, date)` 把那一批的每份報告
-      畫進 `#stream-reports`，每張卡片的 meta 列有 `11-02 產生`，切到另一批只換這一條；`setStream('articles')` 讓 `#stream-articles` 拿到 `active`、
-      `#stream-reports` 沒有，切換鈕的 `aria-selected` 跟著換；`loadWeek` 之後 `#stream-articles` 裡沒有任何報告卡片；用 `FFXIV_CONFIG` 載入
-      `pages/ffxiv/index.html` 的 body 跑 `init` 的同步部分不 throw、頁面上沒有切換鈕與齒輪。字面值用 2026-11-02、2026-10-26 兩批（各 2 份）寫死。
+      畫進 `#stream-reports`，每張卡片的 meta 列有所屬週報的字樣（用 T001 簽核的字面值；暫定 `11-02 週報`，不可以是「產生」），切到另一批只換這一條；`setStream('articles')` 讓 `#stream-articles` 拿到 `active`、
+      `#stream-reports` 沒有，切換鈕的 `aria-selected` 跟著換；`loadWeek` 之後 `#stream-articles` 裡沒有任何報告卡片；stub 讓 `/api/hot-topics`
+      失敗時，熱點那一條出現 contracts/traffic-streams-ui.md 的失敗字樣、新文章那一條照常畫出；用 `FFXIV_CONFIG` 載入 `pages/ffxiv/index.html` 的 body，
+      在 `exports` 加 `init`、以 stub fetch 呼叫 `init()` 並 `await` 它結束，不 throw、頁面上沒有切換鈕與齒輪。字面值用 2026-11-02、2026-10-26 兩批（各 2 份）寫死。
 - [ ] T005 [US1] [FR-001, FR-003, FR-011, FR-013] `pages/shared/app.js`：新增 `reportBatches`、`renderReportStream`、`setStream`；`init` 在交通頁把報告清單
       畫進熱點那一條（預設最新一批、批次導覽），`loadWeek` 不再呼叫 `renderHotTopics`；報告清單載入失敗時熱點那一條顯示
-      contracts/traffic-streams-ui.md 的失敗字樣，文章那一條照常。新程式碼以 `C.contentType === 'traffic'` 與元素是否存在把關（FFXIV 不受影響）。
+      contracts/traffic-streams-ui.md 的失敗字樣，新文章那一條照常。新程式碼以 `C.contentType === 'traffic'` 與元素是否存在把關（FFXIV 不受影響）。
 - [ ] T006 [US1] [FR-001, FR-002, FR-014] `pages/traffic/index.html`、`pages/shared/shared.css`：照 T001 簽核的畫面改結構——頁首加齒輪鈕的位置、
       頁首下方兩個切換鈕、`#stream-reports`（批次導覽＋報告列表）與 `#stream-articles`（搜尋、週次導覽、標籤列、統計、文章列表）；
       窄螢幕只顯示 `.active` 那一條，`@media (min-width: <T001 定的斷點>)` 兩條並排、各自捲動、切換鈕隱藏。`pages/ffxiv/index.html` 不改。
@@ -83,6 +85,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [ ] T009 [US1] [FR-009, SC-004] 驗證型（要 Luke 同意才寫 prod）：照 quickstart §3，在 scratch 寫一支載入本機設定的唯讀腳本，印出目標 host 與
       `hot_topic_reports` 裡 `topic_label = '酒駕-integration-test'` 的列（id、`week_start_date`、`created_at`、`source_article_links` 項數）與總列數；
       Luke 同意後刪除那一列，讀回同條件 0 列、總數少 1。指令與輸出摘要寫進 `specs/017-hot-topic-report-page/evaluation.md`（新檔）。
+      刪除不影響選題：新意檢查只讀最近 8 週的報告（`src/storage.py:408` 的 `get_recent_hot_topic_reports(max_age_weeks=8)`），2025-01-06 不在範圍內；
+      另一個讀這張表的是量測腳本 `scripts/measure_relevance.py`（2026-11-03 查）。
 
 **Checkpoint**: 兩條流成立、文章列沒有 ★；測試殘留已刪。
 
@@ -98,7 +102,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       `countNewSince(items, sinceIso)` 只算 `created_at` 嚴格晚於基準的（等於不算、壞日期不算）；`weeksToScan(weeks, sinceIso, 8)` 回
       `{ weekIds, capped }`——週次是基準換成**台灣時間**的 ISO 週（`src/pipeline/traffic.py` 的 `_current_week_id` 用台灣時間切週）起到最新、
       最多 8 週，基準早於第 8 週時 `capped: true`（用 2026-11-02 00:30 +08:00 這種跨週邊界的基準寫一條，UTC 會落在前一週）；
-      `newArticleCount(weeks, sinceIso)` 用 stub fetch 逐週逐頁（每頁 100，`article_count` 超過 100 的要抓第二頁）數出篇數，任何一個請求失敗回 `null`；
+      `newArticleCount(weeks, sinceIso)` 用 stub fetch 逐週逐頁（每頁 100，`article_count` 超過 100 的要抓第二頁）數出篇數，收起的來源
+      （`isSourceHidden`）不算，任何一個請求失敗回 `null`；
       `badgeText(23, false)` 是 `23`、`badgeText(23, true)` 是 `23+`、`badgeText(0, …)` 是空字串；第一次打開（`traffic_seen_*` 都沒有）時兩條的
       `traffic_seen_*` 都被寫成現在、不顯示 badge；有基準時，被顯示的那一條的 `traffic_seen_*` 改成這次打開的時間，另一條不動；窄螢幕切走之後
       那一條的 badge 清掉。localStorage 的鍵名照 contracts/local-state.md 寫死。
@@ -121,10 +126,11 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       `pref` 是 `default` 或沒有、`last` 有值 → `last`；都沒有 → `reports`），`traffic_stream_pref` 存了不認得的值時當成 `default`；
       `reportShareUrl(report, base)` 的字面值是 `<base>?batch=2026-11-02#report-<slugify(topic_label)>`；`parseReportLink(search, hash, batches)`
       對兩份同名「道安政策 · 彙整」（2026-11-02、2026-10-26）各自解析回自己那一份，批次或 slug 對不到回 `null`，舊格式
-      `?week=2026-W45#topic-…` 回 `null`；齒輪面板選了「新文章」之後 `traffic_stream_pref` 是 `articles`；窄螢幕切換時 `traffic_stream_last` 跟著改。
+      `?week=2026-W45#topic-…` 回 `null`；齒輪面板選了「新文章」之後 `traffic_stream_pref` 是 `articles`；窄螢幕上 `traffic_stream_last` 在打開時的落地
+      （包括由固定設定決定的那次）與每次切換都寫成目前那一條。
 - [ ] T013 [US3] [FR-005, FR-006, FR-007, FR-015] `pages/shared/app.js`（`landingStream`、`reportShareUrl`、`parseReportLink`、齒輪面板、`init` 的落地
       與捲到 `#report-<slug>`；報告卡片的 LINE 分享改用新連結；`scrollToHashTopic` 與 `#topic-` 的處理拿掉）、`pages/traffic/index.html`（齒輪面板）、
-      `pages/shared/shared.css`（齒輪面板的樣式，照 T001 簽核）。舊格式的 `week` 參數照現在選文章那一條的週次。
+      `pages/shared/shared.css`（齒輪面板的樣式，照 T001 簽核）。舊格式的 `week` 參數照現在選新文章那一條的週次。
 
 **Checkpoint**: 五個落地情境與新分享連結都成立。
 
@@ -159,7 +165,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
       `Backlog:` 行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出、不手寫。
 - [ ] T020 [SC-001, SC-002, SC-003, SC-005, SC-006] 驗證型（merge 之後）：`deploy-pages-traffic.yml` 部署完，照 quickstart §4 在 prod 跑 SC-001、
-      SC-002、SC-003 的五個情境、SC-006，並用簽核時的寬度與主題截 prod 頁面與 T001 的截圖並排比對（SC-005）；結果留言在 PR 上，回填 T017 的待填欄。
+      SC-002（badge 與資料庫唯讀查詢的列數比，不與 Worker API 比）、SC-003 的五個情境、SC-006，並用簽核時的寬度與主題截 prod 頁面與 T001 的截圖並排比對（SC-005）；結果留言在 PR 上，回填 T017 的待填欄。
 
 ---
 
@@ -195,8 +201,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 ### Unit 2: 兩條流的骨架
 
 - Tasks: T003, T004, T005, T006
-- Outcome: 交通頁是兩條各自有導覽的流：熱點依產生批次（預設最新一批、卡片寫產生日期），新文章照現在的週次；窄螢幕一次一條可切換、
-  寬螢幕並排；文章那一條沒有報告；FFXIV 頁不受影響。
+- Outcome: 交通頁是兩條各自有導覽的流：熱點依週報批次（預設最新一批、卡片寫所屬週報），新文章照現在的週次；窄螢幕一次一條可切換、
+  寬螢幕並排；新文章那一條沒有報告；FFXIV 頁不受影響。
 - Prerequisites: Unit 1 的簽核（版面與斷點）。
 - Verification: `npm test`（T004 在 T005 之前紅、之後綠；既有測試在 T003 之後仍綠）；版面另由 T020 對簽核截圖比對。
 - Review: `tests/js/harness.mjs`、`tests/js/traffic-streams.test.mjs`（US1 那幾條）、`pages/shared/app.js`（`reportBatches`、`renderReportStream`、

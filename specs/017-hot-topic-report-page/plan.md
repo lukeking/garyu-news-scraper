@@ -52,6 +52,7 @@ specs/017-hot-topic-report-page/
 ├── research.md          # Phase 0：R1～R11
 ├── data-model.md        # Phase 1：讀進來的欄位、前端推導與存的狀態
 ├── quickstart.md        # Phase 1：測試、簽核畫面、刪除測試殘留、驗收
+├── evaluation.md        # T009、T016 的指令與結果（實作時新增）
 ├── contracts/
 │   ├── traffic-streams-ui.md   # 兩條流、badge、齒輪、網址的行為
 │   └── local-state.md          # localStorage 的鍵與值
