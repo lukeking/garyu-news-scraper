@@ -35,9 +35,11 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | 等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
+| `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261102-akc` | `Google News 報導者交通` 每天收集到的文章在關鍵字過濾全部被擋：10-20～11-01 的 daily 寫入都是 0 | 下次動這個來源的設定（prod `SOURCES_TRAFFIC_YML` 與鏡像），或檢討交通來源清單時 `pre-edit: {"paths":["config/sources_traffic.example.yml"]}` | 查出過濾全擋的原因（query `交通 site:twreporter.org` 撈到的是什麼、擋在哪一條），決定改 query、停用，或寫明保留的理由 |
 | `GNS-20261031-s3h` | 週報熱點分析發布前沒有審核者：觀點有盲點或偏頗、措辭不精確造成歧義 | 已提出：Luke 2026-10-31；卡在實例：Luke 給 2–3 個（哪份報告、哪一句、錯在哪）當審稿標準的錨點，再選做法（見本節）。或下次動 `src/analyzer.py` 的 `analyze_hot_topic`／`analyze_category_digest` prompt 時 `pre-edit: {"paths":["src/analyzer.py"]}` | 有一份用實例錨定的審稿標準；週報在讀者看到之前經過審核（做法由 Luke 裁示），連兩週的審核紀錄查得到；或寫明不做的理由 |
-| `GNS-20261031-005` | 交通頁的週報熱點掛在產生那週，內容卻是上一週的 buffer，跟同頁下方的文章差一週 | 已提出：Luke 2026-10-31；下一步選修法（改標籤／只改呈現／只補標示，見本節）。或下次動 `pages/shared/app.js` 的熱點區塊、`scripts/traffic_weekly_analysis.py` 的 `_week_start_date` 時 `pre-edit: {"paths":["pages/shared/app.js","scripts/traffic_weekly_analysis.py"]}` | 同一個週次頁面上，熱點報告的來源與下方文章屬於同一段收集期間，或頁面寫明報告涵蓋的日期區間；已分享出去的 `?week=…#topic-…` 連結仍指到原本那份報告；或寫明不改的理由 |
+| `GNS-20261031-005` | 交通頁的週報熱點掛在產生那週，內容卻是上一週的 buffer，跟同頁下方的文章差一週 | spec 017 進行中（`specs/017-hot-topic-report-page/`）：報告與新文章拆成兩條流；016「只補標示」2026-11-03 放棄（PR `#197` 已關）。或下次動 `pages/shared/app.js` 的熱點區塊、`scripts/traffic_weekly_analysis.py` 的 `_week_start_date` 時 `pre-edit: {"paths":["pages/shared/app.js","scripts/traffic_weekly_analysis.py"]}` | 熱點報告與新文章是兩條各自有導覽的流，不再共用同一個週次（spec 017 的 SC-001）；舊的 `?week=…#topic-…` 連結打得開、不報錯（不必對到原本那份報告）；或寫明不改的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | 每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 `pre-edit: {"paths":["scripts/auto_kb.py"]}` | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261021-5yg` | 研究 Gemini API 官方的 Batch API，評估本專案哪些呼叫端改用它有好處 | 下一輪模型評比（`GNS-20261019-1vk`）開跑之前；或 `gemini-3.8-flash` 的優惠價 2026-12-31 結束之前；或下次動 `src/analyzer.py` 的 `_call_gemini` 時 | 本節寫進逐字核對過的事實（折扣、完成時限與過期、`gemini-3.8-flash` 與 `gemini-embedding-2` 支不支援、配額是否與一般呼叫分開、與優惠價疊不疊加；各附出處與查證日期），以及本節呼叫端表每一列的判定（採用／不採用、理由、估算每月省多少）；有採用的就開 spec，全部不採用就寫明理由並設重開條件 |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
@@ -787,13 +789,20 @@ buffer 來的，但下方的 daily buffer 卻都是這週的。」
 ★（`hot_topic_analyzed`）W43 有 32 篇、W44 有 2 篇。`/api/weeks/<week>` 每週最多回 100 篇（W43 有 149、W44 有 124），所以是下限。
 重跑：抓 `/api/hot-topics` 與 `/api/weeks/2026-W43?content_type=traffic`，比對 `source_article_links[].link` 與文章的 `link`。
 
-**修法候選**（未裁示）：
+**修法候選**（裁示見下方 11-02、11-03）：
 
 - 改標籤：`week_start_date` 改成涵蓋的那週。代價：最新那週整週沒有報告（預設畫面就是最新週）；既有列要搬；已分享的
   `?week=…#topic-…` 連結會指錯；novelty gate 的 `exclude_week` 與週驗收 routine 都讀這個欄位。
 - 只改呈現：資料不動，前端把報告放到它來源所在的那週，或把熱點區塊從週次導覽拆出來、標出涵蓋區間。
 - 只補標示：卡片寫出涵蓋的日期區間。不修錯位，只防誤讀。
 - 三者共同的前提：一份報告的來源可能橫跨數週（buffer 留 8 週），「報告屬於哪一週」沒有唯一答案。
+
+**11-02 裁示**：選「只補標示」，開 spec 016（PR `#197`）。
+
+**11-03 裁示**：Luke 看過 016 的簽核畫面後放棄 016（PR `#197` 已關，量測留在分支 `016-hot-topic-source-range`）——「不是卡片能解決的，
+問題出在不同時間帶的區塊出現在同一個頁面裡」。改開 spec 017：報告與新文章拆成兩條流（手機一次一條、可切換，桌機夠寬就左右分割），
+各自標出「有新的」，打開時記得上次（第一次進熱點，齒輪設定可固定）；文章列拿掉 ★；舊分享連結只要不壞、落在預設的那一條。
+可安裝的 PWA 與推播另開 `GNS-20261103-n9n`、`GNS-20261103-4j4`。
 
 ## GNS-20261031-s3h 週報熱點分析發布前沒有審核者
 
