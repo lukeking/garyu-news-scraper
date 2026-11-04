@@ -163,6 +163,10 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ## Phase 7: 真實資料上的驗收與 closeout
 
+- [ ] T023 驗證型（main 派審、記錄）：Unit 2～6 都 `[X]` 之後、T016 之前，照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md`
+      派一個 `spec-reviewer`（bare `GUB-025` 的第一個實際用例，Luke 2026-11-04 放行），逐條檢查 017 的 FR／SC 有沒有咬得到的測試、
+      改動的直接呼叫端有沒有被測到；main 抽驗它的結果，矩陣與 GAP 清單留言在 PR `#198`；GAP 怎麼處理（補測試、記成接受、或照 spec-kit
+      `converge` 寫回 tasks.md）由 Luke 裁示，要補的另開 task。
 - [ ] T016 [SC-003, SC-004] 驗證型：T009 刪除之後、merge 之前，本機用本分支的 `app.js` 對 prod 公開 API 渲染（`__API_BASE__` 指 prod，只讀）：
       熱點那一條瀏覽得到的報告數是 55、沒有 `酒駕-integration-test`；55 份報告各自的 `reportShareUrl` 打開後都落在熱點、那一批、那張卡片（55／55，
       含同名報告）；用 FFXIV 的設定打開 FFXIV 頁畫面照舊。數字寫進 `specs/017-hot-topic-report-page/evaluation.md`。
@@ -170,7 +174,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       填 merge 前已有的結果（T002、T009、T016、各 unit 的測試），上線後才有的（T020）標成待填。
 - [ ] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節）；
       重新讀 `GNS-20261103-n9n` 的觸發點（「spec 017 上線之後」）確認仍成立；讀 diff。
-- [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-20261101-9qe`
+- [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
+      （017 當首例，Luke 2026-11-04 放行，結果在 T023 的 PR 留言）；`GNS-20261021-5yg` 在本 PR 排進佇列（`Backlog-reviewed`）；bare `GUB-20261101-9qe`
       不併入（garyu 不在範圍、副本已由 `#196` 刪除）；bare `GUB-20261024-rcf` 的樣本資料（017：Unchecked 3 條、step 2a 停 0 次、T001 對兩條假設的
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
       `Backlog:` 行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出、不手寫。
@@ -187,7 +192,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - **US1（T004～T009）**：T004 → T005 → T006；T007 → T008（跟 T005 同檔，依序改）；T009 隨時可做（只要 Luke 同意），但要在 T016 之前。
 - **US2（T021、T022、T010、T011）**、**US3（T012、T013）** 依賴 US1 的切換鈕與兩個 stream 區塊；T022 改的 `loadWeek` 在 T005 之後；**US4（T014、T015）** 依賴 US1 的報告卡片。
   四個 story 的實作都改 `pages/shared/app.js`，依序做。
-- **Phase 7**：T016 在 T009 與 US1～US4 之後；T017～T019 在 T016 之後；T020 在 merge 之後。
+- **Phase 7**：T023 在 Unit 2～6 都 `[X]` 之後、T016 之前；T016 在 T009 與 US1～US4 之後；T017～T019 在 T016 之後；T020 在 merge 之後。
 
 ### Parallel Opportunities
 
@@ -265,7 +270,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ### Unit 7: 真實資料上的驗收 (verification-only)
 
-- Tasks: T009, T016, T020
+- Tasks: T009, T023, T016, T020
 - Outcome: 測試殘留已從 prod 刪除並讀回；本分支的前端在 prod 資料上 SC-003（55／55）、SC-004 成立；merge 後 prod 頁面通過 SC-001、SC-002、
   SC-003、SC-006，畫面與簽核一致（SC-005）。
 - Prerequisites: T009 要 Luke 同意；T016 在 Unit 2～6 審過之後；T020 在 merge 與部署之後。
