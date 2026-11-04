@@ -197,7 +197,10 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [ ] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
       （2026-11-04 併入，SC-007；先確認它的完成標準都達成，並重推導以它為 blocker 的下游列）；
       重新讀 `GNS-20261103-n9n` 的觸發點（「spec 017 上線之後」）確認仍成立；讀 diff。
-- [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
+- [ ] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
+      `/api/hot-topics`），改成真實的讀者或直接刪掉；只改註解、對執行期零影響。動手前跑 BACKLOG pre-edit 檢查；`tests/unit/test_comment_budget.py`
+      的 `LEGACY` 若列了這個檔，行數變了要一起改。Luke 2026-11-04 裁示 017 順手改。
+- [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組，除了 T028 那句註解（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
       （017 當首例，Luke 2026-11-04 放行，結果在 T023 的 PR 留言）；`GNS-006` 併入（Unit 9）與第一次 CI 的實際耗時；`GNS-20261021-5yg` 在本 PR 排進佇列（`Backlog-reviewed`）；bare `GUB-20261101-9qe`
       不併入（garyu 不在範圍、副本已由 `#196` 刪除）；bare `GUB-20261024-rcf` 的樣本資料（017：Unchecked 3 條、step 2a 停 0 次、T001 對兩條假設的
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
@@ -317,12 +320,12 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ### Unit 8: closeout 紀錄
 
-- Tasks: T017, T018, T019
+- Tasks: T017, T018, T019, T028
 - Outcome: spec 有達成階數；BACKLOG 移出 005、下游列的觸發點仍成立；PR 內文有不動 pipeline 的說明、9qe／rcf 的處置與 rcf 樣本資料、rhd 的延後、
   `pr-line` 產生的 `Backlog:` 行。
 - Prerequisites: Unit 7 的 T009、T016 已有數字。
 - Verification: `backlog.py remove` 的輸出與 diff；`backlog_trailers.py pr-line` 與 PR 的 `Backlog:` 行相同。
-- Review: `specs/017-hot-topic-report-page/spec.md`（達成階數）、`specs/BACKLOG.md`、PR 內文。
+- Review: `specs/017-hot-topic-report-page/spec.md`（達成階數）、`specs/BACKLOG.md`、PR 內文、`src/publisher.py`（T028 的註解）。
 - Merge or split: 都是同一個 closeout 的紀錄，彼此對得上才算完成。
 - Unchecked assumptions: none。
 
