@@ -103,12 +103,12 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Independent Test**: 用預先寫好的「上次看過」打開，badge 數字與 stub 資料一致；切走之後清掉。
 
-- [-] T021 [P] [US2] [FR-016] `tests/js/traffic-streams.test.mjs`：stub 的某週 `article_count` 是 135 時，`loadWeek` 抓 `offset=0` 與 `offset=100` 兩頁
+- [X] T021 [P] [US2] [FR-016] `tests/js/traffic-streams.test.mjs`：stub 的某週 `article_count` 是 135 時，`loadWeek` 抓 `offset=0` 與 `offset=100` 兩頁
       （兩次都帶同樣的 `content_type` 與篩選參數），畫出 135 篇的列、統計是 135（扣掉收起的來源）；`article_count` 是 81 時只打一個請求；
       第二頁失敗時顯示現在的「載入失敗」，不畫出只有半週的列表。
-- [-] T022 [US2] [FR-016] `pages/shared/app.js` 的 `loadWeek`：先抓第一頁，`article_count` 超過 100 就並行補抓其餘頁再合併畫出（research R12）。
+- [X] T022 [US2] [FR-016] `pages/shared/app.js` 的 `loadWeek`：先抓第一頁，`article_count` 超過 100 就並行補抓其餘頁再合併畫出（research R12）。
       在 T005 之後（同一個函式）。
-- [-] T010 [P] [US2] [FR-004, SC-002] `tests/js/traffic-streams.test.mjs`：
+- [X] T010 [P] [US2] [FR-004, SC-002] `tests/js/traffic-streams.test.mjs`：
       `countNewSince(items, sinceIso)` 只算 `created_at` 嚴格晚於基準的（等於不算、壞日期不算）；`weeksToScan(weeks, sinceIso, 8)` 回
       `{ weekIds, capped }`——週次是基準換成**台灣時間**的 ISO 週（`src/pipeline/traffic.py` 的 `_current_week_id` 用台灣時間切週）起到最新、
       最多 8 週，基準早於第 8 週時 `capped: true`（用 2026-11-02 00:30 +08:00 這種跨週邊界的基準寫一條，UTC 會落在前一週）；
@@ -117,7 +117,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       `badgeText(23, false)` 是 `23`、`badgeText(23, true)` 是 `23+`、`badgeText(0, …)` 是空字串；第一次打開（`traffic_seen_*` 都沒有）時兩條的
       `traffic_seen_*` 都被寫成現在、不顯示 badge；有基準時，被顯示的那一條的 `traffic_seen_*` 改成這次打開的時間，另一條不動；窄螢幕切走之後
       那一條的 badge 清掉。localStorage 的鍵名照 contracts/local-state.md 寫死。
-- [-] T011 [US2] [FR-004] `pages/shared/app.js`（`countNewSince`、`weeksToScan`、`newArticleCount`、`badgeText`、讀寫 `traffic_seen_*`）與
+- [X] T011 [US2] [FR-004] `pages/shared/app.js`（`countNewSince`、`weeksToScan`、`newArticleCount`、`badgeText`、讀寫 `traffic_seen_*`）與
       `pages/shared/shared.css`（badge 的樣式，照 T001 簽核）：主畫面畫完之後並行計數、不擋第一眼；8 週的上限寫成呼叫處旁邊的常數（憲章原則 IV）；
       計數失敗不顯示篇數。
 
