@@ -56,7 +56,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ## Phase 2: Foundational
 
-- [ ] T003 `tests/js/harness.mjs`：`loadApp(config, opts)` 多三個選項，預設值讓既有測試不變——`html`（載入時的 body，預設現在的空 body）、
+- [-] T003 `tests/js/harness.mjs`：`loadApp(config, opts)` 多三個選項，預設值讓既有測試不變——`html`（載入時的 body，預設現在的空 body）、
       `storage`（寫進 jsdom `localStorage` 的初值物件）、`fetch`（替換 `window.fetch` 的 stub，預設照舊 reject）；`exports`（這個測試檔要的
       函式名，預設照現在的 `EXPORTED`；要的名字不存在時照舊 throw）。另外 export `FFXIV_CONFIG`（與 `pages/ffxiv/index.html` 的 `SITE_CONFIG` 同形，
       只放被測函式會讀的欄位）。`npm test` 既有的測試全綠。
@@ -69,16 +69,16 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Independent Test**: 412 px 下切換兩條、各自的導覽只動自己；桌機寬度並排；新文章那一條任何週次都沒有報告與 ★。
 
-- [ ] T004 [P] [US1] [FR-001, FR-003, FR-011, FR-013] `tests/js/traffic-streams.test.mjs`（新檔）：
+- [-] T004 [P] [US1] [FR-001, FR-003, FR-011, FR-013] `tests/js/traffic-streams.test.mjs`（新檔）：
       `reportBatches(reports)` 依 `week_start_date` 分組、新的在前、標籤字面值是 `11-02 · 2 份`；`renderReportStream(batches, date)` 把那一批的每份報告
       畫進 `#stream-reports`，每張卡片的 meta 列有所屬週報的字樣（T001 簽核的字面值 `11-02 週報`，不可以是「產生」），切到另一批只換這一條；`setStream('articles')` 讓 `#stream-articles` 拿到 `active`、
       `#stream-reports` 沒有，切換鈕的 `aria-selected` 跟著換；`loadWeek` 之後 `#stream-articles` 裡沒有任何報告卡片；stub 讓 `/api/hot-topics`
       失敗時，熱點那一條出現 contracts/traffic-streams-ui.md 的失敗字樣、新文章那一條照常畫出；用 `FFXIV_CONFIG` 載入 `pages/ffxiv/index.html` 的 body，
       在 `exports` 加 `init`、以 stub fetch 呼叫 `init()` 並 `await` 它結束，不 throw、頁面上沒有切換鈕與齒輪。字面值用 2026-11-02、2026-10-26 兩批（各 2 份）寫死。
-- [ ] T005 [US1] [FR-001, FR-003, FR-011, FR-013] `pages/shared/app.js`：新增 `reportBatches`、`renderReportStream`、`setStream`；`init` 在交通頁把報告清單
+- [-] T005 [US1] [FR-001, FR-003, FR-011, FR-013] `pages/shared/app.js`：新增 `reportBatches`、`renderReportStream`、`setStream`；`init` 在交通頁把報告清單
       畫進熱點那一條（預設最新一批、批次導覽），`loadWeek` 不再呼叫 `renderHotTopics`；報告清單載入失敗時熱點那一條顯示
       contracts/traffic-streams-ui.md 的失敗字樣，新文章那一條照常。新程式碼以 `C.contentType === 'traffic'` 與元素是否存在把關（FFXIV 不受影響）。
-- [ ] T006 [US1] [FR-001, FR-002, FR-014] `pages/traffic/index.html`、`pages/shared/shared.css`：照 T001 簽核的畫面改結構——頁首加齒輪鈕的位置、
+- [-] T006 [US1] [FR-001, FR-002, FR-014] `pages/traffic/index.html`、`pages/shared/shared.css`：照 T001 簽核的畫面改結構——頁首加齒輪鈕的位置、
       頁首下方兩個切換鈕、`#stream-reports`（批次導覽＋報告列表）與 `#stream-articles`（搜尋、週次導覽、標籤列、統計、文章列表）；
       窄螢幕只顯示 `.active` 那一條，`@media (min-width: 1024px)`（T001 簽核）兩條並排、各自捲動、切換鈕隱藏；批次導覽一列、左右捲動、
       不折行（週次導覽照舊）；其餘視覺照 contracts/traffic-streams-ui.md 標「簽核」的各條。`pages/ffxiv/index.html` 不改。

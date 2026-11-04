@@ -11,7 +11,7 @@ let activeImp = localStorage.getItem('garyu_filter_importance') || 'all';
 let activeTag = '';
 let activeQuery = '';
 let searchTimer = null;
-let hotTopicsByWeek = {};
+let reportBatchList = [];
 
 const $ = id => document.getElementById(id);
 
@@ -141,16 +141,6 @@ function isoWeekId(dateStr) {
   return `${isoYear}-W${String(week).padStart(2, '0')}`;
 }
 
-function groupHotTopicsByWeek(reports) {
-  const map = {};
-  for (const r of reports) {
-    const wid = isoWeekId(r.week_start_date || '');
-    if (!wid) continue;
-    (map[wid] = map[wid] || []).push(r);
-  }
-  return map;
-}
-
 // 由 topic_label 產生 URL 安全的 slug，作為卡片 id 與 deep-link 錨點。
 function slugify(s) { return encodeURIComponent(String(s || '').trim().replace(/\s+/g, '-')); }
 
@@ -204,23 +194,55 @@ function renderReportBody(text) {
     </div>`).join('');
 }
 
-function renderHotTopics(reports) {
-  const container = $('hot-topics-list');
-  if (!container) return;
-  if (!reports || !reports.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">這一週尚無熱點話題</p>';
+// ── 熱點那一條（spec 017）：報告依所屬週報（week_start_date）分批，新的在前 ──
+function reportBatches(reports) {
+  const map = new Map();
+  for (const r of reports) {
+    const date = r.week_start_date;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    if (!map.has(date)) map.set(date, []);
+    map.get(date).push(r);
+  }
+  return [...map.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, list]) => ({ date, label: `${date.slice(5)} · ${list.length} 份`, reports: list }));
+}
+
+// date 對不到（或沒給）就畫最新一批。批次按鈕經 selectBatch 回到這裡，只換熱點那一條。
+function renderReportStream(batches, date) {
+  reportBatchList = batches;
+  const current = batches.find(b => b.date === date) || batches[0];
+  $('batch-nav').innerHTML = batches.map(b =>
+    `<button class="week-btn${b === current ? ' active' : ''}"
+      onclick="selectBatch('${b.date}')">${esc(b.label)}</button>`
+  ).join('');
+  $('report-list').innerHTML = current
+    ? current.reports.map(reportCard).join('')
+    : '<div class="empty"><h3>尚無熱點報告</h3></div>';
+}
+function selectBatch(date) { renderReportStream(reportBatchList, date); }
+
+async function loadReports() {
+  const res = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
+  const data = res && res.ok ? await res.json().catch(() => null) : null;
+  if (!data) {
+    $('report-list').innerHTML = '<div class="empty"><h3>熱點報告載入失敗，請稍後再試</h3></div>';
     return;
   }
-  container.innerHTML = reports.map(r => {
-    const slug = slugify(r.topic_label);
-    const wid = isoWeekId(r.week_start_date);
-    const pageUrl = location.origin + location.pathname + '?week=' + encodeURIComponent(wid) + '#topic-' + slug;
-    const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
-    return `
+  renderReportStream(reportBatches(data.reports || []));
+}
+
+function reportCard(r) {
+  const slug = slugify(r.topic_label);
+  const wid = isoWeekId(r.week_start_date);
+  const pageUrl = location.origin + location.pathname + '?week=' + encodeURIComponent(wid) + '#topic-' + slug;
+  const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
+  return `
 <div class="card ht-card" id="topic-${slug}" style="margin-bottom:1rem">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
+      <span class="ht-batch">${esc(r.week_start_date.slice(5))} 週報</span>
       <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
       ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享此深度分析至 LINE">LINE</a>` : ''}
     </div>
@@ -236,7 +258,14 @@ function renderHotTopics(reports) {
     <div class="ht-axes">${renderReportBody(r.report_text)}</div>
   </div>
 </div>`;
-  }).join('');
+}
+
+// 窄螢幕一次顯示一條（CSS 的 .stream.active）；寬螢幕兩條並排，切換鈕由 CSS 隱藏。
+function setStream(name) {
+  for (const s of ['reports', 'articles']) {
+    $('stream-' + s).classList.toggle('active', s === name);
+    $('tab-' + s).setAttribute('aria-selected', String(s === name));
+  }
 }
 
 // 深度分析 deep-link：若 URL 有 #topic-<slug> 則捲動定位；找不到則不動作、不報錯。
@@ -250,13 +279,7 @@ function scrollToHashTopic() {
 async function init() {
   syncThemeIcon();
 
-  if (C.contentType === 'traffic') {
-    const htRes = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
-    if (htRes && htRes.ok) {
-      const htData = await htRes.json();
-      hotTopicsByWeek = groupHotTopicsByWeek(htData.reports || []);
-    }
-  }
+  if (C.contentType === 'traffic' && $('stream-reports')) await loadReports();
 
   const res = await fetch(`${API_BASE}/weeks?content_type=${C.contentType}`).catch(() => null);
   if (!res || !res.ok) {
@@ -312,7 +335,6 @@ async function loadWeek(weekId) {
   $('site-subtitle').textContent = C.subtitle(weekId, data.article_count, syncLabel);
   renderWeekNav();
   renderAll();
-  if (C.contentType === 'traffic') renderHotTopics(hotTopicsByWeek[weekId] || []);
 }
 
 // ── Tag bar ───────────────────────────────────────────────────

@@ -43,7 +43,7 @@
 </style>
 <link rel="stylesheet" href="shared.css">
 </head>
-<body>
+<body class="streams-page">
 
 <header class="site-header">
   <div class="header-inner">
@@ -53,6 +53,7 @@
     </div>
     <div class="header-actions">
       <button id="theme-toggle" onclick="toggleTheme()" aria-label="切換主題">🌙</button>
+      <button id="stream-settings-btn" aria-label="設定">⚙️</button>
       <a class="rss-link" href="https://garyu-ffxiv-news.pages.dev">🎮 FFXIV 新聞</a>
       <a class="rss-link" href="https://garyu-news-scraper.lukeking0325.workers.dev/api/feed.xml?content_type=traffic">📡 RSS 訂閱</a>
     </div>
@@ -60,19 +61,31 @@
 </header>
 
 <main class="main">
-  <div class="search-wrap">
-    <input id="search-input" class="search-input" type="search" placeholder="搜尋新聞關鍵字或標籤…">
+  <div class="stream-switch" role="tablist">
+    <button id="tab-reports" class="stream-tab" role="tab" aria-selected="true" aria-controls="stream-reports"
+            onclick="setStream('reports')">🔥 熱點</button>
+    <button id="tab-articles" class="stream-tab" role="tab" aria-selected="false" aria-controls="stream-articles"
+            onclick="setStream('articles')">📰 新文章</button>
   </div>
 
-  <div class="week-nav" id="week-nav"></div>
+  <div class="streams">
+    <section id="stream-reports" class="stream active">
+      <div class="stream-head"><h2>🔥 熱點報告</h2></div>
+      <div class="week-nav" id="batch-nav"></div>
+      <div id="report-list"></div>
+    </section>
 
-  <section id="hot-topics" style="margin-bottom:1.5rem">
-    <h2 style="font-size:1.1rem;margin:0 0 0.75rem;color:var(--accent)">🔥 熱點話題</h2>
-    <div id="hot-topics-list"><p style="color:var(--text-muted);font-size:0.9rem">這一週尚無熱點話題</p></div>
-  </section>
-  <div class="tag-bar" id="tag-bar"></div>
-  <div class="stats" id="stats"></div>
-  <div id="article-list"></div>
+    <section id="stream-articles" class="stream">
+      <div class="stream-head"><h2>📰 新文章</h2></div>
+      <div class="search-wrap">
+        <input id="search-input" class="search-input" type="search" placeholder="搜尋新聞關鍵字或標籤…">
+      </div>
+      <div class="week-nav" id="week-nav"></div>
+      <div class="tag-bar" id="tag-bar"></div>
+      <div class="stats" id="stats"></div>
+      <div id="article-list"></div>
+    </section>
+  </div>
 </main>
 
 <footer class="site-footer">

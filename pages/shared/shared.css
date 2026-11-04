@@ -16,8 +16,8 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .header-actions { display: flex; gap: 8px; align-items: center; }
 .rss-link { color: #fff; font-size: 12px; opacity: 0.8; text-decoration: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
 .rss-link:hover { opacity: 1; }
-#theme-toggle { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
-#theme-toggle:hover { border-color: rgba(255,255,255,0.8); }
+#theme-toggle, #stream-settings-btn { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
+#theme-toggle:hover, #stream-settings-btn:hover { border-color: rgba(255,255,255,0.8); }
 
 /* ── Layout ── */
 .main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
@@ -63,6 +63,41 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .week-btn:hover { border-color: var(--accent2); color: var(--accent2); }
 .week-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── 兩條流（spec 017，交通頁）：窄螢幕一次一條、上方切換；1024 px 起並排（2026-11-04 簽核） ── */
+.stream-switch {
+  display: flex; margin: 0 0 20px; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; background: var(--card-bg);
+}
+.stream-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
+  background: none; border: none; color: var(--text-secondary);
+}
+.stream-tab + .stream-tab { border-left: 1px solid var(--border); }
+.stream-tab[aria-selected="true"] { background: var(--accent); color: #fff; }
+.stream { display: none; }
+.stream.active { display: block; }
+.stream-head { display: none; }
+/* 批次導覽排成一列、左右捲動：412 px 下折行會有 8 行，把第一張卡片推到畫面中段（簽核）。週次導覽照舊折行。 */
+#batch-nav { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+#batch-nav .week-btn { flex: none; white-space: nowrap; }
+@media (min-width: 1024px) {
+  /* 整頁不捲，兩條各自捲動；頁首與兩欄放寬到同一個最大寬度。只作用在有兩條流的頁面（body.streams-page）。 */
+  .streams-page { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  .streams-page .site-header { flex: none; padding: 18px 24px 14px; }
+  .streams-page .header-inner, .streams-page .main { max-width: 1500px; }
+  .streams-page .main { flex: 1; min-height: 0; width: 100%; padding: 16px 16px 0; }
+  .streams-page .site-footer { flex: none; padding: 6px 16px; font-size: 11px; margin-top: 0; }
+  .stream-switch { display: none; }
+  .streams { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; height: 100%; }
+  .stream { display: block; overflow-y: auto; min-height: 0; padding: 0 6px 24px 0; }
+  .stream-head {
+    display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 2;
+    background: var(--bg); padding: 4px 0 10px; margin-bottom: 6px; border-bottom: 2px solid var(--border);
+  }
+  .stream-head h2 { font-size: 1.05rem; margin: 0; color: var(--accent); }
+}
 
 /* ── Tag filters ── */
 .tag-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -153,6 +188,11 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* ── Hot topic analysis card ── */
 .ht-card { border-left: 4px solid var(--accent2); }
 .ht-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.4; margin-top: 2px; }
+/* 所屬週報「11-02 週報」（FR-011，簽核）：細框小標籤 */
+.ht-batch {
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px;
+}
 
 .ht-focus { margin: 0 0 4px; padding-left: 1.4em; }
 .ht-focus li { margin-bottom: 6px; }
