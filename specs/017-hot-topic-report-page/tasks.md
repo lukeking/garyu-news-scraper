@@ -161,6 +161,28 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ---
 
+## Phase 6b: 版面常數的真實 layout 測試（`GNS-006`，2026-11-04 併入）
+
+**Goal**: `560px`、`5em`、`1024px` 與批次導覽的折行規則都有在 Chromium 上跑、改錯就紅的測試，在 CI 的 `unit` job 跑（SC-007、research R13）；
+批次導覽改成只有窄螢幕一列、並排時折行（Luke 2026-11-04）。
+
+- [ ] T024 [SC-007] `package.json`（devDependency `playwright`、script `test:layout` ＝ `node --test 'tests/layout/**/*.test.mjs'`）、`package-lock.json`、
+      `tests/layout/harness.mjs`（啟 Chromium；`node:http` 送 `pages/traffic/`；`page.route` 把 Worker API 換成 `tests/layout/fixtures/` 的 JSON、
+      cdnjs 的 `modern-normalize` 2.0.0 換成 vendored 副本、其餘外部請求 abort）、`tests/layout/fixtures/`（文章與報告各一份最小資料；
+      另一份 24 批的報告給折行測試）；`.github/workflows/tests.yml` 的 `unit` job 在 `npm test` 之後加 `npx playwright install --with-deps chromium`
+      與 `npm run test:layout`。`npm test` 的 glob 不能撈到 `tests/layout/`。
+- [ ] T025 [P] [SC-007] `tests/layout/row-model.test.mjs`：視窗 591 與 592 px（文章列表 559／560 px）時 `.tr-slot` 一個顯示、一個藏起；
+      寬形裡時間是「10 分鐘前」的列 `.tr-time` 不溢出（測試名寫明「在 CI 的字型下」），時間不同的列寬幅條左緣 x 相同。
+      這兩個常數現在就是對的：咬合用改值證明（560→600、5em→3em 各讓對應的測試紅），寫進 executor 的回報。
+- [ ] T026 [P] [FR-002, SC-007] `tests/layout/streams.test.mjs`：1023 px 切換鈕顯示、只看得到目前那一條；1024 px 切換鈕隱藏、兩條左右並排
+      （同一個 top、熱點在左）；批次導覽在 412 px 所有按鈕同一個 `offsetTop` 且可橫捲，在 1280 px 至少兩個不同的 `offsetTop`。
+      最後這條在現在的 CSS 上是紅的（Unit 2 做成所有寬度一列）。
+- [ ] T027 [FR-002] `pages/shared/shared.css`：批次導覽的一列橫捲只在小於 1024 px 時生效，並排時照 `.week-nav` 折行。
+
+**Checkpoint**: `npm run test:layout` 綠、每條有改值咬合的紀錄；CI 的 `unit` job 跑到它。
+
+---
+
 ## Phase 7: 真實資料上的驗收與 closeout
 
 - [ ] T023 驗證型（main 派審、記錄）：Unit 2～6 都 `[X]` 之後、T016 之前，照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md`
@@ -172,10 +194,11 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       含同名報告）；用 FFXIV 的設定打開 FFXIV 頁畫面照舊。數字寫進 `specs/017-hot-topic-report-page/evaluation.md`。
 - [ ] T017 [SC-001, SC-002, SC-003, SC-004, SC-005, SC-006] `specs/017-hot-topic-report-page/spec.md`：加「達成階數」小節（同 015 的形狀），
       填 merge 前已有的結果（T002、T009、T016、各 unit 的測試），上線後才有的（T020）標成待填。
-- [ ] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節）；
+- [ ] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
+      （2026-11-04 併入，SC-007；先確認它的完成標準都達成，並重推導以它為 blocker 的下游列）；
       重新讀 `GNS-20261103-n9n` 的觸發點（「spec 017 上線之後」）確認仍成立；讀 diff。
 - [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
-      （017 當首例，Luke 2026-11-04 放行，結果在 T023 的 PR 留言）；`GNS-20261021-5yg` 在本 PR 排進佇列（`Backlog-reviewed`）；bare `GUB-20261101-9qe`
+      （017 當首例，Luke 2026-11-04 放行，結果在 T023 的 PR 留言）；`GNS-006` 併入（Unit 9）與第一次 CI 的實際耗時；`GNS-20261021-5yg` 在本 PR 排進佇列（`Backlog-reviewed`）；bare `GUB-20261101-9qe`
       不併入（garyu 不在範圍、副本已由 `#196` 刪除）；bare `GUB-20261024-rcf` 的樣本資料（017：Unchecked 3 條、step 2a 停 0 次、T001 對兩條假設的
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
       `Backlog:` 行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出、不手寫。
@@ -192,7 +215,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - **US1（T004～T009）**：T004 → T005 → T006；T007 → T008（跟 T005 同檔，依序改）；T009 隨時可做（只要 Luke 同意），但要在 T016 之前。
 - **US2（T021、T022、T010、T011）**、**US3（T012、T013）** 依賴 US1 的切換鈕與兩個 stream 區塊；T022 改的 `loadWeek` 在 T005 之後；**US4（T014、T015）** 依賴 US1 的報告卡片。
   四個 story 的實作都改 `pages/shared/app.js`，依序做。
-- **Phase 7**：T023 在 Unit 2～6 都 `[X]` 之後、T016 之前；T016 在 T009 與 US1～US4 之後；T017～T019 在 T016 之後；T020 在 merge 之後。
+- **Phase 6b（T024～T027）**：T024 → T025、T026（[P]）→ T027；改 `shared.css`，排在 Unit 2 之後，與其他 unit 依序。
+- **Phase 7**：T023 在 Unit 2～6、Unit 9 都 `[X]` 之後、T016 之前；T016 在 T009 與 US1～US4 之後；T017～T019 在 T016 之後；T020 在 merge 之後。
 
 ### Parallel Opportunities
 
@@ -267,6 +291,18 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - Review: `pages/shared/app.js`（焦點事件的渲染與切換）、`pages/shared/shared.css`、`tests/js/traffic-streams.test.mjs`（US4 那幾條）。
 - Merge or split: 一個產出；跟報告卡片的其他部分（Unit 2、Unit 5）各有驗收。
 - Unchecked assumptions: none。
+
+### Unit 9: 版面常數的真實 layout 測試（`GNS-006`）
+
+- Tasks: T024, T025, T026, T027
+- Outcome: `npm run test:layout` 在 Chromium 上量 `560px`、`5em`、`1024px` 與批次導覽的折行，改錯任一個值就紅，並在 CI 的 `unit` job 跑；
+  批次導覽只有窄螢幕一列。
+- Prerequisites: Unit 2 的頁面結構（`#stream-reports`、`#batch-nav`、`.stream-switch`）。
+- Verification: `npm run test:layout`（T026 的折行那條在 T027 之前紅）；每個常數的改值咬合；PR 的 `unit` check 有跑到 `test:layout`。
+- Review: `package.json`、`package-lock.json`、`tests/layout/`、`.github/workflows/tests.yml`、`pages/shared/shared.css`（批次導覽）、research R13。
+- Merge or split: 測試基礎建設與它第一批要守的常數是同一個產出（沒有被守的常數，harness 證明不了什麼）；批次導覽的折行是
+  用同一個 harness 才測得到的那條規則，一起審。
+- Unchecked assumptions: none（字型的界線寫在 R13）。
 
 ### Unit 7: 真實資料上的驗收 (verification-only)
 

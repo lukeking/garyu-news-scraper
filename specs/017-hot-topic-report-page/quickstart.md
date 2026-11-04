@@ -6,6 +6,7 @@
 
 ```bash
 npm test                                   # app.js：landingStream、新內容計數、批次、分享連結、焦點事件展開、文章列沒有 ★（jsdom 跑出貨的 app.js）
+npm run test:layout                        # 版面常數 560px／5em／1024px 與批次導覽折行（Chromium 跑出貨的 index.html＋CSS，research R13）
 .venv/bin/python -m pytest tests/unit -q   # 不動 Python，跑一次確認沒被波及
 ```
 

@@ -15,7 +15,8 @@
 **Language/Version**: 前端是原生 JavaScript（瀏覽器全域腳本 `pages/shared/app.js`，沒有建置步驟）、HTML、CSS；Python 3 只用在刪除測試殘留的一次性指令
 **Primary Dependencies**: 無新增。測試沿用 `jsdom`（`package.json` 的 devDependency）與 Node 內建 `node --test`
 **Storage**: 讀者裝置的 `localStorage`（`contracts/local-state.md`）；Supabase 只做一次刪除，結構不改
-**Testing**: `npm test`（`tests/js/harness.mjs` 在 jsdom 裡跑出貨的 `app.js`）；版面與斷點沒有 runner，靠簽核截圖與上線後的 Playwright 截圖比對
+**Testing**: `npm test`（`tests/js/harness.mjs` 在 jsdom 裡跑出貨的 `app.js`）；版面常數與斷點由 `npm run test:layout`（Playwright＋Chromium，
+`tests/layout/`，2026-11-04 併入 `GNS-006`，research R13）在 CI 的 `unit` job 測；整體畫面靠簽核截圖與上線後的截圖比對
 **Target Platform**: Cloudflare Pages（交通站）；主要讀者用手機（Luke 11-03），桌機為輔
 **Project Type**: 靜態前端＋既有的 Worker API（不改）
 **Performance Goals**: 第一眼不因「數新文章」變慢——計數在主畫面畫完之後並行跑（research R4：每個週次請求 0.9～1.5 秒）
@@ -71,6 +72,9 @@ tests/js/harness.mjs              # EXPORTED 加上新的純函式；stub 的 co
 tests/js/traffic-streams.test.mjs # 新：落地規則、新內容計數、批次、分享連結、焦點事件
 tests/js/traffic-row.test.mjs     # 改：不論 hot_topic_analyzed 都沒有 ★／tr-strong
 tests/js/row-model-css.test.mjs   # 改：排序表拿掉 tr-badge
+tests/layout/                     # 新（GNS-006 併入）：harness.mjs、row-model.test.mjs、streams.test.mjs、fixtures/
+package.json、package-lock.json   # devDependency playwright、script test:layout
+.github/workflows/tests.yml       # unit job 加 playwright install 與 test:layout
 pages/ffxiv/index.html            # 不改（FR-013 的回歸對象）
 ```
 

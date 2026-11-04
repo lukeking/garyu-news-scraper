@@ -161,3 +161,29 @@ Worker 不改（它沒有測試 runner，`f71` 修的時候才補）。FFXIV 頁
 
 **Alternatives considered**: badge 只數每週前 100 篇——數字與頁面一致，但整週仍有文章看不到；另開 BACKLOG、017 不修——badge 會說比頁面多的篇數。
 Luke 2026-11-04 裁示併入 017。
+
+## R13 版面常數在真實 layout 引擎上測（`GNS-006` 併入，SC-007）
+
+**起因**：Unit 2 的 executor 改 `shared.css` 時觸發 `GNS-006` 的 pre-edit 提醒（觸發點「下次動 `pages/` 的版面常數時一併做」），
+1024 px 是新的版面常數；Luke 2026-11-04 裁示併入。jsdom 沒有 layout（`clientWidth`／`offsetTop` 都是 0），
+`tests/js/` 只能斷言 CSS 文字裡有那個字面值，證明不了顯示得對。
+
+**Decision**:
+
+- Runner：Playwright 函式庫（devDependency）配 Node 內建的 `node --test`，檔案在 `tests/layout/*.test.mjs`，`npm run test:layout`。
+  不用 Playwright 的 test runner、不用 Storybook：前端沒有建置步驟，部署是把 `pages/` 的檔案直接 cp（`GNS-006` 注意事項），
+  測試只能載入出貨的檔案本身。
+- 頁面：測試自己起一個 `node:http` 靜態伺服器送 `pages/traffic/`（`app.js`、`shared.css` 是指向 `pages/shared/` 的 symlink），
+  `page.route` 把 Worker API 換成 `tests/layout/fixtures/` 的 JSON、把 cdnjs 的 `modern-normalize` 換成 vendored 的同版副本
+  （它改 `box-sizing`，版面要跟 prod 一樣），其餘外部請求一律 abort——測試不打網路。
+- 斷言用量到的版面，不用 CSS 文字：
+  - `560px`：視窗寬 591 與 592 時文章列表正好是 559／560 px（`.main` 左右 padding 各 16），寬形才把 `.tr-slot` 藏起來。
+  - `5em`：寬形的列裡，時間是最寬的「10 分鐘前」時 `.tr-time` 不溢出；時間字串不同的幾列，寬幅條的左緣 x 相同。
+  - `1024px`：1023 時切換鈕顯示、只有目前那一條；1024 時切換鈕隱藏、兩條並排（左右、同一個 top）。
+  - 批次導覽：412 時所有按鈕同一個 `offsetTop` 且導覽可以橫捲；1280 並排時至少兩個不同的 `offsetTop`（折行）。
+- 咬合：每個測試都要用「把那個值改錯就紅」證明（560→600、5em→3em、1024→1100、拿掉窄螢幕的 `nowrap`）。
+- CI：放進必要檢查 `unit` job（`npx playwright install --with-deps chromium` 再 `npm run test:layout`）。理由同 `tests.yml` 開頭那段：
+  另開 job 會是一個「跑了但擋不住任何東西」的檢查。成本：repo 是 public，標準 runner 不計分鐘；每次 PR 多下載 Chromium 與跑測試，
+  第一次 CI 跑完記下實際多了幾秒（`timeout-minutes: 10` 夠不夠）。
+- 字型的界線：`5em` 夠不夠寬取決於字型的 advance width。CI 用的是 `--with-deps` 裝的字型，不是 Pixel 上的 Noto Sans CJK，
+  所以這條證明的是「在 CI 的字型下放得下」，不是每種字型；寫在測試名稱裡，不假裝更多。
