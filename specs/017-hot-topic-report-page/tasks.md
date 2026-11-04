@@ -82,10 +82,10 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       頁首下方兩個切換鈕、`#stream-reports`（批次導覽＋報告列表）與 `#stream-articles`（搜尋、週次導覽、標籤列、統計、文章列表）；
       窄螢幕只顯示 `.active` 那一條，`@media (min-width: 1024px)`（T001 簽核）兩條並排、各自捲動、切換鈕隱藏；批次導覽一列、左右捲動、
       不折行（週次導覽照舊）；其餘視覺照 contracts/traffic-streams-ui.md 標「簽核」的各條。`pages/ffxiv/index.html` 不改。
-- [ ] T007 [P] [US1] [FR-008] `tests/js/traffic-row.test.mjs`：把第 44～56 行「已分析的列要有 ★／`tr-strong`」改成「`hot_topic_analyzed` 是 true 或 false，
+- [-] T007 [P] [US1] [FR-008] `tests/js/traffic-row.test.mjs`：把第 44～56 行「已分析的列要有 ★／`tr-strong`」改成「`hot_topic_analyzed` 是 true 或 false，
       列裡都沒有 `tr-badge`、沒有 `tr-strong`」（含降級列）；`tests/js/row-model-css.test.mjs`：第 50 行的排序表拿掉 `tr-badge`，並斷言
       `shared.css` 裡已經沒有 `.tr-badge`、`.tr-strong` 規則。
-- [ ] T008 [US1] [FR-008] `pages/shared/app.js` 的 `trafficRow`：不再讀 `hot_topic_analyzed`，拿掉 ★ 與 `tr-strong`；`pages/shared/shared.css` 刪掉
+- [-] T008 [US1] [FR-008] `pages/shared/app.js` 的 `trafficRow`：不再讀 `hot_topic_analyzed`，拿掉 ★ 與 `tr-strong`；`pages/shared/shared.css` 刪掉
       `.tr-strong`、`.tr-strong .tr-title`、`.tr-badge` 的規則（含寬形斷點裡的 `order`）。
 - [ ] T009 [US1] [FR-009, SC-004] 驗證型（要 Luke 同意才寫 prod）：照 quickstart §3，在 scratch 寫一支載入本機設定的唯讀腳本，印出目標 host 與
       `hot_topic_reports` 裡 `topic_label = '酒駕-integration-test'` 的列（id、`week_start_date`、`created_at`、`source_article_links` 項數）與總列數；

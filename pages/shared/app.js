@@ -494,11 +494,7 @@ function trafficRow(a, idx, dimmed) {
   const isEcho = normS.length <= normT.length + 24 && (normT.includes(normS) || normS.includes(normT));
   const summary = isEcho ? '' : rawSummary;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
-  // 高信號標記（spec 011 / US3）。刻意不依賴圖片：早期週次圖片覆蓋率為 0%，
-  // 以圖為主的加強在那些週會完全失效（FR-017）。圖片只是額外加分。
-  const analyzed = a.hot_topic_analyzed === true;
   const hasImage = !!(a.image_url || '').trim();
-  const strong = !dimmed && analyzed;
   // 列模型 E：同一份 DOM 兩種形態，由 CSS 在斷點切換（BACKLOG #5，2026-09-05 選定）。
   // 刻意不用 matchMedia／innerWidth——形態切換是 CSS 的事，用 JS 判斷會多一份
   // 與 CSS 可能不同步的真相，且每次 resize 都要重繪。
@@ -513,14 +509,13 @@ function trafficRow(a, idx, dimmed) {
     ? `<img class="tr-strip" src="${esc(a.image_url)}" alt="" loading="lazy" onerror="this.remove()">`
     : '';
   return `
-<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}${strong ? ' tr-strong' : ''}" data-url="${a.link}">
+<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}" data-url="${a.link}">
   <div class="tr-main">
     ${slot}
     <span class="tr-body">
       <span class="tr-top">
         <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
                 onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
-        ${analyzed ? '<span class="tr-badge" title="已納入本週熱點報告">★</span>' : ''}
         <span class="tr-time">${when ? relativeTime(when) : ''}</span>
         <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
       </span>

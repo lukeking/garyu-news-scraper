@@ -257,10 +257,9 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .tr-main { align-items: center; gap: 8px; padding: 8px 6px; }
   .tr-slot { display: none; }
   /* display:contents 把兩層 wrapper 溶掉，讓元素直接成為 .tr-main 的 flex item，
-     再用 order 排成「來源 ★ 標題 寬幅條 時間 ×」。不需要第二份 DOM。 */
+     再用 order 排成「來源 標題 寬幅條 時間 ×」。不需要第二份 DOM。 */
   .tr-body, .tr-top { display: contents; }
   .tr-src { order: 1; }
-  .tr-badge { order: 2; }
   .tr-title { order: 3; flex: 1; min-width: 0;
               display: block; white-space: nowrap; text-overflow: ellipsis; }
   .tr-strip { order: 4; display: block; flex: 0 0 auto;
@@ -279,11 +278,6 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .tr-src:hover { outline: 2px solid var(--text-muted); outline-offset: 1px; }
 
-/* ── 高價值突顯（spec 011 / US3） ── */
-/* 加強靠邊框與標記，不靠圖片：舊週圖片覆蓋率 0%，靠圖的設計在那裡會全部失效。 */
-.tr-strong { border-left: 3px solid var(--accent2); }
-.tr-strong .tr-title { font-weight: 700; }
-.tr-badge { flex: 0 0 auto; font-size: 11px; color: var(--accent2); line-height: 1; }
 /* 縮圖只在展開後、且真的有摘要時出現；載入失敗會自我移除，不留破圖空位。 */
 .tr-thumb {
   display: block; max-width: 100%; width: 220px; height: auto;

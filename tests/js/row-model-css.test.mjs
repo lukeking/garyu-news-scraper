@@ -47,11 +47,16 @@ test('寬形：方格收起、寬幅條展開、標題改回單行——三件�
 test('寬形靠 display:contents ＋ order 排版，不靠第二份 DOM', () => {
   const block = containerBlock();
   assert.match(block, /\.tr-body,\s*\.tr-top\s*\{\s*display:\s*contents/);
-  for (const [sel, ord] of [['tr-src', 1], ['tr-badge', 2], ['tr-title', 3],
+  for (const [sel, ord] of [['tr-src', 1], ['tr-title', 3],
                             ['tr-strip', 4], ['tr-time', 5], ['tr-dismiss', 6]]) {
     assert.match(block, new RegExp(`\\.${sel}\\s*\\{[^}]*order:\\s*${ord}`),
       `${sel} 的 order 不對——順序錯了會讓寬幅條跑到時間後面`);
   }
+});
+
+test('文章列的 ★ 與加強樣式拿掉了：shared.css 不再有 .tr-badge、.tr-strong 規則（spec 017 FR-008）', () => {
+  assert.doesNotMatch(CSS, /\.tr-badge\b/, '.tr-badge 的規則（含寬形的 order）要一起刪掉');
+  assert.doesNotMatch(CSS, /\.tr-strong\b/, '.tr-strong 與 .tr-strong .tr-title 要一起刪掉');
 });
 
 test('容器本身有宣告 container-type，否則 @container 永遠不會生效', () => {
