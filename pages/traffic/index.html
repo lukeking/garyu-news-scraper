@@ -63,20 +63,20 @@
 <main class="main">
   <div class="stream-switch" role="tablist">
     <button id="tab-reports" class="stream-tab" role="tab" aria-selected="true" aria-controls="stream-reports"
-            onclick="setStream('reports')">🔥 熱點</button>
+            onclick="setStream('reports')">🔥 熱點<span class="stream-badge" data-badge="reports" hidden></span></button>
     <button id="tab-articles" class="stream-tab" role="tab" aria-selected="false" aria-controls="stream-articles"
-            onclick="setStream('articles')">📰 新文章</button>
+            onclick="setStream('articles')">📰 新文章<span class="stream-badge" data-badge="articles" hidden></span></button>
   </div>
 
   <div class="streams">
     <section id="stream-reports" class="stream active">
-      <div class="stream-head"><h2>🔥 熱點報告</h2></div>
+      <div class="stream-head"><h2>🔥 熱點報告</h2><span class="stream-badge" data-badge="reports" hidden></span></div>
       <div class="week-nav" id="batch-nav"></div>
       <div id="report-list"></div>
     </section>
 
     <section id="stream-articles" class="stream">
-      <div class="stream-head"><h2>📰 新文章</h2></div>
+      <div class="stream-head"><h2>📰 新文章</h2><span class="stream-badge" data-badge="articles" hidden></span></div>
       <div class="search-wrap">
         <input id="search-input" class="search-input" type="search" placeholder="搜尋新聞關鍵字或標籤…">
       </div>

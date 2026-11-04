@@ -12,8 +12,10 @@ let activeTag = '';
 let activeQuery = '';
 let searchTimer = null;
 let reportBatchList = [];
+let streamVisit = null;   // 交通頁這次打開的「有新的」狀態（beginVisit）
 
 const $ = id => document.getElementById(id);
+const STREAMS = ['reports', 'articles'];
 
 // HTML 跳脫：報告/摘要等欄位可能含原始 HTML（如 RSS 的 <a>），直接注入會破版。
 function esc(s) {
@@ -227,9 +229,11 @@ async function loadReports() {
   const data = res && res.ok ? await res.json().catch(() => null) : null;
   if (!data) {
     $('report-list').innerHTML = '<div class="empty"><h3>熱點報告載入失敗，請稍後再試</h3></div>';
-    return;
+    return null;
   }
-  renderReportStream(reportBatches(data.reports || []));
+  const batches = reportBatches(data.reports || []);
+  renderReportStream(batches);
+  return batches;
 }
 
 function reportCard(r) {
@@ -262,10 +266,96 @@ function reportCard(r) {
 
 // 窄螢幕一次顯示一條（CSS 的 .stream.active）；寬螢幕兩條並排，切換鈕由 CSS 隱藏。
 function setStream(name) {
-  for (const s of ['reports', 'articles']) {
+  const prev = document.querySelector('.stream.active');
+  for (const s of STREAMS) {
     $('stream-' + s).classList.toggle('active', s === name);
     $('tab-' + s).setAttribute('aria-selected', String(s === name));
   }
+  if (!streamVisit) return;
+  if (prev && prev.id !== 'stream-' + name && !bothStreamsShown()) leaveStream(prev.id.replace('stream-', ''));
+  markSeen(name);
+}
+
+// ── 「有新的」標記（spec 017 FR-004）：基準是這台裝置上次看過的時間（contracts/local-state.md） ──
+const SEEN_KEY = { reports: 'traffic_seen_reports', articles: 'traffic_seen_articles' };
+
+function readSeen(s) {
+  let v = null;
+  try { v = localStorage.getItem(SEEN_KEY[s]); } catch (e) {}
+  return /^\d{4}-\d{2}-\d{2}T/.test(v || '') && !isNaN(Date.parse(v)) ? v : null;
+}
+function writeSeen(s) {
+  try { localStorage.setItem(SEEN_KEY[s], streamVisit.openedAt); } catch (e) {}
+}
+// 寬螢幕兩條都在畫面上（1024 px 斷點在 CSS）；讀 CSS 算出來的 display，不在 JS 再寫一次斷點。
+function bothStreamsShown() {
+  const idle = document.querySelector('.stream:not(.active)');
+  return !!idle && getComputedStyle(idle).display !== 'none';
+}
+function beginVisit() {
+  const since = { reports: readSeen('reports'), articles: readSeen('articles') };
+  streamVisit = { openedAt: new Date().toISOString(), since, ready: new Set(), left: new Set() };
+  if (!since.reports && !since.articles) STREAMS.forEach(writeSeen);
+}
+// 清單載入成功才算看過：載入失敗時讀者沒看到內容，基準不往前推。
+function markSeen(s) {
+  if (streamVisit.ready.has(s) && (bothStreamsShown() || $('stream-' + s).classList.contains('active'))) writeSeen(s);
+}
+function streamReady(s) {
+  streamVisit.ready.add(s);
+  markSeen(s);
+}
+function showBadge(s, text) {
+  if (streamVisit.left.has(s)) return;
+  document.querySelectorAll(`.stream-badge[data-badge="${s}"]`).forEach(el => {
+    el.textContent = text;
+    el.hidden = !text;
+  });
+}
+// 窄螢幕從一條切走＝看過（FR-004）：badge 這次造訪不再出現，還沒數完的篇數也不補上。
+function leaveStream(s) {
+  showBadge(s, '');
+  streamVisit.left.add(s);
+}
+
+function countNewSince(items, sinceIso) {
+  const since = Date.parse(sinceIso);
+  return items.filter(x => Date.parse(x.created_at) > since).length;
+}
+// 文章的 week_id 照台灣時間切週（src/pipeline/traffic.py 的 _current_week_id），基準也換成台灣時間（UTC+8，無日光節約）的週。
+function weeksToScan(weeks, sinceIso, max) {
+  const t = Date.parse(sinceIso);
+  if (isNaN(t)) return { weekIds: [], capped: false };
+  const base = isoWeekId(new Date(t + 8 * 3600 * 1000).toISOString().slice(0, 10));
+  const ids = weeks.map(w => w.week_id);   // /api/weeks 新的在前
+  const later = ids.filter(id => id >= base);
+  return { weekIds: later.slice(0, max), capped: later.length > max || base < ids[ids.length - 1] };
+}
+// 不帶篩選：數整週裡基準之後收進來的，只扣讀者收起的來源（與頁面統計一致）。任何一個請求失敗回 null。
+async function newArticleCount(weekIds, sinceIso) {
+  const params = new URLSearchParams({ content_type: C.contentType });
+  const weeks = await Promise.all(weekIds.map(id => fetchWholeWeek(id, params)));
+  if (weeks.some(w => !w)) return null;
+  return countNewSince(weeks.flatMap(w => w.articles).filter(a => !isSourceHidden(a.source)), sinceIso);
+}
+function badgeText(n, capped) {
+  return n > 0 ? `${n}${capped ? '+' : ''}` : '';
+}
+
+function reportsReady(batches) {
+  streamReady('reports');
+  if (!streamVisit.since.reports) return;
+  const n = countNewSince(batches.flatMap(b => b.reports), streamVisit.since.reports);
+  showBadge('reports', n > 0 ? `新 ${n}` : '');
+}
+// 每次打開最多掃 8 週（憲章原則 IV：請求數要有寫明的上限）；基準更早時顯示「N+」。
+const NEW_ARTICLE_SCAN_WEEKS = 8;
+function articlesReady() {
+  streamReady('articles');
+  const since = streamVisit.since.articles;
+  if (!since) return;
+  const { weekIds, capped } = weeksToScan(allWeeks, since, NEW_ARTICLE_SCAN_WEEKS);
+  newArticleCount(weekIds, since).then(n => { if (n !== null) showBadge('articles', badgeText(n, capped)); });
 }
 
 // 深度分析 deep-link：若 URL 有 #topic-<slug> 則捲動定位；找不到則不動作、不報錯。
@@ -279,7 +369,12 @@ function scrollToHashTopic() {
 async function init() {
   syncThemeIcon();
 
-  if (C.contentType === 'traffic' && $('stream-reports')) await loadReports();
+  const hasStreams = C.contentType === 'traffic' && !!$('stream-reports');
+  if (hasStreams) {
+    beginVisit();
+    const batches = await loadReports();
+    if (batches) reportsReady(batches);
+  }
 
   const res = await fetch(`${API_BASE}/weeks?content_type=${C.contentType}`).catch(() => null);
   if (!res || !res.ok) {
@@ -294,6 +389,7 @@ async function init() {
     await loadWeek(target);
     scrollToHashTopic();
   }
+  if (hasStreams) articlesReady();   // 主畫面畫完之後才數，不等它
 
   const tRes = await fetch(`${API_BASE}/tags?content_type=${C.contentType}`).catch(() => null);
   if (tRes && tRes.ok) renderTagBar(await tRes.json());
@@ -315,6 +411,29 @@ function renderWeekNav() {
   ).join('');
 }
 
+const WEEK_PAGE = 100;   // Worker 每頁最多回 100 篇（workers/api 的 MAX_LIMIT）
+
+// 一週的全部文章（FR-016、research R12）：先抓第一頁拿 article_count，其餘頁並行補抓。任何一頁失敗回 null。
+async function fetchWholeWeek(weekId, params) {
+  const page = async offset => {
+    const q = new URLSearchParams(params);
+    q.set('limit', String(WEEK_PAGE));
+    q.set('offset', String(offset));
+    const res = await fetch(`${API_BASE}/weeks/${weekId}?${q.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  };
+  try {
+    const first = await page(0);
+    const rest = [];
+    for (let offset = WEEK_PAGE; offset < first.article_count; offset += WEEK_PAGE) rest.push(page(offset));
+    const pages = [first, ...await Promise.all(rest)];
+    return { article_count: first.article_count, articles: pages.flatMap(p => p.articles || []) };
+  } catch (e) {
+    return null;
+  }
+}
+
 async function loadWeek(weekId) {
   currentWeekId = weekId;
   const params = new URLSearchParams();
@@ -322,13 +441,12 @@ async function loadWeek(weekId) {
   if (activeImp !== 'all') params.set('importance', activeImp);
   if (activeTag) params.set('tag', activeTag);
   if (activeQuery) params.set('q', activeQuery);
-  const res = await fetch(`${API_BASE}/weeks/${weekId}?${params.toString()}`);
-  if (!res.ok) {
+  const data = await fetchWholeWeek(weekId, params);
+  if (!data) {
     $('article-list').innerHTML = '<div class="empty"><h3>載入失敗</h3><p>請稍後再試</p></div>';
     return;
   }
-  const data = await res.json();
-  currentArticles = data.articles || [];
+  currentArticles = data.articles;
   document.title = C.pageTitle(weekId);
   const latestAt = currentArticles.reduce((m, a) => a.created_at > m ? a.created_at : m, '');
   const syncLabel = latestAt ? ` · 最後更新 ${relativeTime(latestAt)}` : '';

@@ -76,6 +76,13 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .stream-tab + .stream-tab { border-left: 1px solid var(--border); }
 .stream-tab[aria-selected="true"] { background: var(--accent); color: #fff; }
+/* 「有新的」標記（FR-004，簽核）：紅色小圓角標，暗色主題深字（同 .imp-高） */
+.stream-badge {
+  font-size: 11px; font-weight: 800; line-height: 1; padding: 3px 7px; border-radius: 10px;
+  background: var(--high); color: #fff; white-space: nowrap;
+}
+[data-theme="dark"] .stream-badge { color: #1a1a2e; }
+.stream-badge[hidden] { display: none; }
 .stream { display: none; }
 .stream.active { display: block; }
 .stream-head { display: none; }
