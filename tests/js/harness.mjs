@@ -57,9 +57,9 @@ const EXPORTED = [
 
 const NO_NETWORK = () => Promise.reject(new Error('測試不該打網路'));
 
-/** opts：html＝載入時的 body、storage＝localStorage 初值、fetch＝替換的 stub、exports＝要取出的函式名。 */
+/** opts：html＝載入時的 body、storage＝localStorage 初值、fetch＝替換的 stub、exports＝要取出的函式名、url＝頁面網址。 */
 export function loadApp(config = TRAFFIC_CONFIG, opts = {}) {
-  const { html = '', storage = {}, fetch = NO_NETWORK, exports = EXPORTED } = opts;
+  const { html = '', storage = {}, fetch = NO_NETWORK, exports = EXPORTED, url = 'https://garyu.test/' } = opts;
   const raw = fs.readFileSync(APP_JS, 'utf8');
 
   // app.js 結尾會自己呼叫 init()，那會發網路請求。測試只要純函式，所以拿掉那一行。
@@ -71,7 +71,7 @@ export function loadApp(config = TRAFFIC_CONFIG, opts = {}) {
   }
 
   const dom = new JSDOM(`<!doctype html><html><body>${html}</body></html>`, {
-    url: 'https://garyu.test/',          // localStorage 需要 http(s) origin
+    url,                                 // localStorage 需要 http(s) origin
     runScripts: 'outside-only',
   });
   for (const [k, v] of Object.entries(storage)) dom.window.localStorage.setItem(k, v);

@@ -537,3 +537,235 @@ test('FFXIV：不讀寫 traffic_seen_*，每週只打一個請求（不到 100 �
   assert.equal(app.window.localStorage.getItem(SEEN_A), '2026-10-01T00:00:00.000Z');
   assert.deepEqual(offsets(calls, '2026-W45'), ['0']);
 });
+
+// ── US3：打開時落在哪一條、齒輪設定、報告分享連結（FR-005～FR-007、FR-015） ──────────────
+const LAND_EXPORTS = [...BADGE_EXPORTS, 'landingStream', 'reportShareUrl', 'parseReportLink'];
+const PREF = 'traffic_stream_pref';
+const LAST = 'traffic_stream_last';
+const POLICY = '道安政策 · 彙整';
+// slugify 的輸出寫成字面值：slugify 改了，分享連結就變了，這裡要跟著紅。
+const POLICY_SLUG = '%E9%81%93%E5%AE%89%E6%94%BF%E7%AD%96-%C2%B7-%E5%BD%99%E6%95%B4';
+const LIANHE_SLUG = '%E6%A9%9F%E8%BB%8A%E4%BA%8B%E6%95%85-%C2%B7-%E8%81%AF%E5%90%88';   // 機車事故 · 聯合，只在 10-26
+
+test('landingStream：報告連結 → 齒輪固定的那一條 → 上次那一條 → 熱點；不認得的設定當成預設', () => {
+  const { landingStream } = loadApp(TRAFFIC_CONFIG, { exports: LAND_EXPORTS });
+  const link = { batch: '2026-11-02', slug: POLICY_SLUG };
+  const cases = [
+    [{ link, pref: 'articles', last: 'articles' }, 'reports'],
+    [{ link: null, pref: 'reports', last: 'articles' }, 'reports'],
+    [{ link: null, pref: 'articles', last: 'reports' }, 'articles'],
+    [{ link: null, pref: 'default', last: 'articles' }, 'articles'],
+    [{ link: null, pref: null, last: 'articles' }, 'articles'],
+    [{ link: null, pref: 'default', last: 'reports' }, 'reports'],
+    [{ link: null, pref: 'default', last: null }, 'reports'],
+    [{ link: null, pref: null, last: null }, 'reports'],
+    [{ link: null, pref: 'garbage', last: 'articles' }, 'articles'],
+    [{ link: null, pref: 'garbage', last: 'garbage' }, 'reports'],
+  ];
+  for (const [input, expected] of cases) assert.equal(landingStream(input), expected, JSON.stringify(input));
+});
+
+test('reportShareUrl：<base>?batch=2026-11-02#report-<slugify(topic_label)>', () => {
+  const { reportShareUrl } = loadApp(TRAFFIC_CONFIG, { exports: LAND_EXPORTS });
+  assert.equal(reportShareUrl(report('2026-11-02', POLICY), 'https://garyu.test/traffic/'),
+    `https://garyu.test/traffic/?batch=2026-11-02#report-${POLICY_SLUG}`);
+  assert.equal(reportShareUrl(report('2026-10-26', '機車事故 · 聯合'), 'https://garyu.test/'),
+    `https://garyu.test/?batch=2026-10-26#report-${LIANHE_SLUG}`);
+});
+
+test('parseReportLink：兩份同名「道安政策 · 彙整」各自解析回自己那一批；hash 編碼或未編碼都認得', () => {
+  const app = loadApp(TRAFFIC_CONFIG, { exports: LAND_EXPORTS });
+  const batches = app.reportBatches(REPORTS);
+  const parse = (search, hash) => { const r = app.parseReportLink(search, hash, batches); return r && { batch: r.batch, slug: r.slug }; };
+  for (const date of ['2026-11-02', '2026-10-26']) {
+    const url = new URL(app.reportShareUrl(report(date, POLICY), 'https://garyu.test/'));
+    assert.deepEqual(parse(url.search, url.hash), { batch: date, slug: POLICY_SLUG }, url.href);
+    assert.deepEqual(parse(url.search, decodeURIComponent(url.hash)), { batch: date, slug: POLICY_SLUG }, '未編碼的 hash');
+  }
+});
+
+test('parseReportLink：批次或 slug 對不到、少了其中一個、hash 壞掉、舊格式 ?week=…#topic-… 都回 null', () => {
+  const app = loadApp(TRAFFIC_CONFIG, { exports: LAND_EXPORTS });
+  const batches = app.reportBatches(REPORTS);
+  const cases = [
+    ['?batch=2026-10-19', `#report-${POLICY_SLUG}`],
+    ['?batch=2026-11-02', `#report-${LIANHE_SLUG}`],
+    ['?batch=2026-11-02', '#report-%E9%81%93'],
+    ['?batch=2026-11-02', '#report-%E9%8'],
+    ['', `#report-${POLICY_SLUG}`],
+    ['?batch=2026-11-02', ''],
+    ['?batch=2026-11-02', `#topic-${POLICY_SLUG}`],
+    ['?week=2026-W45', `#topic-${POLICY_SLUG}`],
+  ];
+  for (const [search, hash] of cases) assert.equal(app.parseReportLink(search, hash, batches), null, `${search}${hash}`);
+  assert.equal(app.parseReportLink('?batch=2026-11-02', `#report-${POLICY_SLUG}`, []), null, '沒有報告');
+});
+
+test('報告卡片：id 是 report-<slug>；LINE 分享的是新連結，不帶目前網址的參數與 hash', () => {
+  const app = loadApp(TRAFFIC_CONFIG, {
+    html: TRAFFIC_BODY, exports: LAND_EXPORTS, url: `https://garyu.test/traffic/?week=2026-W44#topic-${POLICY_SLUG}`,
+  });
+  const doc = app.window.document;
+  app.renderReportStream(app.reportBatches(REPORTS), '2026-10-26');
+  const cards = doc.querySelectorAll('#report-list .ht-card');
+  assert.deepEqual(Array.from(cards, c => c.id), [`report-${POLICY_SLUG}`, `report-${LIANHE_SLUG}`]);
+  const share = `https://garyu.test/traffic/?batch=2026-10-26#report-${POLICY_SLUG}`;
+  assert.equal(cards[0].querySelector('.line-share').getAttribute('href'),
+    `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(share)}`);
+  assert.equal(doc.querySelector('[id^="topic-"]'), null);
+});
+
+/** 打開交通頁（預設窄螢幕）：url 可帶分享連結；scrollIntoView 換成記下被捲到的元素（jsdom 沒有實作它）。 */
+async function land({ url, storage = {}, html = NARROW, opts = {} } = {}) {
+  const { fetch } = pagedApi(BADGE_WEEKS, opts);
+  const app = loadApp(TRAFFIC_CONFIG, { html: html + TRAFFIC_BODY, fetch, storage, url, exports: LAND_EXPORTS });
+  const scrolled = [];
+  app.window.Element.prototype.scrollIntoView = function () { scrolled.push(this); };
+  await app.init();
+  await settle();
+  const doc = app.window.document;
+  const current = () => ({
+    stream: Array.from(doc.querySelectorAll('.stream.active'), s => s.id),
+    tab: Array.from(doc.querySelectorAll('.stream-tab[aria-selected="true"]'), t => t.id),
+  });
+  return { app, doc, ls: app.window.localStorage, scrolled, current };
+}
+const on = name => ({ stream: [`stream-${name}`], tab: [`tab-${name}`] });
+const scrolledBatches = scrolled => scrolled.map(el => `${el.id} ${el.querySelector('.ht-batch')?.textContent}`);
+
+const LANDINGS = [
+  ['第一次進來', {}, undefined, 'reports'],
+  ['預設、上次在新文章', { [PREF]: 'default', [LAST]: 'articles' }, undefined, 'articles'],
+  ['沒有設定、上次在新文章', { [LAST]: 'articles' }, undefined, 'articles'],
+  ['固定熱點、上次在新文章', { [PREF]: 'reports', [LAST]: 'articles' }, undefined, 'reports'],
+  ['固定新文章、上次在熱點', { [PREF]: 'articles', [LAST]: 'reports' }, undefined, 'articles'],
+  ['設定是不認得的值、上次在新文章', { [PREF]: 'garbage', [LAST]: 'articles' }, undefined, 'articles'],
+  ['分享連結的那一批不存在、固定新文章', { [PREF]: 'articles' }, `https://garyu.test/?batch=2026-10-19#report-${POLICY_SLUG}`, 'articles'],
+  ['分享連結的標題不在那一批、上次在新文章', { [LAST]: 'articles' }, `https://garyu.test/?batch=2026-11-02#report-${LIANHE_SLUG}`, 'articles'],
+];
+for (const [name, storage, url, expected] of LANDINGS) {
+  test(`窄螢幕落地（${name}）：落在 ${expected}，traffic_stream_last 寫成它，不捲動、兩條都畫得出來`, async () => {
+    const { doc, ls, scrolled, current } = await land({ storage, url });
+    assert.deepEqual(current(), on(expected));
+    assert.equal(ls.getItem(LAST), expected);
+    assert.deepEqual(scrolled, []);
+    assert.deepEqual(texts(doc.querySelectorAll('#batch-nav .active')), ['11-02 · 2 份']);
+    assert.equal(doc.querySelectorAll('#report-list .ht-card').length, 2);
+    assert.equal(doc.querySelectorAll('#article-list .traffic-row').length, 81);
+  });
+}
+
+test('窄螢幕落地（舊格式 ?week=2026-W44#topic-…）：照 landingStream 落地、新文章那一條選 W44、#topic- 不處理', async () => {
+  const url = `https://garyu.test/?week=2026-W44#topic-${POLICY_SLUG}`;
+  for (const [storage, expected] of [[{}, 'reports'], [{ [LAST]: 'articles' }, 'articles']]) {
+    const { doc, ls, scrolled, current } = await land({ storage, url });
+    assert.deepEqual(current(), on(expected));
+    assert.equal(ls.getItem(LAST), expected);
+    assert.deepEqual(scrolled, []);
+    assert.deepEqual(texts(doc.querySelectorAll('#week-nav .active')), ['2026-W44 (135篇)']);
+    assert.equal(doc.querySelectorAll('#article-list .traffic-row').length, 135);
+    assert.deepEqual(texts(doc.querySelectorAll('#batch-nav .active')), ['11-02 · 2 份']);
+    assert.equal(doc.querySelectorAll('#report-list .ht-card').length, 2);
+  }
+});
+
+test('新格式分享連結：不論齒輪設定都落在熱點、切到那一批、捲到那張卡片；同名的兩份不混淆', async () => {
+  for (const date of ['2026-10-26', '2026-11-02']) {
+    const url = `https://garyu.test/?batch=${date}#report-${POLICY_SLUG}`;
+    const { doc, ls, scrolled, current } = await land({ url, storage: { [PREF]: 'articles', [LAST]: 'articles' } });
+    assert.deepEqual(current(), on('reports'), url);
+    assert.equal(ls.getItem(LAST), 'reports');
+    assert.deepEqual(texts(doc.querySelectorAll('#batch-nav .active')), [`${date.slice(5)} · 2 份`]);
+    assert.deepEqual(scrolledBatches(scrolled), [`report-${POLICY_SLUG} ${date.slice(5)} 週報`]);
+    assert.equal(doc.querySelectorAll('#article-list .traffic-row').length, 81, '新文章那一條照常是最新一週');
+  }
+});
+
+test('分享連結但報告清單載入失敗：照 landingStream 其餘規則落地、不捲動、不報錯', async () => {
+  const url = `https://garyu.test/?batch=2026-10-26#report-${POLICY_SLUG}`;
+  const { doc, scrolled, current } = await land({ url, storage: { [PREF]: 'articles' }, opts: { hotTopics: () => respond({}, false) } });
+  assert.deepEqual(current(), on('articles'));
+  assert.deepEqual(scrolled, []);
+  assert.match(doc.getElementById('report-list').textContent, /熱點報告載入失敗/);
+});
+
+test('窄螢幕：每次切換 traffic_stream_last 都寫成目前那一條', async () => {
+  const { app, doc, ls } = await land({ storage: { [PREF]: 'reports' } });
+  assert.equal(ls.getItem(LAST), 'reports');
+  const click = id => app.window.eval(doc.getElementById(id).getAttribute('onclick'));
+  for (const [id, expected] of [['tab-articles', 'articles'], ['tab-articles', 'articles'], ['tab-reports', 'reports'], ['tab-articles', 'articles']]) {
+    click(id);
+    assert.equal(ls.getItem(LAST), expected, id);
+  }
+});
+
+test('窄螢幕落在新文章：落地不算從熱點切走——熱點的 badge 留著、熱點基準不動；之後切換照常', async () => {
+  const storage = { [SEEN_R]: '2026-11-01T00:00:00.000Z', [SEEN_A]: '2026-11-03T00:00:00.000Z', [PREF]: 'articles' };
+  const { app, doc, ls, current } = await land({ storage });
+  assert.deepEqual(current(), on('articles'));
+  assert.deepEqual(badges(doc), { tabReports: '新 2', headReports: '新 2', tabArticles: '23', headArticles: '23' });
+  assert.equal(ls.getItem(SEEN_R), '2026-11-01T00:00:00.000Z', '熱點沒有被顯示，基準不動');
+  const opened = ls.getItem(SEEN_A);
+  assert.notEqual(opened, '2026-11-03T00:00:00.000Z', '新文章被顯示，寫成這次打開的時間');
+  app.window.eval(doc.getElementById('tab-reports').getAttribute('onclick'));
+  assert.deepEqual(badges(doc), { tabReports: '新 2', headReports: '新 2', tabArticles: '', headArticles: '' });
+  assert.equal(ls.getItem(SEEN_R), opened);
+});
+
+test('寬螢幕：traffic_stream_last 不寫（窄螢幕上才記）；分享連結照樣切到那一批、捲到那張卡片', async () => {
+  const url = `https://garyu.test/?batch=2026-10-26#report-${POLICY_SLUG}`;
+  const { app, ls, scrolled } = await land({ html: WIDE, url, storage: { [PREF]: 'articles' } });
+  assert.equal(ls.getItem(LAST), null);
+  assert.deepEqual(scrolledBatches(scrolled), [`report-${POLICY_SLUG} 10-26 週報`]);
+  app.setStream('articles');
+  assert.equal(ls.getItem(LAST), null);
+  const plain = await land({ html: WIDE, storage: { [LAST]: 'articles' } });
+  assert.equal(plain.ls.getItem(LAST), 'articles', '寬螢幕不改寫窄螢幕記下的那一條');
+});
+
+test('齒輪：點開面板、目前的設定打勾；選了立刻存、面板不關；✕、再點齒輪、點面板外面都會關', async () => {
+  const { doc, ls } = await land({ storage: { [PREF]: 'garbage' } });
+  const btn = doc.getElementById('stream-settings-btn');
+  const panel = doc.getElementById('stream-settings');
+  assert.ok(panel, '頁面上沒有 #stream-settings');
+  assert.equal(btn.getAttribute('aria-controls'), 'stream-settings');
+  const checked = () => Array.from(panel.querySelectorAll('[aria-checked="true"]'), o => o.dataset.pref);
+  const state = () => ({ open: !panel.hidden, expanded: btn.getAttribute('aria-expanded') });
+  const CLOSED = { open: false, expanded: 'false' }, OPEN = { open: true, expanded: 'true' };
+
+  assert.deepEqual(state(), CLOSED);
+  btn.click();
+  assert.deepEqual(state(), OPEN);
+  assert.equal(panel.querySelector('.settings-title').textContent, '打開時先看');
+  assert.deepEqual(texts(panel.querySelectorAll('[role="radio"]')), ['預設（記得上次）', '🔥 熱點', '📰 新文章']);
+  assert.equal(panel.querySelector('.settings-note').textContent, '只存在這台裝置。');
+  assert.deepEqual(checked(), ['default'], '不認得的值當成預設');
+
+  for (const pref of ['articles', 'reports', 'default', 'articles']) {
+    panel.querySelector(`[data-pref="${pref}"]`).click();
+    assert.equal(ls.getItem(PREF), pref);
+    assert.deepEqual(checked(), [pref]);
+    assert.deepEqual(state(), OPEN, `選了 ${pref} 面板不關`);
+  }
+  panel.querySelector('.settings-close').click();
+  assert.deepEqual(state(), CLOSED, '✕');
+  btn.click();
+  assert.deepEqual(checked(), ['articles'], '再打開時讀存下的設定');
+  btn.click();
+  assert.deepEqual(state(), CLOSED, '再點齒輪');
+  btn.click();
+  panel.querySelector('.settings-note').click();
+  assert.deepEqual(state(), OPEN, '點面板裡面不關');
+  doc.getElementById('report-list').click();
+  assert.deepEqual(state(), CLOSED, '點面板外面');
+  doc.getElementById('report-list').click();
+  assert.deepEqual(state(), CLOSED);
+});
+
+test('shared.css：齒輪面板照簽核——蓋在內容上；目前的選擇 ● 加框加底、其餘 ○', () => {
+  assert.match(CSS, /\.settings-panel\s*\{[^}]*position:\s*absolute/);
+  assert.match(CSS, /\.settings-panel\[hidden\]\s*\{\s*display:\s*none/);
+  assert.match(CSS, /\.settings-opt::before\s*\{\s*content:\s*"○"/);
+  assert.match(CSS, /\.settings-opt\[aria-checked="true"\]\s*\{[^}]*border-color:\s*var\(--accent2\)[^}]*background:\s*var\(--tag-bg\)/);
+  assert.match(CSS, /\.settings-opt\[aria-checked="true"\]::before\s*\{\s*content:\s*"●"/);
+});

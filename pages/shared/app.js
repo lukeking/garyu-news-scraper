@@ -236,13 +236,29 @@ async function loadReports() {
   return batches;
 }
 
+// 報告分享連結（FR-015、research R6）：同名報告每週都有，所以批次與標題一起帶。
+function reportShareUrl(r, base) {
+  return `${base}?batch=${encodeURIComponent(r.week_start_date)}#report-${slugify(r.topic_label)}`;
+}
+function decodeSlug(s) {
+  try { return decodeURIComponent(s); } catch (e) { return s; }
+}
+// 那一批裡有那個標題才算數，對不到回 null。hash 可能是編碼過的字，也可能已被解碼，兩邊都解碼後再比。
+function parseReportLink(search, hash, batches) {
+  const batch = new URLSearchParams(search).get('batch');
+  if (!batch || !hash.startsWith('#report-')) return null;
+  const want = decodeSlug(hash.slice('#report-'.length));
+  const b = batches.find(x => x.date === batch);
+  const r = b && b.reports.find(x => decodeSlug(slugify(x.topic_label)) === want);
+  return r ? { batch, slug: slugify(r.topic_label) } : null;
+}
+
 function reportCard(r) {
   const slug = slugify(r.topic_label);
-  const wid = isoWeekId(r.week_start_date);
-  const pageUrl = location.origin + location.pathname + '?week=' + encodeURIComponent(wid) + '#topic-' + slug;
+  const pageUrl = reportShareUrl(r, location.origin + location.pathname);
   const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
   return `
-<div class="card ht-card" id="topic-${slug}" style="margin-bottom:1rem">
+<div class="card ht-card" id="report-${slug}" style="margin-bottom:1rem">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
@@ -265,14 +281,18 @@ function reportCard(r) {
 }
 
 // 窄螢幕一次顯示一條（CSS 的 .stream.active）；寬螢幕兩條並排，切換鈕由 CSS 隱藏。
-function setStream(name) {
+// landing＝打開時的落地：不算從 HTML 預設的那一條切走。「上次」只在窄螢幕記（contracts/local-state.md）。
+function setStream(name, landing) {
   const prev = document.querySelector('.stream.active');
   for (const s of STREAMS) {
     $('stream-' + s).classList.toggle('active', s === name);
     $('tab-' + s).setAttribute('aria-selected', String(s === name));
   }
   if (!streamVisit) return;
-  if (prev && prev.id !== 'stream-' + name && !bothStreamsShown()) leaveStream(prev.id.replace('stream-', ''));
+  if (!bothStreamsShown()) {
+    if (!landing && prev && prev.id !== 'stream-' + name) leaveStream(prev.id.replace('stream-', ''));
+    writeStored(STREAM_LAST_KEY, name);
+  }
   markSeen(name);
 }
 
@@ -358,11 +378,47 @@ function articlesReady() {
   newArticleCount(weekIds, since).then(n => { if (n !== null) showBadge('articles', badgeText(n, capped)); });
 }
 
-// 深度分析 deep-link：若 URL 有 #topic-<slug> 則捲動定位；找不到則不動作、不報錯。
-function scrollToHashTopic() {
-  if (!location.hash.startsWith('#topic-')) return;
-  const el = document.getElementById(location.hash.slice(1));
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// ── 打開時落在哪一條（FR-005、FR-015、research R3）與齒輪設定（FR-006） ──
+const STREAM_PREF_KEY = 'traffic_stream_pref';
+const STREAM_LAST_KEY = 'traffic_stream_last';
+function readStored(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function writeStored(key, v) {
+  try { localStorage.setItem(key, v); } catch (e) {}
+}
+// 設定是 'default'、沒有記錄或不認得的值，都往下一層。
+function landingStream({ link, pref, last }) {
+  if (link) return 'reports';
+  if (STREAMS.includes(pref)) return pref;
+  if (STREAMS.includes(last)) return last;
+  return 'reports';
+}
+
+function renderSettings() {
+  const v = readStored(STREAM_PREF_KEY);
+  const pref = STREAMS.includes(v) ? v : 'default';
+  document.querySelectorAll('#stream-settings [data-pref]').forEach(o =>
+    o.setAttribute('aria-checked', String(o.dataset.pref === pref)));
+}
+function toggleSettings(open) {
+  $('stream-settings').hidden = !open;
+  $('stream-settings-btn').setAttribute('aria-expanded', String(open));
+  if (open) renderSettings();
+}
+// 選了立刻存；點 ✕、再點齒輪或點面板外面都會關。選項只改 aria-checked、不重畫：
+// 重畫會讓被點的元素離開 DOM，冒泡到 document 時就被當成點在面板外面。
+function setupSettings() {
+  const panel = $('stream-settings');
+  $('stream-settings-btn').addEventListener('click', () => toggleSettings(panel.hidden));
+  panel.querySelector('.settings-close').addEventListener('click', () => toggleSettings(false));
+  panel.querySelectorAll('[data-pref]').forEach(o => o.addEventListener('click', () => {
+    writeStored(STREAM_PREF_KEY, o.dataset.pref);
+    renderSettings();
+  }));
+  document.addEventListener('click', e => {
+    if (!panel.hidden && !e.target.closest('#stream-settings, #stream-settings-btn')) toggleSettings(false);
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -371,9 +427,14 @@ async function init() {
 
   const hasStreams = C.contentType === 'traffic' && !!$('stream-reports');
   if (hasStreams) {
+    setupSettings();
     beginVisit();
     const batches = await loadReports();
+    const link = batches && parseReportLink(location.search, location.hash, batches);
+    if (link) selectBatch(link.batch);
+    setStream(landingStream({ link, pref: readStored(STREAM_PREF_KEY), last: readStored(STREAM_LAST_KEY) }), true);
     if (batches) reportsReady(batches);
+    if (link) $('report-' + link.slug).scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   const res = await fetch(`${API_BASE}/weeks?content_type=${C.contentType}`).catch(() => null);
@@ -387,7 +448,6 @@ async function init() {
     const wanted = new URLSearchParams(location.search).get('week');
     const target = (wanted && allWeeks.some(w => w.week_id === wanted)) ? wanted : allWeeks[0].week_id;  // 失效則回退最新週
     await loadWeek(target);
-    scrollToHashTopic();
   }
   if (hasStreams) articlesReady();   // 主畫面畫完之後才數，不等它
 

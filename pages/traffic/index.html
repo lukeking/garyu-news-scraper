@@ -53,9 +53,21 @@
     </div>
     <div class="header-actions">
       <button id="theme-toggle" onclick="toggleTheme()" aria-label="切換主題">🌙</button>
-      <button id="stream-settings-btn" aria-label="設定">⚙️</button>
+      <button id="stream-settings-btn" aria-label="設定" aria-expanded="false" aria-controls="stream-settings">⚙️</button>
       <a class="rss-link" href="https://garyu-ffxiv-news.pages.dev">🎮 FFXIV 新聞</a>
       <a class="rss-link" href="https://garyu-news-scraper.lukeking0325.workers.dev/api/feed.xml?content_type=traffic">📡 RSS 訂閱</a>
+    </div>
+    <div id="stream-settings" class="settings-panel" hidden>
+      <div class="settings-head">
+        <span id="stream-settings-title" class="settings-title">打開時先看</span>
+        <button class="settings-close" aria-label="關閉設定">✕</button>
+      </div>
+      <div role="radiogroup" aria-labelledby="stream-settings-title">
+        <button class="settings-opt" data-pref="default" role="radio" aria-checked="true">預設（記得上次）</button>
+        <button class="settings-opt" data-pref="reports" role="radio" aria-checked="false">🔥 熱點</button>
+        <button class="settings-opt" data-pref="articles" role="radio" aria-checked="false">📰 新文章</button>
+      </div>
+      <p class="settings-note">只存在這台裝置。</p>
     </div>
   </div>
 </header>
