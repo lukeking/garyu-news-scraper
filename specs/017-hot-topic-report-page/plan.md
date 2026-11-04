@@ -49,13 +49,14 @@
 ```text
 specs/017-hot-topic-report-page/
 ├── plan.md              # 本檔
-├── research.md          # Phase 0：R1～R11
+├── research.md          # Phase 0：R1～R11；T001／T002 之後補 R12
 ├── data-model.md        # Phase 1：讀進來的欄位、前端推導與存的狀態
 ├── quickstart.md        # Phase 1：測試、簽核畫面、刪除測試殘留、驗收
 ├── evaluation.md        # T009、T016 的指令與結果（實作時新增）
 ├── contracts/
 │   ├── traffic-streams-ui.md   # 兩條流、badge、齒輪、網址的行為
 │   └── local-state.md          # localStorage 的鍵與值
+├── signoff/             # T001 簽核拼圖（2026-11-04）與截圖腳本 shoot.mjs（SC-005 上線後重拍）
 ├── checklists/requirements.md
 └── tasks.md             # Phase 2（/speckit-tasks 產生）
 ```

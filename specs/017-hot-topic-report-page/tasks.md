@@ -36,17 +36,21 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Purpose**: FR-014 要求寫正式的前端之前，Luke 先看過兩個主題的實際畫面；三條 Unchecked 假設也在這裡判。
 
-- [ ] T001 [FR-002, FR-004, FR-005, FR-006, FR-010, FR-014, SC-005] 驗證型（Luke 簽核）：照 `specs/017-hot-topic-report-page/quickstart.md` §2
+- [X] T001 [FR-002, FR-004, FR-005, FR-006, FR-010, FR-014, SC-005] 驗證型（Luke 簽核）：照 `specs/017-hot-topic-report-page/quickstart.md` §2
       在 scratch 做 spike（stub 取自 prod 公開 API；新結構的 `index.html`、spike 版 `app.js`／`shared.css`），用本機 Chromium 截：
       412 px 亮、暗各一組（熱點在前且「新文章」鈕上有 badge、新文章在前、齒輪面板展開、焦點事件展開），桌機 1024／1280／1440 px 各一張。
       送給 Luke，同時請他判 spec Assumptions 的兩條 Unchecked：「標記與設定只存在這台裝置」（他是不是也常在桌機看）、
       「報告的產生方式與資料不改」。簽核的字樣、位置與並排斷點寫回 `specs/017-hot-topic-report-page/contracts/traffic-streams-ui.md`
       與 spec FR-002；兩條假設的結果寫回 spec 的 Assumptions（改成 Checked 並附 Luke 的話，或照他的話改寫）。
-- [ ] T002 [FR-004, SC-002] 驗證型：在 scratch 寫一支 Node 腳本，照 research R4 的掃法對 prod 公開 API 實測「數新文章」：基準分別是
+      → 2026-11-04 簽核：斷點 1024 px、畫面元素照截圖、批次導覽改一列橫捲；兩條假設都 Checked；另外裁示 FR-016（整週載入）併入、
+      簽核拼圖與截圖腳本進 `signoff/`。記錄在 spec Clarifications「Session 2026-11-04」、contracts/traffic-streams-ui.md、research R2／R10／R12。
+- [X] T002 [FR-004, SC-002] 驗證型：在 scratch 寫一支 Node 腳本，照 research R4 的掃法對 prod 公開 API 實測「數新文章」：基準分別是
       3 天前、3 週前、10 週前（超過 8 週上限），每種記下要打幾個請求、並行的總時間、算出的篇數與是否觸頂（`N+`）。
       結果寫進 `specs/017-hot-topic-report-page/research.md` R4 的「量測」。這條驗 spec 的 Unchecked 假設「數新文章不會讓打開變慢到不能接受」：
       3 週前那種的並行總時間超過 5 秒，就把數字帶回 T001 請 Luke 判（備案：只標「有新的」不標篇數）。5 秒是純判斷（手機上等 badge
       出現的容忍度，沒有量過），不是門檻的推導；數字一律帶給 Luke 看，5 秒只決定要不要主動提備案。
+      → 2026-11-04：3 天前 3 個請求 0.96～1.51 秒、3 週前 7 個 1.23～1.80 秒、10 週前 15 個 1.47～1.82 秒（「1129+」）；未超過 5 秒，
+      數字已給 Luke、spec 的這條假設改成 Checked。全文在 research R4。
 
 ---
 
@@ -67,7 +71,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 - [ ] T004 [P] [US1] [FR-001, FR-003, FR-011, FR-013] `tests/js/traffic-streams.test.mjs`（新檔）：
       `reportBatches(reports)` 依 `week_start_date` 分組、新的在前、標籤字面值是 `11-02 · 2 份`；`renderReportStream(batches, date)` 把那一批的每份報告
-      畫進 `#stream-reports`，每張卡片的 meta 列有所屬週報的字樣（用 T001 簽核的字面值；暫定 `11-02 週報`，不可以是「產生」），切到另一批只換這一條；`setStream('articles')` 讓 `#stream-articles` 拿到 `active`、
+      畫進 `#stream-reports`，每張卡片的 meta 列有所屬週報的字樣（T001 簽核的字面值 `11-02 週報`，不可以是「產生」），切到另一批只換這一條；`setStream('articles')` 讓 `#stream-articles` 拿到 `active`、
       `#stream-reports` 沒有，切換鈕的 `aria-selected` 跟著換；`loadWeek` 之後 `#stream-articles` 裡沒有任何報告卡片；stub 讓 `/api/hot-topics`
       失敗時，熱點那一條出現 contracts/traffic-streams-ui.md 的失敗字樣、新文章那一條照常畫出；用 `FFXIV_CONFIG` 載入 `pages/ffxiv/index.html` 的 body，
       在 `exports` 加 `init`、以 stub fetch 呼叫 `init()` 並 `await` 它結束，不 throw、頁面上沒有切換鈕與齒輪。字面值用 2026-11-02、2026-10-26 兩批（各 2 份）寫死。
@@ -76,7 +80,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       contracts/traffic-streams-ui.md 的失敗字樣，新文章那一條照常。新程式碼以 `C.contentType === 'traffic'` 與元素是否存在把關（FFXIV 不受影響）。
 - [ ] T006 [US1] [FR-001, FR-002, FR-014] `pages/traffic/index.html`、`pages/shared/shared.css`：照 T001 簽核的畫面改結構——頁首加齒輪鈕的位置、
       頁首下方兩個切換鈕、`#stream-reports`（批次導覽＋報告列表）與 `#stream-articles`（搜尋、週次導覽、標籤列、統計、文章列表）；
-      窄螢幕只顯示 `.active` 那一條，`@media (min-width: <T001 定的斷點>)` 兩條並排、各自捲動、切換鈕隱藏。`pages/ffxiv/index.html` 不改。
+      窄螢幕只顯示 `.active` 那一條，`@media (min-width: 1024px)`（T001 簽核）兩條並排、各自捲動、切換鈕隱藏；批次導覽一列、左右捲動、
+      不折行（週次導覽照舊）；其餘視覺照 contracts/traffic-streams-ui.md 標「簽核」的各條。`pages/ffxiv/index.html` 不改。
 - [ ] T007 [P] [US1] [FR-008] `tests/js/traffic-row.test.mjs`：把第 44～56 行「已分析的列要有 ★／`tr-strong`」改成「`hot_topic_analyzed` 是 true 或 false，
       列裡都沒有 `tr-badge`、沒有 `tr-strong`」（含降級列）；`tests/js/row-model-css.test.mjs`：第 50 行的排序表拿掉 `tr-badge`，並斷言
       `shared.css` 裡已經沒有 `.tr-badge`、`.tr-strong` 規則。
@@ -98,6 +103,11 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Independent Test**: 用預先寫好的「上次看過」打開，badge 數字與 stub 資料一致；切走之後清掉。
 
+- [ ] T021 [P] [US2] [FR-016] `tests/js/traffic-streams.test.mjs`：stub 的某週 `article_count` 是 135 時，`loadWeek` 抓 `offset=0` 與 `offset=100` 兩頁
+      （兩次都帶同樣的 `content_type` 與篩選參數），畫出 135 篇的列、統計是 135（扣掉收起的來源）；`article_count` 是 81 時只打一個請求；
+      第二頁失敗時顯示現在的「載入失敗」，不畫出只有半週的列表。
+- [ ] T022 [US2] [FR-016] `pages/shared/app.js` 的 `loadWeek`：先抓第一頁，`article_count` 超過 100 就並行補抓其餘頁再合併畫出（research R12）。
+      在 T005 之後（同一個函式）。
 - [ ] T010 [P] [US2] [FR-004, SC-002] `tests/js/traffic-streams.test.mjs`：
       `countNewSince(items, sinceIso)` 只算 `created_at` 嚴格晚於基準的（等於不算、壞日期不算）；`weeksToScan(weeks, sinceIso, 8)` 回
       `{ weekIds, capped }`——週次是基準換成**台灣時間**的 ISO 週（`src/pipeline/traffic.py` 的 `_current_week_id` 用台灣時間切週）起到最新、
@@ -165,7 +175,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
       `Backlog:` 行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出、不手寫。
 - [ ] T020 [SC-001, SC-002, SC-003, SC-005, SC-006] 驗證型（merge 之後）：`deploy-pages-traffic.yml` 部署完，照 quickstart §4 在 prod 跑 SC-001、
-      SC-002（badge 與資料庫唯讀查詢的列數比，不與 Worker API 比）、SC-003 的五個情境、SC-006，並用簽核時的寬度與主題截 prod 頁面與 T001 的截圖並排比對（SC-005）；結果留言在 PR 上，回填 T017 的待填欄。
+      SC-002（badge 與資料庫唯讀查詢的列數比，不與 Worker API 比）、SC-003 的五個情境、SC-006，並用 `signoff/shoot.mjs` 截 prod 頁面與
+      `signoff/2026-11-04-*.jpg` 並排比對（SC-005）；結果留言在 PR 上，回填 T017 的待填欄。
 
 ---
 
@@ -174,7 +185,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - **Phase 1（T001、T002）**：最先。T006、T011、T013、T015 的樣式以 T001 的簽核為準；T002 的數字可能改變 T011 的做法。
 - **T003** 在所有測試 task 之前。
 - **US1（T004～T009）**：T004 → T005 → T006；T007 → T008（跟 T005 同檔，依序改）；T009 隨時可做（只要 Luke 同意），但要在 T016 之前。
-- **US2（T010、T011）**、**US3（T012、T013）** 依賴 US1 的切換鈕與兩個 stream 區塊；**US4（T014、T015）** 依賴 US1 的報告卡片。
+- **US2（T021、T022、T010、T011）**、**US3（T012、T013）** 依賴 US1 的切換鈕與兩個 stream 區塊；T022 改的 `loadWeek` 在 T005 之後；**US4（T014、T015）** 依賴 US1 的報告卡片。
   四個 story 的實作都改 `pages/shared/app.js`，依序做。
 - **Phase 7**：T016 在 T009 與 US1～US4 之後；T017～T019 在 T016 之後；T020 在 merge 之後。
 
@@ -192,8 +203,8 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - Tasks: T001, T002
 - Outcome: Luke 簽核過 412 px 亮、暗與桌機三個寬度的畫面，字樣、位置與並排斷點寫進 contracts/traffic-streams-ui.md 與 spec FR-002；
   數新文章的實測數字寫進 research R4；三條 Unchecked 假設都有結論並寫回 spec。
-- Prerequisites: plan 與 contracts 已定行為；spike 與量測腳本不進 repo。
-- Verification: 截圖本身與 Luke 的回覆；T002 的請求數與時間；repo 裡只多了 contract、spec 與 research 的紀錄。
+- Prerequisites: plan 與 contracts 已定行為；spike 與量測腳本不進 repo（簽核拼圖與截圖腳本 2026-11-04 Luke 裁示進 `signoff/`）。
+- Verification: 截圖本身與 Luke 的回覆；T002 的請求數與時間；repo 裡只多了 contract、spec、research、quickstart 的紀錄與 `signoff/`（拼圖＋截圖腳本）。
 - Review: Luke 本人（畫面簽核不是程式審查）；main 讀回寫進 contract、spec、research 的字句與 Luke 的話、量測輸出一致。
 - Merge or split: 簽核與量測都在實作前回答「做成什麼樣」，T002 的結果可能改變 T001 要請 Luke 判的東西，所以同一個 unit。
 - Unchecked assumptions: 「數新文章不會讓打開變慢到不能接受」由 T002 實測；「標記與設定只存在這台裝置」與「報告的產生方式與資料不改」由 T001 請 Luke 判。
@@ -222,13 +233,13 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ### Unit 4: 「有新的」標記
 
-- Tasks: T010, T011
-- Outcome: 兩條各自依「上次看過」標出新內容；第一次不標；看過、切走之後清掉；新文章最多掃 8 週，超出顯示 `N+`；計數失敗不標。
+- Tasks: T021, T022, T010, T011
+- Outcome: 新文章那一條每週載入整週（FR-016）；兩條各自依「上次看過」標出新內容；第一次不標；看過、切走之後清掉；新文章最多掃 8 週，超出顯示 `N+`；計數失敗不標。
 - Prerequisites: Unit 2 的切換鈕與 stream 標頭；Unit 1 的 T002 數字。
-- Verification: `npm test`（T010 在 T011 之前紅）。
-- Review: `pages/shared/app.js`（計數與 `traffic_seen_*`）、`pages/shared/shared.css`（badge）、`tests/js/traffic-streams.test.mjs`（US2 那幾條）、
+- Verification: `npm test`（T021 在 T022 之前紅、T010 在 T011 之前紅）。
+- Review: `pages/shared/app.js`（`loadWeek` 的分頁、計數與 `traffic_seen_*`）、`pages/shared/shared.css`（badge）、`tests/js/traffic-streams.test.mjs`（US2 那幾條）、
   contracts/local-state.md、data-model.md 的狀態轉換。
-- Merge or split: 一個產出（badge）；落地規則雖然也讀寫 localStorage，但驗收不同（FR-005 vs FR-004），分到 Unit 5。
+- Merge or split: 一個產出（badge 與它要對得上的頁面篇數）：FR-016 是 2026-11-04 為了讓 badge 的篇數在頁面上找得到而併入的，同一組審；落地規則雖然也讀寫 localStorage，但驗收不同（FR-005 vs FR-004），分到 Unit 5。
 - Unchecked assumptions: none。
 
 ### Unit 5: 落地規則、齒輪設定與新分享連結

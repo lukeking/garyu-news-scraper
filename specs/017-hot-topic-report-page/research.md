@@ -16,10 +16,11 @@
 
 **Alternatives considered**: 兩個 HTML 頁面（上面兩個理由否決）；hash 路由的單頁應用（為了兩條流引進路由層，超出需要）。
 
-## R2 並排的寬度斷點：簽核時實測決定
+## R2 並排的寬度斷點：1024 px（簽核定案）
 
-**Decision**: 用 viewport 寬度的 `@media` 切並排（這是整頁版面，不是清單內部的形態，所以不用列模型的 `@container`）。
-候選值 1200 px，在簽核畫面時用 1024／1280／1440 三個寬度實測，Luke 定案後寫回 spec FR-002。並排時 `.main` 放寬，兩欄各自捲動。
+**Decision**: 用 viewport 寬度的 `@media (min-width: 1024px)` 切並排（這是整頁版面，不是清單內部的形態，所以不用列模型的 `@container`）。
+原本的候選值是 1200 px；2026-11-04 簽核畫面在 1024／1280／1440 三個寬度都拍了並排，加上 1024 的單欄，Luke 選 1024：1024 並排時兩欄各約 480 px、
+文章列落在窄形（清單寬度 < 560 px），焦點事件標題折兩行，但不用切換。1280 起文章列是寬形。並排時 `.main` 放寬，兩欄各自捲動。
 
 **Rationale**（推導，不是實測）：文章列要在清單寬度 ≥ 560 px 才切成寬形（`pages/shared/shared.css` 第 210～213 行的註解，
 那個 560 本身也是推導）；報告欄放報告內文，估 480～560 px；加上兩側與中間的間距約 50 px，合計約 1100～1180 px。
@@ -53,6 +54,22 @@ Luke 11-03：不夠寬就是「左右留白偏多的手機版面而已，還不�
 - 上限：最多掃 8 週（憲章原則 IV：每次打開的請求數要有寫明的上限）。基準比 8 週還早時顯示「N+」，N 是 8 週內數到的篇數。
 
 **量測**（2026-11-03）：`/api/weeks/<週>` 每次 0.9～1.5 秒、約 50～100 KB；W44、W43、W42 各要 2 頁。基準是 3 週前時約 6～7 個請求，並行。
+
+**量測**（T002，2026-11-04 19:33 +0800，本機 Node 24 的 `fetch` 對 prod 公開 API，唯讀，每種跑 3 次）：分兩輪並行——第一輪每週抓 `offset=0`
+拿到 `article_count`，第二輪補其餘頁；週次清單另外 1 個請求（頁面本來就會抓，不算在下表）。
+
+| 基準 | 掃的週 | 請求數 | 並行總時間 | 篇數 | 觸頂 |
+|---|---|---|---|---|---|
+| 3 天前 | W45、W44 | 3 | 0.96～1.51 秒 | 81 | 否 |
+| 3 週前 | W45～W42 | 7 | 1.23～1.80 秒 | 468 | 否 |
+| 10 週前 | W45～W38（8 週上限） | 15 | 1.47～1.82 秒 | 1129 | 是，顯示「1129+」 |
+
+- 每輪約 0.5～1.1 秒，兩輪相加；請求數隨週數增加，時間幾乎不變（並行）。
+- 3 週前的情境遠低於 tasks T002 的 5 秒（純判斷），不提「只標有新的、不標篇數」的備案。
+- 這是本機的家用網路；手機走行動網路每個請求會慢一些，請求數不變。Node 的 `fetch` 與瀏覽器的連線數上限不同，沒有在瀏覽器裡另量：數字離 5 秒很遠，換儀器不會改變結論。
+- 同一天的週次清單只列到 W38（`f71`：1000 列剛好在 W38 中間截斷，清單寫 52 篇，逐頁抓是 181 篇），所以「8 週上限」與「清單最舊的週」現在重疊；
+  計數用逐頁抓到的 `article_count`，不用清單上的數字。
+- 腳本只留在 scratch（一次性量測，結果在這張表）。
 
 **`created_at` 的語意**（Checked）：兩條寫入路徑都不帶 `created_at`（`src/storage.py` 第 172 行的 upsert、第 296 行 buffer 的
 `ignore_duplicates=True`），欄位是 `DEFAULT NOW()`（`supabase_migrations/002_traffic_pipeline.sql` 第 29 行），所以它是第一次收進來的時間，
@@ -110,9 +127,37 @@ FFXIV 頁照舊（FR-013），用 jsdom 載入 FFXIV 的設定跑一次確認不
 本機 Chromium（`~/.cache/ms-playwright/chromium-1223/`）截：412 px 亮、暗各兩張（熱點在前、文章 tab 有 badge；文章在前），
 齒輪設定展開一張；桌機 1024／1280／1440 各一張（決定 R2 的斷點）。焦點事件展開一張。截圖送 Luke 簽核後才寫正式前端。
 
+**結果**（2026-11-04）：stub 是當天的 prod 快照（56 份報告拿掉測試殘留＝55 份；W45 81 篇、W44 135 篇），「上次看過」熱點設 11-01、新文章設 3 天前，
+所以截圖上是「新 2」與「81」。412 px 亮暗各 5 格（第 5 格是批次導覽一列橫捲的備案）、桌機 1024 單欄＋1024／1280／1440 並排亮暗。
+Luke 的裁示寫在 spec 的 Clarifications「Session 2026-11-04」，視覺寫在 contracts/traffic-streams-ui.md。截圖時自己先抓到兩個 spike 的問題，
+送出前已修：焦點事件的編號對到標題的第二行（按鈕是 inline-block，改 `vertical-align: top`）、截圖時滑鼠停在某一項上造成底線。
+
+**留存**：簽核當時的四張拼圖在 `signoff/2026-11-04-{mobile,desktop}-{light,dark}.jpg`；`signoff/shoot.mjs` 是同一套截圖的 repo 版，
+可以指向任何交通頁網址（`--help`），上線後 SC-005 用它拍 prod：
+
+```bash
+node specs/017-hot-topic-report-page/signoff/shoot.mjs --url https://<交通頁網域>/ --out <scratch 目錄>
+```
+
+它找不到 `#stream-reports`、`#stream-settings-btn` 或 `.ht-focus-toggle` 就失敗（2026-11-04 對 spike 跑過一次；對 `about:blank` 跑 exit 1）。
+stub server 與 spike 頁面不留：它們回答的是「做成什麼樣」，答案已經在截圖與 contract 裡。
+
 ## R11 `GUB-20261101-9qe` 不併入
 
 `/speckit-plan` 觸發了 bare 的這條提醒。它的範圍是 expense-tracker、assertion-engine、mapf-router、slot-allocator 的 plan-template 副本；
 garyu 不在名單上，副本已由 `#196` 刪除（2026-11-03 查：沒有 `.specify/templates/`，`check_speckit_residue.py` 回 0）。
 Luke 2026-11-03 裁示不併入；PR 內文照記。提醒會在 garyu 每次 `/speckit-plan` 都響，是因為 `on:` 宣告沒有 repo 範圍的鍵
 （`~/.agents/docs/exp054-pre-edit.md`「`on:` 宣告」）。
+
+## R12 新文章那一條載入整週，不只前 100 篇（FR-016）
+
+**發現**（2026-11-04，T002 途中）：`loadWeek` 抓 `/api/weeks/<週>?content_type=…` 不帶 `limit`／`offset`，Worker 的 `parseLimit` 預設 100、上限 100
+（`workers/api/src/index.js` 的 `MAX_LIMIT`），所以每週只畫出前 100 篇（依重要性、再依時間新到舊排）。W44 有 135 篇：頁首寫「共 135 則」、
+統計寫「本頁顯示 100」，35 篇看不到。badge 照 R4 逐頁數全部，基準是 3 週前時 badge 是 468，頁面最多看得到 381（81＋100＋100＋100）。
+BACKLOG `GNS-20261031-005` 節把「每週最多回 100 篇」記成那次量測的下限，沒有記成頁面的缺陷；其他地方也沒有記。
+
+**Decision**: `loadWeek` 先抓 `offset=0`，`article_count` 超過 100 就並行補抓其餘頁（帶同樣的篩選參數），合起來再畫；任何一頁失敗就照現在顯示載入失敗。
+Worker 不改（它沒有測試 runner，`f71` 修的時候才補）。FFXIV 頁共用 `loadWeek`，每週不到 100 篇時只會打一個請求，畫面不變。
+
+**Alternatives considered**: badge 只數每週前 100 篇——數字與頁面一致，但整週仍有文章看不到；另開 BACKLOG、017 不修——badge 會說比頁面多的篇數。
+Luke 2026-11-04 裁示併入 017。

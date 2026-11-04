@@ -11,7 +11,8 @@ npm test                                   # app.js：landingStream、新內容�
 
 ## 2. 簽核畫面（實作前，FR-014／SC-005）
 
-spike 不進 repo，放在 scratch（做法同 016 的 T001）：
+2026-11-04 已簽核（結果見 research R10、spec Clarifications「Session 2026-11-04」）。spike 本身不進 repo，放在 scratch（做法同 016 的 T001）；
+簽核時的拼圖與截圖腳本在 `signoff/`。要重做時：
 
 1. 從 prod 公開 API 抓 `/api/hot-topics`、`/api/weeks`、`/api/tags`、`/api/weeks/2026-W45` 與 `2026-W44`（`content_type=traffic`），存成 stub JSON。
 2. 本機開靜態 server：新結構的 `pages/traffic/index.html`（`__API_BASE__` 指 stub）＋ spike 版 `app.js` ＋ `shared.css`。
@@ -37,5 +38,6 @@ spike 不進 repo，放在 scratch（做法同 016 的 T001）：
 - **SC-003**：清掉站上資料 → 熱點；切到文章、重開 → 文章；齒輪設成熱點／文章 → 一律那一條；打開一個舊格式連結 → 照規則、不報錯。
   另外，55 份報告各自的新分享連結都定位到同一份（merge 前用本分支的 `app.js` 對 prod 公開 API 逐份跑）。
 - **SC-004**：熱點那一條能瀏覽到的報告數＝55，沒有 `酒駕-integration-test`。
-- **SC-005**：上線後用簽核時的寬度與主題截 prod 頁面，與簽核截圖並排比對。
+- **SC-005**：上線後用簽核時的寬度與主題截 prod 頁面，與 `signoff/2026-11-04-*.jpg` 並排比對：
+  `node specs/017-hot-topic-report-page/signoff/shoot.mjs --url <prod 交通頁網址> --out <scratch 目錄>`（輸出四張同格式的拼圖）。
 - **SC-006**：在熱點那一條讀一份報告、展開兩個焦點事件，全程沒有切到新文章那一條。
