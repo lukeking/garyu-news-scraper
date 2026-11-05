@@ -214,7 +214,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       含同名報告）；用 FFXIV 的設定打開 FFXIV 頁畫面照舊。數字寫進 `specs/017-hot-topic-report-page/evaluation.md`。
 - [ ] T017 [SC-001, SC-002, SC-003, SC-004, SC-005, SC-006] `specs/017-hot-topic-report-page/spec.md`：加「達成階數」小節（同 015 的形狀），
       填 merge 前已有的結果（T002、T009、T016、各 unit 的測試），上線後才有的（T020）標成待填。
-- [ ] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
+- [-] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
       （2026-11-04 併入，SC-007；先確認它的完成標準都達成，並重推導以它為 blocker 的下游列）；
       重新讀 `GNS-20261103-n9n` 的觸發點（「spec 017 上線之後」）確認仍成立；讀 diff。
 - [-] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
