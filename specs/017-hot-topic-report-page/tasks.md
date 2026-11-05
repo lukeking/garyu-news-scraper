@@ -189,14 +189,14 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 其餘（FR-009、SC-004 是 prod 資料，T009／T016 驗；FR-013 由 T016 的 FFXIV 截圖比對；標籤、搜尋、重要度 handler 與 subtitle 這 4 條邊緣
 在 017 之前就沒有測試、017 也沒改那些 handler）記成接受，理由在 PR 留言。
 
-- [ ] T029 [FR-011] `tests/js/traffic-streams.test.mjs`：報告卡片的批次標籤取 `week_start_date`、不取 `created_at`——fixture 的 `created_at`
+- [-] T029 [FR-011] `tests/js/traffic-streams.test.mjs`：報告卡片的批次標籤取 `week_start_date`、不取 `created_at`——fixture 的 `created_at`
       與 `week_start_date` 不同天（例：週報在 11-04 手動 dispatch，`week_start_date` 11-02），卡片寫「11-02 週報」、不出現「11-04」。
       現在的實作已經對：咬合用「卡片改顯示 `created_at` 的日期」證明會紅。
-- [ ] T030 [SC-006] `tests/js/traffic-streams.test.mjs`：窄螢幕上在熱點那一條展開、收合焦點事件，`.stream.active` 一直是熱點、
+- [-] T030 [SC-006] `tests/js/traffic-streams.test.mjs`：窄螢幕上在熱點那一條展開、收合焦點事件，`.stream.active` 一直是熱點、
       `traffic_stream_last` 不變。咬合：`toggleFocus` 裡加 `setStream('articles')` 會紅。
-- [ ] T031 [SC-007] 新的 `tests/js/ci-wiring.test.mjs`：讀 `.github/workflows/tests.yml`，`unit` job 的步驟依序有 `npm test`、
+- [-] T031 [SC-007] 新的 `tests/js/ci-wiring.test.mjs`：讀 `.github/workflows/tests.yml`，`unit` job 的步驟依序有 `npm test`、
       `npx playwright install --with-deps chromium`、`npm run test:layout`。咬合：把 `npm run test:layout` 改成 `echo skip` 會紅。
-- [ ] T032 [FR-016] `tests/js/traffic-streams.test.mjs`：從週次導覽點一個週次（執行出貨的 onclick 字串），新文章那一條載入那一週的全部文章
+- [-] T032 [FR-016] `tests/js/traffic-streams.test.mjs`：從週次導覽點一個週次（執行出貨的 onclick 字串），新文章那一條載入那一週的全部文章
       （`article_count` 超過 100 的那週全部畫出、`#week-nav .active` 換過去）。咬合：onclick 改成 `loadWeek('')` 會紅。
 
 **Checkpoint**: 四條都有改值咬合的紀錄；`npm test` 綠。

@@ -114,6 +114,15 @@ test('renderReportStream：畫出那一批，卡片寫所屬週報「11-02 週�
   assert.equal(doc.getElementById('stream-articles').innerHTML, articlesBefore, '切批次不該動到新文章那一條');
 });
 
+test('FR-011：週報在 11-04 手動 dispatch、week_start_date 是 11-02 時，卡片寫「11-02 週報」，整張卡片不出現「11-04」', () => {
+  const app = loadApp(TRAFFIC_CONFIG, { html: TRAFFIC_BODY, exports: EXPORTS });
+  const dispatched = { ...report('2026-11-02', '機車事故 · 中時'), created_at: '2026-11-04T03:00:00+00:00' };
+  app.renderReportStream(app.reportBatches([dispatched]), '2026-11-02');
+  const card = app.window.document.querySelector('#report-list .ht-card');
+  assert.equal(card.querySelector('.ht-batch').textContent, '11-02 週報');
+  assert.doesNotMatch(card.textContent, /11-04/);
+});
+
 test('renderReportStream：沒給或對不到批次時畫最新一批；沒有報告時寫「尚無熱點報告」', () => {
   const app = loadApp(TRAFFIC_CONFIG, { html: TRAFFIC_BODY, exports: EXPORTS });
   const doc = app.window.document;
@@ -308,6 +317,23 @@ for (const [name, failure] of [['HTTP 500', () => respond({}, false)], ['網路�
     assert.equal(doc.querySelectorAll('#article-list .traffic-row').length, 0);
   });
 }
+
+test('FR-016：從週次導覽點 W44（執行出貨的 onclick）時新文章那一條畫出那一週全部 135 篇，導覽的 active 換到 W44', async () => {
+  const { fetch, calls } = pagedApi({ '2026-W45': articles(81), '2026-W44': articles(135) });
+  const app = loadApp(TRAFFIC_CONFIG, { html: TRAFFIC_BODY, fetch, exports: BADGE_EXPORTS });
+  const doc = app.window.document;
+  await app.init();
+  assert.deepEqual(texts(doc.querySelectorAll('#week-nav .active')), ['2026-W45 (81篇)']);
+  const w44 = Array.from(doc.querySelectorAll('#week-nav button')).find(b => b.textContent.startsWith('2026-W44'));
+  assert.ok(w44, '週次導覽沒有 W44 的按鈕');
+  await app.window.eval(w44.getAttribute('onclick'));
+  assert.deepEqual(texts(doc.querySelectorAll('#week-nav .active')), ['2026-W44 (135篇)']);
+  assert.deepEqual(offsets(calls, '2026-W44'), ['0', '100']);
+  assert.equal(doc.querySelectorAll('#stream-articles .traffic-row').length, 135);
+  assert.ok(texts(doc.querySelectorAll('#stream-articles .tr-title')).some(t => t.endsWith('文章 134')), '第二頁的最後一篇要畫出來');
+  assert.equal(doc.querySelector('#stream-articles #stats .num')?.textContent, '135');
+  assert.match(doc.getElementById('site-subtitle').textContent, /2026-W44，共 135 則/);
+});
 
 test('countNewSince：只算 created_at 嚴格晚於基準的；等於不算、壞日期不算', () => {
   const app = loadApp(TRAFFIC_CONFIG, { exports: BADGE_EXPORTS });
@@ -847,6 +873,22 @@ test('焦點事件：同一張卡片裡各項各自展開，點第二項不動�
   assert.deepEqual(lis.map(focusState), [COLLAPSED, EXPANDED]);
   assert.equal(lis[1].querySelector('.ht-focus-summary').textContent, '路口未停讓，汽車撞上直行機車');
   assert.equal(lis[1].querySelector('.read-more').getAttribute('href'), 'https://example.test/f2');
+});
+
+test('SC-006：窄螢幕在熱點那一條展開、收合焦點事件，目前那一條一直是熱點、traffic_stream_last 一直是 reports', async () => {
+  const { app, doc, ls, current } = await land({ storage: { [LAST]: 'reports' } });
+  assert.deepEqual(current(), on('reports'));
+  assert.equal(ls.getItem(LAST), 'reports');
+  const toggles = doc.querySelectorAll('#report-list .ht-focus-toggle');
+  assert.equal(toggles.length, 2);
+  for (const btn of toggles) {
+    for (const want of [EXPANDED, COLLAPSED]) {
+      clickInline(app, btn);
+      assert.deepEqual(focusState(btn.closest('li')), want);
+      assert.deepEqual(current(), on('reports'), '展開或收合焦點事件不該切到新文章那一條');
+      assert.equal(ls.getItem(LAST), 'reports');
+    }
+  }
 });
 
 test('焦點事件：純字串項目、summary 是空字串的項目畫成一般連結，沒有展開鈕與展開區、不帶 ▸', () => {
