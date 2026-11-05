@@ -87,7 +87,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       `shared.css` 裡已經沒有 `.tr-badge`、`.tr-strong` 規則。
 - [X] T008 [US1] [FR-008] `pages/shared/app.js` 的 `trafficRow`：不再讀 `hot_topic_analyzed`，拿掉 ★ 與 `tr-strong`；`pages/shared/shared.css` 刪掉
       `.tr-strong`、`.tr-strong .tr-title`、`.tr-badge` 的規則（含寬形斷點裡的 `order`）。
-- [ ] T009 [US1] [FR-009, SC-004] 驗證型（要 Luke 同意才寫 prod）：照 quickstart §3，在 scratch 寫一支載入本機設定的唯讀腳本，印出目標 host 與
+- [X] T009 [US1] [FR-009, SC-004] 驗證型（要 Luke 同意才寫 prod）：照 quickstart §3，在 scratch 寫一支載入本機設定的唯讀腳本，印出目標 host 與
       `hot_topic_reports` 裡 `topic_label = '酒駕-integration-test'` 的列（id、`week_start_date`、`created_at`、`source_article_links` 項數）與總列數；
       Luke 同意後刪除那一列，讀回同條件 0 列、總數少 1。指令與輸出摘要寫進 `specs/017-hot-topic-report-page/evaluation.md`（新檔）。
       刪除不影響選題：新意檢查只讀最近 8 週的報告（`src/storage.py:408` 的 `get_recent_hot_topic_reports(max_age_weeks=8)`），2025-01-06 不在範圍內；
