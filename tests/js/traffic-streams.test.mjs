@@ -689,6 +689,29 @@ test('分享連結但報告清單載入失敗：照 landingStream 其餘規則�
   assert.match(doc.getElementById('report-list').textContent, /熱點報告載入失敗/);
 });
 
+test('窄螢幕：網址沒帶 batch 時不等報告清單就落地（固定或上次是新文章時熱點不先亮）；帶 batch 時等清單回來才定', async () => {
+  const cases = [
+    [{ [PREF]: 'articles' }, undefined, 'articles'],
+    [{ [LAST]: 'articles' }, 'https://garyu.test/?week=2026-W44', 'articles'],
+    [{ [PREF]: 'articles' }, `https://garyu.test/?batch=2026-10-26#report-${POLICY_SLUG}`, 'reports'],
+  ];
+  for (const [storage, url, expected] of cases) {
+    let doc;
+    const whilePending = [];
+    const { fetch } = pagedApi(BADGE_WEEKS, { hotTopics: () => {
+      whilePending.push(Array.from(doc.querySelectorAll('.stream.active'), s => s.id));
+      return respond({ reports: REPORTS });
+    } });
+    const app = loadApp(TRAFFIC_CONFIG, { html: NARROW + TRAFFIC_BODY, fetch, storage, url, exports: LAND_EXPORTS });
+    app.window.Element.prototype.scrollIntoView = () => {};
+    doc = app.window.document;
+    await app.init();
+    await settle();
+    assert.deepEqual(whilePending[0], [`stream-${expected}`], `/hot-topics 還沒回來時（${url}）`);
+    assert.deepEqual(Array.from(doc.querySelectorAll('.stream.active'), s => s.id), [`stream-${expected}`], url);
+  }
+});
+
 test('窄螢幕：每次切換 traffic_stream_last 都寫成目前那一條', async () => {
   const { app, doc, ls } = await land({ storage: { [PREF]: 'reports' } });
   assert.equal(ls.getItem(LAST), 'reports');

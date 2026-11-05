@@ -429,10 +429,14 @@ async function init() {
   if (hasStreams) {
     setupSettings();
     beginVisit();
+    const pref = readStored(STREAM_PREF_KEY), last = readStored(STREAM_LAST_KEY);
+    // 沒帶 batch 就不會是報告連結：先落地、不等 /hot-topics，否則設定是新文章時熱點會先亮約 1 秒。
+    const mayLink = new URLSearchParams(location.search).has('batch');
+    if (!mayLink) setStream(landingStream({ link: null, pref, last }), true);
     const batches = await loadReports();
-    const link = batches && parseReportLink(location.search, location.hash, batches);
+    const link = mayLink && batches && parseReportLink(location.search, location.hash, batches);
     if (link) selectBatch(link.batch);
-    setStream(landingStream({ link, pref: readStored(STREAM_PREF_KEY), last: readStored(STREAM_LAST_KEY) }), true);
+    if (mayLink) setStream(landingStream({ link, pref, last }), true);
     if (batches) reportsReady(batches);
     if (link) $('report-' + link.slug).scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
