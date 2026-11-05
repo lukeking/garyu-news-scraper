@@ -226,8 +226,20 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 .ht-focus { margin: 0 0 4px; padding-left: 1.4em; }
 .ht-focus li { margin-bottom: 6px; }
-.ht-focus-link { font-weight: 600; color: var(--accent); text-decoration: none; font-size: 13.5px; line-height: 1.5; }
-.ht-focus-link:hover { text-decoration: underline; }
+.ht-focus-link, .ht-focus-toggle { font-weight: 600; color: var(--accent); text-decoration: none; font-size: 13.5px; line-height: 1.5; }
+.ht-focus-link:hover, .ht-focus-toggle:hover { text-decoration: underline; }
+/* 按鈕是 inline-block：不對齊頂端，清單編號會對到標題的最後一行（簽核） */
+.ht-focus-toggle {
+  display: inline-block; vertical-align: top; text-align: left; font-family: inherit;
+  background: none; border: none; padding: 0; cursor: pointer;
+}
+.ht-focus-caret { margin-left: 2px; font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.ht-focus-detail {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin: 8px 0 6px;
+  background: var(--bg); border-left: 3px solid var(--accent2); border-radius: 8px; padding: 10px 12px;
+}
+.ht-focus-detail[hidden] { display: none; }
+.ht-focus-summary { font-size: 12.5px; line-height: 1.7; color: var(--text-body); margin: 0; }
 
 .ht-axes { padding-top: 8px; }   /* 與上方焦點事件清單明確分隔 */
 .ht-axis {

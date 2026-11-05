@@ -272,12 +272,34 @@ function reportCard(r) {
     ${(r.source_article_links || []).length ? `
     <p class="section-label" style="color:var(--accent2)">焦點事件</p>
     <ol class="ht-focus">
-      ${(r.source_article_links).map(a => `
-      <li><a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" class="ht-focus-link">${esc(typeof a === 'object' ? (a.title || a.link) : a)}</a></li>`).join('')}
+      ${(r.source_article_links).map(focusItem).join('')}
     </ol>` : ''}
     <div class="ht-axes">${renderReportBody(r.report_text)}</div>
   </div>
 </div>`;
+}
+
+// 焦點事件（FR-010）：有摘要的就地展開；舊格式的純連結、摘要去掉 HTML 後是空的，照舊是一般連結。
+function focusItem(a) {
+  const link = typeof a === 'object' ? a.link : a;
+  const title = esc(typeof a === 'object' ? (a.title || a.link) : a);
+  const summary = typeof a === 'object' ? stripHtml(a.summary) : '';
+  if (!summary) return `
+      <li><a href="${link}" target="_blank" rel="noopener" class="ht-focus-link">${title}</a></li>`;
+  return `
+      <li><button class="ht-focus-toggle" aria-expanded="false" onclick="toggleFocus(this)">${title}<span class="ht-focus-caret">▸</span></button>
+        <div class="ht-focus-detail" hidden>
+          <p class="ht-focus-summary">${esc(summary)}</p>
+          <a class="read-more" href="${link}" target="_blank" rel="noopener">閱讀原文 →</a>
+        </div></li>`;
+}
+
+function toggleFocus(btn) {
+  const detail = btn.closest('li')?.querySelector('.ht-focus-detail');
+  if (!detail) return;
+  detail.hidden = !detail.hidden;
+  btn.setAttribute('aria-expanded', String(!detail.hidden));
+  btn.querySelector('.ht-focus-caret').textContent = detail.hidden ? '▸' : '▾';
 }
 
 // 窄螢幕一次顯示一條（CSS 的 .stream.active）；寬螢幕兩條並排，切換鈕由 CSS 隱藏。

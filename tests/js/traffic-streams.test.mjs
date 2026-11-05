@@ -792,3 +792,95 @@ test('shared.css：齒輪面板照簽核——蓋在內容上；目前的選擇 
   assert.match(CSS, /\.settings-opt\[aria-checked="true"\]\s*\{[^}]*border-color:\s*var\(--accent2\)[^}]*background:\s*var\(--tag-bg\)/);
   assert.match(CSS, /\.settings-opt\[aria-checked="true"\]::before\s*\{\s*content:\s*"●"/);
 });
+
+// ── US4：焦點事件就地展開（FR-010、SC-006） ──────────────────────────────────
+/** 畫一張焦點事件是 items 的報告卡片，回傳它的每一個 <li>。 */
+function focusItems(items) {
+  const app = loadApp(TRAFFIC_CONFIG, { html: TRAFFIC_BODY, exports: EXPORTS });
+  app.renderReportStream(app.reportBatches([{ ...report('2026-11-02', '機車事故 · 中時'), source_article_links: items }]), '2026-11-02');
+  return { app, lis: Array.from(app.window.document.querySelectorAll('#report-list .ht-focus > li')) };
+}
+// inline handler 的 this 是那個元素；window.eval 會讓 this 變成 window，所以用 Function(...).call(el) 跑出貨的那串字。
+const clickInline = (app, el) => new app.window.Function(el.getAttribute('onclick')).call(el);
+const focusState = li => ({
+  expanded: li.querySelector('.ht-focus-toggle')?.getAttribute('aria-expanded'),
+  hidden: li.querySelector('.ht-focus-detail')?.hidden,
+  caret: li.querySelector('.ht-focus-caret')?.textContent,
+});
+const COLLAPSED = { expanded: 'false', hidden: true, caret: '▸' };
+const EXPANDED = { expanded: 'true', hidden: false, caret: '▾' };
+
+test('焦點事件：有摘要的是展開鈕、預設收合；展開區有跳脫過的摘要與指向 link 的「閱讀原文 →」；點一下展開、再點收合', () => {
+  const link = 'https://example.test/f1?a=1&b=2';
+  const { app, lis } = focusItems([{ link, title: '北市大直橋死亡車禍', summary: '時速 &lt;b&gt;80&lt;/b&gt; &amp; 酒駕' }]);
+  assert.equal(lis.length, 1);
+  const li = lis[0];
+  const btn = li.querySelector('button.ht-focus-toggle');
+  assert.ok(btn, '有摘要的焦點事件要是 .ht-focus-toggle 按鈕');
+  assert.equal(li.querySelector('.ht-focus-link'), null, '展開鈕不是一般連結');
+  assert.equal(btn.textContent, '北市大直橋死亡車禍▸');
+  assert.deepEqual(focusState(li), COLLAPSED);
+
+  const detail = li.querySelector('.ht-focus-detail');
+  assert.equal(detail.querySelector('.ht-focus-summary').textContent, '時速 <b>80</b> & 酒駕');
+  assert.equal(detail.querySelector('b'), null, '摘要經 esc，不會變成標籤');
+  const more = detail.querySelector('a.read-more');
+  assert.equal(more.textContent, '閱讀原文 →');
+  assert.equal(more.getAttribute('href'), link);
+  assert.equal(more.getAttribute('target'), '_blank');
+  assert.equal(more.getAttribute('rel'), 'noopener');
+
+  clickInline(app, btn);
+  assert.deepEqual(focusState(li), EXPANDED);
+  clickInline(app, btn);
+  assert.deepEqual(focusState(li), COLLAPSED);
+});
+
+test('焦點事件：同一張卡片裡各項各自展開，點第二項不動第一項', () => {
+  const { app, lis } = focusItems([
+    { link: 'https://example.test/f1', title: '第一篇', summary: '第一篇的摘要' },
+    { link: 'https://example.test/f2', title: '第二篇', summary: '第二篇的摘要' },
+  ]);
+  assert.deepEqual(lis.map(focusState), [COLLAPSED, COLLAPSED]);
+  clickInline(app, lis[1].querySelector('.ht-focus-toggle'));
+  assert.deepEqual(lis.map(focusState), [COLLAPSED, EXPANDED]);
+  assert.equal(lis[1].querySelector('.ht-focus-summary').textContent, '第二篇的摘要');
+  assert.equal(lis[1].querySelector('.read-more').getAttribute('href'), 'https://example.test/f2');
+});
+
+test('焦點事件：純字串項目、summary 是空字串的項目畫成一般連結，沒有展開鈕與展開區、不帶 ▸', () => {
+  const { lis } = focusItems([
+    'https://example.test/old-format',
+    { link: 'https://example.test/f2', title: '摘要是空字串', summary: '' },
+    { link: 'https://example.test/f3', title: '', summary: '' },
+  ]);
+  assert.deepEqual(lis.map(li => {
+    const a = li.querySelector('a.ht-focus-link');
+    return [a.getAttribute('href'), li.textContent.trim(), a.getAttribute('target')];
+  }), [
+    ['https://example.test/old-format', 'https://example.test/old-format', '_blank'],
+    ['https://example.test/f2', '摘要是空字串', '_blank'],
+    ['https://example.test/f3', 'https://example.test/f3', '_blank'],
+  ]);
+  for (const li of lis) assert.equal(li.querySelector('.ht-focus-toggle, .ht-focus-detail, .ht-focus-caret'), null);
+});
+
+test('焦點事件：摘要去掉 HTML 才判斷有沒有——只有空白、或 GN RSS 截在標籤中間的也是一般連結；有字的照樣去標籤再跳脫', () => {
+  const { lis } = focusItems([
+    { link: 'https://example.test/f1', title: '只有空白', summary: ' \n ' },
+    { link: 'https://example.test/f2', title: 'GN 截斷', summary: '<a href="https://news.google.com/rss/articles/CBMibkFVX3lxTE9HNUFUN0k3' },
+    { link: 'https://example.test/f3', title: '有標籤', summary: '<a href="https://news.google.com/x">台中機車擦撞</a>&nbsp;<font>中時</font>' },
+  ]);
+  assert.equal(lis[0].querySelector('.ht-focus-toggle'), null);
+  assert.equal(lis[1].querySelector('.ht-focus-toggle'), null);
+  assert.equal(lis[0].querySelector('.ht-focus-link').textContent, '只有空白');
+  assert.equal(lis[1].querySelector('.ht-focus-link').textContent, 'GN 截斷');
+  assert.equal(lis[2].querySelector('.ht-focus-summary')?.textContent, '台中機車擦撞 中時');
+  assert.equal(lis[2].querySelector('.ht-focus-detail a:not(.read-more), .ht-focus-detail font'), null);
+});
+
+test('shared.css：焦點事件照簽核——編號對齊標題第一行；展開區淡底、左側 --accent2 色條，[hidden] 時不顯示', () => {
+  assert.match(CSS, /\.ht-focus-toggle\s*\{[^}]*vertical-align:\s*top/, '按鈕是 inline-block，不對齊頂端時編號會對到最後一行');
+  assert.match(CSS, /\.ht-focus-detail\s*\{[^}]*background:\s*var\(--bg\)[^}]*border-left:\s*3px solid var\(--accent2\)/);
+  assert.match(CSS, /\.ht-focus-detail\[hidden\]\s*\{\s*display:\s*none/);
+});
