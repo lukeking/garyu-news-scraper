@@ -183,9 +183,29 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 ---
 
+## Phase 6c: T023 找到的缺口補測試（Luke 2026-11-05 裁示）
+
+**Goal**: spec-wide review（T023，PR `#198` 的留言）確認的 GAP 裡，有實作可測的三條與一條 caller edge 補上咬得到的測試；
+其餘（FR-009、SC-004 是 prod 資料，T009／T016 驗；FR-013 由 T016 的 FFXIV 截圖比對；標籤、搜尋、重要度 handler 與 subtitle 這 4 條邊緣
+在 017 之前就沒有測試、017 也沒改那些 handler）記成接受，理由在 PR 留言。
+
+- [ ] T029 [FR-011] `tests/js/traffic-streams.test.mjs`：報告卡片的批次標籤取 `week_start_date`、不取 `created_at`——fixture 的 `created_at`
+      與 `week_start_date` 不同天（例：週報在 11-04 手動 dispatch，`week_start_date` 11-02），卡片寫「11-02 週報」、不出現「11-04」。
+      現在的實作已經對：咬合用「卡片改顯示 `created_at` 的日期」證明會紅。
+- [ ] T030 [SC-006] `tests/js/traffic-streams.test.mjs`：窄螢幕上在熱點那一條展開、收合焦點事件，`.stream.active` 一直是熱點、
+      `traffic_stream_last` 不變。咬合：`toggleFocus` 裡加 `setStream('articles')` 會紅。
+- [ ] T031 [SC-007] 新的 `tests/js/ci-wiring.test.mjs`：讀 `.github/workflows/tests.yml`，`unit` job 的步驟依序有 `npm test`、
+      `npx playwright install --with-deps chromium`、`npm run test:layout`。咬合：把 `npm run test:layout` 改成 `echo skip` 會紅。
+- [ ] T032 [FR-016] `tests/js/traffic-streams.test.mjs`：從週次導覽點一個週次（執行出貨的 onclick 字串），新文章那一條載入那一週的全部文章
+      （`article_count` 超過 100 的那週全部畫出、`#week-nav .active` 換過去）。咬合：onclick 改成 `loadWeek('')` 會紅。
+
+**Checkpoint**: 四條都有改值咬合的紀錄；`npm test` 綠。
+
+---
+
 ## Phase 7: 真實資料上的驗收與 closeout
 
-- [ ] T023 驗證型（main 派審、記錄）：Unit 2～6 都 `[X]` 之後、T016 之前，照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md`
+- [X] T023 驗證型（main 派審、記錄）：Unit 2～6 都 `[X]` 之後、T016 之前，照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md`
       派一個 `spec-reviewer`（bare `GUB-025` 的第一個實際用例，Luke 2026-11-04 放行），逐條檢查 017 的 FR／SC 有沒有咬得到的測試、
       改動的直接呼叫端有沒有被測到；main 抽驗它的結果，矩陣與 GAP 清單留言在 PR `#198`；GAP 怎麼處理（補測試、記成接受、或照 spec-kit
       `converge` 寫回 tasks.md）由 Luke 裁示，要補的另開 task。
@@ -307,6 +327,16 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
   用同一個 harness 才測得到的那條規則，一起審。
 - Unchecked assumptions: none（字型的界線寫在 R13）。
 
+### Unit 10: T023 缺口的測試
+
+- Tasks: T029, T030, T031, T032
+- Outcome: FR-011、SC-006、SC-007 與「週次導覽 → loadWeek」這條 caller edge 各有一條改錯就紅的測試。
+- Prerequisites: T023 的矩陣（PR `#198` 留言）與 Luke 的處置裁示。
+- Verification: 每條的改值咬合；`npm test`。
+- Review: `tests/js/traffic-streams.test.mjs`、`tests/js/ci-wiring.test.mjs`。
+- Merge or split: 都只加測試、不動實作，一起審。
+- Unchecked assumptions: none。
+
 ### Unit 7: 真實資料上的驗收 (verification-only)
 
 - Tasks: T009, T023, T016, T020
@@ -356,7 +386,7 @@ Task: "T007 tests/js/traffic-row.test.mjs、tests/js/row-model-css.test.mjs"
 ### Incremental Delivery
 
 1. Unit 4（badge）→ Unit 5（落地、齒輪、分享連結）→ Unit 6（焦點事件展開）
-2. Unit 7 的 T009、T016 → Unit 8 → PR ready → merge → T020
+2. Unit 7 的 T009、T023 → Unit 10 → T016 → Unit 8 → PR ready → merge → T020
 3. 一個 spec 一個 PR：`/speckit-tasks` 之後開 draft PR，實作 commit 疊在同一條分支，PR 內文最後才改。
 
 ---
