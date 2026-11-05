@@ -209,7 +209,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       派一個 `spec-reviewer`（bare `GUB-025` 的第一個實際用例，Luke 2026-11-04 放行），逐條檢查 017 的 FR／SC 有沒有咬得到的測試、
       改動的直接呼叫端有沒有被測到；main 抽驗它的結果，矩陣與 GAP 清單留言在 PR `#198`；GAP 怎麼處理（補測試、記成接受、或照 spec-kit
       `converge` 寫回 tasks.md）由 Luke 裁示，要補的另開 task。
-- [ ] T016 [SC-003, SC-004] 驗證型：T009 刪除之後、merge 之前，本機用本分支的 `app.js` 對 prod 公開 API 渲染（`__API_BASE__` 指 prod，只讀）：
+- [X] T016 [SC-003, SC-004] 驗證型：T009 刪除之後、merge 之前，本機用本分支的 `app.js` 對 prod 公開 API 渲染（`__API_BASE__` 指 prod，只讀）：
       熱點那一條瀏覽得到的報告數是 55、沒有 `酒駕-integration-test`；55 份報告各自的 `reportShareUrl` 打開後都落在熱點、那一批、那張卡片（55／55，
       含同名報告）；用 FFXIV 的設定打開 FFXIV 頁畫面照舊。數字寫進 `specs/017-hot-topic-report-page/evaluation.md`。
 - [ ] T017 [SC-001, SC-002, SC-003, SC-004, SC-005, SC-006] `specs/017-hot-topic-report-page/spec.md`：加「達成階數」小節（同 015 的形狀），
