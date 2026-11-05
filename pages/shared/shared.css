@@ -109,7 +109,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .stream { display: none; }
 .stream.active { display: block; }
 .stream-head { display: none; }
-/* 批次導覽排成一列、左右捲動：412 px 下折行會有 8 行，把第一張卡片推到畫面中段（簽核）。週次導覽照舊折行。 */
+/* 窄螢幕的批次導覽排成一列、左右捲動：412 px 下折行會有 8 行，把第一張卡片推到畫面中段（簽核）。並排時折行（下方 1024 px 區塊）。週次導覽照舊折行。 */
 #batch-nav { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
 #batch-nav .week-btn { flex: none; white-space: nowrap; }
 @media (min-width: 1024px) {
@@ -127,6 +127,8 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     background: var(--bg); padding: 4px 0 10px; margin-bottom: 6px; border-bottom: 2px solid var(--border);
   }
   .stream-head h2 { font-size: 1.05rem; margin: 0; color: var(--accent); }
+  /* 並排時批次導覽照週次導覽折行：桌機用滑鼠橫捲不方便（Luke 2026-11-04）。 */
+  #batch-nav { flex-wrap: wrap; overflow-x: visible; padding-bottom: 0; }
 }
 
 /* ── Tag filters ── */

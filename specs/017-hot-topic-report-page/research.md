@@ -173,7 +173,7 @@ Luke 2026-11-04 裁示併入 017。
 - Runner：Playwright 函式庫（devDependency）配 Node 內建的 `node --test`，檔案在 `tests/layout/*.test.mjs`，`npm run test:layout`。
   不用 Playwright 的 test runner、不用 Storybook：前端沒有建置步驟，部署是把 `pages/` 的檔案直接 cp（`GNS-006` 注意事項），
   測試只能載入出貨的檔案本身。
-- 頁面：測試自己起一個 `node:http` 靜態伺服器送 `pages/traffic/`（`app.js`、`shared.css` 是指向 `pages/shared/` 的 symlink），
+- 頁面：測試自己起一個 `node:http` 靜態伺服器送 `pages/traffic/`，`app.js`、`shared.css` 照 `deploy-pages-traffic.yml` 的組法取自 `pages/shared/`（`pages/traffic/` 的同名 symlink 被 gitignore，fresh checkout 沒有；2026-11-05 在 scratch worktree 撞到才更正），
   `page.route` 把 Worker API 換成 `tests/layout/fixtures/` 的 JSON、把 cdnjs 的 `modern-normalize` 換成 vendored 的同版副本
   （它改 `box-sizing`，版面要跟 prod 一樣），其餘外部請求一律 abort——測試不打網路。
 - 斷言用量到的版面，不用 CSS 文字：

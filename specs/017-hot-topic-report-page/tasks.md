@@ -166,18 +166,18 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 **Goal**: `560px`、`5em`、`1024px` 與批次導覽的折行規則都有在 Chromium 上跑、改錯就紅的測試，在 CI 的 `unit` job 跑（SC-007、research R13）；
 批次導覽改成只有窄螢幕一列、並排時折行（Luke 2026-11-04）。
 
-- [ ] T024 [SC-007] `package.json`（devDependency `playwright`、script `test:layout` ＝ `node --test 'tests/layout/**/*.test.mjs'`）、`package-lock.json`、
+- [-] T024 [SC-007] `package.json`（devDependency `playwright`、script `test:layout` ＝ `node --test 'tests/layout/**/*.test.mjs'`）、`package-lock.json`、
       `tests/layout/harness.mjs`（啟 Chromium；`node:http` 送 `pages/traffic/`；`page.route` 把 Worker API 換成 `tests/layout/fixtures/` 的 JSON、
       cdnjs 的 `modern-normalize` 2.0.0 換成 vendored 副本、其餘外部請求 abort）、`tests/layout/fixtures/`（文章與報告各一份最小資料；
       另一份 24 批的報告給折行測試）；`.github/workflows/tests.yml` 的 `unit` job 在 `npm test` 之後加 `npx playwright install --with-deps chromium`
       與 `npm run test:layout`。`npm test` 的 glob 不能撈到 `tests/layout/`。
-- [ ] T025 [P] [SC-007] `tests/layout/row-model.test.mjs`：視窗 591 與 592 px（文章列表 559／560 px）時 `.tr-slot` 一個顯示、一個藏起；
+- [-] T025 [P] [SC-007] `tests/layout/row-model.test.mjs`：視窗 591 與 592 px（文章列表 559／560 px）時 `.tr-slot` 一個顯示、一個藏起；
       寬形裡時間是「10 分鐘前」的列 `.tr-time` 不溢出（測試名寫明「在 CI 的字型下」），時間不同的列寬幅條左緣 x 相同。
       這兩個常數現在就是對的：咬合用改值證明（560→600、5em→3em 各讓對應的測試紅），寫進 executor 的回報。
-- [ ] T026 [P] [FR-002, SC-007] `tests/layout/streams.test.mjs`：1023 px 切換鈕顯示、只看得到目前那一條；1024 px 切換鈕隱藏、兩條左右並排
+- [-] T026 [P] [FR-002, SC-007] `tests/layout/streams.test.mjs`：1023 px 切換鈕顯示、只看得到目前那一條；1024 px 切換鈕隱藏、兩條左右並排
       （同一個 top、熱點在左）；批次導覽在 412 px 所有按鈕同一個 `offsetTop` 且可橫捲，在 1280 px 至少兩個不同的 `offsetTop`。
       最後這條在現在的 CSS 上是紅的（Unit 2 做成所有寬度一列）。
-- [ ] T027 [FR-002] `pages/shared/shared.css`：批次導覽的一列橫捲只在小於 1024 px 時生效，並排時照 `.week-nav` 折行。
+- [-] T027 [FR-002] `pages/shared/shared.css`：批次導覽的一列橫捲只在小於 1024 px 時生效，並排時照 `.week-nav` 折行。
 
 **Checkpoint**: `npm run test:layout` 綠、每條有改值咬合的紀錄；CI 的 `unit` job 跑到它。
 

@@ -216,14 +216,15 @@ function splitBlock() {
   return null;
 }
 
-test('shared.css：並排斷點是簽核的 1024 px；窄螢幕只顯示 .stream.active；批次導覽一列不折行', () => {
+test('shared.css：並排斷點是簽核的 1024 px；窄螢幕只顯示 .stream.active；批次導覽窄螢幕一列不折行、並排時折行', () => {
   assert.ok(CSS.includes('@media (min-width: 1024px)'), '並排斷點要是 2026-11-04 簽核的 1024 px');
   const block = splitBlock();
   assert.ok(block, '@media (min-width: 1024px) 區塊不見了');
   assert.match(block, /\.stream-switch\s*\{\s*display:\s*none/, '並排時切換鈕隱藏');
   assert.match(CSS, /\.stream\s*\{\s*display:\s*none/, '窄螢幕預設不顯示任何一條');
   assert.match(CSS, /\.stream\.active\s*\{\s*display:\s*block/, 'setStream 切的 class 是 active');
-  assert.match(CSS, /#batch-nav\s*\{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/, '批次導覽一列、左右捲動');
+  assert.match(CSS, /#batch-nav\s*\{[^}]*flex-wrap:\s*nowrap[^}]*overflow-x:\s*auto/, '窄螢幕批次導覽一列、左右捲動');
+  assert.match(block, /#batch-nav\s*\{[^}]*flex-wrap:\s*wrap/, '並排時批次導覽照週次導覽折行（Luke 2026-11-04）');
 });
 
 // ── US2：整週載入（FR-016）與「有新的」標記（FR-004） ──────────────────────────

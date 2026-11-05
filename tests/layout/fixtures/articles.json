@@ -1,0 +1,50 @@
+{
+  "week_id": "2026-W45",
+  "article_count": 4,
+  "articles": [
+    {
+      "title": "國道三號連環追撞 3 人輕傷",
+      "link": "https://example.test/a1",
+      "source": "Google News 機車",
+      "published": "2026-11-05T03:50:00Z",
+      "created_at": "2026-11-05T03:55:00Z",
+      "summary": "警方表示，事故發生於今日上午，初步研判為未保持安全距離所致，詳細肇因仍在調查中。",
+      "image_url": "https://img.layout.test/a1.png",
+      "major_category": "機車事故",
+      "hot_topic_analyzed": false
+    },
+    {
+      "title": "台中機車擦撞 1 人送醫",
+      "link": "https://example.test/a2",
+      "source": "聯合新聞網",
+      "published": "2026-11-05T03:00:00Z",
+      "created_at": "2026-11-05T03:05:00Z",
+      "summary": "台中市西屯區今晨發生機車擦撞事故，一名騎士受輕傷送醫，警方調查中。",
+      "image_url": "https://img.layout.test/a2.png",
+      "major_category": "機車事故",
+      "hot_topic_analyzed": false
+    },
+    {
+      "title": "新北路口機車與公車碰撞",
+      "link": "https://example.test/a3",
+      "source": "自由時報",
+      "published": "2026-11-04T04:00:00Z",
+      "created_at": "2026-11-04T04:05:00Z",
+      "summary": "新北市板橋區一處路口昨日發生機車與公車碰撞，騎士送醫後無生命危險。",
+      "image_url": "https://img.layout.test/a3.png",
+      "major_category": "機車事故",
+      "hot_topic_analyzed": false
+    },
+    {
+      "title": "高雄機車自撞路燈 騎士重傷",
+      "link": "https://example.test/a4",
+      "source": "PTT/biker",
+      "published": "2026-11-02T04:00:00Z",
+      "created_at": "2026-11-02T04:05:00Z",
+      "summary": "高雄市前鎮區一名騎士深夜自撞路燈，送醫時意識不清，詳細原因待查。",
+      "image_url": "https://img.layout.test/a4.png",
+      "major_category": "機車事故",
+      "hot_topic_analyzed": false
+    }
+  ]
+}
