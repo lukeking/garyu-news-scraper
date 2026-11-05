@@ -217,7 +217,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [ ] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
       （2026-11-04 併入，SC-007；先確認它的完成標準都達成，並重推導以它為 blocker 的下游列）；
       重新讀 `GNS-20261103-n9n` 的觸發點（「spec 017 上線之後」）確認仍成立；讀 diff。
-- [ ] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
+- [-] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
       `/api/hot-topics`），改成真實的讀者或直接刪掉；只改註解、對執行期零影響。動手前跑 BACKLOG pre-edit 檢查；`tests/unit/test_comment_budget.py`
       的 `LEGACY` 若列了這個檔，行數變了要一起改。Luke 2026-11-04 裁示 017 順手改。
 - [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組，除了 T028 那句註解（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
