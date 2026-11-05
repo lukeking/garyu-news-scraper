@@ -188,6 +188,6 @@ Luke 2026-11-04 裁示併入 017。
   **量測**（2026-11-05，run `42041849436`，`9b3a89f`）：`--with-deps` 在 runner 上只多裝 9 個字型套件（21.1 MB，含 CJK 的 `fonts-wqy-zenhei`），
   函式庫本來就有。attempt 1 的 apt 下載只有 44.5 kB/s：安裝那步 8 分 24 秒、整個 job 9 分 22 秒，離 10 分鐘的 timeout 只剩 38 秒；
   attempt 2 的下載 14.4 MB/s：安裝 26 秒、版面測試 6 秒、job 58 秒（之前三次是 28～44 秒）。8 條在兩次都 8/8，包括 5em 在 CI 字型下。
-  `timeout-minutes` 維持 10：兩個樣本一快一慢，慢的那次是 mirror，不是測試；要不要調高留給 Luke。
+  `timeout-minutes` 維持 10：兩個樣本一快一慢，慢的那次是 mirror，不是測試；Luke 11-05 裁示不調高，真的逾時就重跑。
 - 字型的界線：`5em` 夠不夠寬取決於字型的 advance width。CI 用的是 `--with-deps` 裝的字型，不是 Pixel 上的 Noto Sans CJK，
   所以這條證明的是「在 CI 的字型下放得下」，不是每種字型；寫在測試名稱裡，不假裝更多。
