@@ -31,6 +31,13 @@ function stripHtml(s) {
   const doc = new DOMParser().parseFromString(String(s == null ? '' : s), 'text/html');
   return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
 }
+// GN 充實前的舊資料，summary 只是標題複讀＋來源名，展開只會再看一次標題。比對去掉標點：
+// GN 標題帶「 - 來源」尾碼、summary 只有「 來源」，剩個 '-' 會讓包含判斷失效。
+function isEchoSummary(title, summary) {
+  const norm = s => (s || '').replace(/[^\p{L}\p{N}]+/gu, '');
+  const t = norm(title), s = norm(summary);
+  return s.length <= t.length + 24 && (t.includes(s) || s.includes(t));
+}
 
 // ── Theme ─────────────────────────────────────────────────────
 function toggleTheme() {
@@ -279,12 +286,12 @@ function reportCard(r) {
 </div>`;
 }
 
-// 焦點事件（FR-010）：有摘要的就地展開；舊格式的純連結、摘要去掉 HTML 後是空的，照舊是一般連結。
+// 焦點事件（FR-010）：有摘要的就地展開；舊格式的純連結、摘要去掉 HTML 後是空的或只是標題回音，照舊是一般連結。
 function focusItem(a) {
   const link = typeof a === 'object' ? a.link : a;
   const title = esc(typeof a === 'object' ? (a.title || a.link) : a);
   const summary = typeof a === 'object' ? stripHtml(a.summary) : '';
-  if (!summary) return `
+  if (!summary || isEchoSummary(a.title, summary)) return `
       <li><a href="${link}" target="_blank" rel="noopener" class="ht-focus-link">${title}</a></li>`;
   return `
       <li><button class="ht-focus-toggle" aria-expanded="false" onclick="toggleFocus(this)">${title}<span class="ht-focus-caret">▸</span></button>
@@ -688,15 +695,9 @@ function toggleNoise(btn) {
 function trafficRow(a, idx, dimmed) {
   const src = a.source || '';
   const when = a.published || a.created_at || '';
-  // 摘要優先用 LLM 分析，否則退回來源 summary；GN 充實前的舊資料 summary 只是
-  // 標題複讀＋來源名（長度 ≈ 標題），展開只會再看一次標題 — 視為無摘要。
-  // 比對需去掉標點：GN 標題帶「 - 來源」尾碼、summary 只有「 來源」，剩個 '-' 會讓包含判斷失效
-  const norm = s => (s || '').replace(/[^\p{L}\p{N}]+/gu, '');
+  // 摘要優先用 LLM 分析，否則退回來源 summary；只是標題回音的視為無摘要（isEchoSummary）。
   const rawSummary = stripHtml((a.analysis && a.analysis.summary) || a.summary || '');
-  const normT = norm(a.title);
-  const normS = norm(rawSummary);
-  const isEcho = normS.length <= normT.length + 24 && (normT.includes(normS) || normS.includes(normT));
-  const summary = isEcho ? '' : rawSummary;
+  const summary = isEchoSummary(a.title, rawSummary) ? '' : rawSummary;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
   const hasImage = !!(a.image_url || '').trim();
   // 列模型 E：同一份 DOM 兩種形態，由 CSS 在斷點切換（BACKLOG #5，2026-09-05 選定）。

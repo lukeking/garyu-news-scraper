@@ -838,13 +838,13 @@ test('焦點事件：有摘要的是展開鈕、預設收合；展開區有跳�
 
 test('焦點事件：同一張卡片裡各項各自展開，點第二項不動第一項', () => {
   const { app, lis } = focusItems([
-    { link: 'https://example.test/f1', title: '第一篇', summary: '第一篇的摘要' },
-    { link: 'https://example.test/f2', title: '第二篇', summary: '第二篇的摘要' },
+    { link: 'https://example.test/f1', title: '第一篇', summary: '砂石車右轉擦撞機車，騎士送醫' },
+    { link: 'https://example.test/f2', title: '第二篇', summary: '路口未停讓，汽車撞上直行機車' },
   ]);
   assert.deepEqual(lis.map(focusState), [COLLAPSED, COLLAPSED]);
   clickInline(app, lis[1].querySelector('.ht-focus-toggle'));
   assert.deepEqual(lis.map(focusState), [COLLAPSED, EXPANDED]);
-  assert.equal(lis[1].querySelector('.ht-focus-summary').textContent, '第二篇的摘要');
+  assert.equal(lis[1].querySelector('.ht-focus-summary').textContent, '路口未停讓，汽車撞上直行機車');
   assert.equal(lis[1].querySelector('.read-more').getAttribute('href'), 'https://example.test/f2');
 });
 
@@ -863,6 +863,30 @@ test('焦點事件：純字串項目、summary 是空字串的項目畫成一般
     ['https://example.test/f3', 'https://example.test/f3', '_blank'],
   ]);
   for (const li of lis) assert.equal(li.querySelector('.ht-focus-toggle, .ht-focus-detail, .ht-focus-caret'), null);
+});
+
+test('焦點事件：摘要只是標題複讀＋來源名（同 trafficRow 的回音）時是一般連結；有標題以外內容的照樣展開', () => {
+  const { lis } = focusItems([
+    { link: 'https://example.test/e1', title: '屏東縣道安會報聚焦無照及重複違規 - CNMA新聞聯合網', summary: '屏東縣道安會報聚焦無照及重複違規 CNMA新聞聯合網' },
+    { link: 'https://example.test/e2', title: '國道三號連環追撞', summary: '國道三號連環追撞 - 中時新聞網' },
+    { link: 'https://example.test/e3', title: '國道三號連環追撞', summary: '國道三號連環追撞，三車受損、一人輕傷，北上車道回堵兩公里，警方到場處理，事故原因仍在調查中' },
+  ]);
+  assert.equal(lis[0].querySelector('.ht-focus-toggle'), null, '11-02 那批的真實回音');
+  assert.equal(lis[1].querySelector('.ht-focus-toggle'), null);
+  assert.equal(lis[0].querySelector('.ht-focus-link').getAttribute('href'), 'https://example.test/e1');
+  assert.ok(lis[2].querySelector('.ht-focus-toggle'), '摘要有標題以外的內容就要能展開');
+});
+
+test('焦點事件：回音的邊界是比標題多 24 個字（去掉標點後）——多 24 字是一般連結，多 25 字可展開', () => {
+  const plus24 = '三車受損一人輕傷北上車道回堵兩公里警方到場處理中';
+  const plus25 = '三車受損一人輕傷北上車道回堵兩公里警方到場處理中午';
+  assert.deepEqual([plus24.length, plus25.length], [24, 25]);
+  const { lis } = focusItems([
+    { link: 'https://example.test/b1', title: '國道三號連環追撞', summary: `國道三號連環追撞，${plus24}` },
+    { link: 'https://example.test/b2', title: '國道三號連環追撞', summary: `國道三號連環追撞，${plus25}` },
+  ]);
+  assert.equal(lis[0].querySelector('.ht-focus-toggle'), null);
+  assert.ok(lis[1].querySelector('.ht-focus-toggle'));
 });
 
 test('焦點事件：摘要去掉 HTML 才判斷有沒有——只有空白、或 GN RSS 截在標籤中間的也是一般連結；有字的照樣去標籤再跳脫', () => {
