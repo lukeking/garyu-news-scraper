@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261105-v4e` | CI 版面測試的成本分層：觸發面、安裝來源、上限、量測 | Luke 2026-11-05 裁示先分層，實作順序與時間點之後再決定；`timeout-minutes` 維持 10。下次 `unit` job 逾時、或進入密集改前端的時期時重新評估 `pre-edit: {"paths":[".github/workflows/tests.yml"]}` | 四層各有裁示（做，或寫明不做與理由）；做了的那幾層上線後，`unit` job 每次的安裝耗時查得到 |
 | `GNS-20261103-f71` | 交通的週次清單被截在 1000 列：W30～W37 不在週次導覽裡，最舊那週的篇數算少 | 下次動 `workers/api/src/index.js` 的 `handleWeeks` 時；或讀者發現週次導覽缺週時 `pre-edit: {"paths":["workers/api/src/index.js"]}` | `/api/weeks?content_type=traffic` 列出所有有文章的週次，每週篇數與 `/api/weeks/<週>` 的 `article_count` 一致；Worker 有測試 runner，並有一條在超過 1000 列時會紅的測試（故意改壞看它紅）；或寫明不修的理由 |
 | `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | 等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口` | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
 | `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口` | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
@@ -777,6 +778,29 @@ Luke 10-26 裁示人工條目新增類別 `魔物`，兩列已改；`auto_kb.py`
 **Luke 2026-11-03**：記成一條 BACKLOG，017 不修；「沒有測試的部分也要補上」——修的時候 Worker 要有測試 runner，鎖住這個情況。
 
 重跑：抓 `/api/weeks?content_type=traffic` 加總 `article_count`，再對最舊那週逐頁抓 `/api/weeks/<週>` 比對篇數。
+
+## GNS-20261105-v4e CI 版面測試的成本分層
+
+**起因**（2026-11-05，spec 017 Unit 9 之後）：`unit` job 加了 `npx playwright install --with-deps chromium` 與 `npm run test:layout`。
+本分支 12 次帶版面測試的 run 裡，10 次安裝 0.3～0.6 分；2 次撞到慢的 apt mirror（41～44 kB/s 下 21.1 MB 字型）：
+run `42041849436` attempt 1 job 9 分 22 秒、run `42049254755`（`#182`）job 9 分 38 秒，離 `timeout-minutes: 10` 只剩 38／22 秒。
+`--with-deps` 在 runner 上只多裝 9 個字型套件（含 CJK 的 `fonts-wqy-zenhei`，5em 那條測試量的就是它）；Chromium 本身從 CDN 下載約 10 秒。
+
+**樣本的界線**（Luke）：08-01～11-05 是前端低強度的一段——`main` 上 114 次 merge 只有 4 次動到 `pages/`、2 次動到
+`shared.css`——「約 4% 的 PR 才碰得到版面」是這段期間的頻率，不是常態；密集改前端時觸發率會高得多，快取的命中率也跟著變。
+
+**四層**（各自解決一件事、各自決定時機；順序與時間點由 Luke 之後裁示）：
+
+- **觸發面（跑不跑）**：`unit` job 裡加一步看本 PR 的 diff 有沒有碰到 `pages/`、`tests/layout/`、`package*.json`、`tests.yml`，
+  沒碰到就印一行「略過版面測試：本 PR 沒動到…」並跳過安裝與測試；碰到才跑。仍在必要檢查裡，所以擋得住。
+  不用 job 層的 `if:` 或 workflow 的 `paths:`——必要檢查遇到被跳過或沒觸發的 job 可能一直等（印象，未在本 repo 驗）。
+  代價：判斷本身要測、`fetch-depth` 要拿得到 base、`tests/js/ci-wiring.test.mjs`（T031，現在斷言 unit job 沒有 `if`）要跟著改。
+- **安裝來源（快不快）**：快取 `~/.cache/ms-playwright`（只省約 10 秒）與那 9 個 `.deb`（慢的那段；要自己釘套件清單、還原後 `dpkg -i`，
+  不再交給 `--with-deps`），或改用 Playwright 的 container image。GitHub 會清掉 7 天沒被讀的快取（印象，未查證）——低強度期多半沒命中，
+  要命中就得有東西定期讀它。
+- **上限（撞不撞牆）**：`timeout-minutes` 現在 10，Luke 11-05 裁示不動；逾時就重跑。
+- **量測（判斷依據）**：每次 run 的安裝耗時與 mirror 速度現在只能事後撈 log（`gh run view <id> --log | grep 'Fetched .* in '`）。
+  沒有它，前三層的時機都只能猜。
 
 ## 這份清單自己的訊號
 
