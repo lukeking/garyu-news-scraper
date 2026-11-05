@@ -152,10 +152,10 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Independent Test**: 報告卡片的焦點事件點一下展開、再點收合；舊格式項目沒有可展開的空殼。
 
-- [-] T014 [P] [US4] [FR-010, SC-006] `tests/js/traffic-streams.test.mjs`：`{link, title, summary}` 的焦點事件畫成可展開的按鈕，展開區預設
+- [X] T014 [P] [US4] [FR-010, SC-006] `tests/js/traffic-streams.test.mjs`：`{link, title, summary}` 的焦點事件畫成可展開的按鈕，展開區預設
       `hidden`、內含摘要（經 `esc`）與指向 `link` 的「閱讀原文 →」；點一下展開、再點收合；純字串項目與 `summary` 是空字串的項目畫成一般連結、
       沒有展開鈕。
-- [-] T015 [US4] [FR-010] `pages/shared/app.js`（報告卡片的焦點事件改用可展開的項目與切換函式）、`pages/shared/shared.css`（展開區樣式，照 T001 簽核）。
+- [X] T015 [US4] [FR-010] `pages/shared/app.js`（報告卡片的焦點事件改用可展開的項目與切換函式）、`pages/shared/shared.css`（展開區樣式，照 T001 簽核）。
 
 **Checkpoint**: 四個 story 都成立。
 
