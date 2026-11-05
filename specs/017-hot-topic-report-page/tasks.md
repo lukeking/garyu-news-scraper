@@ -131,14 +131,14 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 
 **Independent Test**: SC-003 的五個情境在 jsdom 裡各跑一次；55 份報告的分享連結各自解析回同一份。
 
-- [-] T012 [P] [US3] [FR-005, FR-006, FR-007, FR-015, SC-003] `tests/js/traffic-streams.test.mjs`：
+- [X] T012 [P] [US3] [FR-005, FR-006, FR-007, FR-015, SC-003] `tests/js/traffic-streams.test.mjs`：
       `landingStream({ link, pref, last })` 四層優先序各一條（有效的報告連結 → `reports`；`pref` 是 `reports`／`articles` → 那一條；
       `pref` 是 `default` 或沒有、`last` 有值 → `last`；都沒有 → `reports`），`traffic_stream_pref` 存了不認得的值時當成 `default`；
       `reportShareUrl(report, base)` 的字面值是 `<base>?batch=2026-11-02#report-<slugify(topic_label)>`；`parseReportLink(search, hash, batches)`
       對兩份同名「道安政策 · 彙整」（2026-11-02、2026-10-26）各自解析回自己那一份，批次或 slug 對不到回 `null`，舊格式
       `?week=2026-W45#topic-…` 回 `null`；齒輪面板選了「新文章」之後 `traffic_stream_pref` 是 `articles`；窄螢幕上 `traffic_stream_last` 在打開時的落地
       （包括由固定設定決定的那次）與每次切換都寫成目前那一條。
-- [-] T013 [US3] [FR-005, FR-006, FR-007, FR-015] `pages/shared/app.js`（`landingStream`、`reportShareUrl`、`parseReportLink`、齒輪面板、`init` 的落地
+- [X] T013 [US3] [FR-005, FR-006, FR-007, FR-015] `pages/shared/app.js`（`landingStream`、`reportShareUrl`、`parseReportLink`、齒輪面板、`init` 的落地
       與捲到 `#report-<slug>`；報告卡片的 LINE 分享改用新連結；`scrollToHashTopic` 與 `#topic-` 的處理拿掉）、`pages/traffic/index.html`（齒輪面板）、
       `pages/shared/shared.css`（齒輪面板的樣式，照 T001 簽核）。舊格式的 `week` 參數照現在選新文章那一條的週次。
 
