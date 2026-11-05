@@ -220,7 +220,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [-] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
       `/api/hot-topics`），改成真實的讀者或直接刪掉；只改註解、對執行期零影響。動手前跑 BACKLOG pre-edit 檢查；`tests/unit/test_comment_budget.py`
       的 `LEGACY` 若列了這個檔，行數變了要一起改。Luke 2026-11-04 裁示 017 順手改。
-- [ ] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組，除了 T028 那句註解（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
+- [-] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組，除了 T028 那句註解（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
       （017 當首例，Luke 2026-11-04 放行，結果在 T023 的 PR 留言）；`GNS-006` 併入（Unit 9）與第一次 CI 的實際耗時；`GNS-20261021-5yg` 在本 PR 排進佇列（`Backlog-reviewed`）；bare `GUB-20261101-9qe`
       不併入（garyu 不在範圍、副本已由 `#196` 刪除）；bare `GUB-20261024-rcf` 的樣本資料（017：Unchecked 3 條、step 2a 停 0 次、T001 對兩條假設的
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
