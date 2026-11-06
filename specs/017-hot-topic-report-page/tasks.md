@@ -225,7 +225,7 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
       不併入（garyu 不在範圍、副本已由 `#196` 刪除）；bare `GUB-20261024-rcf` 的樣本資料（017：Unchecked 3 條、step 2a 停 0 次、T001 對兩條假設的
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
       `Backlog:` 行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出、不手寫。
-- [ ] T020 [SC-001, SC-002, SC-003, SC-005, SC-006] 驗證型（merge 之後）：`deploy-pages-traffic.yml` 部署完，照 quickstart §4 在 prod 跑 SC-001、
+- [X] T020 [SC-001, SC-002, SC-003, SC-005, SC-006] 驗證型（merge 之後）：`deploy-pages-traffic.yml` 部署完，照 quickstart §4 在 prod 跑 SC-001、
       SC-002（badge 與資料庫唯讀查詢的列數比，不與 Worker API 比）、SC-003 的五個情境、SC-006，並用 `signoff/shoot.mjs` 截 prod 頁面與
       `signoff/2026-11-04-*.jpg` 並排比對（SC-005）；結果留言在 PR 上，回填 T017 的待填欄。
 
