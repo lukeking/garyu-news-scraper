@@ -212,15 +212,15 @@ JS 用 `tests/js/harness.mjs` 在 jsdom 裡跑真正出貨的 `pages/shared/app.
 - [X] T016 [SC-003, SC-004] 驗證型：T009 刪除之後、merge 之前，本機用本分支的 `app.js` 對 prod 公開 API 渲染（`__API_BASE__` 指 prod，只讀）：
       熱點那一條瀏覽得到的報告數是 55、沒有 `酒駕-integration-test`；55 份報告各自的 `reportShareUrl` 打開後都落在熱點、那一批、那張卡片（55／55，
       含同名報告）；用 FFXIV 的設定打開 FFXIV 頁畫面照舊。數字寫進 `specs/017-hot-topic-report-page/evaluation.md`。
-- [-] T017 [SC-001, SC-002, SC-003, SC-004, SC-005, SC-006] `specs/017-hot-topic-report-page/spec.md`：加「達成階數」小節（同 015 的形狀），
+- [X] T017 [SC-001, SC-002, SC-003, SC-004, SC-005, SC-006] `specs/017-hot-topic-report-page/spec.md`：加「達成階數」小節（同 015 的形狀），
       填 merge 前已有的結果（T002、T009、T016、各 unit 的測試），上線後才有的（T020）標成待填。
-- [-] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
+- [X] T018 `specs/BACKLOG.md`：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-005` 移出 005（連同小節），`GNS-006` 同樣移出
       （2026-11-04 併入，SC-007；先確認它的完成標準都達成，並重推導以它為 blocker 的下游列）；
       重新讀 `GNS-20261103-n9n` 的觸發點（「spec 017 上線之後」）確認仍成立；讀 diff。
-- [-] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
+- [X] T028 `src/publisher.py` 約第 389 行的 docstring：拿掉「前端 `renderHotTopics()` 讀 `hot_topics.json`」那句（函式在 Unit 2 已刪，前端本來就讀
       `/api/hot-topics`），改成真實的讀者或直接刪掉；只改註解、對執行期零影響。動手前跑 BACKLOG pre-edit 檢查；`tests/unit/test_comment_budget.py`
       的 `LEGACY` 若列了這個檔，行數變了要一起改。Luke 2026-11-04 裁示 017 順手改。
-- [-] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組，除了 T028 那句註解（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
+- [X] T019 PR 內文（`gh pr edit`）：不動 pipeline 模組，除了 T028 那句註解（Principles I–III 不需逐條驗，仍寫明）；實際做法與簽核結果；bare `GUB-025` 的處置
       （017 當首例，Luke 2026-11-04 放行，結果在 T023 的 PR 留言）；`GNS-006` 併入（Unit 9）與第一次 CI 的實際耗時；`GNS-20261021-5yg` 在本 PR 排進佇列（`Backlog-reviewed`）；bare `GUB-20261101-9qe`
       不併入（garyu 不在範圍、副本已由 `#196` 刪除）；bare `GUB-20261024-rcf` 的樣本資料（017：Unchecked 3 條、step 2a 停 0 次、T001 對兩條假設的
       裁示、第一個 review unit 推翻了什麼；016：每道閘都過了，意圖面的錯到 T001 簽核畫面才被抓到，PR `#197`）；`GNS-20261020-rhd` 的延後；
