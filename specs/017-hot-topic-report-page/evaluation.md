@@ -67,3 +67,35 @@ FFXIV 頁：`main`（`origin/main` 的 worktree）與本分支同一時刻對 pr
 
 **結論**：通過。SC-004：熱點那一條瀏覽得到 55 份＝真報告數，測試殘留 0。SC-003 的分享連結那半：55／55 定位到同一份（含 6 組同名報告）。
 觀察（不是缺陷，只量了這 3 條）：捲到的卡片頂端在視窗頂端上方約 16 px。
+
+## T020 SC-001、SC-002、SC-003、SC-004、SC-005、SC-006：上線後在 prod
+
+**時間**：2026-11-06 19:55～19:58（+0800），本機。prod 交通頁 `https://garyu-traffic-news.pages.dev`，`deploy-pages-traffic.yml` run `42213283965`
+部署 merge commit `ffd9688`（PR `#198`）；部署後 prod 的 `app.js`、`shared.css` 與 `ffd9688` 的 `pages/shared/` 逐位元組相同（sha256 前 16 碼
+`b80643a3a0439217`、`ca8bbc19158f9f0d`）。
+**做法**：scratch 的 Playwright 腳本（repo 的 `playwright` 1.60.0、預設 Chromium）直接開 prod 頁面，只讀；每個情境一個新的瀏覽器 context，
+localStorage 從空的開始（＝清掉站上資料），需要的鍵用 context 的初始 storage 放進去，同一個 context 裡重開分頁會保留頁面自己寫的值。
+SC-002 的資料庫那半：scratch 的 Python 腳本在 repo 根目錄執行時自己載入本機設定、斷言目標不是本機，對 prod 唯讀數
+`articles`（`content_type=traffic`、`created_at` 晚於基準）與 `hot_topic_reports`（`created_at` 晚於基準）的列數——跟 Worker 給前端的查詢條件相同，
+但不經 Worker。SC-005：`signoff/shoot.mjs --url <prod>` 截四張拼圖，跟 `signoff/2026-11-04-*.jpg` 左右並排給 Luke 看。
+
+```text
+SC-001 narrow412: 2026-W44: rows=135 cards=0 stars=0 2026-W45: rows=115 cards=0 stars=0; batch 11-02 · 2 份 -> 10-19 · 2 份, week stays 2026-W45 (115篇); week click -> batch stays 10-19 · 2 份; errors=0
+SC-001 wide1440: 2026-W44: rows=135 cards=0 stars=0 2026-W45: rows=115 cards=0 stars=0; batch 11-02 · 2 份 -> 10-19 · 2 份, week stays 2026-W45 (115篇); week click -> batch stays 10-19 · 2 份; errors=0
+SC-002 badges: reports=新 2 articles=67 (since_articles=2026-11-03T11:55:06.000Z, since_reports=2026-11-01T16:00:00.000Z); errors=0
+SC-003 1 清掉站上資料: stream-reports; errors=0
+SC-003 2 切到文章、重開: stream-articles; errors=0
+SC-003 3 齒輪設成 reports（上次是另一條）: stream-reports; errors=0
+SC-003 3 齒輪設成 articles（上次是另一條）: stream-articles; errors=0
+SC-003 4 舊格式連結 ?week=2026-W44#topic-test: stream-reports week=2026-W44 (135篇) cards=2; errors=0
+SC-004: batches=24 reports=55 integration-test=0; errors=0
+SC-006: 機車事故 · 中時 active each step=['stream-reports', 'stream-reports', 'stream-reports'] expanded=2 visible=2; errors=0
+DB (read-only): articles(traffic, created_at > 2026-11-03T11:55:06.000Z) = 67; hot_topic_reports(created_at > 2026-11-01T16:00:00.000Z) = 2
+```
+
+SC-005：手機亮暗、桌機 1024／1280／1440 亮暗四張並排，Luke 11-06 判定與簽核一致。差在資料（W45 81→115 篇、badge 的基準不同），
+以及簽核那張手機拼圖多一格，提交的 `shoot.mjs`（`db67411`）只截 4 個狀態——差在截圖組，不在頁面。
+
+**結論**：通過。SC-001：兩種寬度、W44 與 W45 都只有文章（0 份報告卡片、0 個 ★），兩條的導覽互不牽動。SC-002：badge 2／67 與資料庫 2／67 相同。
+SC-003：五個情境 5／5，0 個錯誤。SC-004：55 份、24 批、殘留 0。SC-005：Luke 判定一致。SC-006：讀報告、展開兩個焦點事件時，三個步驟都停在熱點那一條。
+全部情境 0 個 JS 錯誤。
