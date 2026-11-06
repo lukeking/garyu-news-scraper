@@ -35,9 +35,12 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261105-v4e` | CI 版面測試的成本分層：觸發面、安裝來源、上限、量測 | Luke 2026-11-05 裁示先分層，實作順序與時間點之後再決定；`timeout-minutes` 維持 10。下次 `unit` job 逾時、或進入密集改前端的時期時重新評估 `pre-edit: {"paths":[".github/workflows/tests.yml"]}` | 四層各有裁示（做，或寫明不做與理由）；做了的那幾層上線後，`unit` job 每次的安裝耗時查得到 |
+| `GNS-20261103-f71` | 交通的週次清單被截在 1000 列：W30～W37 不在週次導覽裡，最舊那週的篇數算少 | 下次動 `workers/api/src/index.js` 的 `handleWeeks` 時；或讀者發現週次導覽缺週時 `pre-edit: {"paths":["workers/api/src/index.js"]}` | `/api/weeks?content_type=traffic` 列出所有有文章的週次，每週篇數與 `/api/weeks/<週>` 的 `article_count` 一致；Worker 有測試 runner，並有一條在超過 1000 列時會紅的測試（故意改壞看它紅）；或寫明不修的理由 |
+| `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | 等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口` | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
+| `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口` | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261102-akc` | `Google News 報導者交通` 每天收集到的文章在關鍵字過濾全部被擋：10-20～11-01 的 daily 寫入都是 0 | 下次動這個來源的設定（prod `SOURCES_TRAFFIC_YML` 與鏡像），或檢討交通來源清單時 `pre-edit: {"paths":["config/sources_traffic.example.yml"]}` | 查出過濾全擋的原因（query `交通 site:twreporter.org` 撈到的是什麼、擋在哪一條），決定改 query、停用，或寫明保留的理由 |
 | `GNS-20261031-s3h` | 週報熱點分析發布前沒有審核者：觀點有盲點或偏頗、措辭不精確造成歧義 | 已提出：Luke 2026-10-31；卡在實例：Luke 給 2–3 個（哪份報告、哪一句、錯在哪）當審稿標準的錨點，再選做法（見本節）。或下次動 `src/analyzer.py` 的 `analyze_hot_topic`／`analyze_category_digest` prompt 時 `pre-edit: {"paths":["src/analyzer.py"]}` | 有一份用實例錨定的審稿標準；週報在讀者看到之前經過審核（做法由 Luke 裁示），連兩週的審核紀錄查得到；或寫明不做的理由 |
-| `GNS-20261031-005` | 交通頁的週報熱點掛在產生那週，內容卻是上一週的 buffer，跟同頁下方的文章差一週 | 已提出：Luke 2026-10-31；下一步選修法（改標籤／只改呈現／只補標示，見本節）。或下次動 `pages/shared/app.js` 的熱點區塊、`scripts/traffic_weekly_analysis.py` 的 `_week_start_date` 時 `pre-edit: {"paths":["pages/shared/app.js","scripts/traffic_weekly_analysis.py"]}` | 同一個週次頁面上，熱點報告的來源與下方文章屬於同一段收集期間，或頁面寫明報告涵蓋的日期區間；已分享出去的 `?week=…#topic-…` 連結仍指到原本那份報告；或寫明不改的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | 每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 `pre-edit: {"paths":["scripts/auto_kb.py"]}` | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261021-5yg` | 研究 Gemini API 官方的 Batch API，評估本專案哪些呼叫端改用它有好處 | 下一輪模型評比（`GNS-20261019-1vk`）開跑之前；或 `gemini-3.8-flash` 的優惠價 2026-12-31 結束之前；或下次動 `src/analyzer.py` 的 `_call_gemini` 時 | 本節寫進逐字核對過的事實（折扣、完成時限與過期、`gemini-3.8-flash` 與 `gemini-embedding-2` 支不支援、配額是否與一般呼叫分開、與優惠價疊不疊加；各附出處與查證日期），以及本節呼叫端表每一列的判定（採用／不採用、理由、估算每月省多少）；有採用的就開 spec，全部不採用就寫明理由並設重開條件 |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
@@ -52,7 +55,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-011` | 熱點分析杜撰來源沒有的事實（grounding） | 要動 `analyze_hot_topic` 的 prompt 之前；或報告又讀到來源查無的具體事實時 `pre-edit: {"paths":["src/analyzer.py"]}` | 以多週多桶取樣量出杜撰比率（報告本文出現來源查無的具體事實），據此改 prompt 或寫明不改的理由（入料缺口只剩政策類這一個維度，見本節「11-02」） |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | 基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴` | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
 | `GNS-007` | 政策 digest 的離題雜訊 | 已觸發：Luke 2026-10-28 裁示重開（重開條件 2 於 09-07 成立）；下一步開 spec，做法須換成判實質而非判詞彙 `trigger: none — 已觸發，等開 spec；做法未定，還沒有對應的檔案` | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
-| `GNS-006` | 前端測試框架的 layout 那一半（Storybook／E2E） | 已於 2026-09-05 觸發（GNS-005 留下兩個 jsdom 測不到的常數）；下次動 `pages/` 的版面常數時一併做；2026-10-28 延後：C1 0，沒有東西在壞 `pre-edit: {"paths":["pages/shared/shared.css"]}` | `560px` 斷點與 `.tr-time` 的 `5em` 各有一個在真實 layout 引擎上跑、把常數改錯就會紅的測試，且在 CI 跑 |
 
 **項目欄只寫一行**；原話、證據、進度寫進下面以 id 開頭的小節。
 **觸發點必須綁在會自然發生的事件上**（下次動某個檔、某週的判讀、某指標跌破門檻、某件事被記下第 N 次），
@@ -71,7 +73,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | 5.6 | GNS-011 | 2·1·2 |
 | 5.0 | GNS-009 | 1·2·2 |
 | 4.4 | GNS-007 | 2·0·2 |
-| 1.7 | GNS-006 | 0·1·1 |
 
 **尺規**（0–3 分，每級錨定本檔的條目，含已移出的；移出的用 `git log -S "<id>" -p -- specs/BACKLOG.md` 撈回）：
 
@@ -84,56 +85,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 **總分 = (3·C1 + 2·C2 + 1·C3) ÷ 18 × 10**，一位小數。C1「是否正在造成損害」為主、C2「依賴關係」次之、
 C3 只當 tiebreak。**證據等級**（實測／推論／判斷）標在各節內文，不進分數；硬門檻只收實測。
 分數只回答「閒下來時該撈哪一個」；**什麼時候該動它由觸發點回答**——分數低不等於可以一直躺著。
-
-## GNS-006 前端測試框架（Storybook / E2E）
-
-**提出**: 2026-07-21，從 011-buffer-noise-triage 的 Constitution Check 帶出
-**優先度**: 低——「沒事幹的時候可以來實作」
-
-**問題**：repo 的測試基礎建設全在 Python 端（`pytest`，`tests/unit` + `tests/integration`）。
-JS 端**零測試**——`pages/shared/app.js`（約 510 行，含全部列表渲染、分組收合、
-dismiss 狀態）與 `workers/api/src/index.js`（約 363 行，含全部端點與篩選邏輯）
-都只能靠手動點擊驗證。
-
-**觸發此項的具體事件**：011 的主要改動落在 JS 端，plan 階段只能在 Complexity Tracking
-誠實記下「這是測試缺口，不假裝已覆蓋」，驗收改依賴 `quickstart.md` 的手動清單。
-當時**刻意不順手引入框架**——那是未被要求的基礎建設，違反 YAGNI，也會讓 011 的
-改動範圍失焦。但缺口是真的，且會隨每個前端 feature 累積。
-
-**範圍草稿**（開 spec 時再確認）：
-- Storybook 或等價工具：讓列表的各種狀態（空週、零圖片舊週、全部降級、全部收起、
-  無摘要）能獨立呈現而不必造真實資料。這幾個狀態目前只能靠找到「剛好長那樣」的週次來驗。
-- E2E：涵蓋 quickstart 裡那份手動驗收清單，特別是跨週次切換後的狀態行為
-  （降級展開不持久化、來源收起要持久化——兩者相反，正是容易寫錯的地方）。
-- Worker 端：純函式的契約測試（`normalizeRow`、篩選、以及 011 新增的雜訊推導）。
-
-### 觸發點已燒（2026-09-05）——而且燒它的是已上線的功能
-
-原本的觸發點寫「已被 2 份 spec 明文記下再繞過，第 3 次記下就不要再繞」。第 3 次來了，
-但**形狀跟預期的不一樣**：不是又一份 spec 在 Complexity Tracking 裡記一筆，而是 GNS-005 的
-列模型 E 上線後留下兩個**跑在正式站上、卻無法驗證**的常數。
-
-| 常數 | 在哪 | 為什麼測不到 |
-|---|---|---|
-| `560px` | `@container trlist (min-width: 560px)` | 斷點兩側各自顯示對的形態，要有 layout 才看得出來 |
-| `5em` | `.tr-time { min-width: 5em }`（PR #117） | 夠不夠寬取決於實際字型的 advance width |
-
-**兩者同一個成因**：jsdom 沒有 layout（`clientWidth` / `scrollWidth` 永遠是 0）。
-所以這不是「測試沒寫」，是**這個 harness 結構上寫不出來**——`tests/js/row-model-css.test.mjs`
-已經把能做的都做了（它守的是「有沒有人把某個形態整段刪掉」，不是「顯示得對不對」）。
-
-**因此分數變了**：C2 從 0 升到 1——GNS-005 的兩個殘留項在等它，而在此之前 GNS-006 沒有下游。
-0·0·1 → 0·1·1，0.6 → **1.7**。⚠️ C1 仍是 0：沒有東西正在壞，只是無法證明它是對的。
-
-**單元那一半已經付掉了**（PR #114 的 JS harness，現有 25 個測試，與 Python 同在 CI 的
-`unit` job）。剩下的是 layout 那一半，也就是本節「注意事項」講的那個真正的成本。
-
-**注意事項**：
-- Cloudflare Pages 前端無建置步驟（`pages/` 是手寫 HTML/CSS/JS 直接部署）。
-  引入需要 bundler 的工具會改變部署模型——這是這項的主要成本，不是寫測試本身。
-- 憲章 IV（Explicit Budgets）：CI 若跑 E2E 需計入 Actions 的每月預算（值在 `docs/external-services.md`）。
-
----
 
 ## GNS-007 政策 digest 的離題雜訊（quality score 不量主題相關性）
 
@@ -274,6 +225,14 @@ score=0.1842  選中=False  AUTO ONLINE 汽車線上 - AUTO ONLINE 汽車線上
 
 ⚠️ **不要因為「機制現成、填個表很便宜」就重開**——那正是 08-31 差點踏進去的坑。
 便宜的是動作，不是正確性。
+
+### 11-05 實例（Luke 提出，還沒處理）：詞彙對、主題錯
+
+`亂丟垃圾、菸蒂別僥倖 嘉義市科技執法每月平均成案42件 - 蕃新聞`：來源 `Google News 科技執法`、分類 `科技執法`，
+2026-W44 收進（`created_at` 10-27），而且進了 11-02 那份「道安政策 · 彙整」（公開 API 2026-11-05 查）。Luke：內容跟交通
+幾乎完全無關，只有「行車紀錄器」「科技執法」沾得上邊，但那是拿來抓亂丟垃圾、菸蒂，不是檢舉交通事件。
+正是本節結論的形狀——標題與正文都有政策詞彙，判詞彙會留下它；要判的是實質（執法對象是不是交通）。也可能是 feed 端的問題：
+`科技執法` 這個 GN 查詢本身會帶進非交通的執法新聞。開 spec 時當成離題樣本之一。
 
 ---
 
@@ -770,31 +729,6 @@ Luke 10-26 裁示人工條目新增類別 `魔物`，兩列已改；`auto_kb.py`
 
 ---
 
-## GNS-20261031-005 交通頁的週報熱點與同頁下方的文章差一週
-
-**提出**：2026-10-31，Luke：「traffic daily buffer 和週報產生週期跟 UI 呈現已經脫鉤，我打開介面看到的週報熱點分析是從上禮拜的
-buffer 來的，但下方的 daily buffer 卻都是這週的。」
-
-**機制**（讀程式碼）：
-
-- 報告的 `week_start_date` 是週報執行當天的週一（`scripts/traffic_weekly_analysis.py` 的 `_week_start_date`；週報在台灣週一 08:00 跑）。
-- 報告分析的是 buffer 池：以上一週 daily 收的文章為主（文章的 `week_id` 是收集當週，`src/pipeline/traffic.py` 的 `_current_week_id`），
-  加上週一早上週報自己收的，與 `buffer.max_age_weeks` 內還沒被消耗的舊列。
-- 前端以同一個週次對兩邊：熱點取 `isoWeekId(week_start_date)` 等於該週的報告，文章列取 `week_id` 等於該週的文章
-  （`pages/shared/app.js` 的 `groupHotTopicsByWeek`、`loadWeek`）。
-
-**實測**（2026-10-31，公開 Worker API）：10-26 的兩份報告（掛在 W44）共 31 篇來源，在 W43 的文章列找到 6 篇、W44 找到 1 篇；
-★（`hot_topic_analyzed`）W43 有 32 篇、W44 有 2 篇。`/api/weeks/<week>` 每週最多回 100 篇（W43 有 149、W44 有 124），所以是下限。
-重跑：抓 `/api/hot-topics` 與 `/api/weeks/2026-W43?content_type=traffic`，比對 `source_article_links[].link` 與文章的 `link`。
-
-**修法候選**（未裁示）：
-
-- 改標籤：`week_start_date` 改成涵蓋的那週。代價：最新那週整週沒有報告（預設畫面就是最新週）；既有列要搬；已分享的
-  `?week=…#topic-…` 連結會指錯；novelty gate 的 `exclude_week` 與週驗收 routine 都讀這個欄位。
-- 只改呈現：資料不動，前端把報告放到它來源所在的那週，或把熱點區塊從週次導覽拆出來、標出涵蓋區間。
-- 只補標示：卡片寫出涵蓋的日期區間。不修錯位，只防誤讀。
-- 三者共同的前提：一份報告的來源可能橫跨數週（buffer 留 8 週），「報告屬於哪一週」沒有唯一答案。
-
 ## GNS-20261031-s3h 週報熱點分析發布前沒有審核者
 
 **提出**：2026-10-31，Luke：「週報的產生沒有經過適當的審核者，觀點有時候會有盲點或偏頗或措辭不夠精準造成歧義/誤讀」。
@@ -828,6 +762,45 @@ buffer 來的，但下方的 daily buffer 卻都是這週的。」
   （下一次是 10-31 停 PTT），prod 變數那段期間有沒有另外改沒查；推論是 Google News 那端變了。這一掉就讓 daily 的 `過濾後剩 X 筆（原 Y 筆）` 的 Y 每天少約 95，週驗收 routine 照 FOCUS 的舊範圍判成「偏低」；
   但前後寫入都是 0，對輸出沒有影響。
 - 看過的只有上表 12 個 daily；10-20 以前是不是也全擋沒查。query 是 `交通 site:twreporter.org`。
+
+## GNS-20261103-f71 交通的週次清單被截在 1000 列
+
+**發現**：2026-11-03，spec 017 的 plan（量「跨週數新文章」要打幾次 API 時）。
+
+**實測**（2026-11-03，公開 Worker API）：`/api/weeks?content_type=traffic` 回 8 週（W45～W38），`article_count` 加總剛好 1000；
+其中 W38 寫 85 篇，逐頁抓 `/api/weeks/2026-W38?content_type=traffic&limit=100&offset=…` 是 181 篇；W30～W37 用同樣方式抓得到文章
+（各 35～140 篇），卻不在清單裡。FFXIV 的清單 27 週、加總 599，沒有撞到。
+
+**機制**（讀程式碼＋推論）：`workers/api/src/index.js` 的 `handleWeeks` 把該類別的每一列文章（`week_id,analysis,content_type`）都撈回來，
+在 Worker 裡彙總；Supabase REST 一次最多回的列數把它截在 1000 列（加總剛好 1000 是實測；上限的設定值沒查）。前端的週次導覽只畫這份清單，
+所以舊週次無聲消失。
+
+**Luke 2026-11-03**：記成一條 BACKLOG，017 不修；「沒有測試的部分也要補上」——修的時候 Worker 要有測試 runner，鎖住這個情況。
+
+重跑：抓 `/api/weeks?content_type=traffic` 加總 `article_count`，再對最舊那週逐頁抓 `/api/weeks/<週>` 比對篇數。
+
+## GNS-20261105-v4e CI 版面測試的成本分層
+
+**起因**（2026-11-05，spec 017 Unit 9 之後）：`unit` job 加了 `npx playwright install --with-deps chromium` 與 `npm run test:layout`。
+本分支 12 次帶版面測試的 run 裡，10 次安裝 0.3～0.6 分；2 次撞到慢的 apt mirror（41～44 kB/s 下 21.1 MB 字型）：
+run `42041849436` attempt 1 job 9 分 22 秒、run `42049254755`（`#182`）job 9 分 38 秒，離 `timeout-minutes: 10` 只剩 38／22 秒。
+`--with-deps` 在 runner 上只多裝 9 個字型套件（含 CJK 的 `fonts-wqy-zenhei`，5em 那條測試量的就是它）；Chromium 本身從 CDN 下載約 10 秒。
+
+**樣本的界線**（Luke）：08-01～11-05 是前端低強度的一段——`main` 上 114 次 merge 只有 4 次動到 `pages/`、2 次動到
+`shared.css`——「約 4% 的 PR 才碰得到版面」是這段期間的頻率，不是常態；密集改前端時觸發率會高得多，快取的命中率也跟著變。
+
+**四層**（各自解決一件事、各自決定時機；順序與時間點由 Luke 之後裁示）：
+
+- **觸發面（跑不跑）**：`unit` job 裡加一步看本 PR 的 diff 有沒有碰到 `pages/`、`tests/layout/`、`package*.json`、`tests.yml`，
+  沒碰到就印一行「略過版面測試：本 PR 沒動到…」並跳過安裝與測試；碰到才跑。仍在必要檢查裡，所以擋得住。
+  不用 job 層的 `if:` 或 workflow 的 `paths:`——必要檢查遇到被跳過或沒觸發的 job 可能一直等（印象，未在本 repo 驗）。
+  代價：判斷本身要測、`fetch-depth` 要拿得到 base、`tests/js/ci-wiring.test.mjs`（T031，現在斷言 unit job 沒有 `if`）要跟著改。
+- **安裝來源（快不快）**：快取 `~/.cache/ms-playwright`（只省約 10 秒）與那 9 個 `.deb`（慢的那段；要自己釘套件清單、還原後 `dpkg -i`，
+  不再交給 `--with-deps`），或改用 Playwright 的 container image。GitHub 會清掉 7 天沒被讀的快取（印象，未查證）——低強度期多半沒命中，
+  要命中就得有東西定期讀它。
+- **上限（撞不撞牆）**：`timeout-minutes` 現在 10，Luke 11-05 裁示不動；逾時就重跑。
+- **量測（判斷依據）**：每次 run 的安裝耗時與 mirror 速度現在只能事後撈 log（`gh run view <id> --log | grep 'Fetched .* in '`）。
+  沒有它，前三層的時機都只能猜。
 
 ## 這份清單自己的訊號
 

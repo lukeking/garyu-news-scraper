@@ -11,9 +11,11 @@ let activeImp = localStorage.getItem('garyu_filter_importance') || 'all';
 let activeTag = '';
 let activeQuery = '';
 let searchTimer = null;
-let hotTopicsByWeek = {};
+let reportBatchList = [];
+let streamVisit = null;   // 交通頁這次打開的「有新的」狀態（beginVisit）
 
 const $ = id => document.getElementById(id);
+const STREAMS = ['reports', 'articles'];
 
 // HTML 跳脫：報告/摘要等欄位可能含原始 HTML（如 RSS 的 <a>），直接注入會破版。
 function esc(s) {
@@ -28,6 +30,13 @@ function esc(s) {
 function stripHtml(s) {
   const doc = new DOMParser().parseFromString(String(s == null ? '' : s), 'text/html');
   return (doc.body.textContent || '').replace(/\s+/g, ' ').trim();
+}
+// GN 充實前的舊資料，summary 只是標題複讀＋來源名，展開只會再看一次標題。比對去掉標點：
+// GN 標題帶「 - 來源」尾碼、summary 只有「 來源」，剩個 '-' 會讓包含判斷失效。
+function isEchoSummary(title, summary) {
+  const norm = s => (s || '').replace(/[^\p{L}\p{N}]+/gu, '');
+  const t = norm(title), s = norm(summary);
+  return s.length <= t.length + 24 && (t.includes(s) || s.includes(t));
 }
 
 // ── Theme ─────────────────────────────────────────────────────
@@ -141,16 +150,6 @@ function isoWeekId(dateStr) {
   return `${isoYear}-W${String(week).padStart(2, '0')}`;
 }
 
-function groupHotTopicsByWeek(reports) {
-  const map = {};
-  for (const r of reports) {
-    const wid = isoWeekId(r.week_start_date || '');
-    if (!wid) continue;
-    (map[wid] = map[wid] || []).push(r);
-  }
-  return map;
-}
-
 // 由 topic_label 產生 URL 安全的 slug，作為卡片 id 與 deep-link 錨點。
 function slugify(s) { return encodeURIComponent(String(s || '').trim().replace(/\s+/g, '-')); }
 
@@ -204,23 +203,73 @@ function renderReportBody(text) {
     </div>`).join('');
 }
 
-function renderHotTopics(reports) {
-  const container = $('hot-topics-list');
-  if (!container) return;
-  if (!reports || !reports.length) {
-    container.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem">這一週尚無熱點話題</p>';
-    return;
+// ── 熱點那一條（spec 017）：報告依所屬週報（week_start_date）分批，新的在前 ──
+function reportBatches(reports) {
+  const map = new Map();
+  for (const r of reports) {
+    const date = r.week_start_date;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    if (!map.has(date)) map.set(date, []);
+    map.get(date).push(r);
   }
-  container.innerHTML = reports.map(r => {
-    const slug = slugify(r.topic_label);
-    const wid = isoWeekId(r.week_start_date);
-    const pageUrl = location.origin + location.pathname + '?week=' + encodeURIComponent(wid) + '#topic-' + slug;
-    const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
-    return `
-<div class="card ht-card" id="topic-${slug}" style="margin-bottom:1rem">
+  return [...map.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, list]) => ({ date, label: `${date.slice(5)} · ${list.length} 份`, reports: list }));
+}
+
+// date 對不到（或沒給）就畫最新一批。批次按鈕經 selectBatch 回到這裡，只換熱點那一條。
+function renderReportStream(batches, date) {
+  reportBatchList = batches;
+  const current = batches.find(b => b.date === date) || batches[0];
+  $('batch-nav').innerHTML = batches.map(b =>
+    `<button class="week-btn${b === current ? ' active' : ''}"
+      onclick="selectBatch('${b.date}')">${esc(b.label)}</button>`
+  ).join('');
+  $('report-list').innerHTML = current
+    ? current.reports.map(reportCard).join('')
+    : '<div class="empty"><h3>尚無熱點報告</h3></div>';
+}
+function selectBatch(date) { renderReportStream(reportBatchList, date); }
+
+async function loadReports() {
+  const res = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
+  const data = res && res.ok ? await res.json().catch(() => null) : null;
+  if (!data) {
+    $('report-list').innerHTML = '<div class="empty"><h3>熱點報告載入失敗，請稍後再試</h3></div>';
+    return null;
+  }
+  const batches = reportBatches(data.reports || []);
+  renderReportStream(batches);
+  return batches;
+}
+
+// 報告分享連結（FR-015、research R6）：同名報告每週都有，所以批次與標題一起帶。
+function reportShareUrl(r, base) {
+  return `${base}?batch=${encodeURIComponent(r.week_start_date)}#report-${slugify(r.topic_label)}`;
+}
+function decodeSlug(s) {
+  try { return decodeURIComponent(s); } catch (e) { return s; }
+}
+// 那一批裡有那個標題才算數，對不到回 null。hash 可能是編碼過的字，也可能已被解碼，兩邊都解碼後再比。
+function parseReportLink(search, hash, batches) {
+  const batch = new URLSearchParams(search).get('batch');
+  if (!batch || !hash.startsWith('#report-')) return null;
+  const want = decodeSlug(hash.slice('#report-'.length));
+  const b = batches.find(x => x.date === batch);
+  const r = b && b.reports.find(x => decodeSlug(slugify(x.topic_label)) === want);
+  return r ? { batch, slug: slugify(r.topic_label) } : null;
+}
+
+function reportCard(r) {
+  const slug = slugify(r.topic_label);
+  const pageUrl = reportShareUrl(r, location.origin + location.pathname);
+  const lineUrl = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(pageUrl);
+  return `
+<div class="card ht-card" id="report-${slug}" style="margin-bottom:1rem">
   <div class="card-header">
     <div class="card-meta">
       <span class="importance-badge imp-高">🔥 熱點</span>
+      <span class="ht-batch">${esc(r.week_start_date.slice(5))} 週報</span>
       <span style="font-size:0.8rem;color:var(--text-muted)">📰 ${r.source_article_count} 篇來源 · ${r.distinct_sources} 個媒體</span>
       ${C.shareToLine ? `<a class="line-share" href="${lineUrl}" target="_blank" rel="noopener" title="分享此深度分析至 LINE">LINE</a>` : ''}
     </div>
@@ -230,32 +279,195 @@ function renderHotTopics(reports) {
     ${(r.source_article_links || []).length ? `
     <p class="section-label" style="color:var(--accent2)">焦點事件</p>
     <ol class="ht-focus">
-      ${(r.source_article_links).map(a => `
-      <li><a href="${typeof a === 'object' ? a.link : a}" target="_blank" rel="noopener" class="ht-focus-link">${esc(typeof a === 'object' ? (a.title || a.link) : a)}</a></li>`).join('')}
+      ${(r.source_article_links).map(focusItem).join('')}
     </ol>` : ''}
     <div class="ht-axes">${renderReportBody(r.report_text)}</div>
   </div>
 </div>`;
-  }).join('');
 }
 
-// 深度分析 deep-link：若 URL 有 #topic-<slug> 則捲動定位；找不到則不動作、不報錯。
-function scrollToHashTopic() {
-  if (!location.hash.startsWith('#topic-')) return;
-  const el = document.getElementById(location.hash.slice(1));
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+// 焦點事件（FR-010）：有摘要的就地展開；舊格式的純連結、摘要去掉 HTML 後是空的或只是標題回音，照舊是一般連結。
+function focusItem(a) {
+  const link = typeof a === 'object' ? a.link : a;
+  const title = esc(typeof a === 'object' ? (a.title || a.link) : a);
+  const summary = typeof a === 'object' ? stripHtml(a.summary) : '';
+  if (!summary || isEchoSummary(a.title, summary)) return `
+      <li><a href="${link}" target="_blank" rel="noopener" class="ht-focus-link">${title}</a></li>`;
+  return `
+      <li><button class="ht-focus-toggle" aria-expanded="false" onclick="toggleFocus(this)">${title}<span class="ht-focus-caret">▸</span></button>
+        <div class="ht-focus-detail" hidden>
+          <p class="ht-focus-summary">${esc(summary)}</p>
+          <a class="read-more" href="${link}" target="_blank" rel="noopener">閱讀原文 →</a>
+        </div></li>`;
+}
+
+function toggleFocus(btn) {
+  const detail = btn.closest('li')?.querySelector('.ht-focus-detail');
+  if (!detail) return;
+  detail.hidden = !detail.hidden;
+  btn.setAttribute('aria-expanded', String(!detail.hidden));
+  btn.querySelector('.ht-focus-caret').textContent = detail.hidden ? '▸' : '▾';
+}
+
+// 窄螢幕一次顯示一條（CSS 的 .stream.active）；寬螢幕兩條並排，切換鈕由 CSS 隱藏。
+// landing＝打開時的落地：不算從 HTML 預設的那一條切走。「上次」只在窄螢幕記（contracts/local-state.md）。
+function setStream(name, landing) {
+  const prev = document.querySelector('.stream.active');
+  for (const s of STREAMS) {
+    $('stream-' + s).classList.toggle('active', s === name);
+    $('tab-' + s).setAttribute('aria-selected', String(s === name));
+  }
+  if (!streamVisit) return;
+  if (!bothStreamsShown()) {
+    if (!landing && prev && prev.id !== 'stream-' + name) leaveStream(prev.id.replace('stream-', ''));
+    writeStored(STREAM_LAST_KEY, name);
+  }
+  markSeen(name);
+}
+
+// ── 「有新的」標記（spec 017 FR-004）：基準是這台裝置上次看過的時間（contracts/local-state.md） ──
+const SEEN_KEY = { reports: 'traffic_seen_reports', articles: 'traffic_seen_articles' };
+
+function readSeen(s) {
+  let v = null;
+  try { v = localStorage.getItem(SEEN_KEY[s]); } catch (e) {}
+  return /^\d{4}-\d{2}-\d{2}T/.test(v || '') && !isNaN(Date.parse(v)) ? v : null;
+}
+function writeSeen(s) {
+  try { localStorage.setItem(SEEN_KEY[s], streamVisit.openedAt); } catch (e) {}
+}
+// 寬螢幕兩條都在畫面上（1024 px 斷點在 CSS）；讀 CSS 算出來的 display，不在 JS 再寫一次斷點。
+function bothStreamsShown() {
+  const idle = document.querySelector('.stream:not(.active)');
+  return !!idle && getComputedStyle(idle).display !== 'none';
+}
+function beginVisit() {
+  const since = { reports: readSeen('reports'), articles: readSeen('articles') };
+  streamVisit = { openedAt: new Date().toISOString(), since, ready: new Set(), left: new Set() };
+  if (!since.reports && !since.articles) STREAMS.forEach(writeSeen);
+}
+// 清單載入成功才算看過：載入失敗時讀者沒看到內容，基準不往前推。
+function markSeen(s) {
+  if (streamVisit.ready.has(s) && (bothStreamsShown() || $('stream-' + s).classList.contains('active'))) writeSeen(s);
+}
+function streamReady(s) {
+  streamVisit.ready.add(s);
+  markSeen(s);
+}
+function showBadge(s, text) {
+  if (streamVisit.left.has(s)) return;
+  document.querySelectorAll(`.stream-badge[data-badge="${s}"]`).forEach(el => {
+    el.textContent = text;
+    el.hidden = !text;
+  });
+}
+// 窄螢幕從一條切走＝看過（FR-004）：badge 這次造訪不再出現，還沒數完的篇數也不補上。
+function leaveStream(s) {
+  showBadge(s, '');
+  streamVisit.left.add(s);
+}
+
+function countNewSince(items, sinceIso) {
+  const since = Date.parse(sinceIso);
+  return items.filter(x => Date.parse(x.created_at) > since).length;
+}
+// 文章的 week_id 照台灣時間切週（src/pipeline/traffic.py 的 _current_week_id），基準也換成台灣時間（UTC+8，無日光節約）的週。
+function weeksToScan(weeks, sinceIso, max) {
+  const t = Date.parse(sinceIso);
+  if (isNaN(t)) return { weekIds: [], capped: false };
+  const base = isoWeekId(new Date(t + 8 * 3600 * 1000).toISOString().slice(0, 10));
+  const ids = weeks.map(w => w.week_id);   // /api/weeks 新的在前
+  const later = ids.filter(id => id >= base);
+  return { weekIds: later.slice(0, max), capped: later.length > max || base < ids[ids.length - 1] };
+}
+// 不帶篩選：數整週裡基準之後收進來的，只扣讀者收起的來源（與頁面統計一致）。任何一個請求失敗回 null。
+async function newArticleCount(weekIds, sinceIso) {
+  const params = new URLSearchParams({ content_type: C.contentType });
+  const weeks = await Promise.all(weekIds.map(id => fetchWholeWeek(id, params)));
+  if (weeks.some(w => !w)) return null;
+  return countNewSince(weeks.flatMap(w => w.articles).filter(a => !isSourceHidden(a.source)), sinceIso);
+}
+function badgeText(n, capped) {
+  return n > 0 ? `${n}${capped ? '+' : ''}` : '';
+}
+
+function reportsReady(batches) {
+  streamReady('reports');
+  if (!streamVisit.since.reports) return;
+  const n = countNewSince(batches.flatMap(b => b.reports), streamVisit.since.reports);
+  showBadge('reports', n > 0 ? `新 ${n}` : '');
+}
+// 每次打開最多掃 8 週（憲章原則 IV：請求數要有寫明的上限）；基準更早時顯示「N+」。
+const NEW_ARTICLE_SCAN_WEEKS = 8;
+function articlesReady() {
+  streamReady('articles');
+  const since = streamVisit.since.articles;
+  if (!since) return;
+  const { weekIds, capped } = weeksToScan(allWeeks, since, NEW_ARTICLE_SCAN_WEEKS);
+  newArticleCount(weekIds, since).then(n => { if (n !== null) showBadge('articles', badgeText(n, capped)); });
+}
+
+// ── 打開時落在哪一條（FR-005、FR-015、research R3）與齒輪設定（FR-006） ──
+const STREAM_PREF_KEY = 'traffic_stream_pref';
+const STREAM_LAST_KEY = 'traffic_stream_last';
+function readStored(key) {
+  try { return localStorage.getItem(key); } catch (e) { return null; }
+}
+function writeStored(key, v) {
+  try { localStorage.setItem(key, v); } catch (e) {}
+}
+// 設定是 'default'、沒有記錄或不認得的值，都往下一層。
+function landingStream({ link, pref, last }) {
+  if (link) return 'reports';
+  if (STREAMS.includes(pref)) return pref;
+  if (STREAMS.includes(last)) return last;
+  return 'reports';
+}
+
+function renderSettings() {
+  const v = readStored(STREAM_PREF_KEY);
+  const pref = STREAMS.includes(v) ? v : 'default';
+  document.querySelectorAll('#stream-settings [data-pref]').forEach(o =>
+    o.setAttribute('aria-checked', String(o.dataset.pref === pref)));
+}
+function toggleSettings(open) {
+  $('stream-settings').hidden = !open;
+  $('stream-settings-btn').setAttribute('aria-expanded', String(open));
+  if (open) renderSettings();
+}
+// 選了立刻存；點 ✕、再點齒輪或點面板外面都會關。選項只改 aria-checked、不重畫：
+// 重畫會讓被點的元素離開 DOM，冒泡到 document 時就被當成點在面板外面。
+function setupSettings() {
+  const panel = $('stream-settings');
+  $('stream-settings-btn').addEventListener('click', () => toggleSettings(panel.hidden));
+  panel.querySelector('.settings-close').addEventListener('click', () => toggleSettings(false));
+  panel.querySelectorAll('[data-pref]').forEach(o => o.addEventListener('click', () => {
+    writeStored(STREAM_PREF_KEY, o.dataset.pref);
+    renderSettings();
+  }));
+  document.addEventListener('click', e => {
+    if (!panel.hidden && !e.target.closest('#stream-settings, #stream-settings-btn')) toggleSettings(false);
+  });
 }
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
   syncThemeIcon();
 
-  if (C.contentType === 'traffic') {
-    const htRes = await fetch(`${API_BASE}/hot-topics`).catch(() => null);
-    if (htRes && htRes.ok) {
-      const htData = await htRes.json();
-      hotTopicsByWeek = groupHotTopicsByWeek(htData.reports || []);
-    }
+  const hasStreams = C.contentType === 'traffic' && !!$('stream-reports');
+  if (hasStreams) {
+    setupSettings();
+    beginVisit();
+    const pref = readStored(STREAM_PREF_KEY), last = readStored(STREAM_LAST_KEY);
+    // 沒帶 batch 就不會是報告連結：先落地、不等 /hot-topics，否則設定是新文章時熱點會先亮約 1 秒。
+    const mayLink = new URLSearchParams(location.search).has('batch');
+    if (!mayLink) setStream(landingStream({ link: null, pref, last }), true);
+    const batches = await loadReports();
+    const link = mayLink && batches && parseReportLink(location.search, location.hash, batches);
+    if (link) selectBatch(link.batch);
+    if (mayLink) setStream(landingStream({ link, pref, last }), true);
+    if (batches) reportsReady(batches);
+    if (link) $('report-' + link.slug).scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   const res = await fetch(`${API_BASE}/weeks?content_type=${C.contentType}`).catch(() => null);
@@ -269,8 +481,8 @@ async function init() {
     const wanted = new URLSearchParams(location.search).get('week');
     const target = (wanted && allWeeks.some(w => w.week_id === wanted)) ? wanted : allWeeks[0].week_id;  // 失效則回退最新週
     await loadWeek(target);
-    scrollToHashTopic();
   }
+  if (hasStreams) articlesReady();   // 主畫面畫完之後才數，不等它
 
   const tRes = await fetch(`${API_BASE}/tags?content_type=${C.contentType}`).catch(() => null);
   if (tRes && tRes.ok) renderTagBar(await tRes.json());
@@ -292,6 +504,29 @@ function renderWeekNav() {
   ).join('');
 }
 
+const WEEK_PAGE = 100;   // Worker 每頁最多回 100 篇（workers/api 的 MAX_LIMIT）
+
+// 一週的全部文章（FR-016、research R12）：先抓第一頁拿 article_count，其餘頁並行補抓。任何一頁失敗回 null。
+async function fetchWholeWeek(weekId, params) {
+  const page = async offset => {
+    const q = new URLSearchParams(params);
+    q.set('limit', String(WEEK_PAGE));
+    q.set('offset', String(offset));
+    const res = await fetch(`${API_BASE}/weeks/${weekId}?${q.toString()}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  };
+  try {
+    const first = await page(0);
+    const rest = [];
+    for (let offset = WEEK_PAGE; offset < first.article_count; offset += WEEK_PAGE) rest.push(page(offset));
+    const pages = [first, ...await Promise.all(rest)];
+    return { article_count: first.article_count, articles: pages.flatMap(p => p.articles || []) };
+  } catch (e) {
+    return null;
+  }
+}
+
 async function loadWeek(weekId) {
   currentWeekId = weekId;
   const params = new URLSearchParams();
@@ -299,20 +534,18 @@ async function loadWeek(weekId) {
   if (activeImp !== 'all') params.set('importance', activeImp);
   if (activeTag) params.set('tag', activeTag);
   if (activeQuery) params.set('q', activeQuery);
-  const res = await fetch(`${API_BASE}/weeks/${weekId}?${params.toString()}`);
-  if (!res.ok) {
+  const data = await fetchWholeWeek(weekId, params);
+  if (!data) {
     $('article-list').innerHTML = '<div class="empty"><h3>載入失敗</h3><p>請稍後再試</p></div>';
     return;
   }
-  const data = await res.json();
-  currentArticles = data.articles || [];
+  currentArticles = data.articles;
   document.title = C.pageTitle(weekId);
   const latestAt = currentArticles.reduce((m, a) => a.created_at > m ? a.created_at : m, '');
   const syncLabel = latestAt ? ` · 最後更新 ${relativeTime(latestAt)}` : '';
   $('site-subtitle').textContent = C.subtitle(weekId, data.article_count, syncLabel);
   renderWeekNav();
   renderAll();
-  if (C.contentType === 'traffic') renderHotTopics(hotTopicsByWeek[weekId] || []);
 }
 
 // ── Tag bar ───────────────────────────────────────────────────
@@ -462,21 +695,11 @@ function toggleNoise(btn) {
 function trafficRow(a, idx, dimmed) {
   const src = a.source || '';
   const when = a.published || a.created_at || '';
-  // 摘要優先用 LLM 分析，否則退回來源 summary；GN 充實前的舊資料 summary 只是
-  // 標題複讀＋來源名（長度 ≈ 標題），展開只會再看一次標題 — 視為無摘要。
-  // 比對需去掉標點：GN 標題帶「 - 來源」尾碼、summary 只有「 來源」，剩個 '-' 會讓包含判斷失效
-  const norm = s => (s || '').replace(/[^\p{L}\p{N}]+/gu, '');
+  // 摘要優先用 LLM 分析，否則退回來源 summary；只是標題回音的視為無摘要（isEchoSummary）。
   const rawSummary = stripHtml((a.analysis && a.analysis.summary) || a.summary || '');
-  const normT = norm(a.title);
-  const normS = norm(rawSummary);
-  const isEcho = normS.length <= normT.length + 24 && (normT.includes(normS) || normS.includes(normT));
-  const summary = isEcho ? '' : rawSummary;
+  const summary = isEchoSummary(a.title, rawSummary) ? '' : rawSummary;
   const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(a.link)}`;
-  // 高信號標記（spec 011 / US3）。刻意不依賴圖片：早期週次圖片覆蓋率為 0%，
-  // 以圖為主的加強在那些週會完全失效（FR-017）。圖片只是額外加分。
-  const analyzed = a.hot_topic_analyzed === true;
   const hasImage = !!(a.image_url || '').trim();
-  const strong = !dimmed && analyzed;
   // 列模型 E：同一份 DOM 兩種形態，由 CSS 在斷點切換（BACKLOG #5，2026-09-05 選定）。
   // 刻意不用 matchMedia／innerWidth——形態切換是 CSS 的事，用 JS 判斷會多一份
   // 與 CSS 可能不同步的真相，且每次 resize 都要重繪。
@@ -491,14 +714,13 @@ function trafficRow(a, idx, dimmed) {
     ? `<img class="tr-strip" src="${esc(a.image_url)}" alt="" loading="lazy" onerror="this.remove()">`
     : '';
   return `
-<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}${strong ? ' tr-strong' : ''}" data-url="${a.link}">
+<div class="card traffic-row${dimmed ? ' tr-dimmed' : ''}" data-url="${a.link}">
   <div class="tr-main">
     ${slot}
     <span class="tr-body">
       <span class="tr-top">
         <button class="tr-src" style="background:${C.srcColor(src)}" data-source="${esc(src)}"
                 onclick="hideSource(this)" title="收起整個來源：${esc(src)}">${esc(C.srcLabel(src))}</button>
-        ${analyzed ? '<span class="tr-badge" title="已納入本週熱點報告">★</span>' : ''}
         <span class="tr-time">${when ? relativeTime(when) : ''}</span>
         <button class="dismiss-btn tr-dismiss" data-url="${a.link}" onclick="dismissArticle(this)" title="標記過時">×</button>
       </span>

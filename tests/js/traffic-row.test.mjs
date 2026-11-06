@@ -40,20 +40,25 @@ test('articleDisplayState：三種狀態', () => {
   app.saveHiddenSources(new Set());
 });
 
-test('★ 與左邊框：高信號突顯不依賴圖片（FR-017）', () => {
-  const withStar = app.trafficRow({ ...article(), hot_topic_analyzed: true, image_url: '' }, 1, false);
-  assert.match(withStar, /class="[^"]*\btr-strong\b/, '已分析的列要有 tr-strong');
-  assert.match(withStar, /tr-badge[^>]*>★/, '已分析的列要有 ★');
-
-  const plain = app.trafficRow(article(), 2, false);
-  assert.doesNotMatch(plain, /\btr-strong\b/);
-  assert.doesNotMatch(plain, /★/);
+test('文章列不標示被報告引用：hot_topic_analyzed 不論真假都沒有 ★、沒有 tr-strong（spec 017 FR-008）', () => {
+  for (const analyzed of [true, false]) {
+    const html = app.trafficRow({ ...article(), hot_topic_analyzed: analyzed }, 1, false);
+    assert.doesNotMatch(html, /\btr-badge\b/, `hot_topic_analyzed=${analyzed} 的列不該有 tr-badge`);
+    assert.doesNotMatch(html, /\btr-strong\b/, `hot_topic_analyzed=${analyzed} 的列不該有 tr-strong`);
+    assert.doesNotMatch(html, /★/);
+  }
+  // API 照樣回這個欄位，前端不讀它：真假兩種輸出必須一字不差。
+  assert.equal(app.trafficRow({ ...article(), hot_topic_analyzed: true }, 1, false),
+    app.trafficRow({ ...article(), hot_topic_analyzed: false }, 1, false));
 });
 
-test('降級列淡化，但不因此拿到 tr-strong', () => {
-  const dim = app.trafficRow({ ...article(), hot_topic_analyzed: true }, 1, true);
-  assert.match(dim, /\btr-dimmed\b/);
-  assert.doesNotMatch(dim, /\btr-strong\b/, 'dimmed 的列不該同時被突顯');
+test('降級列淡化，hot_topic_analyzed 不論真假都沒有 ★、沒有 tr-strong', () => {
+  for (const analyzed of [true, false]) {
+    const dim = app.trafficRow({ ...article(), hot_topic_analyzed: analyzed }, 1, true);
+    assert.match(dim, /\btr-dimmed\b/);
+    assert.doesNotMatch(dim, /\btr-badge\b/, `降級列 hot_topic_analyzed=${analyzed} 不該有 tr-badge`);
+    assert.doesNotMatch(dim, /\btr-strong\b/, `降級列 hot_topic_analyzed=${analyzed} 不該有 tr-strong`);
+  }
 });
 
 test('來源色標用真實的 srcColor / srcLabel', () => {

@@ -16,8 +16,31 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .header-actions { display: flex; gap: 8px; align-items: center; }
 .rss-link { color: #fff; font-size: 12px; opacity: 0.8; text-decoration: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
 .rss-link:hover { opacity: 1; }
-#theme-toggle { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
-#theme-toggle:hover { border-color: rgba(255,255,255,0.8); }
+#theme-toggle, #stream-settings-btn { background: none; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 14px; color: #fff; line-height: 1; }
+#theme-toggle:hover, #stream-settings-btn:hover { border-color: rgba(255,255,255,0.8); }
+#stream-settings-btn[aria-expanded="true"] { border-color: rgba(255,255,255,0.9); }
+/* 齒輪設定面板（spec 017 FR-006，2026-11-04 簽核）：從頁首右下緣往下展開、蓋在內容上 */
+.streams-page .header-inner { position: relative; }
+.settings-panel {
+  position: absolute; right: 0; top: calc(100% + 10px); z-index: 20; width: 220px;
+  background: var(--card-bg); color: var(--text); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.22); padding: 12px;
+}
+.settings-panel[hidden] { display: none; }
+.settings-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.settings-title { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.settings-close {
+  background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 2px 4px;
+}
+.settings-opt {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; font-family: inherit;
+  padding: 9px 10px; margin-bottom: 6px; border-radius: 6px; cursor: pointer; font-size: 14px;
+  border: 1px solid var(--border); background: none; color: var(--text);
+}
+.settings-opt::before { content: "○"; color: var(--text-muted); }
+.settings-opt[aria-checked="true"] { border-color: var(--accent2); background: var(--tag-bg); font-weight: 700; }
+.settings-opt[aria-checked="true"]::before { content: "●"; color: var(--accent2); }
+.settings-note { font-size: 11px; color: var(--text-muted); margin: 2px 0 0; }
 
 /* ── Layout ── */
 .main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
@@ -63,6 +86,50 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .week-btn:hover { border-color: var(--accent2); color: var(--accent2); }
 .week-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── 兩條流（spec 017，交通頁）：窄螢幕一次一條、上方切換；1024 px 起並排（2026-11-04 簽核） ── */
+.stream-switch {
+  display: flex; margin: 0 0 20px; border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden; background: var(--card-bg);
+}
+.stream-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px 8px; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer;
+  background: none; border: none; color: var(--text-secondary);
+}
+.stream-tab + .stream-tab { border-left: 1px solid var(--border); }
+.stream-tab[aria-selected="true"] { background: var(--accent); color: #fff; }
+/* 「有新的」標記（FR-004，簽核）：紅色小圓角標，暗色主題深字（同 .imp-高） */
+.stream-badge {
+  font-size: 11px; font-weight: 800; line-height: 1; padding: 3px 7px; border-radius: 10px;
+  background: var(--high); color: #fff; white-space: nowrap;
+}
+[data-theme="dark"] .stream-badge { color: #1a1a2e; }
+.stream-badge[hidden] { display: none; }
+.stream { display: none; }
+.stream.active { display: block; }
+.stream-head { display: none; }
+/* 窄螢幕的批次導覽排成一列、左右捲動：412 px 下折行會有 8 行，把第一張卡片推到畫面中段（簽核）。並排時折行（下方 1024 px 區塊）。週次導覽照舊折行。 */
+#batch-nav { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 6px; }
+#batch-nav .week-btn { flex: none; white-space: nowrap; }
+@media (min-width: 1024px) {
+  /* 整頁不捲，兩條各自捲動；頁首與兩欄放寬到同一個最大寬度。只作用在有兩條流的頁面（body.streams-page）。 */
+  .streams-page { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+  .streams-page .site-header { flex: none; padding: 18px 24px 14px; }
+  .streams-page .header-inner, .streams-page .main { max-width: 1500px; }
+  .streams-page .main { flex: 1; min-height: 0; width: 100%; padding: 16px 16px 0; }
+  .streams-page .site-footer { flex: none; padding: 6px 16px; font-size: 11px; margin-top: 0; }
+  .stream-switch { display: none; }
+  .streams { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; height: 100%; }
+  .stream { display: block; overflow-y: auto; min-height: 0; padding: 0 6px 24px 0; }
+  .stream-head {
+    display: flex; align-items: center; gap: 8px; position: sticky; top: 0; z-index: 2;
+    background: var(--bg); padding: 4px 0 10px; margin-bottom: 6px; border-bottom: 2px solid var(--border);
+  }
+  .stream-head h2 { font-size: 1.05rem; margin: 0; color: var(--accent); }
+  /* 並排時批次導覽照週次導覽折行：桌機用滑鼠橫捲不方便（Luke 2026-11-04）。 */
+  #batch-nav { flex-wrap: wrap; overflow-x: visible; padding-bottom: 0; }
+}
 
 /* ── Tag filters ── */
 .tag-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -153,11 +220,28 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* ── Hot topic analysis card ── */
 .ht-card { border-left: 4px solid var(--accent2); }
 .ht-title { font-size: 15px; font-weight: 700; color: var(--text); line-height: 1.4; margin-top: 2px; }
+/* 所屬週報「11-02 週報」（FR-011，簽核）：細框小標籤 */
+.ht-batch {
+  font-size: 11px; font-weight: 700; color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px;
+}
 
 .ht-focus { margin: 0 0 4px; padding-left: 1.4em; }
 .ht-focus li { margin-bottom: 6px; }
-.ht-focus-link { font-weight: 600; color: var(--accent); text-decoration: none; font-size: 13.5px; line-height: 1.5; }
-.ht-focus-link:hover { text-decoration: underline; }
+.ht-focus-link, .ht-focus-toggle { font-weight: 600; color: var(--accent); text-decoration: none; font-size: 13.5px; line-height: 1.5; }
+.ht-focus-link:hover, .ht-focus-toggle:hover { text-decoration: underline; }
+/* 按鈕是 inline-block：不對齊頂端，清單編號會對到標題的最後一行（簽核） */
+.ht-focus-toggle {
+  display: inline-block; vertical-align: top; text-align: left; font-family: inherit;
+  background: none; border: none; padding: 0; cursor: pointer;
+}
+.ht-focus-caret { margin-left: 2px; font-size: 11px; font-weight: 400; color: var(--text-muted); }
+.ht-focus-detail {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin: 8px 0 6px;
+  background: var(--bg); border-left: 3px solid var(--accent2); border-radius: 8px; padding: 10px 12px;
+}
+.ht-focus-detail[hidden] { display: none; }
+.ht-focus-summary { font-size: 12.5px; line-height: 1.7; color: var(--text-body); margin: 0; }
 
 .ht-axes { padding-top: 8px; }   /* 與上方焦點事件清單明確分隔 */
 .ht-axis {
@@ -217,10 +301,9 @@ a:focus-visible, button:focus-visible, input:focus-visible {
   .tr-main { align-items: center; gap: 8px; padding: 8px 6px; }
   .tr-slot { display: none; }
   /* display:contents 把兩層 wrapper 溶掉，讓元素直接成為 .tr-main 的 flex item，
-     再用 order 排成「來源 ★ 標題 寬幅條 時間 ×」。不需要第二份 DOM。 */
+     再用 order 排成「來源 標題 寬幅條 時間 ×」。不需要第二份 DOM。 */
   .tr-body, .tr-top { display: contents; }
   .tr-src { order: 1; }
-  .tr-badge { order: 2; }
   .tr-title { order: 3; flex: 1; min-width: 0;
               display: block; white-space: nowrap; text-overflow: ellipsis; }
   .tr-strip { order: 4; display: block; flex: 0 0 auto;
@@ -239,11 +322,6 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 .tr-src:hover { outline: 2px solid var(--text-muted); outline-offset: 1px; }
 
-/* ── 高價值突顯（spec 011 / US3） ── */
-/* 加強靠邊框與標記，不靠圖片：舊週圖片覆蓋率 0%，靠圖的設計在那裡會全部失效。 */
-.tr-strong { border-left: 3px solid var(--accent2); }
-.tr-strong .tr-title { font-weight: 700; }
-.tr-badge { flex: 0 0 auto; font-size: 11px; color: var(--accent2); line-height: 1; }
 /* 縮圖只在展開後、且真的有摘要時出現；載入失敗會自我移除，不留破圖空位。 */
 .tr-thumb {
   display: block; max-width: 100%; width: 220px; height: auto;

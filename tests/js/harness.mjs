@@ -29,6 +29,25 @@ export const TRAFFIC_CONFIG = {
   },
   srcColor(s) { return this.sourceColors[s] || (s.startsWith('Google News') ? '#4285F4' : '#555'); },
   srcLabel: s => s.startsWith('Google News') ? 'Google News' : s,
+  statAllLabel: '📰',
+  pageTitle: weekId => `${weekId} 台灣機車交通週報`,
+  subtitle: (weekId, count, syncLabel) => `${weekId}，共 ${count} 則新聞${syncLabel}`,
+  emptyHtml: '<h3>沒有符合條件的新聞</h3><p>試試調整篩選條件</p>',
+};
+
+/** 與 pages/ffxiv/index.html 的 SITE_CONFIG 同形（只放被測函式真的會讀的欄位）。 */
+export const FFXIV_CONFIG = {
+  contentType: 'ffxiv',
+  shareToLine: false,
+  dismissedKey: 'dismissed-ffxiv',
+  statAllLabel: '⚔️',
+  pageTitle: weekId => `${weekId} Garyu FFXIV 週報`,
+  subtitle: (weekId, count, syncLabel) => `${weekId}，共 ${count} 則 FFXIV 資訊${syncLabel}`,
+  emptyHtml: '<h3>尚無 FFXIV 資訊</h3><p>請等待下次週報產生，或調整篩選條件</p>',
+  sourceColors: { 'Lodestone': '#6C3483', 'JP Forum': '#8E44AD', 'Reddit': '#FF4500' },
+  srcColor(s) { return this.sourceColors[s] || (s.includes('Lodestone') ? '#6C3483' : s.includes('Forum') ? '#8E44AD' : '#555'); },
+  srcLabel: s => s,
+  sourceLang: { 'Lodestone': 'JP', 'JP Forum': 'JP', 'Reddit': 'EN', 'Reddit r/ffxiv': 'EN' },
 };
 
 const EXPORTED = [
@@ -36,7 +55,11 @@ const EXPORTED = [
   'isSourceHidden', 'getHiddenSources', 'saveHiddenSources',
 ];
 
-export function loadApp(config = TRAFFIC_CONFIG) {
+const NO_NETWORK = () => Promise.reject(new Error('測試不該打網路'));
+
+/** opts：html＝載入時的 body、storage＝localStorage 初值、fetch＝替換的 stub、exports＝要取出的函式名、url＝頁面網址。 */
+export function loadApp(config = TRAFFIC_CONFIG, opts = {}) {
+  const { html = '', storage = {}, fetch = NO_NETWORK, exports = EXPORTED, url = 'https://garyu.test/' } = opts;
   const raw = fs.readFileSync(APP_JS, 'utf8');
 
   // app.js 結尾會自己呼叫 init()，那會發網路請求。測試只要純函式，所以拿掉那一行。
@@ -47,17 +70,18 @@ export function loadApp(config = TRAFFIC_CONFIG) {
     throw new Error('harness 過期：app.js 的結尾不再是 `init();`，請確認新的啟動點再更新這裡');
   }
 
-  const dom = new JSDOM('<!doctype html><html><body></body></html>', {
-    url: 'https://garyu.test/',          // localStorage 需要 http(s) origin
+  const dom = new JSDOM(`<!doctype html><html><body>${html}</body></html>`, {
+    url,                                 // localStorage 需要 http(s) origin
     runScripts: 'outside-only',
   });
+  for (const [k, v] of Object.entries(storage)) dom.window.localStorage.setItem(k, v);
   dom.window.SITE_CONFIG = config;
   dom.window.__API_BASE__ = '/api';
-  dom.window.fetch = () => Promise.reject(new Error('測試不該打網路'));
+  dom.window.fetch = fetch;
 
-  dom.window.eval(`${src}\nwindow.__exports = { ${EXPORTED.join(', ')} };`);
+  dom.window.eval(`${src}\nwindow.__exports = { ${exports.join(', ')} };`);
   const api = dom.window.__exports;
-  const missing = EXPORTED.filter(n => typeof api[n] !== 'function');
+  const missing = exports.filter(n => typeof api[n] !== 'function');
   if (missing.length) throw new Error(`app.js 沒有這些函式了：${missing.join(', ')}`);
   return { ...api, window: dom.window };
 }

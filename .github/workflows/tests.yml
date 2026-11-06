@@ -57,3 +57,11 @@ jobs:
 
       - name: 跑 JS 單元測試
         run: npm test
+
+      # 版面常數（560px、5em、1024px、批次導覽折行）在真的 Chromium 上量（spec 017 SC-007、BACKLOG GNS-006）。
+      # 同樣放在這個 job：理由同開頭那段。--with-deps 裝的字型就是 5em 那條測試的「CI 的字型」。
+      - name: 安裝 Chromium（版面測試用）
+        run: npx playwright install --with-deps chromium
+
+      - name: 跑版面測試（Chromium）
+        run: npm run test:layout

@@ -1,0 +1,15 @@
+{
+  "reports": [
+    {
+      "week_start_date": "2026-11-02",
+      "topic_label": "機車事故 · 中時",
+      "report_text": "### 一、事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 8篇",
+      "source_article_count": 24,
+      "distinct_sources": 2,
+      "source_article_links": [
+        { "link": "https://example.test/r1", "title": "北市大直橋死亡車禍", "summary": "警方表示，事故發生於凌晨，肇事車輛疑似超速。" }
+      ],
+      "created_at": "2026-11-02T01:00:00+00:00"
+    }
+  ]
+}

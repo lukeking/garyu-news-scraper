@@ -4,9 +4,11 @@
   "type": "module",
   "description": "JS 單元測試用的最小工具鏈。⚠️ 這個檔案不參與部署：deploy-pages-*.yml 是把 pages/ 的檔案 cp 到暫存目錄再 wrangler pages deploy，部署目錄永遠不會包含它。",
   "scripts": {
-    "test": "node --test 'tests/js/**/*.test.mjs'"
+    "test": "node --test 'tests/js/**/*.test.mjs'",
+    "test:layout": "node --test 'tests/layout/**/*.test.mjs'"
   },
   "devDependencies": {
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "playwright": "1.60.0"
   }
 }
