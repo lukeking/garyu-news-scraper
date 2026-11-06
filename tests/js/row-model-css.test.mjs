@@ -1,6 +1,6 @@
 // `pages/shared/shared.css` 的結構守門員：擋「簡化 CSS 時把其中一個形態整段刪掉」。
 // 兩形態互為隱形依賴——刪掉寬形不報錯，只是桌機悄悄變回手機版面。
-// ⚠️ 不證明渲染正確：jsdom 無 layout，斷點兩側顯示對的形態測不到（BACKLOG #6）。
+// ⚠️ 不證明渲染正確：jsdom 無 layout，斷點兩側顯示對的形態這裡測不到——那半在 tests/layout/row-model.test.mjs（Chromium）。
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -34,7 +34,7 @@ test('寬形：@container 區塊存在，且斷點是清單寬度 560px', () => 
   const block = containerBlock();
   assert.ok(block, '@container trlist 區塊不見了 → 桌機會悄悄退回手機版面');
   assert.match(CSS, /@container trlist \(min-width:\s*560px\)/,
-    '斷點改了就要同步更新 BACKLOG GNS-006（那裡記著 560 是推導、待實測）');
+    '斷點改了就要同步改 tests/layout/row-model.test.mjs 的 591／592 那兩條（560px 在 Chromium 上量，spec 017 SC-007）');
 });
 
 test('寬形：方格收起、寬幅條展開、標題改回單行——三件事缺一不可', () => {
