@@ -12,6 +12,8 @@ import logging
 import random
 import requests
 
+from src.report_review import is_title_only
+
 logger = logging.getLogger(__name__)
 
 # GitHub Actions 若設定 GEMINI_MODEL_NAME secret 但留空，get 會得到 "" 而非預設值
@@ -748,13 +750,15 @@ HOT_TOPIC_SYSTEM_PROMPT = (
 
 HOT_TOPIC_PROMPT_TEMPLATE = """以下是本週「{topic_label}」類別的熱點新聞群（共 {article_count} 篇），請進行三軸結構性分析。
 所有引證以 Article ID 標注（如 [1]、[2]）。
+摘要欄寫「（僅標題）」的報導只有標題：引用時在 Article ID 後標「僅標題」（如 [3]（僅標題）），不得補寫標題沒有的主詞、範圍或日期。
 
 {article_list}
 
 【分析指令】
 
 ▌ A：雙軸因果矩陣
-將本批文章依以下三級分類，並挑選最具代表性的 1-2 篇做深度解構：
+清單裡沒有任何事故報導時（例如全是政策、執法或統計報導），本節只寫「本批無事故報導，不適用」，不填交織度分布、代表個案、人因變數、工程變數與交織說明。
+有事故報導時，將本批文章依以下三級分類，並挑選最具代表性的 1-2 篇做深度解構：
 - [工程主導]：移除工程缺陷後，相同人因錯誤不致死或傷亡大幅降低
 - [雙因交織]：工程缺陷放大人因錯誤致死率，兩者缺一不可
 - [人因主導]：有直接證據顯示個體行為是充分條件，但必須追問：「此行為為何在台灣路網允許普遍化？」
@@ -771,6 +775,7 @@ HOT_TOPIC_PROMPT_TEMPLATE = """以下是本週「{topic_label}」類別的熱點
 - 驗收標準：結論不得能被外行讀者讀成「車種分流是對的」。
 
 人因指控若僅為記者推斷或警方口述，標注 [推斷，非直接證據]。
+來源沒有寫到的行為或道路條件，人因變數、工程變數填「來源未載」，不得寫成斷言，也不得標成證據（[直接證據] 或 [推斷]）。
 
 ▌ B：條件式政經審查（嚴格觸發制）
 僅在文本明確提及以下內容時才啟動，否則填「無觸發條件，不適用」：
@@ -784,14 +789,16 @@ HOT_TOPIC_PROMPT_TEMPLATE = """以下是本週「{topic_label}」類別的熱點
 - 未交代分母的統計：事故率下降未交代流量分母
 - 時間窗口操縱：統計區間迴避異常高峰年份
 - 迴避路權移轉數據：未交代路權移轉至周邊路線的可能
+引用數字時照來源寫範圍、期間與基準，不得加上來源沒有的範圍詞，不得把統計定義的改變寫成因果。
 
 【輸出格式】（嚴格照以下格式逐行輸出，每行一個欄位，不可合併或換行）
 
 ### 一、 事故因果解構
+（清單裡沒有任何事故報導時，標題下只寫一行「本批無事故報導，不適用」，不輸出以下五行）
 交織度分布：[工程主導] __篇 ／ [雙因交織] __篇 ／ [人因主導] __篇
 代表個案：（填 Article ID）
-人因變數：（說明個體決策，標注 [直接證據] 或 [推斷]）
-工程變數：（對照日本生活道路30或荷蘭持續路，以速度／質量等原則本身的變數描述差距，禁用車種框架）
+人因變數：（說明個體決策，標注 [直接證據] 或 [推斷]；來源沒有寫的填「來源未載」）
+工程變數：（對照日本生活道路30或荷蘭持續路，以速度／質量等原則本身的變數描述差距，禁用車種框架；來源沒有寫的填「來源未載」）
 交織說明：（說明工程如何放大人因，或說明工程無關）
 
 ### 二、 政經變數審查
@@ -804,6 +811,37 @@ HOT_TOPIC_PROMPT_TEMPLATE = """以下是本週「{topic_label}」類別的熱點
 """
 
 
+def _source_link(a: dict) -> dict:
+    return {
+        "title": a.get("title", ""),
+        "link": a.get("link", ""),
+        "summary": (a.get("summary", "") or "")[:200],
+    }
+
+
+def _is_title_only_article(a: dict) -> bool:
+    return is_title_only(a.get("title") or "", a.get("summary") or "")
+
+
+def build_hot_topic_input(bucket_articles: list) -> tuple:
+    """三軸的生成輸入：依分數取前 10 篇，編號不重排，只有標題的摘要寫（僅標題）。
+    回傳 (article_list, ordered_links, {"articles": N, "title_only": M})。"""
+    top_articles = sorted(
+        bucket_articles,
+        key=lambda a: float(a.get("initial_quality_score") or 0),
+        reverse=True,
+    )[:10]
+
+    lines = []
+    for i, a in enumerate(top_articles, 1):
+        title = a.get("title", "（無標題）")
+        body = "（僅標題）" if _is_title_only_article(a) else (a.get("summary", "") or "")[:600]
+        lines.append(f"[{i}] 標題：{title}\n    摘要：{body}")
+
+    counts = {"articles": len(top_articles), "title_only": sum(map(_is_title_only_article, top_articles))}
+    return "\n\n".join(lines), [_source_link(a) for a in top_articles], counts
+
+
 def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: str) -> tuple:
     """
     Generate a deep-analysis report for a hot topic bucket using Gemini.
@@ -814,31 +852,10 @@ def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: 
     """
     api_key = _get_api_key()
 
-    top_articles = sorted(
-        bucket_articles,
-        key=lambda a: float(a.get("initial_quality_score") or 0),
-        reverse=True,
-    )[:10]
-
-    ordered_articles = [
-        {
-            "title": a.get("title", ""),
-            "link": a.get("link", ""),
-            "summary": (a.get("summary", "") or "")[:200],
-        }
-        for a in top_articles
-    ]
-
-    lines = []
-    for i, a in enumerate(top_articles, 1):
-        title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or "")[:600]
-        lines.append(f"[{i}] 標題：{title}\n    摘要：{body}")
-
-    article_list = "\n\n".join(lines)
+    article_list, ordered_articles, counts = build_hot_topic_input(bucket_articles)
     prompt = HOT_TOPIC_PROMPT_TEMPLATE.format(
         topic_label=topic_label,
-        article_count=len(top_articles),
+        article_count=counts["articles"],
         article_list=article_list,
     )
 
@@ -950,13 +967,13 @@ def dedup_same_event(candidates: list, buffer_articles: list) -> list:
 
 DIGEST_SYSTEM_PROMPT = (
     "你是台灣交通政策動態彙整編輯，專精道路安全政策、法規與治理議題。"
-    "彙整原則：各事件互相獨立，禁止在無文本依據下建立事件間的因果、趨勢或風向連結；"
+    "彙整原則：不得自行推論事件之間的因果、趨勢或風向關聯；來源明文寫出的關聯照寫，並標註該篇 Article ID。"
     "所有敘述必須標註文本依據（Article ID，如 [1]）。"
     "請用繁體中文回應，格式務必嚴格按照指示，不要加入任何額外說明。"
 )
 
-DIGEST_PROMPT_TEMPLATE = """以下是「{topic_label}」在 {date_start} 至 {date_end} 期間累積的 {article_count} 篇報導。
-這些是多個互相獨立的事件，請產出一份動態總覽（digest），不是單一事件深挖。
+DIGEST_PROMPT_TEMPLATE = """以下是「{topic_label}」報導日在 {date_start} 至 {date_end} 之間的 {article_count} 篇報導。
+請產出一份動態總覽（digest），不是單一事件深挖。清單裡每篇的日期是報導日，不是事件發生日。
 
 {article_list}
 
@@ -964,12 +981,14 @@ DIGEST_PROMPT_TEMPLATE = """以下是「{topic_label}」在 {date_start} 至 {da
 - 依主題相近度將文章分組（例：地方道安會報動態／中央政策與法規／民間倡議與研究），每組一節。
 - 每節逐事件一短段：時間、行為者、決策或訴求內容，段末標注 [Article ID]。
 - 多篇報導同一事件時合併為一段，並列出全部 Article ID。
-- 不同事件之間沒有文本依據時，禁止寫成趨勢、因果或「顯示…風向」的連結語。
+- 不得自行推論事件之間的因果、趨勢或「顯示…風向」的關聯；來源明文寫出的關聯照寫，並標注寫出它的 Article ID。
+- 寫到時間時標明是報導日（例：「10 月 9 日報導」），除非來源明文寫出事件發生的日期。
+- 數字照來源寫範圍、期間與基準，不得加上來源沒有的範圍詞，不得把統計定義的改變寫成因果。
 
 【輸出格式】（嚴格照以下格式輸出）
 
 ### 本期概覽
-（2-3 句：本期共幾個獨立事件、涵蓋哪些面向。不做趨勢推論。）
+（2-3 句：涵蓋哪些面向。篇數由程式另外寫入，不要寫篇數或事件數；不做趨勢推論。）
 
 ### 分節彙整
 （依分組逐節逐事件輸出，每段結尾標 [Article ID]）
@@ -977,6 +996,56 @@ DIGEST_PROMPT_TEMPLATE = """以下是「{topic_label}」在 {date_start} 至 {da
 ### 待追蹤
 （列出文本中明示「後續將…」「預計…」的未完成事項，各附 [Article ID]；無則填「本期無」）
 """
+
+
+DIGEST_OVERVIEW_HEADING = "### 本期概覽"
+DIGEST_TITLE_ONLY_HEADING = "### 僅標題"
+
+
+def _digest_selection(pool_articles: list, max_articles: int) -> tuple:
+    """依分數取前 max_articles 篇，分成 (有摘要, 只有標題) 兩組，組內照原順序。"""
+    top_articles = sorted(
+        pool_articles,
+        key=lambda a: float(a.get("initial_quality_score") or 0),
+        reverse=True,
+    )[:max_articles]
+    listed, title_only = [], []
+    for a in top_articles:
+        (title_only if _is_title_only_article(a) else listed).append(a)
+    return listed, title_only
+
+
+def build_digest_input(pool_articles: list, max_articles: int) -> tuple:
+    """彙整的生成輸入：有摘要的編 [1]..[K] 進清單，只有標題的接在 [K+1]..[N]、不進清單。
+    回傳 (article_list, ordered_links, {"articles": N, "title_only": M})。"""
+    listed, title_only = _digest_selection(pool_articles, max_articles)
+    lines = []
+    for i, a in enumerate(listed, 1):
+        title = a.get("title", "（無標題）")
+        body = (a.get("summary", "") or "")[:400]
+        lines.append(f"[{i}] 報導日：{(a.get('published') or '')[:10]}\n    標題：{title}\n    摘要：{body}")
+
+    ordered_links = [_source_link(a) for a in listed + title_only]
+    return "\n\n".join(lines), ordered_links, {"articles": len(ordered_links), "title_only": len(title_only)}
+
+
+def _assemble_digest(report: str, ordered_links: list, counts: dict) -> str:
+    """在第一個 ### 本期概覽 下插入程式算的計數行（沒有就補在最前面）；
+    有只有標題的報導就在文末加 ### 僅標題，逐行照抄原標題附 ID。"""
+    total, title_only = counts["articles"], counts["title_only"]
+    count_line = f"本期收錄 {total} 篇報導，其中 {title_only} 篇只有標題。"
+    lines = report.splitlines()
+    for i, line in enumerate(lines):
+        if line.strip() == DIGEST_OVERVIEW_HEADING:
+            lines.insert(i + 1, count_line)
+            break
+    else:
+        lines[:0] = [DIGEST_OVERVIEW_HEADING, count_line, ""]
+    if title_only:
+        listed = total - title_only
+        lines += ["", DIGEST_TITLE_ONLY_HEADING]
+        lines += [f"- {a['title']} [{i}]" for i, a in enumerate(ordered_links[listed:], listed + 1)]
+    return "\n".join(lines)
 
 
 def analyze_category_digest(pool_articles: list, topic_label: str,
@@ -988,44 +1057,30 @@ def analyze_category_digest(pool_articles: list, topic_label: str,
     """
     api_key = _get_api_key()
 
-    top_articles = sorted(
-        pool_articles,
-        key=lambda a: float(a.get("initial_quality_score") or 0),
-        reverse=True,
-    )[:max_articles]
-    if not top_articles:
+    article_list, ordered_articles, counts = build_digest_input(pool_articles, max_articles)
+    if not ordered_articles:
+        return "", []
+    listed, _ = _digest_selection(pool_articles, max_articles)
+    if not listed:
+        logger.warning("✗ 彙整 %s 全部只有標題（%d 篇），不生成 (%s)",
+                       topic_label, counts["articles"], week_start_date)
         return "", []
 
-    ordered_articles = [
-        {
-            "title": a.get("title", ""),
-            "link": a.get("link", ""),
-            "summary": (a.get("summary", "") or "")[:200],
-        }
-        for a in top_articles
-    ]
-
-    dates = sorted({(a.get("published") or "")[:10] for a in top_articles if a.get("published")})
+    dates = sorted({(a.get("published") or "")[:10] for a in listed if a.get("published")})
     date_start, date_end = (dates[0], dates[-1]) if dates else (week_start_date, week_start_date)
-
-    lines = []
-    for i, a in enumerate(top_articles, 1):
-        title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or "")[:400]
-        lines.append(f"[{i}] 日期：{(a.get('published') or '')[:10]}\n    標題：{title}\n    摘要：{body}")
 
     prompt = DIGEST_PROMPT_TEMPLATE.format(
         topic_label=topic_label,
-        article_count=len(top_articles),
+        article_count=len(listed),
         date_start=date_start,
         date_end=date_end,
-        article_list="\n\n".join(lines),
+        article_list=article_list,
     )
 
     raw = _call_gemini(prompt, api_key, system_prompt=DIGEST_SYSTEM_PROMPT)
     if raw:
         logger.info("✓ 彙整分析完成：%s (%s)", topic_label, week_start_date)
-        return raw.strip(), ordered_articles
+        return _assemble_digest(raw.strip(), ordered_articles, counts), ordered_articles
 
     logger.warning("✗ 彙整分析失敗：%s (%s)", topic_label, week_start_date)
     return "", []
