@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Measure how much genuine article body actually reaches the analyzer (BACKLOG #11).
 
-analyzer.analyze_hot_topic() builds its prompt from `標題` plus
-`(summary or content)[:600]`. The articles table has no `content` column — the
-collector never produces that key and storage.py never inserts it — so the
-effective body is `summary` alone. This script answers one question: of
+The prompt bodies come from analyzer.build_hot_topic_input() and
+build_digest_input(), using `summary` alone (the articles table has no `content`
+column). Since spec 018 a summary judged title-only is not sent as body at all.
+This script classifies the stored `summary`; it answers one question: of
 everything fed to the model, what share is genuine article body?
 
 What this is NOT: measure_body_fetch.py measures *fetchability* — re-fetch the
