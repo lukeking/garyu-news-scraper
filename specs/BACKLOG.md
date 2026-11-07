@@ -40,7 +40,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | 等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口` | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
 | `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口` | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261102-akc` | `Google News 報導者交通` 每天收集到的文章在關鍵字過濾全部被擋：10-20～11-01 的 daily 寫入都是 0 | 下次動這個來源的設定（prod `SOURCES_TRAFFIC_YML` 與鏡像），或檢討交通來源清單時 `pre-edit: {"paths":["config/sources_traffic.example.yml"]}` | 查出過濾全擋的原因（query `交通 site:twreporter.org` 撈到的是什麼、擋在哪一條），決定改 query、停用，或寫明保留的理由 |
-| `GNS-20261031-s3h` | 週報熱點分析發布前沒有審核者：觀點有盲點或偏頗、措辭不精確造成歧義 | 已提出：Luke 2026-10-31；實例錨點 2026-11-06 已有（資深編輯評論，見本節）；卡在 Luke 選做法。或下次動 `src/analyzer.py` 的 `analyze_hot_topic`／`analyze_category_digest` prompt 時 `pre-edit: {"paths":["src/analyzer.py"]}` | 有一份用實例錨定的審稿標準；週報在讀者看到之前經過審核（做法由 Luke 裁示），連兩週的審核紀錄查得到；或寫明不做的理由 |
+| `GNS-20261031-s3h` | 週報熱點分析發布前沒有審核者：觀點有盲點或偏頗、措辭不精確造成歧義 | 已觸發：Luke 2026-11-07 裁示做法（修生成指令＋發布前 LLM 審稿與修稿，見本節），spec `018-prepublish-review` 進行中；動 `src/analyzer.py` 的 `analyze_hot_topic`／`analyze_category_digest` prompt 時先看那個 spec `pre-edit: {"paths":["src/analyzer.py"]}` | 有一份用實例錨定的審稿標準；週報在讀者看到之前經過審核（做法由 Luke 裁示），連兩週的審核紀錄查得到；或寫明不做的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | 每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 `pre-edit: {"paths":["scripts/auto_kb.py"]}` | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | 新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：Gemini API changelog 讀到 10-30 那則，沒有新的 flash／pro GA（10-13 GA 的 `gemini-4-argon` 已在 10-19 那輪評過），也沒有 `gemini-3.8-flash` deprecated 或被轉送 `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口` | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
@@ -716,7 +716,12 @@ Luke 10-26 裁示人工條目新增類別 `魔物`，兩列已改；`auto_kb.py`
 中間沒有審稿步驟。週驗收 routine 在發布後約 7 小時跑（週一 07:00Z），`routines/weekly-verify/PROMPT.md` 沒有觀點或措辭的檢查項目——
 它查的是管線健康。`GNS-011` 管的是「來源沒有的事實」（杜撰），跟這條是不同的缺陷。
 
-**做法候選**（未裁示）：
+**2026-11-07 Luke 裁示**：「兩件事併行，修改 prompt + 產生後發布前多一步 LLM 審+修的流程。如果你要測試第二步可以拿已發布的去測，
+不用每次都等一個禮拜有新熱點才能測」。同日在 `/speckit-specify` 裁示：彙整與三軸熱點兩種都做；審稿用同一家廠商的另一個模型；
+審稿或修稿失敗時照發原稿、紀錄標未審；已發布的三份彙整不更正，只拿來重播測試。做法與驗收在 `specs/018-prepublish-review/spec.md`。
+下面的「做法候選」與「評論給的調整方向」是裁示前的紀錄。
+
+**做法候選**（11-07 選了第一項，見上）：
 
 - 發布前 LLM 審稿一輪（生成 → 審 → 修）：週報本來就是呼叫 LLM 的那一側。要避開：同一個模型審自己；審稿者看到的輸入要與生成相同
   （`GNS-20261019-1vk` 那套評比的裁判只看來源前 200 字、生成拿 600 字，把兩句判成杜撰）；要有嚴重度下限與一輪上限。
