@@ -31,5 +31,7 @@
 程式端的規則（`src/report_review.py`，由單元測試鎖住）：
 - 只套用 `severity` 為 `high`、`medium` 而且有 `replacement` 的發現。
 - `quote` 在報告裡出現 0 次或多於 1 次，不套用，`apply_note` 寫 `quote_not_found`／`quote_ambiguous`。
+- 先在**原稿**上把所有要套的原句定位好，再一次套用（不是一條改完再找下一條）；位置重疊的兩條都不套，`apply_note` 寫 `quote_overlap`。
+- 整份檢查只算修稿新增的失敗；刪掉的字數超過原稿 30% 也整份退回（research R2）。
 - 套用之後跑單條檢查（research R5）；沒過就退回這一條，`apply_note` 寫 `check_failed:<項目>`。
 - 未知的 `category`、`severity`、`cause` 值：那一條記錄、不套用，`apply_note` 寫 `invalid_field:<欄位>`。

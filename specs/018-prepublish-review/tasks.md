@@ -15,10 +15,10 @@
 
 只產出紀錄（research.md、evaluation.md、spec 的 Assumptions），不改程式；scratch 腳本放 scratch 根目錄，不進 repo。
 
-- [ ] T001 [FR-004, SC-001] 重建 10-19、10-26、11-02 三份「道安政策 · 彙整」的生成輸入（唯讀查 `hot_topic_reports.source_article_links` 與 `articles`，照現行 `analyze_category_digest` 的排序、`max_articles` 與 400 字截斷），用 research R4 的規則逐篇判「只有標題」，對照評論說的每份 6–11 篇，看邊界上的幾篇定案 20 字門檻；結果與逐篇判定寫進 `specs/018-prepublish-review/research.md` R4
+- [ ] T001 [FR-004, SC-001] 重建 10-19、10-26、11-02 三份「道安政策 · 彙整」的生成輸入（唯讀查 `hot_topic_reports.source_article_links` 與 `articles`；清單**照 `source_article_links` 的順序**，它就是當時送給模型的順序、第 i 個對到 `[i]`，不重新排序，也不讀本機的 `max_articles`；摘要照 400 字截斷），用 research R4 的規則逐篇判「只有標題」，對照評論說的每份 6–11 篇，看邊界上的幾篇定案 20 字門檻；結果與逐篇判定寫進 `specs/018-prepublish-review/research.md` R4
 - [ ] T002 [FR-006, FR-016] 檢查 Unchecked 假設「已發布的三軸熱點報告也能重建生成輸入」：唯讀查全部已發布的三軸報告（`topic_label` 不是彙整的那些），逐份算 `source_article_links` 在 `articles` 找得回的比例；結果寫進 research.md 新節「三軸輸入可重建性」，spec 的 Assumptions 那條改成 `Checked:`（附數字）或維持 `Unchecked:` 並寫明缺口
-- [ ] T003 [FR-006, FR-009] 檢查 Unchecked 假設「三軸熱點報告的錯型與彙整不完全相同」：照 11-06 做法用 headless `claude -p`（不給工具）扮資深新聞編輯，評 T002 裡輸入重建完整的 3–4 份三軸報告；main 拿重建的清單與報告原文逐條核對，成立的寫進 research.md 新節「三軸錨點」（原句、錯在哪、嚴重度、類別）；spec 的 Assumptions 那條依結果改寫
-- [ ] T004 [FR-009] 偏頗類錨點：main 從 `specs/BACKLOG.md` `GNS-20261031-s3h` 節「評論提出、main 沒有逐條對過的」挑偏頗類（刪掉論據、地方自評寫成成效、身分標示不一致等），拿 T001 重建的清單與報告原文核對，成立的至少 2 個寫進 research.md 新節「偏頗錨點」；不足 2 個時寫明，交給 Luke 決定 FR-009 的偏頗類怎麼辦
+- [ ] T003 [FR-006, FR-009] 檢查 Unchecked 假設「三軸熱點報告的錯型與彙整不完全相同」：照 11-06 做法用 headless `claude -p`（不給工具）扮資深新聞編輯，評 T002 裡輸入重建完整的 3–4 份三軸報告；main 拿重建的清單與報告原文逐條核對，成立的寫進 research.md 新節「三軸錨點」（原句、錯在哪、嚴重度與判定理由、類別；嚴重度照 research R6 的定義由 main 判）；刻意找低嚴重度的例子，跟 T004 合起來至少 2 個（FR-009）；spec 的 Assumptions 那條依結果改寫
+- [ ] T004 [FR-009] 偏頗類錨點：main 從 `specs/BACKLOG.md` `GNS-20261031-s3h` 節「評論提出、main 沒有逐條對過的」挑偏頗類（刪掉論據、地方自評寫成成效、身分標示不一致等），拿 T001 重建的清單與報告原文核對，成立的至少 2 個寫進 research.md 新節「偏頗錨點」；同一張表補上 s3h 那五條的嚴重度與判定理由（research R6）；低嚴重度的例子跟 T003 合起來至少 2 個；偏頗類或低嚴重度不足 2 個時寫明，交給 Luke 決定 FR-009 怎麼辦
 - [ ] T005 [FR-007, SC-002] 檢查 Unchecked 假設「同廠商的審稿模型盲點可能與生成模型相近」：scratch 腳本用草擬的審稿 prompt（標準裡排除「毒駕 7 死」與「全國 154 萬」兩句）讓 `gemini-4-argon` 審 10-26 那份彙整，看有沒有點出這兩句；記 token 與秒數；沒點出就換 `gemini-2.5-pro` 再試一次。結果寫進 research.md R1，spec 的 Assumptions 那條依結果改寫
 
 ---
@@ -27,7 +27,7 @@
 
 US1 的量測與 US2 的套用都用這兩樣。
 
-- [ ] T006 [P] [FR-004, FR-010, SC-001, SC-003] 在 `tests/unit/test_report_review.py` 寫測試（先紅）：`is_title_only()` 的四種形狀與 T001 定案的門檻（邊界兩側各一例，門檻用字面值）；`check_report()` 每一項（各節標題、`[n]` 超出範圍、只有標題的 ID 出現在 `### 分節彙整`、概覽裡的「共 N 起／個事件」、「互相獨立／無直接因果／各自獨立」、日期沒標報導日、替換文字帶出原句與來源都沒有的數字）。咬合對照：用 T001 重建的已發布原稿當 fixture，至少「互相獨立」與「事件數」兩項要回報 > 0
+- [ ] T006 [P] [FR-004, FR-010, SC-001, SC-003] 在 `tests/unit/test_report_review.py` 寫測試（先紅）：`is_title_only()` 的四種形狀與 T001 定案的門檻（邊界兩側各一例，門檻用字面值）；`check_report()` 每一項（各節標題、`[n]` 超出範圍、只有標題的 ID 出現在 `### 分節彙整`、概覽裡的「共 N 起／個事件」、「互相獨立／無直接因果／各自獨立」、日期沒標報導日、替換文字帶出原句與來源都沒有的數字、三軸「交織度分布」三類加總不等於清單篇數、刪掉的字數超過原稿 30%（29% 與 31% 各一例，門檻用字面值）；整份檢查只回報修稿新增的失敗（原稿已有的同一項不算）。咬合對照：用 T001 重建的已發布原稿當 fixture，至少「互相獨立」與「事件數」兩項要回報 > 0
 - [ ] T007 [FR-004, FR-010] 在新模組 `src/report_review.py` 實作 `is_title_only()` 與 `check_report()`（純函式，不碰網路與資料庫），讓 T006 轉綠
 
 ---
@@ -55,14 +55,14 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - [ ] T014 [P] [US2] [FR-007] 在 `tests/unit/test_call_gemini_model.py` 寫測試（先紅）：`_call_gemini(model=…)` 打到該模型的網址；`response_mime_type="application/json"` 出現在 `generationConfig`；不帶這兩個參數時 payload 與現在逐位元組相同（固定的對照 payload）
 - [ ] T015 [US2] [FR-007] 在 `src/analyzer.py` 的 `_call_gemini` 加 `model=None`、`response_mime_type=None` 兩個選填參數，讓 T014 轉綠
-- [ ] T016 [P] [US2] [FR-008, FR-009, FR-010, FR-011, FR-012] 在 `tests/unit/test_report_review.py` 加測試（先紅）：錨點資料（s3h 五條、T003 三軸、T004 偏頗）每個嚴重度至少 2 例；`build_review_standard(template, exclude=[…])` 排除後那句不在輸出裡；`parse_review(raw)` 照 `contracts/review-output.md` 驗欄位，壞 JSON／缺欄位丟 `InvalidReview`；`apply_findings()` 只套中、高且有替換的、`quote` 0 次與多次各記 `quote_not_found`／`quote_ambiguous`、單條檢查沒過記 `check_failed:<項>`、未知值記 `invalid_field:<欄位>`；`decide_status()` 六種狀態各一例
+- [ ] T016 [P] [US2] [FR-008, FR-009, FR-010, FR-011, FR-012] 在 `tests/unit/test_report_review.py` 加測試（先紅）：錨點資料（s3h 五條、T003 三軸、T004 偏頗）每個嚴重度至少 2 例；`build_review_standard(template, exclude=[…])` 排除後那句不在輸出裡；`parse_review(raw)` 照 `contracts/review-output.md` 驗欄位，壞 JSON／缺欄位丟 `InvalidReview`；`apply_findings()` 只套中、高且有替換的、`quote` 0 次與多次各記 `quote_not_found`／`quote_ambiguous`、兩條原句在原稿上位置重疊時兩條都記 `quote_overlap` 不套、全部原句先在原稿上定位再一次套用（前一條的替換不影響後一條的定位）、單條檢查沒過記 `check_failed:<項>`、未知值記 `invalid_field:<欄位>`；`decide_status()` 六種狀態各一例
 - [ ] T017 [US2] [FR-009, FR-010, FR-011] 在 `src/report_review.py` 實作錨點資料、`build_review_standard()`、`parse_review()`、`apply_findings()`、`decide_status()`，讓 T016 轉綠
 - [ ] T018 [US2] [FR-007, FR-008] 在 `src/analyzer.py` 加審稿 system prompt 與 `review_report(template, input_snapshot, report_text, model, exclude_anchors=())`：送出的清單就是 `input_snapshot`（同一個字串），JSON 模式呼叫 `_call_gemini(model=…)`，回 `parse_review()` 的結果；在 `tests/unit/test_report_review.py` 用 monkeypatch 的 `_call_gemini` 驗它送出的 prompt 含 `input_snapshot` 全文與報告全文、用的是指定的模型
 - [ ] T019 [P] [US2] [FR-007, FR-012, FR-013] 在 `tests/unit/test_weekly_review_flow.py` 寫測試（先紅），monkeypatch `_call_gemini` 與 storage，跑 `scripts/traffic_weekly_analysis.py` 的真入口：沒設 `GEMINI_REVIEW_MODEL_NAME`、與 `GEMINI_MODEL_NAME` 相同、呼叫失敗、壞 JSON、沒發現、只有低、全套用、部分套用、整份退回，各自寫進 `hot_topic_reports` 的是哪一版、log 印的原因字串互不相同
-- [ ] T020 [US2] [FR-007, FR-012, FR-013] 在 `scripts/traffic_weekly_analysis.py` 串起來：熱點與彙整各自生成後取 `build_*_input()` 的快照 → `review_report()` → `apply_findings()` → `decide_status()` → 以發布版本 upsert 報告；每條放棄路徑印原因（負控 log），讓 T019 轉綠
+- [ ] T020 [US2] [FR-007, FR-012, FR-013] 在 `scripts/traffic_weekly_analysis.py` 串起來：熱點與彙整各自生成後取 `build_*_input()` 的快照 → 照 `_GEMINI_DELAY` 間隔一次（憲章 IV：限流值寫在呼叫旁）→ `review_report()` → `apply_findings()` → `decide_status()` → 以發布版本 upsert 報告；每條放棄路徑印原因（負控 log），讓 T019 轉綠；T019 加一條：審稿呼叫之前有一次 `_GEMINI_DELAY` 的 sleep（monkeypatch `time.sleep` 記錄）
 - [ ] T021 [P] [US2] [FR-015, SC-002] 在 `tests/unit/test_replay_report_review.py` 加測試（先紅）：`--exclude-anchor` 傳到 `review_report()`、`--review-model` 蓋過變數、輸出 JSON 有 findings、套用結果與狀態，`.md` 有修前修後並排
 - [ ] T022 [US2] [FR-015, SC-002, SC-003] 在 `scripts/replay_report_review.py` 加審稿與套用，讓 T021 轉綠
-- [ ] T023 [US2] [SC-002, SC-003] （verification-only）對每個錨點跑留一重播（排除它、重播它所在的報告），記被點出與否；每份報告的發現由 main 拿來源逐條核對、算成立比例；SC-003 的四項檢查；Gate 沒過就換候選模型重跑並記錄。全部寫進 `evaluation.md` 的 SC-002、SC-003 節與達成階數
+- [ ] T023 [US2] [SC-002, SC-003, SC-005] （verification-only）對每個錨點跑留一重播（排除它、重播它所在的報告），記被點出與否；每份報告的發現由 main 拿來源逐條核對、算成立比例；SC-003 的四項檢查；Gate 沒過就換候選模型重跑並記錄；用重播實際的 token 數換算每月費用（照當時與 12-01 起的單價各算一次），加上現有用量比對 NT$300 上限（SC-005 的上線前估算）；用實際的刪除比例檢討 R2 的 30%。全部寫進 `evaluation.md` 的 SC-002、SC-003、SC-005 節與達成階數
 
 **Checkpoint**: US1＋US2 合起來就是 Luke 選的兩件事；週報上線前要先過 T023。
 

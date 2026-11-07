@@ -16,6 +16,7 @@
 | `input_counts` | JSONB NOT NULL | `{"articles": N, "title_only": M}` |
 | `original_text` | TEXT NOT NULL | 生成的原稿 |
 | `findings` | JSONB NOT NULL DEFAULT `[]` | 審稿發現陣列，形狀見 `contracts/review-output.md`，每條另加 `applied`（bool）與 `apply_note`（沒套用的原因） |
+| `checks` | JSONB NOT NULL DEFAULT `{}` | 機械檢查結果：`{"original": {...}, "published": {...}}`，每項的命中數與命中句（research R5；FR-003 的三類加總驗算在這裡） |
 | `status` | TEXT NOT NULL | 見下方狀態 |
 | `status_reason` | TEXT | `not_reviewed`、`revision_rejected`、`partially_applied` 時必填 |
 | `published_text` | TEXT NOT NULL | 實際發布的版本（等於 `hot_topic_reports.report_text`） |

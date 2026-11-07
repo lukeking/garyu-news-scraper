@@ -41,7 +41,7 @@
 | I Pipeline Integrity：階段依序、失敗要出聲、不得無上游輸出 | 審稿放在 Analyze 之內、Store 之前；生成空字串不送審。審稿失敗照發原稿，但每份都印 `[審稿]` 行、狀態與原因寫進紀錄、週驗收轉進報告（FR-012、FR-013、FR-014a），不是靜默 | 通過 |
 | II Configuration over Code：模型名稱外部化，換模型不改程式 | 審稿模型由 GitHub 變數 `GEMINI_REVIEW_MODEL_NAME` 指定；沒設定就不跑審稿並記 `model_unset` | 通過 |
 | III Idempotency：同一份語料重跑得到相同的儲存狀態，主鍵穩定 | 新表以 `(week_start_date, topic_label)` 為唯一鍵 upsert，與 `hot_topic_reports` 同鍵。LLM 輸出本身不確定，這點與現有報告相同，不是新引入的 | 通過 |
-| IV Explicit Budgets：預算寫在 `docs/external-services.md`、呼叫有上限、job 有 timeout | 每份報告最多一次審稿呼叫，報告數已受 `max_hot_topics` 與 digest 設定限制；重試沿用 `GEMINI_MAX_RETRIES`；`docs/external-services.md` 的 Gemini 列補上審稿模型與估算；timeout 30 不變（SC-004 驗） | 通過（要改 `docs/external-services.md`） |
+| IV Explicit Budgets：預算寫在 `docs/external-services.md`、呼叫有上限、job 有 timeout | 每份報告最多一次審稿呼叫，報告數已受 `max_hot_topics` 與 digest 設定限制；審稿呼叫前照 `scripts/traffic_weekly_analysis.py` 的 `_GEMINI_DELAY` 間隔，跟現有的生成呼叫一樣，限流值寫在呼叫旁邊；重試沿用 `GEMINI_MAX_RETRIES`；`docs/external-services.md` 的 Gemini 列補上審稿模型與估算；timeout 30 不變（SC-004 驗） | 通過（要改 `docs/external-services.md`） |
 | V Single Responsibility：一個模組一個階段；共用 helper 放在名稱清楚的共用模組；新抽象要有理由 | 審稿 prompt 與呼叫放 `src/analyzer.py`（它擁有 LLM 呼叫）；純文字處理（錨點、套用替換、機械檢查、摘要行）放新模組 `src/report_review.py`，週報與重播共用；寫入放 `src/storage.py`；串接放 `scripts/traffic_weekly_analysis.py`。新模組的理由見 Complexity Tracking | 通過（附理由） |
 | VI Knowledge Base Integrity | 不碰 FFXIV 分析 | 不適用 |
 | Technology Constraints | 同一個 LLM API（`src/analyzer.py` 呼叫）、同一個 Supabase；加一張表不改系統形狀 | 通過 |
