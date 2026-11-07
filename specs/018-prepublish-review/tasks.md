@@ -53,6 +53,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 **Goal**: 每份報告生成後由 argon（或 T005 選定的模型）審一次，程式套用中、高嚴重度的替換。
 **Independent Test**: 重播已發布的報告（留一），SC-002 的 Gate 與 SC-003 全過。
 
+- [ ] T036 [US2] [FR-007, SC-002] （verification-only，Unit 6 之前；Luke 2026-11-07 裁示）scratch 腳本用逐句核對的提示（先列出報告裡每一句含數字或因果動詞的句子、逐句對照清單，再判問題）讓 `gemini-4-argon` 審 10-26 那份彙整 3 次；標準照 research R1「T005 探針」那一版加上生成規則，排除毒駕「7 死」與「全國」154 萬兩個例子。記每次有沒有點出這兩句、token 與秒數，結果寫進 research R1；3 次都沒過 Gate 時交 Luke 決定 US2 的做法，再開始 Unit 6
 - [ ] T014 [P] [US2] [FR-007] 在 `tests/unit/test_call_gemini_model.py` 寫測試（先紅）：`_call_gemini(model=…)` 打到該模型的網址；`response_mime_type="application/json"` 出現在 `generationConfig`；不帶這兩個參數時 payload 與現在逐位元組相同（固定的對照 payload）
 - [ ] T015 [US2] [FR-007] 在 `src/analyzer.py` 的 `_call_gemini` 加 `model=None`、`response_mime_type=None` 兩個選填參數，讓 T014 轉綠
 - [ ] T016 [P] [US2] [FR-008, FR-009, FR-010, FR-011, FR-012] 在 `tests/unit/test_report_review.py` 加測試（先紅）：錨點資料（s3h 五條、T003 三軸、T004 偏頗）每個嚴重度至少 2 例；`build_review_standard(template, exclude=[…])` 排除後那句不在輸出裡；`parse_review(raw)` 照 `contracts/review-output.md` 驗欄位，壞 JSON／缺欄位丟 `InvalidReview`；`apply_findings()` 只套中、高且有替換的、`quote` 0 次與多次各記 `quote_not_found`／`quote_ambiguous`、兩條原句在原稿上位置重疊時兩條都記 `quote_overlap` 不套、全部原句先在原稿上定位再一次套用（前一條的替換不影響後一條的定位）、單條檢查沒過記 `check_failed:<項>`、未知值記 `invalid_field:<欄位>`；`decide_status()` 六種狀態各一例
@@ -99,7 +100,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Phase 1（Unit 1）先做：T001 是 T004、T006 的 fixture 來源；T002 是 T003 的輸入；T005 決定 US2 的模型。
 - Phase 2（Unit 2）在 Phase 1 之後：門檻與 fixture 來自 T001。
 - US1：Unit 3 → Unit 4 → Unit 5（量測）。
-- US2：Unit 6 要 Unit 1（錨點、模型）與 Unit 2（檢查）；Unit 7 要 Unit 6 與 Unit 3（`build_*_input()`）；Unit 8 要 Unit 4 與 Unit 6；Unit 9 在 Unit 8 之後。
+- US2：Unit 14（T036 提示探針）在 Unit 6 之前；Unit 6 要 Unit 1（錨點、模型）、Unit 2（檢查）與 Unit 14；Unit 7 要 Unit 6 與 Unit 3（`build_*_input()`）；Unit 8 要 Unit 4 與 Unit 6；Unit 9 在 Unit 8 之後。
 - US3：Unit 10、Unit 11 要 Unit 7；Unit 12 要 Unit 11。
 - Unit 13（上線、收尾）在 Unit 9 過 Gate、其餘 unit 都 `[X]` 之後；T033 在 merge 之後另開 PR。
 
@@ -167,7 +168,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - Tasks: T014, T015, T016, T017, T018
 - Outcome: `review_report()` 送出與生成相同的清單、拿回驗過形狀的發現；`apply_findings()`、`decide_status()` 照契約套用與判狀態。
-- Prerequisites: Unit 1（錨點、模型）、Unit 2（檢查）。
+- Prerequisites: Unit 1（錨點、模型）、Unit 2（檢查）、Unit 14（審稿提示探針）。
 - Verification: `pytest tests/unit/test_call_gemini_model.py tests/unit/test_report_review.py`（各自先紅後綠）；不帶新參數時 `_call_gemini` 的 payload 與對照逐位元組相同。
 - Review: 上述兩個測試檔、`src/analyzer.py`（`_call_gemini`、審稿 prompt、`review_report`）、`src/report_review.py`（錨點、標準、解析、套用、狀態）、`contracts/review-output.md`。
 - Merge or split: 審與修在 research R2 合成一次呼叫，呼叫、解析、套用是同一個產出；`_call_gemini` 的參數只為它而加。
@@ -235,3 +236,12 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Review: main 複驗；T032 的 dashboard 那一步由 Luke 做。
 - Merge or split: T033～T035 只改紀錄、跑既有入口。T032 改的是 prod 的設定（dashboard 套 schema、設變數），不是 repo 裡的程式：
   套用的 SQL 與變數值在 Unit 10、Unit 9 已審過，這一步的檢查是讀回，所以不另開實作審查。
+
+### Unit 14: 審稿提示探針 (verification-only)
+
+- Tasks: T036
+- Outcome: 逐句核對的提示能不能讓 argon 點出毒駕「7 死」，結果與 3 次之間的差異寫進 research R1；決定 US2「一次呼叫審加修」用 Gemini 可不可行。
+- Prerequisites: Unit 1（標準的錨點與 T005 的結果）。在 Unit 6 之前做（Luke 2026-11-07 裁示）。
+- Verification: 每次的 request 與 response 存在 scratch，結論附 token 與秒數；main 讀回被點出的原句與報告一致。
+- Review: main 複驗；3 次都沒過 Gate 時 Luke 看結果決定做法。
+- Merge or split: 只跑 scratch 探針、只改紀錄，不併進 Unit 6，因為它的結果決定 Unit 6 要不要照現在的設計做。
