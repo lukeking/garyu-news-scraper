@@ -42,7 +42,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 - [ ] T010 [US1] [FR-004, FR-005, FR-005a, FR-006] 在 `src/analyzer.py` 改 `HOT_TOPIC_PROMPT_TEMPLATE`（C 軸數字範圍規則、引用只有標題的報導時標「僅標題」、A 軸「本批無事故報導，不適用」、人因與工程欄「來源未載」），抽出 `build_hot_topic_input(bucket_articles)`，`analyze_hot_topic` 改用它；回傳值不變
 - [ ] T011 [P] [US1] [FR-015, FR-016] 在 `tests/unit/test_replay_report_review.py` 寫測試（先紅）：腳本模組沒有引用任何 `upsert_*`（讀模組原始碼斷言）；用假 client 時，沒有審核紀錄的報告走重建並標 `"input": "reconstructed"`；`--regenerate` 走 `build_digest_input`／`build_hot_topic_input`；輸出 JSON 有 `checks.original` 與 `checks.regenerated`、同名 `.md` 存在；找不到報告時結束碼 1 並印原因
 - [ ] T012 [US1] [FR-015, FR-016, SC-001] 寫 `scripts/replay_report_review.py`（`contracts/replay-cli.md` 的 `--week`、`--topic`、`--out`、`--regenerate`）：唯讀重建輸入、可選重生成、兩份都跑 `check_report()`、寫 JSON 與修前修後的 `.md`、開始印估算費用、結束印 token 數
-- [ ] T013 [US1] [SC-001] （verification-only）跑 T012 的 `--regenerate` 於三份彙整與兩份沒有事故的三軸報告（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」，research「三軸錨點」），原稿與重生成的四類計數、逐條命中，以及兩份三軸重生成的 A 軸有沒有寫「不適用」，寫進新檔 `specs/018-prepublish-review/evaluation.md` 的 SC-001 節；重生成仍有命中的，逐條判是規則還是檢查誤判
+- [ ] T013 [US1] [SC-001] （verification-only）跑 T012 的 `--regenerate` 於三份彙整與兩份沒有事故的三軸報告（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」，research「三軸錨點」），原稿與重生成的四類計數、逐條命中，以及兩份三軸重生成的 A 軸有沒有寫「不適用」，寫進新檔 `specs/018-prepublish-review/evaluation.md` 的 SC-001 節；重生成仍有命中的，逐條判是規則還是檢查誤判。另外照 `GNS-011` 的完成標準量杜撰比率（Luke 2026-11-07 裁示併進 018）：取至少 6 份不同週、不同桶、輸入全找回的三軸報告（06-14 模板之後），原稿與重生成各自由 main 逐句核對「報告本文出現來源查無的具體事實」的處數，比率與逐條判定寫進 evaluation.md 的 GNS-011 節，並在 BACKLOG `GNS-011` 節寫明 prompt 改到哪裡、還要不要再改
 
 **Checkpoint**: US1 可以單獨驗收。
 
@@ -89,7 +89,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - [ ] T032 [FR-007, FR-014] （verification-only）上線：Luke 在 Supabase dashboard 貼 006，main 唯讀查表與 grant 讀回；`gh variable set GEMINI_REVIEW_MODEL_NAME --env production` 設成 T023 選定的模型並 `gh variable get` 讀回
 - [ ] T033 [SC-004, SC-005, SC-006] （verification-only，merge 後）上線後連兩週：週報耗時與 timeout、各報告審稿秒數（`[審稿]` 行）、實際 token 換算月費用、紀錄的 `published_text` 與 `hot_topic_reports.report_text` 逐份相等、週驗收報告的摘要行與紀錄一致；寫進 `evaluation.md` 與 spec 的達成階數（另開 PR，同 017 的 T020）
-- [ ] T034 收尾（feature PR 轉 ready 前）：照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 跑一次，矩陣與 main 的裁示記在 PR 內文
+- [ ] T034 收尾（feature PR 轉 ready 前）：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-011`（T013 量完杜撰比率、BACKLOG 該節寫明結論之後）；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 跑一次，矩陣與 main 的裁示記在 PR 內文
   （Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-s3h`，PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
 - [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
 
@@ -158,7 +158,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 ### Unit 5: SC-001 量測 (verification-only)
 
 - Tasks: T013
-- Outcome: evaluation.md 的 SC-001 節：原稿與重生成的四類計數。
+- Outcome: evaluation.md 的 SC-001 節：原稿與重生成的四類計數；GNS-011 節：三軸杜撰比率（原稿與重生成）。
 - Prerequisites: Unit 4。
 - Verification: 腳本輸出的 JSON 留在 scratch，數字寫進 evaluation.md；main 抽查命中句。
 - Review: main 複驗。
