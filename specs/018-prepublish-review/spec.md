@@ -47,6 +47,10 @@
 - Q: Unit 3 改三軸 prompt 讓 `GNS-011`（三軸分析寫出來源沒有的事實）的提醒響了，要不要這次實作？ → A: 這次實作，併進 T013：多週多桶量杜撰比率（原稿與重生成），收尾時移出那一列。
 - Q: 從錨點推出來的生成規則（例：「不得把統計定義的改變寫成因果」）放進審稿標準，算不算 SC-002 留一的洩題？ → A: 不算；留一只拿掉那一句例子。
 
+### Session 2026-11-08（Unit 4 派工前，Luke 裁示）
+
+- Q: 重播契約要「結束時印實際 token 數」，但 `_call_gemini` 只回傳文字、丟掉回應的 `usageMetadata`，沒有 task 負責拿出來，在哪補？ → A: Unit 6 補（T014、T015 一起做），所有對 `_call_gemini` 的改動留在同一個 unit；Unit 4 的重播在那之前結束時印「未取得」與原因。
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - 指令不再製造已知錯型 (Priority: P1)
