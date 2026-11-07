@@ -370,6 +370,18 @@ def test_regenerate_digest_goes_through_build_digest_input_with_every_article(mo
     assert regen["model"] == "gemini-3.8-flash"
 
 
+def test_regenerate_digest_keeps_every_article_beyond_the_default_and_config_caps(monkeypatch, tmp_path, gemini):
+    # 30 篇＞analyze_category_digest 預設的 15、也＞設定檔的 25：重生成的輸入要是同一批，一篇都不丟（review c6e945c-1）
+    many = [article(f"https://ex.com/m{i}", f"標題{i}", FILLER * 2, "2026-10-28T02:00:00+00:00", (100 - i) / 100)
+            for i in range(30)]
+    fake = digest_db(tables={"articles": many, "hot_topic_reports": [
+        report_row("rep-30", DIGEST_TOPIC, [a["link"] for a in many], DIGEST_ORIGINAL)]})
+    assert run(monkeypatch, fake, tmp_path, "--regenerate") == 0
+    data, _ = output(tmp_path, f"{WEEK}-rep-30")
+    assert [s["link"] for s in data["regenerated"]["sources"]] == [a["link"] for a in many]
+    assert "[30] 報導日：" in gemini.prompts[0]
+
+
 def test_regenerated_digest_checks_are_clean_and_both_checks_are_written(monkeypatch, tmp_path, gemini):
     assert run(monkeypatch, digest_db(), tmp_path, "--regenerate") == 0
     data, md = output(tmp_path, f"{WEEK}-rep-digest-1")
