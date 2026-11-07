@@ -186,6 +186,12 @@ def test_id_out_of_range_upper_bound_is_len_sources():
     assert _digest_check(_digest(sections="- 甲 [4]。"))["id_out_of_range"] == ["[4]"]
 
 
+def test_id_out_of_range_digit_bearing_non_id_brackets():
+    """括號裡有數字但不全是編號（[1-3]、[2026年報告 5]）不算編號。"""
+    sections = "- 甲 [1]。乙 [1-3]。丙 [2026年報告 5]。"
+    assert _digest_check(_digest(sections=sections))["id_out_of_range"] == []
+
+
 def test_id_out_of_range_hot_fixture_ignores_evidence_tags():
     """09-07 三軸的 [直接證據]、[工程主導] 不是編號，[6]、[8] 在 8 篇以內。"""
     d = _load("hot_2026-09-07")
@@ -220,6 +226,12 @@ def test_self_count_ignores_program_line_and_other_sections():
     assert _digest_check(_digest(overview="本期收錄 25 篇報導，其中 3 篇只有標題。"))["self_count"] == []
     assert _digest_check(_digest(overview="本期收錄 25 篇報導。"))["self_count"] == []
     assert _digest_check(_digest(sections="- 本期共收錄 3 起獨立事件 [1]。"))["self_count"] == []
+
+
+def test_self_count_needs_gong_and_counts_events_not_articles():
+    """沒有「共」的範圍描述、以「篇」計的報導數，都不是模型自數的事件數。"""
+    assert _digest_check(_digest(overview="本期收錄 25 篇報導，涵蓋 2 個縣市的道安事件。"))["self_count"] == []
+    assert _digest_check(_digest(overview="本期共收錄 25 篇道安事件報導。"))["self_count"] == []
 
 
 # ── independence_claim ────────────────────────────────────────────────────────
