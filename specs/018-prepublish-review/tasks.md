@@ -27,7 +27,7 @@
 
 US1 的量測與 US2 的套用都用這兩樣。
 
-- [ ] T006 [P] [FR-004, FR-010, SC-001, SC-003] 在 `tests/unit/test_report_review.py` 寫測試（先紅）：`is_title_only()` 的四種形狀與 T001 定案的門檻（邊界兩側各一例，門檻用字面值）；`check_report()` 每一項（各節標題、`[n]` 超出範圍、只有標題的 ID 出現在 `### 分節彙整`、概覽裡的「共 N 起／個事件」、「互相獨立／無直接因果／各自獨立」、日期沒標報導日、替換文字帶出原句與來源都沒有的數字、三軸「交織度分布」三類加總不等於清單篇數、刪掉的字數超過原稿 30%（29% 與 31% 各一例，門檻用字面值）；整份檢查只回報修稿新增的失敗（原稿已有的同一項不算）。咬合對照：用 T001 重建的已發布原稿當 fixture，至少「互相獨立」與「事件數」兩項要回報 > 0
+- [ ] T006 [P] [FR-004, FR-010, SC-001, SC-003] 在 `tests/unit/test_report_review.py` 寫測試（先紅）：`is_title_only()` 的四種形狀、兩種網站樣板（LINE TODAY 討論牆前綴加標題、台視影音簡介，research R4）與 T001 定案的門檻（邊界兩側各一例，門檻用字面值）；`check_report()` 每一項（各節標題、`[n]` 超出範圍、只有標題的 ID 出現在 `### 分節彙整`、概覽裡的「共 N 起／個事件」、「互相獨立／無直接因果／各自獨立」、日期沒標報導日、替換文字帶出原句與來源都沒有的數字、三軸「交織度分布」三類加總不等於清單篇數（A 軸寫「不適用」時沒有這一行，不算失敗）、刪掉的字數超過原稿 30%（29% 與 31% 各一例，門檻用字面值）；整份檢查只回報修稿新增的失敗（原稿已有的同一項不算）。咬合對照：用 T001 重建的已發布原稿當 fixture，至少「互相獨立」與「事件數」兩項要回報 > 0
 - [ ] T007 [FR-004, FR-010] 在新模組 `src/report_review.py` 實作 `is_title_only()` 與 `check_report()`（純函式，不碰網路與資料庫），讓 T006 轉綠
 
 ---
@@ -37,12 +37,12 @@ US1 的量測與 US2 的套用都用這兩樣。
 **Goal**: 彙整與三軸的生成指令與清單組裝改掉，指令造成的錯型不再出現。
 **Independent Test**: 重播 `--regenerate` 三份彙整，`check_report()` 的四類在重生成版本合計 0、在原稿 > 0（SC-001）。
 
-- [ ] T008 [P] [US1] [FR-001, FR-002, FR-003, FR-004, FR-005, FR-006] 在 `tests/unit/test_digest_prompt.py` 寫測試（先紅）：`DIGEST_SYSTEM_PROMPT`／`DIGEST_PROMPT_TEMPLATE` 不含「互相獨立」，含禁止自行推論關聯與數字範圍的規則；`build_digest_input()` 的清單用「報導日：」、只有標題的報導不在清單裡、編號接在有摘要的之後、`ordered_links` 依 `[1]..[N]`；報告組裝時 `### 本期概覽` 第一行是程式寫的「本期收錄 N 篇報導，其中 M 篇只有標題」，最後一節是 `### 僅標題`、逐行照抄原標題附 ID；`build_hot_topic_input()` 的清單把只有標題的那幾篇摘要寫成「（僅標題）」，`HOT_TOPIC_PROMPT_TEMPLATE` 含引用時標「僅標題」與數字範圍的規則
+- [ ] T008 [P] [US1] [FR-001, FR-002, FR-003, FR-004, FR-005, FR-005a, FR-006] 在 `tests/unit/test_digest_prompt.py` 寫測試（先紅）：`DIGEST_SYSTEM_PROMPT`／`DIGEST_PROMPT_TEMPLATE` 不含「互相獨立」，含禁止自行推論關聯與數字範圍的規則；`build_digest_input()` 的清單用「報導日：」、只有標題的報導不在清單裡、編號接在有摘要的之後、`ordered_links` 依 `[1]..[N]`；報告組裝時 `### 本期概覽` 第一行是程式寫的「本期收錄 N 篇報導，其中 M 篇只有標題」，最後一節是 `### 僅標題`、逐行照抄原標題附 ID；`build_hot_topic_input()` 的清單把只有標題的那幾篇摘要寫成「（僅標題）」，`HOT_TOPIC_PROMPT_TEMPLATE` 含引用時標「僅標題」與數字範圍的規則，A 軸含「本批無事故報導，不適用」的寫法，人因與工程欄含「來源未載」的寫法（FR-005a）
 - [ ] T009 [US1] [FR-001, FR-002, FR-003, FR-004, FR-005] 在 `src/analyzer.py` 改 `DIGEST_SYSTEM_PROMPT`、`DIGEST_PROMPT_TEMPLATE`，抽出確定性的 `build_digest_input(pool_articles, max_articles)`（回傳清單文字、`ordered_links`、`{"articles": N, "title_only": M}`），`analyze_category_digest` 改用它並在生成後加上計數行與 `### 僅標題`；回傳值維持 `(report_text, ordered_links)`（實驗腳本依賴兩元組）
-- [ ] T010 [US1] [FR-004, FR-005, FR-006] 在 `src/analyzer.py` 改 `HOT_TOPIC_PROMPT_TEMPLATE`（C 軸數字範圍規則、引用只有標題的報導時標「僅標題」），抽出 `build_hot_topic_input(bucket_articles)`，`analyze_hot_topic` 改用它；回傳值不變
+- [ ] T010 [US1] [FR-004, FR-005, FR-005a, FR-006] 在 `src/analyzer.py` 改 `HOT_TOPIC_PROMPT_TEMPLATE`（C 軸數字範圍規則、引用只有標題的報導時標「僅標題」、A 軸「本批無事故報導，不適用」、人因與工程欄「來源未載」），抽出 `build_hot_topic_input(bucket_articles)`，`analyze_hot_topic` 改用它；回傳值不變
 - [ ] T011 [P] [US1] [FR-015, FR-016] 在 `tests/unit/test_replay_report_review.py` 寫測試（先紅）：腳本模組沒有引用任何 `upsert_*`（讀模組原始碼斷言）；用假 client 時，沒有審核紀錄的報告走重建並標 `"input": "reconstructed"`；`--regenerate` 走 `build_digest_input`／`build_hot_topic_input`；輸出 JSON 有 `checks.original` 與 `checks.regenerated`、同名 `.md` 存在；找不到報告時結束碼 1 並印原因
 - [ ] T012 [US1] [FR-015, FR-016, SC-001] 寫 `scripts/replay_report_review.py`（`contracts/replay-cli.md` 的 `--week`、`--topic`、`--out`、`--regenerate`）：唯讀重建輸入、可選重生成、兩份都跑 `check_report()`、寫 JSON 與修前修後的 `.md`、開始印估算費用、結束印 token 數
-- [ ] T013 [US1] [SC-001] （verification-only）跑 T012 的 `--regenerate` 於三份彙整與 T002 裡兩份三軸報告，原稿與重生成的四類計數、逐條命中寫進新檔 `specs/018-prepublish-review/evaluation.md` 的 SC-001 節；重生成仍有命中的，逐條判是規則還是檢查誤判
+- [ ] T013 [US1] [SC-001] （verification-only）跑 T012 的 `--regenerate` 於三份彙整與兩份沒有事故的三軸報告（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」，research「三軸錨點」），原稿與重生成的四類計數、逐條命中，以及兩份三軸重生成的 A 軸有沒有寫「不適用」，寫進新檔 `specs/018-prepublish-review/evaluation.md` 的 SC-001 節；重生成仍有命中的，逐條判是規則還是檢查誤判
 
 **Checkpoint**: US1 可以單獨驗收。
 
@@ -139,7 +139,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 ### Unit 3: 新的生成指令與清單組裝
 
 - Tasks: T008, T009, T010
-- Outcome: 彙整與三軸的指令、清單組裝、計數行與 `### 僅標題` 都照 FR-001～FR-006 改好，`analyze_*` 回傳值不變。
+- Outcome: 彙整與三軸的指令、清單組裝、計數行與 `### 僅標題` 都照 FR-001～FR-006（含 FR-005a）改好，`analyze_*` 回傳值不變。
 - Prerequisites: Unit 2（`is_title_only()`）。
 - Verification: `pytest tests/unit/test_digest_prompt.py`（先紅後綠）；既有 `pytest tests/unit` 全綠（實驗腳本與既有測試不受回傳值影響）。
 - Review: `tests/unit/test_digest_prompt.py`、`src/analyzer.py`（兩組 prompt、`build_digest_input`、`build_hot_topic_input`、兩個 `analyze_*`）。
