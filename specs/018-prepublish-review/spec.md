@@ -50,6 +50,7 @@
 ### Session 2026-11-08（Unit 4 派工前，Luke 裁示）
 
 - Q: 重播契約要「結束時印實際 token 數」，但 `_call_gemini` 只回傳文字、丟掉回應的 `usageMetadata`，沒有 task 負責拿出來，在哪補？ → A: Unit 6 補（T014、T015 一起做），所有對 `_call_gemini` 的改動留在同一個 unit；Unit 4 的重播在那之前結束時印「未取得」與原因。
+- Q: SC-001 重生成剩下的 `date_unlabeled` 命中全是誤判（來源寫「今(N)日」「今天」「N日」「明（N）日」，檢查只認 M月D日／M/D），要不要改檢查？ → A: 不改，維持 research R5 的啟發式，命中逐條由 main 判；SC-001 以 `evaluation.md` 的逐條判定為準。
 
 ## User Scenarios & Testing *(mandatory)*
 
