@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261108-b6c` | Google News 還原後充實的摘要有亂碼：018 T013（2026-11-08）重播 11-02「道安政策 · 彙整」時，來源之一（Yahoo 新聞 `…-153200112.html`，來源「Google News 科技執法」，10-02 報導、10-27 入庫）的 `articles.summary` 與生成當時存進 `source_article_links` 的前 200 字都是亂碼（UTF-8 位元組被解成西里爾字母），模型拿到的輸入就是亂碼。範圍（多少篇、哪些來源）與成因都沒查；推論是 `src/gn_resolver.py` 抓 publisher 頁 og:description 時解碼錯。 | `pre-edit: {"paths":["src/gn_resolver.py"]}` 下次動 GN 還原與充實時，先量範圍再改 | 唯讀查詢量出亂碼摘要的篇數與來源分布；定位是哪一步解碼錯；修好或寫明不修的理由；已存的亂碼摘要怎麼處理有裁示 |
 | `GNS-20261105-v4e` | CI 版面測試的成本分層：觸發面、安裝來源、上限、量測 | Luke 2026-11-05 裁示先分層，實作順序與時間點之後再決定；`timeout-minutes` 維持 10。下次 `unit` job 逾時、或進入密集改前端的時期時重新評估 `pre-edit: {"paths":[".github/workflows/tests.yml"]}` | 四層各有裁示（做，或寫明不做與理由）；做了的那幾層上線後，`unit` job 每次的安裝耗時查得到 |
 | `GNS-20261103-f71` | 交通的週次清單被截在 1000 列：W30～W37 不在週次導覽裡，最舊那週的篇數算少 | 下次動 `workers/api/src/index.js` 的 `handleWeeks` 時；或讀者發現週次導覽缺週時 `pre-edit: {"paths":["workers/api/src/index.js"]}` | `/api/weeks?content_type=traffic` 列出所有有文章的週次，每週篇數與 `/api/weeks/<週>` 的 `article_count` 一致；Worker 有測試 runner，並有一條在超過 1000 列時會紅的測試（故意改壞看它紅）；或寫明不修的理由 |
 | `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | 等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口` | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
