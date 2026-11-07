@@ -27,8 +27,8 @@
 
 US1 的量測與 US2 的套用都用這兩樣。
 
-- [-] T006 [P] [FR-004, FR-010, SC-001, SC-003] 在 `tests/unit/test_report_review.py` 寫測試（先紅；介面與檢查名照 `contracts/check-report.md`，fixture 在 `tests/fixtures/report_review/`）：`is_title_only()` 的四種形狀、兩種網站樣板（LINE TODAY 討論牆前綴加標題、台視影音簡介，research R4）與 T001 定案的門檻（邊界兩側各一例，門檻用字面值）；`check_report()` 每一項（各節標題、`[n]` 超出範圍、只有標題的 ID 出現在 `### 分節彙整`、概覽裡的「共 N 起／個事件」、「互相獨立／無直接因果／各自獨立」、日期沒標報導日、替換文字帶出原句與來源都沒有的數字、三軸「交織度分布」三類加總不等於清單篇數（A 軸寫「不適用」時沒有這一行，不算失敗）、刪掉的字數超過原稿 30%（29% 與 31% 各一例，門檻用字面值）；整份檢查只回報修稿新增的失敗（原稿已有的同一項不算）。咬合對照：用 T001 重建的已發布原稿當 fixture，至少「互相獨立」與「事件數」兩項要回報 > 0
-- [-] T007 [FR-004, FR-010] 在新模組 `src/report_review.py` 照 `contracts/check-report.md` 實作 `is_title_only()` 與 `check_report()`（純函式，不碰網路與資料庫），讓 T006 轉綠
+- [X] T006 [P] [FR-004, FR-010, SC-001, SC-003] 在 `tests/unit/test_report_review.py` 寫測試（先紅；介面與檢查名照 `contracts/check-report.md`，fixture 在 `tests/fixtures/report_review/`）：`is_title_only()` 的四種形狀、兩種網站樣板（LINE TODAY 討論牆前綴加標題、台視影音簡介，research R4）與 T001 定案的門檻（邊界兩側各一例，門檻用字面值）；`check_report()` 每一項（各節標題、`[n]` 超出範圍、只有標題的 ID 出現在 `### 分節彙整`、概覽裡的「共 N 起／個事件」、「互相獨立／無直接因果／各自獨立」、日期沒標報導日、替換文字帶出原句與來源都沒有的數字、三軸「交織度分布」三類加總不等於清單篇數（A 軸寫「不適用」時沒有這一行，不算失敗）、刪掉的字數超過原稿 30%（29% 與 31% 各一例，門檻用字面值）；整份檢查只回報修稿新增的失敗（原稿已有的同一項不算）。咬合對照：用 T001 重建的已發布原稿當 fixture，至少「互相獨立」與「事件數」兩項要回報 > 0
+- [X] T007 [FR-004, FR-010] 在新模組 `src/report_review.py` 照 `contracts/check-report.md` 實作 `is_title_only()` 與 `check_report()`（純函式，不碰網路與資料庫），讓 T006 轉綠
 
 ---
 
