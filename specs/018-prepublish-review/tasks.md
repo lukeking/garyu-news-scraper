@@ -15,11 +15,11 @@
 
 只產出紀錄（research.md、evaluation.md、spec 的 Assumptions），不改程式；scratch 腳本放 scratch 根目錄，不進 repo。
 
-- [ ] T001 [FR-004, SC-001] 重建 10-19、10-26、11-02 三份「道安政策 · 彙整」的生成輸入（唯讀查 `hot_topic_reports.source_article_links` 與 `articles`；清單**照 `source_article_links` 的順序**，它就是當時送給模型的順序、第 i 個對到 `[i]`，不重新排序，也不讀本機的 `max_articles`；摘要照 400 字截斷），用 research R4 的規則逐篇判「只有標題」，對照評論說的每份 6–11 篇，看邊界上的幾篇定案 20 字門檻；結果與逐篇判定寫進 `specs/018-prepublish-review/research.md` R4
-- [ ] T002 [FR-006, FR-016] 檢查 Unchecked 假設「已發布的三軸熱點報告也能重建生成輸入」：唯讀查全部已發布的三軸報告（`topic_label` 不是彙整的那些），逐份算 `source_article_links` 在 `articles` 找得回的比例；結果寫進 research.md 新節「三軸輸入可重建性」，spec 的 Assumptions 那條改成 `Checked:`（附數字）或維持 `Unchecked:` 並寫明缺口
-- [ ] T003 [FR-006, FR-009] 檢查 Unchecked 假設「三軸熱點報告的錯型與彙整不完全相同」：照 11-06 做法用 headless `claude -p`（不給工具）扮資深新聞編輯，評 T002 裡輸入重建完整的 3–4 份三軸報告；main 拿重建的清單與報告原文逐條核對，成立的寫進 research.md 新節「三軸錨點」（原句、錯在哪、嚴重度與判定理由、類別；嚴重度照 research R6 的定義由 main 判）；刻意找低嚴重度的例子，跟 T004 合起來至少 2 個（FR-009）；spec 的 Assumptions 那條依結果改寫
-- [ ] T004 [FR-009] 偏頗類錨點：main 從 `specs/BACKLOG.md` `GNS-20261031-s3h` 節「評論提出、main 沒有逐條對過的」挑偏頗類（刪掉論據、地方自評寫成成效、身分標示不一致等），拿 T001 重建的清單與報告原文核對，成立的至少 2 個寫進 research.md 新節「偏頗錨點」；同一張表補上 s3h 那五條的嚴重度與判定理由（research R6）；低嚴重度的例子跟 T003 合起來至少 2 個；偏頗類或低嚴重度不足 2 個時寫明，交給 Luke 決定 FR-009 怎麼辦
-- [ ] T005 [FR-007, SC-002] 檢查 Unchecked 假設「同廠商的審稿模型盲點可能與生成模型相近」：scratch 腳本用草擬的審稿 prompt（標準裡排除「毒駕 7 死」與「全國 154 萬」兩句）讓 `gemini-4-argon` 審 10-26 那份彙整，看有沒有點出這兩句；記 token 與秒數；沒點出就換 `gemini-2.5-pro` 再試一次。結果寫進 research.md R1，spec 的 Assumptions 那條依結果改寫
+- [X] T001 [FR-004, SC-001] 重建 10-19、10-26、11-02 三份「道安政策 · 彙整」的生成輸入（唯讀查 `hot_topic_reports.source_article_links` 與 `articles`；清單**照 `source_article_links` 的順序**，它就是當時送給模型的順序、第 i 個對到 `[i]`，不重新排序，也不讀本機的 `max_articles`；摘要照 400 字截斷），用 research R4 的規則逐篇判「只有標題」，對照評論說的每份 6–11 篇，看邊界上的幾篇定案 20 字門檻；結果與逐篇判定寫進 `specs/018-prepublish-review/research.md` R4
+- [X] T002 [FR-006, FR-016] 檢查 Unchecked 假設「已發布的三軸熱點報告也能重建生成輸入」：唯讀查全部已發布的三軸報告（`topic_label` 不是彙整的那些），逐份算 `source_article_links` 在 `articles` 找得回的比例；結果寫進 research.md 新節「三軸輸入可重建性」，spec 的 Assumptions 那條改成 `Checked:`（附數字）或維持 `Unchecked:` 並寫明缺口
+- [X] T003 [FR-006, FR-009] 檢查 Unchecked 假設「三軸熱點報告的錯型與彙整不完全相同」：照 11-06 做法用 headless `claude -p`（不給工具）扮資深新聞編輯，評 T002 裡輸入重建完整的 3–4 份三軸報告；main 拿重建的清單與報告原文逐條核對，成立的寫進 research.md 新節「三軸錨點」（原句、錯在哪、嚴重度與判定理由、類別；嚴重度照 research R6 的定義由 main 判）；刻意找低嚴重度的例子，跟 T004 合起來至少 2 個（FR-009）；spec 的 Assumptions 那條依結果改寫
+- [X] T004 [FR-009] 偏頗類錨點：main 從 `specs/BACKLOG.md` `GNS-20261031-s3h` 節「評論提出、main 沒有逐條對過的」挑偏頗類（刪掉論據、地方自評寫成成效、身分標示不一致等），拿 T001 重建的清單與報告原文核對，成立的至少 2 個寫進 research.md 新節「偏頗錨點」；同一張表補上 s3h 那五條的嚴重度與判定理由（research R6）；低嚴重度的例子跟 T003 合起來至少 2 個；偏頗類或低嚴重度不足 2 個時寫明，交給 Luke 決定 FR-009 怎麼辦
+- [X] T005 [FR-007, SC-002] 檢查 Unchecked 假設「同廠商的審稿模型盲點可能與生成模型相近」：scratch 腳本用草擬的審稿 prompt（標準裡排除「毒駕 7 死」與「全國 154 萬」兩句）讓 `gemini-4-argon` 審 10-26 那份彙整，看有沒有點出這兩句；記 token 與秒數；沒點出就換 `gemini-2.5-pro` 再試一次。結果寫進 research.md R1，spec 的 Assumptions 那條依結果改寫
 
 ---
 
@@ -88,7 +88,8 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - [ ] T032 [FR-007, FR-014] （verification-only）上線：Luke 在 Supabase dashboard 貼 006，main 唯讀查表與 grant 讀回；`gh variable set GEMINI_REVIEW_MODEL_NAME --env production` 設成 T023 選定的模型並 `gh variable get` 讀回
 - [ ] T033 [SC-004, SC-005, SC-006] （verification-only，merge 後）上線後連兩週：週報耗時與 timeout、各報告審稿秒數（`[審稿]` 行）、實際 token 換算月費用、紀錄的 `published_text` 與 `hot_topic_reports.report_text` 逐份相等、週驗收報告的摘要行與紀錄一致；寫進 `evaluation.md` 與 spec 的達成階數（另開 PR，同 017 的 T020）
-- [ ] T034 收尾（feature PR 轉 ready 前）：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-s3h`，PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
+- [ ] T034 收尾（feature PR 轉 ready 前）：照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 跑一次，矩陣與 main 的裁示記在 PR 內文
+  （Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-s3h`，PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
 - [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
 
 ---
