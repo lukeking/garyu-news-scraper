@@ -39,7 +39,7 @@
 | `self_count` | 彙整 | `### 本期概覽` 那一節有「共…N 起／個…事件」，例：`本期共收錄 19 起獨立事件`、`本期共彙整 24 個獨立事件`。程式寫的 `本期收錄 N 篇報導，其中 M 篇只有標題` 與 `本期收錄 25 篇報導` 不算 | 命中的那一段字 |
 | `independence_claim` | 彙整 | 全文含 `互相獨立`、`無直接因果`、`各自獨立` | 命中的詞 |
 | `date_unlabeled` | 彙整 | 報告裡帶「日」的日期（`2026 年 10 月 9 日`、`2026年10月2日`、`10 月 6 日`，空白可有可無）。日期後面 10 個字以內有「報導」，或任一 source 的 `title`／`summary` 去掉空白後含 `M月D日` 或 `M/D`，就算通過；其餘都命中。這項是啟發式，命中的由 main 逐條看 | 命中的日期原文 |
-| `interweave_sum` | 三軸 | `交織度分布：` 那一行各類篇數（每個「N 篇」）的加總不等於 `len(sources)`；FR-005b 之後是五類（含 [工程資料未載]、[非事故]），程式照舊整行加總；沒有這一行（A 軸寫「不適用」，FR-005a）就不檢查 | 例 `0+4+3=7≠8` |
+| `interweave_sum` | 三軸 | `交織度分布：` 那一行各類篇數（每個「N 篇」）的加總不等於 `len(sources)`；FR-005c 之後是六類（FR-005b 的 [工程資料未載]、[非事故]，加 FR-005c 的 [工程未見放大]），程式照舊整行加總；沒有這一行（A 軸寫「不適用」，FR-005a）就不檢查 | 例 `0+4+3=7≠8` |
 | `replacement_new_number` | 兩者 | `replacements` 每一組 `(quote, replacement)`：`replacement` 裡的數字（阿拉伯數字，含千分位與小數）在 `quote` 與任一 source 的 `title`、`summary` 裡都沒出現 | 那個數字 |
 | `deletion_over_cap` | 兩者 | `replacements` 刪掉的字數 Σ max(0, len(quote) − len(replacement)) 除以 `len(original_text)`，大於 `DELETION_CAP`＝0.30 | 例 `31.0%` |
 

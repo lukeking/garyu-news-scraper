@@ -380,6 +380,14 @@ def test_interweave_sum_counts_all_five_classes():
     assert r["interweave_sum"] == ["0+0+1+1+2=4≠3"]
 
 
+def test_interweave_sum_counts_all_six_classes():
+    """FR-005c 的六類（加 [工程未見放大]）整行加總：等於篇數不命中，不等就命中。"""
+    head = "交織度分布：[工程主導] 0 篇 ／ [雙因交織] 0 篇 ／ [人因主導] 1 篇 ／ [工程未見放大] 1 篇 ／ [工程資料未載] 0 篇 ／ [非事故] "
+    assert check_report(_hot(head + "1 篇"), template="hot", sources=SOURCES)["interweave_sum"] == []
+    r = check_report(_hot(head + "2 篇"), template="hot", sources=SOURCES)
+    assert r["interweave_sum"] == ["0+0+1+1+0+2=4≠3"]
+
+
 def test_interweave_sum_skipped_when_axis_a_not_applicable():
     """A 軸寫「不適用」時沒有交織度分布那一行，不檢查（FR-005a）。"""
     r = check_report(_hot(dist=None), template="hot", sources=SOURCES)

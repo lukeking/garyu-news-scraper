@@ -20,7 +20,10 @@ from src.analyzer import (  # noqa: E402
 from src.report_review import check_report  # noqa: E402
 
 NUMBERS_RULE = ("範圍、期間與基準", "不得加上來源沒有的範圍詞", "不得把統計定義的改變寫成因果")
-FIVE_CLASS_LINE = "交織度分布：[工程主導] __篇 ／ [雙因交織] __篇 ／ [人因主導] __篇 ／ [工程資料未載] __篇 ／ [非事故] __篇"
+SIX_CLASS_LINE = ("交織度分布：[工程主導] __篇 ／ [雙因交織] __篇 ／ [人因主導] __篇 ／ [工程未見放大] __篇"
+                  " ／ [工程資料未載] __篇 ／ [非事故] __篇")
+SIX_CLASSES = ("[工程主導]", "[雙因交織]", "[人因主導]", "[工程未見放大]", "[工程資料未載]", "[非事故]")
+HUMAN_FACTOR_LINE = "- [人因主導]：有直接證據顯示個體行為是充分條件，但必須追問：「此行為為何在台灣路網允許普遍化？」"
 REAL_B = "台中市自下月起在三處路口啟用科技執法設備，取締闖紅燈與未禮讓行人。" + "市府表示將視成效逐步擴大到其他路口。" * 30
 REAL_D = "立法委員在交通委員會質詢交通部，要求說明行人路權改善計畫的進度與經費來源。"
 REAL_E = "某縣市道安會報討論校園周邊人行道改善，決議下個月由工務局提出具體工程規劃與預算需求。"
@@ -289,17 +292,43 @@ def test_hot_template_allows_source_not_stated():
         assert "來源未載" in line
 
 
-def test_hot_template_interweave_has_five_classes():
-    """交織度分布五類（FR-005b）：輸出格式照列，A 軸定義兩個新類，寫明每篇一類、各類加總等於清單篇數。"""
-    assert FIVE_CLASS_LINE in HOT_TOPIC_PROMPT_TEMPLATE.splitlines()
+def test_hot_template_interweave_has_six_classes():
+    """交織度分布六類（FR-005b 的五類加 FR-005c 的 [工程未見放大]）：輸出格式照列，A 軸照同一順序定義，每篇一類、加總等於篇數。"""
+    assert SIX_CLASS_LINE in HOT_TOPIC_PROMPT_TEMPLATE.splitlines()
     axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
-    for label in ("[工程主導]", "[雙因交織]", "[人因主導]", "[工程資料未載]", "[非事故]"):
-        assert f"- {label}：" in axis_a
+    defined = [x.split("：", 1)[0][2:] for x in axis_a.splitlines() if x.startswith("- [")]
+    assert defined == list(SIX_CLASSES)
     no_data = next(x for x in axis_a.splitlines() if x.startswith("- [工程資料未載]："))
     assert "來源沒有寫道路幾何、號誌或設施" in no_data and "不歸入 [工程主導] 或 [雙因交織]" in no_data
     assert "不是交通事故" in next(x for x in axis_a.splitlines() if x.startswith("- [非事故]："))
-    assert "每篇只歸一類" in axis_a and "五類加總等於清單篇數" in axis_a
-    assert "三級分類" not in axis_a
+    assert "歸入以下六類之一" in axis_a and "每篇只歸一類" in axis_a and "六類加總等於清單篇數" in axis_a
+    assert "五類" not in axis_a and "三級分類" not in axis_a
+
+
+def test_hot_template_human_factor_line_unchanged():
+    """[人因主導] 的門檻與普遍化追問一字不改（FR-005c）；這條釘既有文字，改前就該通過。"""
+    assert HUMAN_FACTOR_LINE in _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B").splitlines()
+
+
+def test_hot_template_engineering_not_amplifying_class():
+    """[工程未見放大]：來源有這件事的工程資料，說不出哪一項放大人因錯誤，且不符 [人因主導]（FR-005c）。"""
+    axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+    line = next(x for x in axis_a.splitlines() if x.startswith("- [工程未見放大]："))
+    for phrase in ("來源寫到這件事的道路幾何、號誌或設施", "說不出其中哪一項放大了這件事的人因錯誤", "不符 [人因主導]"):
+        assert phrase in line
+
+
+def test_hot_template_amplification_decision_rule():
+    """判定規則在類別清單之後、對照標準之前：要說出放大機制，質量落差不能單獨當機制，說不出時 [人因主導] 優先（FR-005c）。"""
+    axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+    rule = _between(axis_a, "- [非事故]：", "評估工程缺陷必須對照具體標準（禁止空洞泛稱「設計不良」）：")
+    assert "來源寫到這件事的工程條件時，依序判定：" in rule
+    lines = rule.splitlines()
+    first = next(x for x in lines if x.startswith("1. "))
+    assert "歸 [工程主導] 或 [雙因交織] 時，須寫出來源寫到的哪一個工程條件、怎麼放大這件事的人因動作" in first
+    assert "車種間質量落差這類每件混合車種事故都有的條件，不能單獨當放大機制" in first
+    second = next(x for x in lines if x.startswith("2. "))
+    assert "說不出放大機制時：有直接證據顯示個體行為是充分條件，歸 [人因主導]；否則歸 [工程未見放大]。" in second
 
 
 def test_hot_template_no_road_data_beats_human_factor():
