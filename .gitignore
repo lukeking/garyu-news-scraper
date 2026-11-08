@@ -276,3 +276,6 @@ ds-bundle/
 
 # JS 測試工具鏈（只在本機與 CI 用，不進部署）
 node_modules/
+
+# 研究紀錄：原始資料、探針與完整過程，只留在本機（Luke 2026-11-08）；要帶出這台機器的結論寫進 BACKLOG 或 spec
+research/
