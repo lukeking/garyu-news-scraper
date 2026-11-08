@@ -302,6 +302,13 @@ def test_hot_template_interweave_has_five_classes():
     assert "三級分類" not in axis_a
 
 
+def test_hot_template_no_road_data_beats_human_factor():
+    """來源沒寫道路條件的事故，有個體行為的直接證據也歸 [工程資料未載]，不歸 [人因主導]（review e66db8b-2）。"""
+    axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+    no_data = next(x for x in axis_a.splitlines() if x.startswith("- [工程資料未載]："))
+    assert "即使有個體行為的直接證據" in no_data and "不歸入 [人因主導]" in no_data
+
+
 def test_hot_template_engineering_standards_only_on_stated_conditions():
     """「評估工程缺陷必須對照具體標準」那一段限定只評估來源寫到的道路條件（FR-005b）。"""
     axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")

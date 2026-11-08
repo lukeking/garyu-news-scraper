@@ -190,6 +190,12 @@ def test_title_only_keeps_bare_angle_brackets_in_text():
     assert is_title_only(title, summary) is False
 
 
+def test_title_only_unclosed_lt_does_not_swallow_later_tag():
+    """內文的「A<B」沒閉合，不跨過後面的 <br> 一起去掉：只去 <br>，內文還在（review e66db8b-1）。"""
+    title = "台中市科技執法上路"
+    assert is_title_only(title, title + "，比較A<B兩處路口" + TWENTY + "<br>") is False
+
+
 @pytest.mark.parametrize("name", ["digest_2026-10-19", "digest_2026-10-26", "digest_2026-11-02"])
 def test_title_only_matches_t001_on_fixtures(name):
     """三份彙整判出的 ID 與 T001 記下的 t001_title_only_ids 完全相同。"""
