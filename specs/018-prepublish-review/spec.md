@@ -98,6 +98,13 @@
 - Q: 查證時發現 Google News 給的 `published` 比 Yahoo 頁面的刊出日早一天，要開 BACKLOG 嗎？ → A: 開 `GNS-20261108-a7k`。
   數字與逐條判定在 `evaluation.md` SC-001 節「第二批取樣」。
 
+### Session 2026-11-08（T035 與 spec-reviewer，Luke 裁示）
+
+- Q: T035 要把 018 當 bare `GUB-20261024-rcf` 的第二筆樣本，但 rcf 節 11-08 已記第二筆（expense-tracker 068，bare `#341`），且 Luke 當天說「樣本採集有了」，怎麼處置？
+  → A: 拿掉 T035，不開 bare PR。補充理由：018 的範圍跟 11-07 比大幅改寫過（US2、US3 拿掉、縮成 US1，又加了 FR-005c）。rcf 做完成標準的量測時從 `#202` 與 `evaluation.md` 讀 018。
+- Q: Convergence（T048–T052）做完後，要不要對新的 HEAD 再跑一次 spec-reviewer？ → A: 不重跑。Convergence 是上一輪 findings 的修法，每個 task 都經 tdd-reviewer 審過、main 複驗；
+  四列 MANUAL 與 FR-016 的缺口各由哪條測試、哪個突變關掉，寫在 PR 內文。模型重新生成會不會再錯仍鎖不住，照實寫。
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - 指令不再製造已知錯型 (Priority: P1)

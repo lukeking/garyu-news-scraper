@@ -2,6 +2,7 @@
 
 **Input**: `specs/018-prepublish-review/` 的 spec.md、plan.md、research.md、contracts/、quickstart.md
 **2026-11-08 縮成 US1**：US2、US3 與上線量測（T014～T033）拿掉，理由見 spec Clarifications 最後一節；原文在 `06985f5`。
+**2026-11-08 拿掉 T035**（rcf 的第二筆樣本）：第二筆已經是 expense-tracker 的 068（bare `#341`），Luke 11-08「樣本採集有了」；而且 018 的範圍跟 11-07 比大幅改寫過。理由見 spec Clarifications「T035 與 spec-reviewer」，原文在 `87ebf36`。
 **Tests**: 要寫。本 repo 走 delegated-TDD（`CLAUDE.local.md`「Delegated-TDD 閘門接線」），每個實作 unit 測試先行。
 **標記**：`[ ]` 未做 → `[-]` 實作完、待審 → `[X]` 審過且 main 複驗；verification-only 的 task 由 main 驗完直接 `[X]`。
 
@@ -77,8 +78,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 ## Phase 6: 上線與收尾
 
-- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；`backlog.py remove` 移出 `GNS-20261108-5xf`（FR-005c、SC-008，Luke 2026-11-08 裁示在 018 實作），並改寫以它為前提的 `GNS-20261108-2zc` 的觸發點；merge 那一週的 `routines/weekly-verify/FOCUS.md` 寫明三軸改六類交織度（多了 [工程資料未載]、[非事故]、[工程未見放大]）、清單與報告出現「（僅標題）」、log 多出 `✗ 彙整 … 全部只有標題…不生成`，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
-- [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
+- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；`backlog.py remove` 移出 `GNS-20261108-5xf`（FR-005c、SC-008，Luke 2026-11-08 裁示在 018 實作），並改寫以它為前提的 `GNS-20261108-2zc` 的觸發點；merge 那一週的 `routines/weekly-verify/FOCUS.md` 寫明三軸改六類交織度（多了 [工程資料未載]、[非事故]、[工程未見放大]）、清單與報告出現「（僅標題）」、log 多出 `✗ 彙整 … 全部只有標題…不生成`，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 不在 018 寫（樣本到 068 為止，T035 拿掉）
 
 ---
 
@@ -155,10 +155,10 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 ### Unit 13: 收尾 (verification-only)
 
-- Tasks: T034, T035
-- Outcome: BACKLOG 移出與新增、FOCUS 寫明格式改了、spec-reviewer 矩陣、rcf 樣本寫進 bare。
+- Tasks: T034（T035 2026-11-08 拿掉）
+- Outcome: BACKLOG 移出與新增、FOCUS 寫明格式改了、spec-reviewer 矩陣。
 - Prerequisites: Unit 1～5、14～22 都 `[X]`。
-- Verification: `backlog.py` 的輸出與 diff；`backlog_trailers.py pr-line`；spec-reviewer 的矩陣由 main 逐條重跑；bare PR。
+- Verification: `backlog.py` 的輸出與 diff；`backlog_trailers.py pr-line`；spec-reviewer 的矩陣由 main 逐條重跑。
 - Review: main 複驗。
 - Merge or split: 只改紀錄、跑既有入口。
 
