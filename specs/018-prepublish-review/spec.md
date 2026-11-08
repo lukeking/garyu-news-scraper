@@ -73,6 +73,11 @@
 - Q: 要趕在 11-09 的週報（週一 00:00Z）前 merge 嗎？ → A: 先答「要」；同日 CI 的 `unit` 因 `ubuntu-latest` 換成 26.04、Playwright 1.60.0 不支援而全紅，Luke 改裁示：「那就暫停一週，不需要為了一定要在下一週有產出倉促做出任何決定」。CI 的版本策略與 prod workflow 要不要明釘都還沒定，018 等它們定了再 merge。
 - Q: spec-reviewer 找到週報 `main()` 呼叫 `analyze_*` 的兩條邊沒有測試（018 之前就缺），怎麼處理？ → A: 這次補測試（T043）。
 
+### Session 2026-11-08（`#203` merge 之後，Luke 裁示）
+
+- Q: 上面那條的兩個 merge 前提怎麼收？ → A: CI 的版本策略照評分定 Playwright 1.64.1（評分表在 `#203` 內文），`#203` merge 後本 PR 重跑 `unit` 通過。
+  prod workflow 要不要明釘 Ubuntu 不用裁示，Luke：「playwright 升 1.64 就解決 CI 紅燈問題，釘 Ubuntu 是解決問題的手段之一，不是目的」。018 的 merge 不再等任何裁示，剩 T034、T035。
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - 指令不再製造已知錯型 (Priority: P1)
