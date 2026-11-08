@@ -27,6 +27,7 @@
 | `cause` | 是 | `instruction`／`input`／`model` |
 | `problem` | 是 | 錯在哪、讀者可能怎麼誤讀 |
 | `replacement` | 否 | 取代 `quote` 的文字；空字串＝刪掉；沒有這個欄位＝只記錄不套用 |
+| `checked_sentences`（與 `findings` 同層） | 否 | 逐句核對的中間結果（research R1「T036 逐句核對探針」）：每句 `sentence`、`ids`、`list_says`、`verdict`。程式不讀、不驗形狀，有或沒有都不影響套用；讓模型先列句再判，T036 3／3 次點出兩個 Gate 錨點靠的是這一步 |
 
 程式端的規則（`src/report_review.py`，由單元測試鎖住）：
 - 只套用 `severity` 為 `high`、`medium` 而且有 `replacement` 的發現。
