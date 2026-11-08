@@ -104,6 +104,7 @@
   → A: 拿掉 T035，不開 bare PR。補充理由：018 的範圍跟 11-07 比大幅改寫過（US2、US3 拿掉、縮成 US1，又加了 FR-005c）。rcf 做完成標準的量測時從 `#202` 與 `evaluation.md` 讀 018。
 - Q: Convergence（T048–T052）做完後，要不要對新的 HEAD 再跑一次 spec-reviewer？ → A: 不重跑。Convergence 是上一輪 findings 的修法，每個 task 都經 tdd-reviewer 審過、main 複驗；
   四列 MANUAL 與 FR-016 的缺口各由哪條測試、哪個突變關掉，寫在 PR 內文。模型重新生成會不會再錯仍鎖不住，照實寫。
+- Q: 上線後的追蹤放哪裡？ → A: SDD 收到 merge 後第一次 prod 讀回（018 的 T053）；之後的觀察放 FOCUS 與 BACKLOG。改 bare `spec-closeout` 的規則是 bare 工項，不在 018 做。
 
 ## User Scenarios & Testing *(mandatory)*
 

@@ -79,6 +79,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 ## Phase 6: 上線與收尾
 
 - [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；`backlog.py remove` 移出 `GNS-20261108-5xf`（FR-005c、SC-008，Luke 2026-11-08 裁示在 018 實作），並改寫以它為前提的 `GNS-20261108-2zc` 的觸發點；merge 那一週的 `routines/weekly-verify/FOCUS.md` 寫明三軸改六類交織度（多了 [工程資料未載]、[非事故]、[工程未見放大]）、清單與報告出現「（僅標題）」、log 多出 `✗ 彙整 … 全部只有標題…不生成`，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 不在 018 寫（樣本到 068 為止，T035 拿掉）
+- [ ] T053 [US1] merge 後第一次週報（Luke 2026-11-08 裁示：SDD 收到 merge 後第一次 prod 讀回，之後的觀察放 FOCUS 與 BACKLOG）：本機讀回三軸的六類交織度、「（僅標題）」、彙整的報導日與「僅標題」段，並逐份比對 `[i]` 與 `source_article_links`；結果寫進 `evaluation.md`。merge 之後 tasks.md 在 main 上，`[X]` 由另一個 PR 翻
 
 ---
 
@@ -161,6 +162,15 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Verification: `backlog.py` 的輸出與 diff；`backlog_trailers.py pr-line`；spec-reviewer 的矩陣由 main 逐條重跑。
 - Review: main 複驗。
 - Merge or split: 只改紀錄、跑既有入口。
+
+### Unit 23: merge 後第一次 prod 讀回 (verification-only)
+
+- Tasks: T053
+- Outcome: merge 後第一份週報的三軸與彙整照新格式出來，`[i]` 與 `source_article_links` 一一對得上，結果寫進 `evaluation.md`。
+- Prerequisites: `#202` merge；merge 後第一次排程週報跑完。
+- Verification: 本機唯讀查 prod 的 `hot_topic_reports`（或公開 Worker API），main 逐份讀回。
+- Review: main 複驗。
+- Merge or split: 只讀既有產出、只改紀錄；跟 Unit 13 分開，因為它在 merge 之後。
 
 ### Unit 14: 審稿提示探針 (verification-only)
 
