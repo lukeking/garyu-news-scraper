@@ -42,7 +42,12 @@ US1 的量測與 US2 的套用都用這兩樣。
 - [X] T010 [US1] [FR-004, FR-005, FR-005a, FR-006] 在 `src/analyzer.py` 改 `HOT_TOPIC_PROMPT_TEMPLATE`（C 軸數字範圍規則、引用只有標題的報導時標「僅標題」、A 軸「本批無事故報導，不適用」、人因與工程欄「來源未載」），抽出 `build_hot_topic_input(bucket_articles)`，`analyze_hot_topic` 改用它；回傳值不變
 - [X] T011 [P] [US1] [FR-015, FR-016] 在 `tests/unit/test_replay_report_review.py` 寫測試（先紅）：腳本模組沒有引用任何 `upsert_*`（讀模組原始碼斷言）；用假 client 時，沒有審核紀錄的報告走重建並標 `"input": "reconstructed"`；`--regenerate` 走 `build_digest_input`／`build_hot_topic_input`；輸出 JSON 有 `checks.original` 與 `checks.regenerated`、同名 `.md` 存在；找不到報告時結束碼 1 並印原因
 - [X] T012 [US1] [FR-015, FR-016, SC-001] 寫 `scripts/replay_report_review.py`（`contracts/replay-cli.md` 的 `--week`、`--topic`、`--out`、`--regenerate`）：唯讀重建輸入、可選重生成、兩份都跑 `check_report()`、寫 JSON 與修前修後的 `.md`、開始印估算費用、結束印 token 數（T015 之前印「token 數：未取得」與原因，Luke 2026-11-08 裁示）
-- [ ] T013 [US1] [SC-001] （verification-only）跑 T012 的 `--regenerate` 於三份彙整與兩份沒有事故的三軸報告（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」，research「三軸錨點」），原稿與重生成的四類計數、逐條命中，以及兩份三軸重生成的 A 軸有沒有寫「不適用」，寫進新檔 `specs/018-prepublish-review/evaluation.md` 的 SC-001 節；重生成仍有命中的，逐條判是規則還是檢查誤判。另外照 `GNS-011` 的完成標準量杜撰比率（Luke 2026-11-07 裁示併進 018）：取至少 6 份不同週、不同桶、輸入全找回的三軸報告（06-14 模板之後），原稿與重生成各自由 main 逐句核對「報告本文出現來源查無的具體事實」的處數，比率與逐條判定寫進 evaluation.md 的 GNS-011 節，並在 BACKLOG `GNS-011` 節寫明 prompt 改到哪裡、還要不要再改
+- [X] T013 [US1] [SC-001] （verification-only）跑 T012 的 `--regenerate` 於三份彙整與兩份沒有事故的三軸報告（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」，research「三軸錨點」），原稿與重生成的四類計數、逐條命中，以及兩份三軸重生成的 A 軸有沒有寫「不適用」，寫進新檔 `specs/018-prepublish-review/evaluation.md` 的 SC-001 節；重生成仍有命中的，逐條判是規則還是檢查誤判。另外照 `GNS-011` 的完成標準量杜撰比率（Luke 2026-11-07 裁示併進 018）：取至少 6 份不同週、不同桶、輸入全找回的三軸報告（06-14 模板之後），原稿與重生成各自由 main 逐句核對「報告本文出現來源查無的具體事實」的處數，比率與逐條判定寫進 evaluation.md 的 GNS-011 節，並在 BACKLOG `GNS-011` 節寫明 prompt 改到哪裡、還要不要再改
+- [ ] T037 [P] [US1] [FR-004] 在 `tests/unit/test_report_review.py` 加測試（先紅；`contracts/check-report.md` 的 `is_title_only` 第 0、1 步）：Google News RSS 的 HTML 錨點摘要（完整的 `<a href="https://news.google.com/rss/articles/…">標題</a>&nbsp;&nbsp;<font color="#6f6f6f">媒體名</font>`，research R4「11-08 補」）判成只有標題；fclnews 推廣文字（前面有 `-`，字串照契約）判成只有標題；`<p>` 包著真導言（去掉標籤後扣掉標題仍至少 20 字）判成有摘要；既有的 LINE TODAY、台視案例照舊
+- [ ] T038 [US1] [FR-004] 在 `src/report_review.py` 的 `is_title_only()` 判定前去掉 HTML 標籤、還原 HTML 實體，`BOILERPLATE` 加 fclnews 那一段，讓 T037 轉綠；`build_*_input()` 與重播都經過它，不另改呼叫點
+- [ ] T039 [P] [US1] [FR-003, FR-005b] 在 `tests/unit/test_digest_prompt.py` 加測試（先紅）：`HOT_TOPIC_PROMPT_TEMPLATE` 的交織度分布有五類（含 `[工程資料未載]`、`[非事故]`），並寫明各類加總等於清單篇數；交織說明有「來源未載」的出口與「待查證：…？」的寫法；「評估工程缺陷必須對照具體標準」後面限定只評估來源寫到的道路條件；B 軸審查結果不再要求「分析制度慣性」，改成只列來源明文的制度做法並附 Article ID；A 軸有「傷亡人數、傷勢與行向照來源寫」一句；`HOT_TOPIC_SYSTEM_PROMPT` 有「質疑寫成待查的問題，不寫成機關的動機」。另在 `tests/unit/test_report_review.py` 加一例：五類的交織度分布加總等於篇數時 `interweave_sum` 不命中、不等時命中
+- [ ] T040 [US1] [FR-005b] 在 `src/analyzer.py` 照 research R3 的 FR-005b 五列改 `HOT_TOPIC_PROMPT_TEMPLATE` 與 `HOT_TOPIC_SYSTEM_PROMPT`，讓 T039 轉綠；`analyze_hot_topic`、`build_hot_topic_input` 的回傳值不變
+- [ ] T041 [US1] [SC-007] （verification-only）用 T012 的 `--regenerate` 重跑 `evaluation.md` GNS-011 節的同樣 7 份（命令列明示生成模型），照同一套判準逐句核對，寫進 GNS-011 節的新小節「FR-005b 之後」，說明 SC-007 爬到哪一階；06-22、07-20、08-03、08-24 的清單會因 T038 多標「（僅標題）」，輸入與 FR-005a 版不同，比較時分開說。BACKLOG `GNS-011` 節補一段結論
 
 **Checkpoint**: US1 可以單獨驗收。
 
@@ -89,7 +94,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - [ ] T032 [FR-007, FR-014] （verification-only）上線：Luke 在 Supabase dashboard 貼 006，main 唯讀查表與 grant 讀回；`gh variable set GEMINI_REVIEW_MODEL_NAME --env production` 設成 T023 選定的模型並 `gh variable get` 讀回
 - [ ] T033 [SC-004, SC-005, SC-006] （verification-only，merge 後）上線後連兩週：週報耗時與 timeout、各報告審稿秒數（`[審稿]` 行）、實際 token 換算月費用、紀錄的 `published_text` 與 `hot_topic_reports.report_text` 逐份相等、週驗收報告的摘要行與紀錄一致；寫進 `evaluation.md` 與 spec 的達成階數（另開 PR，同 017 的 T020）
-- [ ] T034 收尾（feature PR 轉 ready 前）：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-011`（T013 量完杜撰比率、BACKLOG 該節寫明結論之後）；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 跑一次，矩陣與 main 的裁示記在 PR 內文
+- [ ] T034 收尾（feature PR 轉 ready 前）：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-011`（T041 量完 FR-005b 之後的杜撰比率、BACKLOG 該節寫明結論之後）；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 跑一次，矩陣與 main 的裁示記在 PR 內文
   （Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-s3h`，PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
 - [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
 
@@ -99,8 +104,8 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - Phase 1（Unit 1）先做：T001 是 T004、T006 的 fixture 來源；T002 是 T003 的輸入；T005 決定 US2 的模型。
 - Phase 2（Unit 2）在 Phase 1 之後：門檻與 fixture 來自 T001。
-- US1：Unit 3 → Unit 4 → Unit 5（量測）。
-- US2：Unit 14（T036 提示探針）在 Unit 6 之前；Unit 6 要 Unit 1（錨點、模型）、Unit 2（檢查）與 Unit 14；Unit 7 要 Unit 6 與 Unit 3（`build_*_input()`）；Unit 8 要 Unit 4 與 Unit 6；Unit 9 在 Unit 8 之後。
+- US1：Unit 3 → Unit 4 → Unit 5（量測）→ Unit 15（樣板與三軸指令第二次修正）→ Unit 16（量測）。
+- US2：Unit 14（T036 提示探針）在 Unit 6 之前；Unit 6 要 Unit 1（錨點、模型）、Unit 2（檢查）、Unit 14 與 Unit 15（審稿標準收生成規則，要收 FR-005b 的）；Unit 7 要 Unit 6 與 Unit 3（`build_*_input()`）；Unit 8 要 Unit 4 與 Unit 6；Unit 9 在 Unit 8 之後。
 - US3：Unit 10、Unit 11 要 Unit 7；Unit 12 要 Unit 11。
 - Unit 13（上線、收尾）在 Unit 9 過 Gate、其餘 unit 都 `[X]` 之後；T033 在 merge 之後另開 PR。
 
@@ -231,7 +236,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - Tasks: T032, T033, T034, T035
 - Outcome: prod 設定讀回、上線兩週的量測、BACKLOG 移出、rcf 樣本寫進 bare。
-- Prerequisites: Unit 1～12 都 `[X]`；T033 在 merge 之後。
+- Prerequisites: Unit 1～12、15、16 都 `[X]`；T033 在 merge 之後。
 - Verification: 讀回的查詢與 `gh variable get` 輸出；evaluation.md；`backlog_trailers.py pr-line`；bare PR。
 - Review: main 複驗；T032 的 dashboard 那一步由 Luke 做。
 - Merge or split: T033～T035 只改紀錄、跑既有入口。T032 改的是 prod 的設定（dashboard 套 schema、設變數），不是 repo 裡的程式：
@@ -245,3 +250,23 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Verification: 每次的 request 與 response 存在 scratch，結論附 token 與秒數；main 讀回被點出的原句與報告一致。
 - Review: main 複驗；3 次都沒過 Gate 時 Luke 看結果決定做法。
 - Merge or split: 只跑 scratch 探針、只改紀錄，不併進 Unit 6，因為它的結果決定 Unit 6 要不要照現在的設計做。
+
+### Unit 15: 只有標題的樣板補齊與三軸指令第二次修正
+
+- Tasks: T037, T038, T039, T040
+- Outcome: `is_title_only()` 認得 Google News 的 HTML 錨點與 fclnews 推廣文字；三軸指令照 FR-005b 改好，`analyze_hot_topic` 回傳值不變。
+- Prerequisites: Unit 2、Unit 3、Unit 5（FR-005b 的改法與兩種樣板都來自 T013 的量測）。在 Unit 6 之前做。
+- Verification: `pytest tests/unit/test_report_review.py tests/unit/test_digest_prompt.py`（先紅後綠）；既有 `pytest tests/unit` 全綠；
+  `tests/unit/test_comment_budget.py`（`src/analyzer.py` 的 LEGACY 是精確值，既有長註解不改行數）。
+- Review: `tests/unit/test_report_review.py`、`tests/unit/test_digest_prompt.py`、`src/report_review.py`（`is_title_only`、`BOILERPLATE`）、
+  `src/analyzer.py`（`HOT_TOPIC_SYSTEM_PROMPT`、`HOT_TOPIC_PROMPT_TEMPLATE`）、`contracts/check-report.md`。
+- Merge or split: 兩件都是 T013 量測的直接產出、都改「模型拿到的清單與指令」，Unit 16 一次量到兩者；檔案不重疊，測試各自先紅。
+
+### Unit 16: SC-007 量測 (verification-only)
+
+- Tasks: T041
+- Outcome: evaluation.md GNS-011 節「FR-005b 之後」：同樣 7 份的五類處數與逐條判定，SC-007 爬到哪一階；BACKLOG `GNS-011` 節的結論。
+- Prerequisites: Unit 15。
+- Verification: 腳本輸出的 JSON 留在 scratch，main 逐句核對，數字寫進 evaluation.md。
+- Review: main 複驗。
+- Merge or split: 只跑既有入口、只改紀錄。

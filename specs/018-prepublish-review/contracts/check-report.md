@@ -6,9 +6,13 @@
 
 ## `is_title_only(title: str, summary: str) -> bool`
 
-1. 從 `summary` 去掉已知的網站樣板（常數 `BOILERPLATE`，Luke 2026-11-07 裁示算進只有標題）：
+0. 去掉 `summary` 裡的 HTML 標籤（`<…>`），再還原 HTML 實體（`&nbsp;`、`&amp;` 等；Luke 2026-11-08 裁示）。Google News RSS 的
+   `<a href="https://news.google.com/rss/articles/…">標題</a>&nbsp;&nbsp;<font color="#6f6f6f">媒體名</font>` 因此變成「標題＋媒體名」，由第 3 步判成 `True`；
+   去掉標籤後還有真內容的（例 `<p>` 包著的導言）照常判 `False`。
+1. 從 `summary` 去掉已知的網站樣板（常數 `BOILERPLATE`，Luke 2026-11-07、11-08 裁示算進只有標題）：
    - LINE TODAY 討論牆前綴 `0則貼文 | 快來參與LINE TODAY討論牆上的討論 |`
    - 台視影音簡介整段 `台視影音：提供台視最新的綜藝、專題、節目預告及新聞影音，並有數個完整影音節目，供網友選擇收看。`
+   - fclnews 推廣文字整段 `台灣新聞雲報提供台灣最中立最公正最即時的各類型新聞報導，包括政治新聞、焦點新聞、社會新聞、國際新聞、地方新聞、娛樂新聞、科技新聞、專訪新聞、政黨新聞、藝文活動、美食推廣、體育賽事等相關新聞報導。歡迎各界好友踴躍贊助推廣。`（庫裡 3 篇都是前面加一個 `-`，正規化會去掉）
 2. 正規化 `title` 與 `summary`：NFKC、轉小寫、去掉標點（Unicode category `P*`）、分隔符（`Z*`）與空白。
 3. 以下任一成立就回 `True`：
    - `summary` 是空的；
@@ -33,7 +37,7 @@
 | `self_count` | 彙整 | `### 本期概覽` 那一節有「共…N 起／個…事件」，例：`本期共收錄 19 起獨立事件`、`本期共彙整 24 個獨立事件`。程式寫的 `本期收錄 N 篇報導，其中 M 篇只有標題` 與 `本期收錄 25 篇報導` 不算 | 命中的那一段字 |
 | `independence_claim` | 彙整 | 全文含 `互相獨立`、`無直接因果`、`各自獨立` | 命中的詞 |
 | `date_unlabeled` | 彙整 | 報告裡帶「日」的日期（`2026 年 10 月 9 日`、`2026年10月2日`、`10 月 6 日`，空白可有可無）。日期後面 10 個字以內有「報導」，或任一 source 的 `title`／`summary` 去掉空白後含 `M月D日` 或 `M/D`，就算通過；其餘都命中。這項是啟發式，命中的由 main 逐條看 | 命中的日期原文 |
-| `interweave_sum` | 三軸 | `交織度分布：` 那一行三類篇數的加總不等於 `len(sources)`；沒有這一行（A 軸寫「不適用」，FR-005a）就不檢查 | 例 `0+4+3=7≠8` |
+| `interweave_sum` | 三軸 | `交織度分布：` 那一行各類篇數（每個「N 篇」）的加總不等於 `len(sources)`；FR-005b 之後是五類（含 [工程資料未載]、[非事故]），程式照舊整行加總；沒有這一行（A 軸寫「不適用」，FR-005a）就不檢查 | 例 `0+4+3=7≠8` |
 | `replacement_new_number` | 兩者 | `replacements` 每一組 `(quote, replacement)`：`replacement` 裡的數字（阿拉伯數字，含千分位與小數）在 `quote` 與任一 source 的 `title`、`summary` 裡都沒出現 | 那個數字 |
 | `deletion_over_cap` | 兩者 | `replacements` 刪掉的字數 Σ max(0, len(quote) − len(replacement)) 除以 `len(original_text)`，大於 `DELETION_CAP`＝0.30 | 例 `31.0%` |
 
