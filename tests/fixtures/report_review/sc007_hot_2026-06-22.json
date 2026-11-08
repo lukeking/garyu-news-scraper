@@ -1,0 +1,32 @@
+{
+ "week": "2026-06-22",
+ "label": "路口安全 · 自由",
+ "template": "hot",
+ "model": "gemini-3.8-flash",
+ "report_text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 3篇 ／ [非事故] 0篇\n代表個案：[1]（僅標題）\n人因變數：單車少年闖紅燈、女騎士路口急剎 [推斷，非直接證據]\n工程變數：來源未載\n交織說明：來源未載，無法判定工程是否放大人因。待查證：該路口是否具備黃燈與全紅時相之清空裕度，或是否有透過物理幾何手段強迫各向車輛於衝突點前降低動能（½mv²）的設計？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+ "sources": [
+  {
+   "link": "https://news.google.com/rss/articles/CBMia0FVX3lxTE81N2xtR2pnS0lKb0xGSkZGUUVLSnctMkJkTTlpOUtXbkJicmlxV1I2cVNpbjFZdGRPbU9zTy10am5GMTJLTnkyQVVobHhTbkt4TEtEbWxPMHEwblJBNmhZM1dZQVZ2cGpCTnZJ0gFwQVVfeXFMT2kxcEVMUHBrZEZWNjVGOEw4R2kzdzUtODV4enhURUNHZjBfOUFPdExqYzQ2TUViQi1ZOUtSaTEzX1NVaFpXeDNQQTR3MVptV3lOeFUyRnYzNUhTSXNNUlhwUHB6MlBkcDR2Yks2U2VOeg?oc=5",
+   "title": "單車少年闖紅燈！害女騎士路口急剎摔車 - 自由時報",
+   "published": "2026-06-05",
+   "summary": "<a href=\"https://news.google.com/rss/articles/CBMia0FVX3lxTE81N2xtR2pnS0lKb0xGSkZGUUVLSnctMkJkTTlpOUtXbkJicmlxV1I2cVNpbjFZdGRPbU9zTy10am5GMTJLTnkyQVVobHhTbkt4TEtEbWxPMHEwblJBNmhZM1dZQVZ2cGpCTnZJ0gFwQVVfeXFMT2kxcEVMUHBrZEZWNjVGOEw4R2kzdzUtODV4enhURUNHZjBfOUFPdExqYzQ2TUViQi1ZOUtSaTEzX1NVaFpXeDNQQTR3MVptV3lOeFUyRnYzNUhTSXNNUlhwUHB6MlBkcDR2Yks2U2VOeg?oc=5\" target=\"_blank\">單車少年闖紅燈！害女騎士路口急剎摔車</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">自由時報</font>"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFA2Ukw1NGNibDdiNlJvWlZxZEpRSlA1YWFFVjlZWVlHTDlUNFZRNzJKdmdTMldYdlRPbFplU1VhTFFYTVNBbDFqeTVwdVBaN2thaGVNd1RXN2NSTVZ3RTl3eXZXQ2g5NDBf0gFuQVVfeXFMTlpCMWRtX1pUQTFFc0VxUG5Bejc1QlFBbHhnOFVyZWIwWVYyZ1VSaEF4R01qSkZJVmx4NUVwLTFCU0l3Q0x6RFZaaHN4UUxmTU52Qi0yQzZlV19mR2JuWFhGdm9zV2hRUlNoclRBSWc?oc=5",
+   "title": "闖紅燈？高雄2機車路口對決2傷 - 自由時報",
+   "published": "2026-05-15",
+   "summary": "<a href=\"https://news.google.com/rss/articles/CBMiaEFVX3lxTFA2Ukw1NGNibDdiNlJvWlZxZEpRSlA1YWFFVjlZWVlHTDlUNFZRNzJKdmdTMldYdlRPbFplU1VhTFFYTVNBbDFqeTVwdVBaN2thaGVNd1RXN2NSTVZ3RTl3eXZXQ2g5NDBf0gFuQVVfeXFMTlpCMWRtX1pUQTFFc0VxUG5Bejc1QlFBbHhnOFVyZWIwWVYyZ1VSaEF4R01qSkZJVmx4NUVwLTFCU0l3Q0x6RFZaaHN4UUxmTU52Qi0yQzZlV19mR2JuWFhGdm9zV2hRUlNoclRBSWc?oc=5\" target=\"_blank\">闖紅燈？高雄2機車路口對決2傷</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">自由時報</font>"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMiaEFVX3lxTFBWNTVacGRwWU5WNE40UEN2R0Nfc0d5eW5GdkhkUXFqYzRoY2NDSFBDMmF6MGFjQnRnSzd2elE1WHFpNHBXR2VGR3ZNMVd2QzVaU1FhaVBnRU8xYlh2NHA2a1F0M3hrMXpj0gFuQVVfeXFMUHl0NENjLWpBXzAteHM3WVNXY0xLdVNsczNqOHpLYy1rdUxvbnI0VFZKeElrY1ZOSmtBQ3l1UjRxbGlIalR4emRTZmc0ZWgzcXNLMzItQndJVXE2OTFXaGRiQ2Yyc3pYb3RaZG9lQmc?oc=5",
+   "title": "高雄苓雅機車闖紅燈撞車肇逃 警以車追人鎖定女騎士 - 自由時報",
+   "published": "2026-06-03",
+   "summary": "<a href=\"https://news.google.com/rss/articles/CBMiaEFVX3lxTFBWNTVacGRwWU5WNE40UEN2R0Nfc0d5eW5GdkhkUXFqYzRoY2NDSFBDMmF6MGFjQnRnSzd2elE1WHFpNHBXR2VGR3ZNMVd2QzVaU1FhaVBnRU8xYlh2NHA2a1F0M3hrMXpj0gFuQVVfeXFMUHl0NENjLWpBXzAteHM3WVNXY0xLdVNsczNqOHpLYy1rdUxvbnI0VFZKeElrY1ZOSmtBQ3l1UjRxbGlIalR4emRTZmc0ZWgzcXNLMzItQndJVXE2OTFXaGRiQ2Yyc3pYb3RaZG9lQmc?oc=5\" target=\"_blank\">高雄苓雅機車闖紅燈撞車肇逃 警以車追人鎖定女騎士</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">自由時報</font>"
+  }
+ ],
+ "title_only_ids": [
+  1,
+  2,
+  3
+ ]
+}

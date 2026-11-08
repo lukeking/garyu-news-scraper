@@ -1,0 +1,81 @@
+{
+ "week": "2026-08-03",
+ "label": "機車事故 · 中時",
+ "template": "hot",
+ "model": "gemini-3.8-flash",
+ "report_text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 3篇 ／ [非事故] 7篇\n代表個案：[2]（僅標題）\n人因變數：機車騎士搶快起步 [推斷，非直接證據]；雙方其餘操作決策來源未載\n工程變數：來源未載\n交織說明：來源未載，無法判定工程是否放大人因。待查證：該路口號誌時相設計是否缺乏全紅清空間隔或保護時相？路口幾何視距是否受限而誘發起步衝突？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+ "sources": [
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1qM2hQcGstUkJOaHJMMlJPbDlnQWlhNDB2a2tpWks5S1o0ck1WYVEyZVRTTzBsMGp0MFJYU0MwMktabVlLMVlVQmRGNklrOEZwaWYzT0lzS3Q3XzRoTFRxWWN5VjZWdnZqcjJ1ZUp3?oc=5",
+   "title": "男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押 - 中時新聞網",
+   "published": "2026-06-16",
+   "summary": "<a href=\"https://news.google.com/rss/articles/CBMibkFVX3lxTE1qM2hQcGstUkJOaHJMMlJPbDlnQWlhNDB2a2tpWks5S1o0ck1WYVEyZVRTTzBsMGp0MFJYU0MwMktabVlLMVlVQmRGNklrOEZwaWYzT0lzS3Q3XzRoTFRxWWN5VjZWdnZqcjJ1ZUp3?oc=5\" target=\"_blank\">男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">中時新聞網</font>"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1JODZvcVNUUFV0Y0c3UHpmenBJb19KOVY5dUg1TGUyVFF1ZXJPM3FKZ0lsWlQ5UDkzUFdGbzVWalF6S1NHX2pGenh6S0ZaUlZfRG83WHByZVpoTnZXLWpVOVZFczhiendWTW90MlpR?oc=5",
+   "title": "台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 - 中時新聞網",
+   "published": "2026-07-28",
+   "summary": "台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1xM0FGeVVqbUlPekx3LVk3aWJpT05vLWcya3ZmOUlaczlrY1FCc2JkX0VkV01sU18xUFc3ZlZyOEpCd0YwdUFQOVhvLU1CZ1VtVmpMbWF5Y2ZMZmZqTk9BaDNwRlNZLXdTNHhBSlNn?oc=5",
+   "title": "電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 - 中時新聞網",
+   "published": "2026-07-27",
+   "summary": "電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9xLWxSV3FxMVVfNThmR05WbHAzdDM2ZGdHTEdtS2hydXhIdHhxZWFDQWhOdHhTWW5PQjMzVnRPcDdkV3ZOazQzRlBra2hTUUZmZERzaTVtbFJ3VW52S2Nwc3NrNkFFZjM1c3R0U2Vn?oc=5",
+   "title": "扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 - 中時新聞網",
+   "published": "2026-07-28",
+   "summary": "扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE10anpkdDJLVDFsWTFkbVBDSmQ3by1NZHByRDR2UlQ5QU1CbVNKTU93b2lkZ3dHZm4wQ1ZHenpVdzdaejhqRFVpNEM4NzBNdWdpal80bV8yLW95dDhhN1lJSEktbGhOMGRfdFhsdDdB?oc=5",
+   "title": "機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 - 中時新聞網",
+   "published": "2026-07-21",
+   "summary": "機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1aQmo5SVVlYWlMX3k2MXZJbWpIYS1NU0V6bkpEZEZoOFNuc1ZvZE44ZEJlNm5KVkdibF8xdVNXYWZqa1l0c1R1RUptSGRkREl2Tl9KMVJ6anJfa3VvVVduMjhaYkhDQnNlU3o1UW5n?oc=5",
+   "title": "奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 - 中時新聞網",
+   "published": "2026-07-16",
+   "summary": "奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5LaWhFQnBsd3FqYWctUU5hNnIwV0lrM0hIV0lTc1B5TDRFY2FqckZpMXdIcTZfcUpGaWpOT2NZR3cxbzFYQzBCbHc4aWhFQzNBWXk0c2NUckZCYV84OWlpcGxFM2g0LUJaREp6N0tR?oc=5",
+   "title": "桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 - 中時新聞網",
+   "published": "2026-07-03",
+   "summary": "桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE42Unl0RUIwSmJ0Y0pNV2ExaE5jSUVabTZUOVFmUGZwRzZQMXh5a1JiTU9wWWlfdmhLZ3pjQUladGF6VjBkUk4yZlVXY1B6aGRmN1BlNllDUGx1VkdnYURzR1RUUkVLYk5Lam55eC1n?oc=5",
+   "title": "機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 - 中時新聞網",
+   "published": "2026-06-30",
+   "summary": "機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1zSHRheEhvb2JDUVJpQS1rQUlhaV9TNjBZUHhSQWFZSlRHcEt2NHJSencxVVZGUDREWWxEekl4WjdENms3ZXVKVVNwcXc0M0t4SWpwVWJSNWpKdUJhYkFFVkxiSnNVMGZkYTNHYzJn?oc=5",
+   "title": "基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 - 中時新聞網",
+   "published": "2026-06-20",
+   "summary": "基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 中時新聞網"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5HemRLREJrSm44ODkzMnZTZktzYUFLdGF2MlZ3WDhBNXhiQlVqVEVoc2h3MjJNckMtU296WF9EaTB0ZDQ1dzk2NEpQTFZJYjFfUUZVcnprNnM5RkxpQk9zUTNCbGM2ejdvVElVTVlB?oc=5",
+   "title": "噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 - 中時新聞網",
+   "published": "2026-06-22",
+   "summary": "噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 中時新聞網"
+  }
+ ],
+ "title_only_ids": [
+  1,
+  2,
+  3,
+  4,
+  5,
+  6,
+  7,
+  8,
+  9,
+  10
+ ]
+}

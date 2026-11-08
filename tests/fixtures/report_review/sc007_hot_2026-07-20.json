@@ -1,0 +1,38 @@
+{
+ "week": "2026-07-20",
+ "label": "路權政策 · 機車",
+ "template": "hot",
+ "model": "gemini-3.8-flash",
+ "report_text": "### 一、 事故因果解構\n本批無事故報導，不適用\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+ "sources": [
+  {
+   "link": "https://news.google.com/rss/articles/CBMijwNBVV95cUxNQUxGaXAzVVZkc1VMRHIxSUlSWE84MUxvS19NM1Q2MTQwZXo5Mkpxdjk0alRNckxxLTZTZlJOSWdDQkUyX2V3dDNra1hpQnJLek12UFh4NUIzazRvTFJfMjg4VTc5akVnNEVDRjJhbzR4OGpIa3gwUUNnektKYzFCblBqNTYwN09oaHRINUoyeG5xeEZHZEw1dnNHcUk1M2NBUlZ6a1dsODEwbHpDakU2MTFEcldadjh0TXU0OERySGk0d3R0MGtYd0V5bkR3c1E5QVhSQVlkbU45LUZRc0Y2aVJYZ282ZUZzZGpjVEJYem9LN2xENnpzbzFxYVlBTGI4Ujl6SHVaS2JKY2xmNWlPdkluNE0wc0Z1ZXZfNHlHeTNkUWhzQ0ZtSWZJc2NnQmVfd3dKVXdDUTY0LVB1SGJKcUFCVE85RmFvalM2UWdTRE4taDFNQkdPT1BETEJfZ0s1SlVzTTgxNVY5di1vdVVIOWhtSW1mbjBvWllFb2pya3AtWGVPQV94ZVVIV3ViRTg?oc=5",
+   "title": "機車兩段式左轉取消？交通部拍板「因地制宜」 改採這招保護騎士 - Yahoo新聞",
+   "published": "2026-06-12",
+   "summary": "<a href=\"https://news.google.com/rss/articles/CBMijwNBVV95cUxNQUxGaXAzVVZkc1VMRHIxSUlSWE84MUxvS19NM1Q2MTQwZXo5Mkpxdjk0alRNckxxLTZTZlJOSWdDQkUyX2V3dDNra1hpQnJLek12UFh4NUIzazRvTFJfMjg4VTc5akVnNEVDRjJhbzR4OGpIa3gwUUNnektKYzFCblBqNTYwN09oaHRINUoyeG5xeEZHZEw1dnNHcUk1M2NBUlZ6a1dsODEwbHpDakU2MTFEcldadjh0TXU0OERySGk0d3R0MGtYd0V5bkR3c1E5QVhSQVlkbU45LUZRc0Y2aVJYZ282ZUZzZGpjVEJYem9LN2xENnpzbzFxYVlBTGI4Ujl6SHVaS2JKY2xmNWlPdkluNE0wc0Z1ZXZfNHlHeTNkUWhzQ0ZtSWZJc2NnQmVfd3dKVXdDUTY0LVB1SGJKcUFCVE85RmFvalM2UWdTRE"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMiZEFVX3lxTE9NWnh0dDdQS19fTjBxTGZib19mbkhyN0NhRFpTQkNCZldGc0pQc3ZVLUliZ1JGYldvc2hWSjFTcVM3ajlibEdCWUJLc0dOZXdrcmROVVZILU1jdFpabFkyV244VWXSAWpBVV95cUxOUHhOaEJ5YUZQM2NEQ2xYbmtZd0Z0Wl96R01kb1hkLUJScUtrZ2E3bkp3dlkyby1MYXN6aVBXaERqYkk3eVZ3RnBHdm9kSVNFSlU2UjBkRjNYNlRvQ3pWeUhrUThSWHdVVWJ3?oc=5",
+   "title": "網路民調機車兩段式左轉存廢 交通部官員：8成2不支持全面取消 - 自由時報",
+   "published": "2026-06-13",
+   "summary": "<a href=\"https://news.google.com/rss/articles/CBMiZEFVX3lxTE9NWnh0dDdQS19fTjBxTGZib19mbkhyN0NhRFpTQkNCZldGc0pQc3ZVLUliZ1JGYldvc2hWSjFTcVM3ajlibEdCWUJLc0dOZXdrcmROVVZILU1jdFpabFkyV244VWXSAWpBVV95cUxOUHhOaEJ5YUZQM2NEQ2xYbmtZd0Z0Wl96R01kb1hkLUJScUtrZ2E3bkp3dlkyby1MYXN6aVBXaERqYkk3eVZ3RnBHdm9kSVNFSlU2UjBkRjNYNlRvQ3pWeUhrUThSWHdVVWJ3?oc=5\" target=\"_blank\">網路民調機車兩段式左轉存廢 交通部官員：8成2不支持全面取消</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">自由時報</font>"
+  },
+  {
+   "link": "https://www.chinatimes.com/realtimenews/20260715003137-260405",
+   "title": "新北蘆洲集賢路鬆綁路權！取消禁行機車 7月起兩段左轉掰掰 - 中時新聞網",
+   "published": "2026-07-15",
+   "summary": "新北市交通局日前完成蘆洲區集賢路交通檢討，自7月起取消部分路段內側車道「禁行機車」，並開放符合條件路口機車直接左轉，兼顧行車安全與通行效率，也讓機車族擁有更多行駛選擇。因應捷運北環線施工期間道路配置調"
+  },
+  {
+   "link": "https://news.google.com/rss/articles/CBMixAJBVV95cUxOZnZXWllBcTVDZllLMnRucFl2UnFYeHl0YzhOVEgzcGpwZHdQYVdpSmt6RmxOclNBTFJyNE11SmJ1V1VNV2hFMlo1OU1FUXhWVVBkdkQ2bDV2Y2xBOW5kZ0I0UW8xWFJLTWtvYTBwNS1qV3d0VjAxODJUVGdCZlgtVm9nLWo2MktiMV9sbjNiTWdRWmg2TXpYb0g5cE1RNWw3cHByZ1VsVXZKQmo1aDB5Z3dFSVRtQzc2dHRMTDRiYjd0RWpQUktYN3Zia0NsQTNpQmRpbE9Ga0gwdmNfVk1JQ1BxTEhmMDJKOHdBNUR6U2ctcFZ0UHAyMU9uWnlHZUZiMnNZckRMWHRnSWNweXhxTmdobnZHdTJTZnBmNVd1MVlOSTY2OG5XdjJOUFJFQVJuRV8zZDZsVUNDVXVHY3Fob2hZeFU?oc=5",
+   "title": "機車路權再升級！顏蔚慈爭取集賢路開放直左轉 - Yahoo新聞",
+   "published": "2026-07-15",
+   "summary": "機車路權再升級！顏蔚慈爭取集賢路開放直左轉 Yahoo新聞"
+  }
+ ],
+ "title_only_ids": [
+  1,
+  2,
+  4
+ ]
+}

@@ -215,6 +215,12 @@ def test_report_without_review_record_is_reconstructed_in_the_old_digest_format(
     assert "沒有這份報告的審核紀錄" in capsys.readouterr().out
 
 
+def test_report_without_review_record_says_reconstructed_in_the_md(monkeypatch, tmp_path, gemini):
+    assert run(monkeypatch, digest_db(), tmp_path) == 0
+    _, md = output(tmp_path, f"{WEEK}-rep-digest-1")
+    assert "輸入：reconstructed" in md
+
+
 def test_old_reports_storing_bare_link_strings_are_reconstructed(monkeypatch, tmp_path, gemini):
     fake = digest_db(tables={"hot_topic_reports": [
         report_row("rep-old", DIGEST_TOPIC, [A3["link"], A1["link"]], DIGEST_ORIGINAL)]})
