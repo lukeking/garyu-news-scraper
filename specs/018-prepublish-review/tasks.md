@@ -73,7 +73,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 ## Phase 6: 上線與收尾
 
-- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；`routines/weekly-verify/FOCUS.md` 寫明 11-09 起三軸改五類交織度、清單與報告出現「（僅標題）」，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
+- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；merge 那一週的 `routines/weekly-verify/FOCUS.md` 寫明三軸改五類交織度、清單與報告出現「（僅標題）」、log 多出 `✗ 彙整 … 全部只有標題…不生成`，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
 - [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
 
 ---
@@ -94,7 +94,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 ## Implementation Strategy
 
 - MVP＝US1：只改指令，就能把三類錯型從源頭拿掉，T013 量得到。
-- 一個 spec 一個 PR（`branch-protection`）。2026-11-08 起只出貨 US1，趕在 11-09 的週報（週一 00:00Z）前 merge（Luke 裁示）。
+- 一個 spec 一個 PR（`branch-protection`）。2026-11-08 起只出貨 US1；merge 時點等 CI 的版本策略定了再說（Luke 11-08：暫停一週，不為下一週的產出倉促決定）。
 
 ## Review units
 
