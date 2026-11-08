@@ -63,7 +63,9 @@ def run_weekly():
         calls.append((kw.get("system_prompt"), prompt))
         return "### 本期概覽\n本週重點。"
 
-    with patch("src.pipeline_config.load_pipeline_config", return_value=CONFIG), \
+    # 分類法也明示：不然它讀 gitignored 的 config/categories_traffic.yml，乾淨的 checkout（CI）會紅
+    with patch("src.pipeline_config.load_category_taxonomy", return_value={"道安政策": [], "機車事故": []}), \
+         patch("src.pipeline_config.load_pipeline_config", return_value=CONFIG), \
          patch("src.pipeline_config.load_relevance_rules", return_value={}), \
          patch("src.storage.expire_buffer_articles", return_value=0), \
          patch("src.storage.get_traffic_buffer", return_value=ARTICLES), \
