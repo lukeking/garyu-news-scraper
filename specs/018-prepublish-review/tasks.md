@@ -157,7 +157,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 - Tasks: T034, T035
 - Outcome: BACKLOG 移出與新增、FOCUS 寫明格式改了、spec-reviewer 矩陣、rcf 樣本寫進 bare。
-- Prerequisites: Unit 1～5、14～17 都 `[X]`。
+- Prerequisites: Unit 1～5、14～22 都 `[X]`。
 - Verification: `backlog.py` 的輸出與 diff；`backlog_trailers.py pr-line`；spec-reviewer 的矩陣由 main 逐條重跑；bare PR。
 - Review: main 複驗。
 - Merge or split: 只改紀錄、跑既有入口。
@@ -227,6 +227,26 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Verification: 探針與重播的 JSON 留在本機，main 逐句核對，數字寫進 evaluation.md。
 - Review: main 複驗。
 - Merge or split: 只跑既有入口（探針只換讀資料的邊界）、只改紀錄。
+
+### Unit 21: 量過的輸出鎖成測試（Convergence）
+
+- Tasks: T048, T049, T050, T051
+- Outcome: spec-reviewer 列為 MANUAL 的 SC-001（含 FR-006）、SC-007、SC-008 與 FR-016 的列內缺口，各有會紅的測試：fixture 是已量過的重生成輸出，
+  斷言現行 `check_report()` 的判定與 `evaluation.md` 的表一致；重播寫出的 `.md` 有「輸入：reconstructed」。不改產品程式。
+- Prerequisites: Unit 4、5、15、16、19、20 `[X]`；T048 的 `date_unlabeled` 逐條判定已寫進 `evaluation.md`（`56efe26`）；fixture 的來源在本機 `research/`（gitignored）。
+- Verification: 新增的測試綠；每條測試在對應的突變下紅（`check_report()` 的檢查、交織度解析、`render_md` 的「輸入：」）；既有 `pytest tests/unit` 全綠；註解閘。
+- Review: `tests/fixtures/report_review/`（含 `SOURCES.md`）、新增或改動的 `tests/unit/test_*.py`、`src/report_review.py`、`scripts/replay_report_review.py`（`render_md`）、
+  `evaluation.md` 被斷言的表。
+- Merge or split: 四條都是「已量過的輸出在現行檢查下的判定鎖成測試」，共用 fixture 目錄與同一個審法（突變咬不咬得到）。T052 分開：要本機 Supabase 與一次計費的 Gemini 呼叫，產出也不同。
+
+### Unit 22: 整合測試的 tuple 錯（Convergence）
+
+- Tasks: T052
+- Outcome: `tests/integration/test_weekly_analysis.py` 解開 `analyze_hot_topic` 回傳的 `(text, links)`，存進去的 `report_text` 是非空字串。
+- Prerequisites: 本機 Supabase（`CLAUDE.local.md`「整合測試的本機 Supabase」）；Gemini key（呼叫一次，計費）。
+- Verification: 本機 `pytest tests/integration/test_weekly_analysis.py` 綠；改回把 tuple 當內文時紅；conftest 擋住非本機的連線。
+- Review: `tests/integration/test_weekly_analysis.py`、`src/analyzer.py` 的 `analyze_hot_topic` 回傳值（不改）。
+- Merge or split: 一個產出、一個 checkpoint；環境與成本跟 Unit 21 不同。
 
 ## Phase 7: Convergence
 
