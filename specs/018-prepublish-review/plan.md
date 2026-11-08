@@ -1,5 +1,7 @@
 # Implementation Plan: 週報發布前審核——修生成指令，加一步審稿＋修稿
 
+> 2026-11-08：spec 縮成 US1，審稿、修稿與審核紀錄（US2、US3）拿掉，下面講它們的部分是當時的設計紀錄，沒有實作（spec Clarifications 最後一節）。
+
 **Branch**: `018-prepublish-review` | **Date**: 2026-11-07 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/018-prepublish-review/spec.md`
 

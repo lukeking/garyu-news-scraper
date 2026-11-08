@@ -1,6 +1,7 @@
 # Tasks: 週報發布前審核——修生成指令，加一步審稿＋修稿
 
-**Input**: `specs/018-prepublish-review/` 的 spec.md、plan.md、research.md、data-model.md、contracts/、quickstart.md
+**Input**: `specs/018-prepublish-review/` 的 spec.md、plan.md、research.md、contracts/、quickstart.md
+**2026-11-08 縮成 US1**：US2、US3 與上線量測（T014～T033）拿掉，理由見 spec Clarifications 最後一節；原文在 `06985f5`。
 **Tests**: 要寫。本 repo 走 delegated-TDD（`CLAUDE.local.md`「Delegated-TDD 閘門接線」），每個實作 unit 測試先行。
 **標記**：`[ ]` 未做 → `[-]` 實作完、待審 → `[X]` 審過且 main 複驗；verification-only 的 task 由 main 驗完直接 `[X]`。
 
@@ -48,6 +49,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 - [X] T039 [P] [US1] [FR-003, FR-005b] 在 `tests/unit/test_digest_prompt.py` 加測試（先紅）：`HOT_TOPIC_PROMPT_TEMPLATE` 的交織度分布有五類（含 `[工程資料未載]`、`[非事故]`），並寫明各類加總等於清單篇數；交織說明有「來源未載」的出口與「待查證：…？」的寫法；「評估工程缺陷必須對照具體標準」後面限定只評估來源寫到的道路條件；B 軸審查結果不再要求「分析制度慣性」，改成只列來源明文的制度做法並附 Article ID；A 軸有「傷亡人數、傷勢與行向照來源寫」一句；`HOT_TOPIC_SYSTEM_PROMPT` 有「質疑寫成待查的問題，不寫成機關的動機」。另在 `tests/unit/test_report_review.py` 加一例：五類的交織度分布加總等於篇數時 `interweave_sum` 不命中、不等時命中
 - [X] T040 [US1] [FR-005b] 在 `src/analyzer.py` 照 research R3 的 FR-005b 五列改 `HOT_TOPIC_PROMPT_TEMPLATE` 與 `HOT_TOPIC_SYSTEM_PROMPT`，讓 T039 轉綠；`analyze_hot_topic`、`build_hot_topic_input` 的回傳值不變
 - [X] T041 [US1] [SC-007] （verification-only）用 T012 的 `--regenerate` 重跑 `evaluation.md` GNS-011 節的同樣 7 份（命令列明示生成模型），照同一套判準逐句核對，寫進 GNS-011 節的新小節「FR-005b 之後」，說明 SC-007 爬到哪一階；06-22、07-20、08-03、08-24 的清單會因 T038 多標「（僅標題）」，輸入與 FR-005a 版不同，比較時分開說。BACKLOG `GNS-011` 節補一段結論
+- [ ] T042 [US1] [FR-015, FR-016] 截斷長度只留一份（Luke 2026-11-08 裁示，原本排在 Unit 6）：`src/analyzer.py` 的 `build_digest_input()`／`build_hot_topic_input()` 寫死的 `[:400]`／`[:600]` 改成模組常數 `DIGEST_SUMMARY_CHARS`、`HOT_SUMMARY_CHARS`；`scripts/replay_report_review.py` 的 `SUMMARY_CHARS` 拿掉，呼叫當下讀 analyzer 的常數。測試先紅（`tests/unit/test_replay_report_review.py`）：把 analyzer 的常數改成小值，`build_*_input()` 的摘要與重播交給 `check_report()` 的 sources 都跟著截短；常數本身用字面值 400、600 釘住
 
 **Checkpoint**: US1 可以單獨驗收。
 
@@ -55,47 +57,22 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 ## Phase 4: User Story 2 - 發布前審一次、修一次 (Priority: P1)
 
-**Goal**: 每份報告生成後由 argon（或 T005 選定的模型）審一次，程式套用中、高嚴重度的替換。
-**Independent Test**: 重播已發布的報告（留一），SC-002 的 Gate 與 SC-003 全過。
+**2026-11-08 拿掉**：T014～T023 不做（原文在 `06985f5`）。T036 是 Unit 6 之前的探針，已做完，結果留在 research R1、R9，是 BACKLOG `GNS-20261108-r2t` 的依據。
 
 - [X] T036 [US2] [FR-007, SC-002] （verification-only，Unit 6 之前；Luke 2026-11-07 裁示）scratch 腳本用逐句核對的提示（先列出報告裡每一句含數字或因果動詞的句子、逐句對照清單，再判問題）讓 `gemini-4-argon` 審 10-26 那份彙整 3 次；標準照 research R1「T005 探針」那一版加上生成規則，排除毒駕「7 死」與「全國」154 萬兩個例子。記每次有沒有點出這兩句、token 與秒數，結果寫進 research R1；3 次都沒過 Gate 時交 Luke 決定 US2 的做法，再開始 Unit 6
-- [ ] T014 [P] [US2] [FR-007] 在 `tests/unit/test_call_gemini_model.py` 寫測試（先紅）：`_call_gemini(model=…)` 打到該模型的網址；`response_mime_type="application/json"` 出現在 `generationConfig`；不帶這兩個參數時 payload 與現在逐位元組相同（固定的對照 payload）；回應的 `usageMetadata`（輸入、輸出 token 數）呼叫端拿得到，既有呼叫端不用改
-- [ ] T015 [US2] [FR-007] 在 `src/analyzer.py` 的 `_call_gemini` 加 `model=None`、`response_mime_type=None` 兩個選填參數，並把回應的 `usageMetadata` 交給呼叫端（重播的 token 數與審核紀錄的 `usage` 用；Luke 2026-11-08 裁示），讓 T014 轉綠
-- [ ] T016 [P] [US2] [FR-008, FR-009, FR-010, FR-011, FR-012] 在 `tests/unit/test_report_review.py` 加測試（先紅）：錨點資料（s3h 五條、T003 三軸、T004 偏頗）每個嚴重度至少 2 例；`build_review_standard(template, exclude=[…])` 排除後那句不在輸出裡；`parse_review(raw)` 照 `contracts/review-output.md` 驗欄位，壞 JSON／缺欄位丟 `InvalidReview`；`apply_findings()` 只套中、高且有替換的、`quote` 0 次與多次各記 `quote_not_found`／`quote_ambiguous`、兩條原句在原稿上位置重疊時兩條都記 `quote_overlap` 不套、全部原句先在原稿上定位再一次套用（前一條的替換不影響後一條的定位）、單條檢查沒過記 `check_failed:<項>`、未知值記 `invalid_field:<欄位>`；`decide_status()` 六種狀態各一例
-- [ ] T017 [US2] [FR-009, FR-010, FR-011] 在 `src/report_review.py` 實作錨點資料、`build_review_standard()`、`parse_review()`、`apply_findings()`、`decide_status()`，讓 T016 轉綠
-- [ ] T018 [US2] [FR-007, FR-008] 在 `src/analyzer.py` 加審稿 system prompt 與 `review_report(template, input_snapshot, report_text, model, exclude_anchors=())`：提示照 research R1「T036 逐句核對探針」的四步與 `checked_sentences`（`contracts/review-output.md`）；送出的清單就是 `input_snapshot`（同一個字串），JSON 模式呼叫 `_call_gemini(model=…)`，回 `parse_review()` 的結果；在 `tests/unit/test_report_review.py` 用 monkeypatch 的 `_call_gemini` 驗它送出的 prompt 含 `input_snapshot` 全文與報告全文、用的是指定的模型
-- [ ] T019 [P] [US2] [FR-007, FR-012, FR-013] 在 `tests/unit/test_weekly_review_flow.py` 寫測試（先紅），monkeypatch `_call_gemini` 與 storage，跑 `scripts/traffic_weekly_analysis.py` 的真入口：沒設 `GEMINI_REVIEW_MODEL_NAME`、與 `GEMINI_MODEL_NAME` 相同、呼叫失敗、壞 JSON、沒發現、只有低、全套用、部分套用、整份退回，各自寫進 `hot_topic_reports` 的是哪一版、log 印的原因字串互不相同
-- [ ] T020 [US2] [FR-007, FR-012, FR-013] 在 `scripts/traffic_weekly_analysis.py` 串起來：熱點與彙整各自生成後取 `build_*_input()` 的快照 → 照 `_GEMINI_DELAY` 間隔一次（憲章 IV：限流值寫在呼叫旁）→ `review_report()` → `apply_findings()` → `decide_status()` → 以發布版本 upsert 報告；每條放棄路徑印原因（負控 log），讓 T019 轉綠；T019 加一條：審稿呼叫之前有一次 `_GEMINI_DELAY` 的 sleep（monkeypatch `time.sleep` 記錄）
-- [ ] T021 [P] [US2] [FR-015, SC-002] 在 `tests/unit/test_replay_report_review.py` 加測試（先紅）：`--exclude-anchor` 傳到 `review_report()`、`--review-model` 蓋過變數、輸出 JSON 有 findings、套用結果與狀態，`.md` 有修前修後並排
-- [ ] T022 [US2] [FR-015, SC-002, SC-003] 在 `scripts/replay_report_review.py` 加審稿與套用，讓 T021 轉綠
-- [ ] T023 [US2] [SC-002, SC-003, SC-005] （verification-only）對每個錨點跑留一重播（排除它、重播它所在的報告），記被點出與否；每份報告的發現由 main 拿來源逐條核對、算成立比例；SC-003 的四項檢查；Gate 沒過就換候選模型重跑並記錄；用重播實際的 token 數換算每月費用（照當時與 12-01 起的單價各算一次），加上現有用量比對 NT$300 上限（SC-005 的上線前估算）；用實際的刪除比例檢討 R2 的 30%。全部寫進 `evaluation.md` 的 SC-002、SC-003、SC-005 節與達成階數
 
-**Checkpoint**: US1＋US2 合起來就是 Luke 選的兩件事；週報上線前要先過 T023。
 
 ---
 
 ## Phase 5: User Story 3 - 每份報告的審核紀錄查得到 (Priority: P2)
 
-**Goal**: 審核紀錄進資料庫，週報 log 每份報告一行摘要，週驗收 routine 轉進 Linear。
-**Independent Test**: 本機整合測試寫入讀回；單元測試鎖住摘要行格式；上線後連兩週量 SC-006。
-
-- [ ] T024 [US3] [FR-014] 寫 `supabase_migrations/006_report_reviews.sql`（`data-model.md` 的欄位、唯一鍵、grant、RLS），`scripts/setup_test_db.sh` 的套用清單加上 006
-- [ ] T025 [P] [US3] [FR-014] 在 `tests/integration/test_report_review_storage.py` 寫測試（先紅，本機 Supabase 54331）：同一把鍵 upsert 兩次只留一列且是第二次的內容；`findings`、`input_counts`、`usage` 的 JSON 原樣讀回
-- [ ] T026 [US3] [FR-014] 在 `src/storage.py` 加 `upsert_report_review(record)`，讓 T025 轉綠
-- [ ] T027 [US3] [FR-014] 在 `scripts/traffic_weekly_analysis.py` 於 upsert 報告之後寫審核紀錄；寫入失敗印 error、不擋發布；在 `tests/unit/test_weekly_review_flow.py` 加這兩條（寫入的紀錄 `published_text` 等於寫進報告的那一版；寫入丟例外時報告照發、log 有 error）
-- [ ] T028 [P] [US3] [FR-014a] 在 `tests/unit/test_report_review.py` 加測試（先紅）：`format_summary_line()` 對六種狀態逐字等於 `contracts/summary-line.md` 的格式（`not_reviewed` 的三個 `-`、`-/-`），`format_total_line()` 的合計行
-- [ ] T029 [US3] [FR-014a] 在 `src/report_review.py` 實作兩個格式函式，`scripts/traffic_weekly_analysis.py` 在寫紀錄之前印每份的摘要行、一週結束印合計行，讓 T028 轉綠；`tests/unit/test_weekly_review_flow.py` 加一條：紀錄寫入失敗時摘要行仍在 log
-- [ ] T030 [US3] [FR-014a, SC-006] 在 `routines/weekly-verify/PROMPT.md` 加一節：從 Actions log 逐字取 `[審稿]` 行寫進報告，「未審」「修稿未採用」列原因，找不到任何 `[審稿]` 行時寫「找不到審稿摘要」（cold review 路徑，PR 要跑 cold review）
-- [ ] T031 [US3] [FR-007] `docs/external-services.md` 的 Gemini 列補審稿模型、變數 `GEMINI_REVIEW_MODEL_NAME`、research R9 的估算與日期；`.github/workflows/weekly.yml` 的「週交通熱點分析」step env 加 `GEMINI_REVIEW_MODEL_NAME: ${{ vars.GEMINI_REVIEW_MODEL_NAME }}`（動到 `weekly.yml` 會觸發 `GNS-20261013-4g9` 的 pre-edit 提醒，照規則問 Luke 要不要併入）
+**2026-11-08 拿掉**：T024～T031 不做（原文在 `06985f5`）。
 
 ---
 
 ## Phase 6: 上線與收尾
 
-- [ ] T032 [FR-007, FR-014] （verification-only）上線：Luke 在 Supabase dashboard 貼 006，main 唯讀查表與 grant 讀回；`gh variable set GEMINI_REVIEW_MODEL_NAME --env production` 設成 T023 選定的模型並 `gh variable get` 讀回
-- [ ] T033 [SC-004, SC-005, SC-006] （verification-only，merge 後）上線後連兩週：週報耗時與 timeout、各報告審稿秒數（`[審稿]` 行）、實際 token 換算月費用、紀錄的 `published_text` 與 `hot_topic_reports.report_text` 逐份相等、週驗收報告的摘要行與紀錄一致；寫進 `evaluation.md` 與 spec 的達成階數（另開 PR，同 017 的 T020）
-- [ ] T034 收尾（feature PR 轉 ready 前）：`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-011`（T041 量完 FR-005b 之後的杜撰比率、BACKLOG 該節寫明結論之後）；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 跑一次，矩陣與 main 的裁示記在 PR 內文
-  （Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；`python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md GNS-20261031-s3h`，PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
+- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；`routines/weekly-verify/FOCUS.md` 寫明 11-09 起三軸改五類交織度、清單與報告出現「（僅標題）」，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
 - [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
 
 ---
@@ -105,21 +82,18 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Phase 1（Unit 1）先做：T001 是 T004、T006 的 fixture 來源；T002 是 T003 的輸入；T005 決定 US2 的模型。
 - Phase 2（Unit 2）在 Phase 1 之後：門檻與 fixture 來自 T001。
 - US1：Unit 3 → Unit 4 → Unit 5（量測）→ Unit 15（樣板與三軸指令第二次修正）→ Unit 16（量測）。
-- US2：Unit 14（T036 提示探針）在 Unit 6 之前；Unit 6 要 Unit 1（錨點、模型）、Unit 2（檢查）、Unit 14 與 Unit 15（審稿標準收生成規則，要收 FR-005b 的）；Unit 7 要 Unit 6 與 Unit 3（`build_*_input()`）；Unit 8 要 Unit 4 與 Unit 6；Unit 9 在 Unit 8 之後。
-- US3：Unit 10、Unit 11 要 Unit 7；Unit 12 要 Unit 11。
-- Unit 13（上線、收尾）在 Unit 9 過 Gate、其餘 unit 都 `[X]` 之後；T033 在 merge 之後另開 PR。
+- T042（Unit 17）在 Unit 4 之後，跟 Unit 15、16 不相依。
+- Unit 13（收尾）在其餘 unit 都 `[X]` 之後。US2、US3 的 unit（6～12）2026-11-08 拿掉。
 
 ## Parallel Opportunities
 
 - Phase 1：T002 → T003 一條線，T001 → T004 一條線，T005 獨立，三條可以同時進行。
 - 各 unit 內的測試 task 標 `[P]` 的可以跟同 unit 以外的實作並行起草，但同一個 unit 的測試要先紅。
-- Unit 10（資料庫）與 Unit 11（摘要行）都只依賴 Unit 7，彼此獨立。
 
 ## Implementation Strategy
 
 - MVP＝US1：只改指令，就能把三類錯型從源頭拿掉，T013 量得到。
-- 一個 spec 一個 PR（`branch-protection`）：US1 不單獨出貨，等 US2、US3 一起；但 US1 的 unit 先做完、先審，讓 US2 建在穩定的清單組裝上。
-- 上線前一定要過 T023 的 Gate：審稿抓不到「7 死」與「全國」，就是在每週多花錢與時間換一份雜訊。
+- 一個 spec 一個 PR（`branch-protection`）。2026-11-08 起只出貨 US1，趕在 11-09 的週報（週一 00:00Z）前 merge（Luke 裁示）。
 
 ## Review units
 
@@ -169,78 +143,18 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Review: main 複驗。
 - Merge or split: 只跑既有入口、只改紀錄。
 
-### Unit 6: 審稿呼叫與套用
+### Unit 6～12（2026-11-08 拿掉）
 
-- Tasks: T014, T015, T016, T017, T018
-- Outcome: `review_report()` 送出與生成相同的清單、拿回驗過形狀的發現；`apply_findings()`、`decide_status()` 照契約套用與判狀態。
-- Prerequisites: Unit 1（錨點、模型）、Unit 2（檢查）、Unit 14（審稿提示探針）。
-- Verification: `pytest tests/unit/test_call_gemini_model.py tests/unit/test_report_review.py`（各自先紅後綠）；不帶新參數時 `_call_gemini` 的 payload 與對照逐位元組相同。
-- Review: 上述兩個測試檔、`src/analyzer.py`（`_call_gemini`、審稿 prompt、`review_report`）、`src/report_review.py`（錨點、標準、解析、套用、狀態）、`contracts/review-output.md`。
-- Merge or split: 審與修在 research R2 合成一次呼叫，呼叫、解析、套用是同一個產出；`_call_gemini` 的參數只為它而加。
+審稿呼叫、週報串接、重播加審稿、SC-002／003 量測、審核紀錄、摘要行、routine 與上線設定，原文在 `06985f5`。
 
-### Unit 7: 週報串接
+### Unit 13: 收尾 (verification-only)
 
-- Tasks: T019, T020
-- Outcome: 週報對每份報告跑審稿與套用，寫進 `hot_topic_reports` 的是決定後的版本，每條放棄路徑的原因印得出來。
-- Prerequisites: Unit 3、Unit 6。
-- Verification: `pytest tests/unit/test_weekly_review_flow.py`（真入口、monkeypatch 邊界，先紅後綠）；`pytest tests/unit` 全綠。
-- Review: `tests/unit/test_weekly_review_flow.py`、`scripts/traffic_weekly_analysis.py`。
-- Merge or split: 串接是獨立可驗的行為（發布哪一版），與審稿本身分開審，範圍才看得清楚。
-
-### Unit 8: 重播加審稿
-
-- Tasks: T021, T022
-- Outcome: 重播腳本支援審稿、留一排除與換模型。
-- Prerequisites: Unit 4、Unit 6。
-- Verification: `pytest tests/unit/test_replay_report_review.py`（新增的先紅後綠）。
-- Review: `tests/unit/test_replay_report_review.py`、`scripts/replay_report_review.py`、`contracts/replay-cli.md`。
-- Merge or split: 同一支腳本的第二個能力，依賴 Unit 6，所以不併進 Unit 4。
-
-### Unit 9: SC-002、SC-003 量測 (verification-only)
-
-- Tasks: T023
-- Outcome: evaluation.md 的 SC-002（留一、成立比例）與 SC-003；審稿模型定案。
-- Prerequisites: Unit 8。
-- Verification: 每次重播的 JSON 留在 scratch，數字與逐條核對寫進 evaluation.md。
-- Review: main 複驗；模型若換掉，Luke 看結果。
-- Merge or split: 只跑既有入口、只改紀錄。
-
-### Unit 10: 審核紀錄表與寫入
-
-- Tasks: T024, T025, T026, T027
-- Outcome: 新表、`upsert_report_review()`、週報寫紀錄；寫入失敗不擋發布。
-- Prerequisites: Unit 7。
-- Verification: `bash scripts/setup_test_db.sh` 套到 006；`pytest tests/integration/test_report_review_storage.py`（本機 Supabase，先紅後綠）；`pytest tests/unit/test_weekly_review_flow.py` 新增的兩條。
-- Review: `supabase_migrations/006_report_reviews.sql`、`scripts/setup_test_db.sh`、`tests/integration/test_report_review_storage.py`、`src/storage.py`、`scripts/traffic_weekly_analysis.py`、`tests/unit/test_weekly_review_flow.py`、`data-model.md`。
-- Merge or split: schema、寫入函式與呼叫點是同一個產出（紀錄存得進去）。
-
-### Unit 11: `[審稿]` 摘要行
-
-- Tasks: T028, T029
-- Outcome: 每份報告一行摘要與一週合計，格式照契約、測試鎖住；紀錄寫入失敗時仍印得出來。
-- Prerequisites: Unit 7。
-- Verification: `pytest tests/unit/test_report_review.py tests/unit/test_weekly_review_flow.py`（新增的先紅後綠）。
-- Review: `src/report_review.py`（兩個格式函式）、`scripts/traffic_weekly_analysis.py`、兩個測試檔、`contracts/summary-line.md`。
-- Merge or split: log 格式有外部讀者（routine），獨立成一個可審的契約產出；跟 Unit 10 互不依賴。
-
-### Unit 12: 週驗收 routine 與上線設定
-
-- Tasks: T030, T031
-- Outcome: routine 讀得到 `[審稿]` 行並寫進報告；預算文件與 workflow env 備好上線。
-- Prerequisites: Unit 11。
-- Verification: routine 指示用 Unit 11 測試裡的範例 log 逐句讀過一次（main 照 PROMPT 的步驟手動跑 grep）；`weekly.yml` 的 YAML 用 `.venv/bin/python -c "import yaml…"` 讀得回、env 有這個鍵；PR 的 cold review。
-- Review: `routines/weekly-verify/PROMPT.md`、`docs/external-services.md`、`.github/workflows/weekly.yml`。
-- Merge or split: 都是「讓上線後看得到、跑得起來」的程序與設定，沒有程式邏輯；routine 那段要 cold review，同一個 PR 一起審。
-
-### Unit 13: 上線與收尾 (verification-only)
-
-- Tasks: T032, T033, T034, T035
-- Outcome: prod 設定讀回、上線兩週的量測、BACKLOG 移出、rcf 樣本寫進 bare。
-- Prerequisites: Unit 1～12、15、16 都 `[X]`；T033 在 merge 之後。
-- Verification: 讀回的查詢與 `gh variable get` 輸出；evaluation.md；`backlog_trailers.py pr-line`；bare PR。
-- Review: main 複驗；T032 的 dashboard 那一步由 Luke 做。
-- Merge or split: T033～T035 只改紀錄、跑既有入口。T032 改的是 prod 的設定（dashboard 套 schema、設變數），不是 repo 裡的程式：
-  套用的 SQL 與變數值在 Unit 10、Unit 9 已審過，這一步的檢查是讀回，所以不另開實作審查。
+- Tasks: T034, T035
+- Outcome: BACKLOG 移出與新增、FOCUS 寫明格式改了、spec-reviewer 矩陣、rcf 樣本寫進 bare。
+- Prerequisites: Unit 1～5、14～17 都 `[X]`。
+- Verification: `backlog.py` 的輸出與 diff；`backlog_trailers.py pr-line`；spec-reviewer 的矩陣由 main 逐條重跑；bare PR。
+- Review: main 複驗。
+- Merge or split: 只改紀錄、跑既有入口。
 
 ### Unit 14: 審稿提示探針 (verification-only)
 
@@ -270,3 +184,12 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Verification: 腳本輸出的 JSON 留在 scratch，main 逐句核對，數字寫進 evaluation.md。
 - Review: main 複驗。
 - Merge or split: 只跑既有入口、只改紀錄。
+
+### Unit 17: 截斷長度只留一份
+
+- Tasks: T042
+- Outcome: analyzer 的兩個截斷長度是具名常數，重播腳本讀同一份，analyzer 改長度時重播送給 `check_report()` 的 sources 跟著改。
+- Prerequisites: Unit 3、Unit 4。
+- Verification: `pytest tests/unit/test_replay_report_review.py tests/unit/test_digest_prompt.py`（新增的先紅後綠）；既有 `pytest tests/unit` 全綠；`tests/unit/test_comment_budget.py`。
+- Review: `src/analyzer.py`（兩個常數與兩個 `build_*_input()`）、`scripts/replay_report_review.py`、`tests/unit/test_replay_report_review.py`。
+- Merge or split: 一個產出（截斷長度只有一份），一個 checkpoint；inline 實作、tdd-reviewer 審。

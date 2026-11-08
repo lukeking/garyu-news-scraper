@@ -1,5 +1,7 @@
 # Contract: 審稿呼叫的輸出
 
+> 2026-11-08：US2 拿掉，這份契約沒有實作，只是當時的設計紀錄。
+
 審稿模型以 structured output（`responseMimeType: application/json`）回這個形狀。不是合法 JSON、或缺必要欄位，整份就記
 `not_reviewed / invalid_response`，照發原稿（FR-012）。
 

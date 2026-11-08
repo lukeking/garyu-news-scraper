@@ -1,5 +1,7 @@
 # Contract: 週報 log 的 `[審稿]` 摘要行
 
+> 2026-11-08：US3 拿掉，這份契約沒有實作，只是當時的設計紀錄。
+
 讀者：週驗收 routine（`routines/weekly-verify/PROMPT.md`），它從 Actions log 逐字取這一行寫進 Linear 報告。格式改了，routine 就讀不到，
 所以格式由單元測試鎖住（`decision-style` §三：有讀者的 log 格式是契約）。
 

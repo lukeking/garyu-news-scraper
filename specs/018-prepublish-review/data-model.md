@@ -1,5 +1,7 @@
 # Data Model: 018 週報發布前審核
 
+> 2026-11-08：US3 拿掉，這張表沒有建，只是當時的設計紀錄。
+
 ## 新表 `hot_topic_report_reviews`（`supabase_migrations/006_report_reviews.sql`）
 
 一份報告一列，跟 `hot_topic_reports` 用同一把鍵。同一週重跑時 upsert 覆寫（憲章 III）。
