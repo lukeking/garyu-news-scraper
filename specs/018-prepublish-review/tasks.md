@@ -234,7 +234,7 @@ spec-reviewer 對 `7191557` 的結果（2026-11-08，矩陣與 main 的重跑在
 六條 UNCOVERED 的呼叫邊接受（`signoff.md`），`tests/integration/test_weekly_analysis.py` 的 tuple 錯在 018 修。
 MANUAL 那幾條補的是「已量過的輸出在現行檢查下的判定」：模型重新生成會不會再出錯仍要呼叫 Gemini，測試鎖不住，補完後再跑 spec-reviewer 時照實寫。
 
-- [ ] T048 [Conv] [SC-001, FR-006] SC-001 可自動化的部分補成測試：三份彙整與兩份沒有事故的三軸（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」）的重生成輸出存成 `tests/fixtures/report_review/` 的 fixture（T013 的輸出不在了就用 `--regenerate` 重跑一次再存，命令列明示模型），測試斷言 `check_report()` 四類 0 命中、兩份三軸的 A 軸是「本批無事故報導，不適用」；`SOURCES.md` 記每個 fixture 的出處
+- [ ] T048 [Conv] [SC-001, FR-006] SC-001 可自動化的部分補成測試：三份彙整與兩份沒有事故的三軸（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」）的重生成輸出存成 `tests/fixtures/report_review/` 的 fixture（T013 的輸出沒留下；main 2026-11-08 用 `--regenerate`、`gemini-3.8-flash` 重跑了一份新樣本，在本機 `research/2026-11-08-sc001-regen/`），測試斷言 `independence_claim`、`self_count`、`title_only_in_sections`、`missing_section` 0 命中、兩份三軸的 A 軸是「本批無事故報導，不適用」；`date_unlabeled` 不進斷言——它是已知會誤報相對日期的啟發式，命中由 main 逐條判（evaluation.md SC-001 節「逐條判定」與那裡引的裁示），新樣本三份彙整命中 2、6、5 處，進 fixture 前 main 照同一個方式判完寫進 evaluation.md；`SOURCES.md` 記每個 fixture 的出處
 - [ ] T049 [Conv] [SC-007] SC-007 可自動化的部分補成測試：T047 的 7 份重生成（本機 `research/2026-11-08-intersection-data-probe/data/t047-gns011-fr005c/`）存成 fixture，測試斷言 `interweave_sum` 7 份都不命中、交織度分布是六類、非事故篇數與 `evaluation.md` GNS-011 節「FR-005c 之後」的表一致
 - [ ] T050 [Conv] [SC-008] SC-008 可自動化的部分補成測試：T046 的 12 份輸出（本機 `research/2026-11-08-intersection-data-probe/data/regen-fr005c/`）挑定義階梯的那幾份（三組對照、真實、反事實、正向案例各一份）存成 fixture，測試斷言交織度分布六類加總等於 4、與 `evaluation.md`「GNS-20261108-5xf」節「FR-005c 之後」的表一致
 - [ ] T051 [Conv] [FR-016] `tests/unit/test_replay_report_review.py` 補一條：沒有審核紀錄時，重播寫出的 `.md` 有「輸入：reconstructed」（spec-reviewer：拿掉 `render_md` 的「輸入：」，32 支測試照樣全綠，main 在 `7191557` 重跑過）
