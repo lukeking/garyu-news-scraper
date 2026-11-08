@@ -258,6 +258,6 @@ MANUAL 那幾條補的是「已量過的輸出在現行檢查下的判定」：�
 - [X] T049 [Conv] [SC-007] SC-007 可自動化的部分補成測試：T047 的 7 份重生成（本機 `research/2026-11-08-intersection-data-probe/data/t047-gns011-fr005c/`）存成 fixture，測試斷言 `interweave_sum` 7 份都不命中、交織度分布是六類、非事故篇數與 `evaluation.md` GNS-011 節「FR-005c 之後」的表一致
 - [X] T050 [Conv] [SC-008] SC-008 可自動化的部分補成測試：T046 的 12 份輸出（本機 `research/2026-11-08-intersection-data-probe/data/regen-fr005c/`）挑定義階梯的那幾份（三組對照、真實、反事實、正向案例各一份）存成 fixture，測試斷言交織度分布六類加總等於 4、與 `evaluation.md`「GNS-20261108-5xf」節「FR-005c 之後」的表一致
 - [X] T051 [Conv] [FR-016] `tests/unit/test_replay_report_review.py` 補一條：沒有審核紀錄時，重播寫出的 `.md` 有「輸入：reconstructed」（spec-reviewer：拿掉 `render_md` 的「輸入：」，32 支測試照樣全綠，main 在 `7191557` 重跑過）
-- [ ] T052 [Conv] `tests/integration/test_weekly_analysis.py:83` 把 `analyze_hot_topic` 回傳的 `(text, links)` 整個當成 `report_text`（018 之前就這樣，`2ae42b5` 也是 tuple），`assert report_text` 永遠成立、存進去的不是字串：解開 tuple、斷言內文非空。驗證要起本機 Supabase（`CLAUDE.local.md`「整合測試的本機 Supabase」）並呼叫一次 Gemini（計費）
+- [-] T052 [Conv] `tests/integration/test_weekly_analysis.py:83` 把 `analyze_hot_topic` 回傳的 `(text, links)` 整個當成 `report_text`（018 之前就這樣，`2ae42b5` 也是 tuple），`assert report_text` 永遠成立、存進去的不是字串：解開 tuple、斷言內文非空。驗證要起本機 Supabase（`CLAUDE.local.md`「整合測試的本機 Supabase」）並呼叫一次 Gemini（計費）
 
 Review units：T048–T051 一個 unit（補測試、行為不變，「先紅」改用突變證明：把對應的檢查或 `render_md` 那行改壞，新測試要紅）；T052 一個 unit（整合測試，本機 Supabase）。
