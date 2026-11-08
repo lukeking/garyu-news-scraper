@@ -51,6 +51,10 @@ US1 的量測與 US2 的套用都用這兩樣。
 - [X] T041 [US1] [SC-007] （verification-only）用 T012 的 `--regenerate` 重跑 `evaluation.md` GNS-011 節的同樣 7 份（命令列明示生成模型），照同一套判準逐句核對，寫進 GNS-011 節的新小節「FR-005b 之後」，說明 SC-007 爬到哪一階；06-22、07-20、08-03、08-24 的清單會因 T038 多標「（僅標題）」，輸入與 FR-005a 版不同，比較時分開說。BACKLOG `GNS-011` 節補一段結論
 - [X] T042 [US1] [FR-015, FR-016] 截斷長度只留一份（Luke 2026-11-08 裁示，原本排在 Unit 6）：`src/analyzer.py` 的 `build_digest_input()`／`build_hot_topic_input()` 寫死的 `[:400]`／`[:600]` 改成模組常數 `DIGEST_SUMMARY_CHARS`、`HOT_SUMMARY_CHARS`；`scripts/replay_report_review.py` 重生成那一份的 sources 與檢查呼叫當下讀 analyzer 的常數，重建 018 之前舊報告的清單與原稿的 sources 改讀 `OLD_SUMMARY_CHARS`（生成當時的長度，FR-008 的原意，不跟著現行 analyzer 改）。測試先紅（`tests/unit/test_replay_report_review.py`）：把 analyzer 的常數改成小值，`build_*_input()` 的摘要、重生成的 sources 與交給 `check_report()` 的 sources 都跟著截短，原稿那一份不變；常數本身用字面值 400、600 釘住
 - [X] T043 [US1] [FR-003, FR-004] 週報 `main()` 與 analyzer 的接點補測試（Luke 2026-11-08 裁示；spec-reviewer 對 `9aed012` 找到 `scripts/traffic_weekly_analysis.py` 呼叫 `analyze_hot_topic`／`analyze_category_digest` 的兩條邊沒有測試，把存進資料庫的 `source_article_links` 改成空清單單元測試照樣全綠）：`tests/unit/test_weekly_report_links.py` 讓真的 `analyze_*` 跑過 `main()`（只換 `_call_gemini` 與 `src.*` 的 I/O），斷言存下的連結與 prompt 裡的 `[i]`、彙整文末「僅標題」的 `[i]` 一一對得上。只補測試、行為不變，所以「先紅」改用突變證明：存成空清單、反轉、改回 buffer 順序、analyzer 把只有標題的排前面，各自要紅
+- [ ] T044 [P] [US1] [FR-005c] 在 `tests/unit/test_digest_prompt.py` 加測試（先紅）：`HOT_TOPIC_PROMPT_TEMPLATE` 的交織度分布有六類（五類加 `[工程未見放大]`），輸出格式那一行也是六類；A 軸寫明歸 [工程主導]／[雙因交織] 要說出來源寫到的哪一個工程條件、怎麼放大這件事的人因動作；寫明車種間質量落差這類每件混合車種事故都有的條件不能單獨當放大機制；`[工程未見放大]` 的定義是有工程資料、說不出放大機制、且不符 [人因主導]；寫明兩者都成立時歸 [人因主導]；[人因主導] 那一列與普遍化追問一字不改（用字面值釘住）。既有的五類測試（`FIVE_CLASS_LINE` 等）改成六類。另在 `tests/unit/test_report_review.py` 加一例：六類的交織度分布加總等於篇數時 `interweave_sum` 不命中、不等時命中
+- [ ] T045 [US1] [FR-005c] 在 `src/analyzer.py` 改 `HOT_TOPIC_PROMPT_TEMPLATE` 的 A 軸（五類定義、判定規則、輸出格式的交織度分布），讓 T044 轉綠；`analyze_hot_topic`、`build_hot_topic_input` 的回傳值不變；`contracts/check-report.md` 的 `interweave_sum` 那列跟著寫六類
+- [ ] T046 [US1] [SC-008] （verification-only）用 `research/2026-11-08-intersection-data-probe/scripts/probe_prompt_ablation.py`（消融填 `none`、預期模型 `gemini-3.8-flash`）對 `evaluation.md`「GNS-20261108-5xf」節的六組輸入各重生成 2 次，[1][2] 與 [3][4] 的分類、交織說明有沒有把保護性條件寫成成因，寫進該節的新小節「FR-005c 之後」，說明 SC-008 爬到哪一階
+- [ ] T047 [US1] [SC-007, SC-008] （verification-only）用 T012 的 `--regenerate` 重跑 `evaluation.md` GNS-011 節的同樣 7 份（命令列明示生成模型），照同一套判準逐句核對，寫進 GNS-011 節的新小節「FR-005c 之後」：SC-007 的 Gate 照不照過（SC-008 的門檻要它），五類處數與 FR-005b 版比；交織度分布各類篇數與 FR-005b 版比
 
 **Checkpoint**: US1 可以單獨驗收。
 
@@ -73,7 +77,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 
 ## Phase 6: 上線與收尾
 
-- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；merge 那一週的 `routines/weekly-verify/FOCUS.md` 寫明三軸改五類交織度、清單與報告出現「（僅標題）」、log 多出 `✗ 彙整 … 全部只有標題…不生成`，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
+- [ ] T034 收尾（feature PR 轉 ready 前）：`backlog.py remove` 移出 `GNS-011`（T041 已量完）、`GNS-20261031-s3h`（做法被 2026-11-08 的裁示取代），`backlog.py add` 開 `GNS-20261108-r2t`（彙整的模型杜撰沒有審核者）；`backlog.py remove` 移出 `GNS-20261108-5xf`（FR-005c、SC-008，Luke 2026-11-08 裁示在 018 實作），並改寫以它為前提的 `GNS-20261108-2zc` 的觸發點；merge 那一週的 `routines/weekly-verify/FOCUS.md` 寫明三軸改六類交織度（多了 [工程資料未載]、[非事故]、[工程未見放大]）、清單與報告出現「（僅標題）」、log 多出 `✗ 彙整 … 全部只有標題…不生成`，不判異常；照 `~/.agents/skills/delegated-tdd/spec-reviewer-template.md` 派 `spec-reviewer` 對 US1 的 FR、SC 跑一次，矩陣與 main 的裁示記在 PR 內文（Luke 2026-11-07 裁示，bare `GUB-025` 的第二個實際用例；那一列剩下的是三項通則裁示，不在 018 做）；PR 內文貼 `backlog_trailers.py pr-line` 的 `Backlog:` 行；PR 內文記 bare 提醒的處置：`GUB-20261101-9qe` 未做、不適用（garyu 不在名單，bare `#324` 已記）、`GUB-20261024-rcf` 見 T035
 - [ ] T035 收尾（Luke 2026-11-07 裁示開成工項）：把 018 當 `GUB-20261024-rcf` 的第二個樣本寫進 bare `.agents/BACKLOG.md` 的 rcf 節（另開 bare PR）：`/speckit-tasks` 時 Assumptions 13 條、`Checked:` 11、`Unchecked:` 3（其中一條兩者都有）、step 2a 停點 0、Luke 劃掉或改寫的假設、Unit 1（T001–T005）推翻了什麼、`GUB-025` spec-reviewer 有沒有跑與它的缺口；附 018 的 PR 與 `evaluation.md` 位置
 
 ---
@@ -84,6 +88,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Phase 2（Unit 2）在 Phase 1 之後：門檻與 fixture 來自 T001。
 - US1：Unit 3 → Unit 4 → Unit 5（量測）→ Unit 15（樣板與三軸指令第二次修正）→ Unit 16（量測）。
 - T042（Unit 17）在 Unit 4 之後，跟 Unit 15、16 不相依。
+- Unit 19（三軸指令第三次修正，`5xf`）在 Unit 15、16 之後 → Unit 20（SC-008、SC-007 量測）。
 - Unit 13（收尾）在其餘 unit 都 `[X]` 之後。US2、US3 的 unit（6～12）2026-11-08 拿掉。
 
 ## Parallel Opportunities
@@ -203,3 +208,22 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Verification: `pytest tests/unit/test_weekly_report_links.py`；四個突變各自讓它紅；既有 `pytest tests/unit` 全綠；註解閘。
 - Review: `tests/unit/test_weekly_report_links.py`、`scripts/traffic_weekly_analysis.py`（`main()` 的兩個呼叫點）。
 - Merge or split: 一個產出（接點有測試），一個 checkpoint；inline 實作、tdd-reviewer 審。
+
+### Unit 19: 三軸指令第三次修正（`GNS-20261108-5xf`）
+
+- Tasks: T044, T045
+- Outcome: A 軸有六類與判定規則（FR-005c），[人因主導] 那一列不變；`analyze_hot_topic` 回傳值不變。
+- Prerequisites: Unit 15、Unit 16（FR-005b 的指令是這次改動的起點；改法來自 `evaluation.md`「GNS-20261108-5xf」節的診斷）。
+- Verification: `pytest tests/unit/test_digest_prompt.py tests/unit/test_report_review.py`（新增的先紅後綠）；既有 `pytest tests/unit` 全綠；
+  `tests/unit/test_comment_budget.py`（`src/analyzer.py` 的 LEGACY 是精確值）。
+- Review: `tests/unit/test_digest_prompt.py`、`tests/unit/test_report_review.py`、`src/analyzer.py`（`HOT_TOPIC_PROMPT_TEMPLATE` 的 A 軸）、`contracts/check-report.md`。
+- Merge or split: 一個產出（A 軸分得出工程有沒有放大），一個 checkpoint；inline 實作、tdd-reviewer 審。
+
+### Unit 20: SC-008、SC-007 量測 (verification-only)
+
+- Tasks: T046, T047
+- Outcome: evaluation.md「GNS-20261108-5xf」節與 GNS-011 節各一個「FR-005c 之後」小節，SC-008 爬到哪一階、SC-007 的 Gate 照不照過。
+- Prerequisites: Unit 19。
+- Verification: 探針與重播的 JSON 留在本機，main 逐句核對，數字寫進 evaluation.md。
+- Review: main 複驗。
+- Merge or split: 只跑既有入口（探針只換讀資料的邊界）、只改紀錄。
