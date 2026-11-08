@@ -445,3 +445,58 @@ def test_a_model_without_a_measured_price_says_so(monkeypatch, tmp_path, gemini,
     assert run(monkeypatch, digest_db(), tmp_path, "--regenerate") == 0
     first = capsys.readouterr().out.splitlines()[0]
     assert first.startswith("估算費用：未知") and "gemini-9-unknown" in first
+
+
+# ── T042：截斷長度只留一份 ─────────────────────────────
+def summary_of(listing, link_title):
+    """清單裡標題為 link_title 那一篇的摘要行。"""
+    block = listing.split(f"標題：{link_title}\n", 1)[1]
+    return block.split("摘要：", 1)[1].split("\n", 1)[0]
+
+
+def source_of(sources, link):
+    return next(s for s in sources if s["link"] == link)
+
+
+def test_truncation_lengths_are_pinned():
+    assert analyzer.DIGEST_SUMMARY_CHARS == 400
+    assert analyzer.HOT_SUMMARY_CHARS == 600
+    assert m.OLD_SUMMARY_CHARS == {"digest": 400, "hot": 600}
+
+
+def test_build_inputs_cut_summaries_at_the_analyzer_constants(monkeypatch):
+    monkeypatch.setattr(analyzer, "DIGEST_SUMMARY_CHARS", 7, raising=False)
+    monkeypatch.setattr(analyzer, "HOT_SUMMARY_CHARS", 9, raising=False)
+    assert summary_of(analyzer.build_digest_input([A1], 1)[0], A1["title"]) == A1["summary"][:7]
+    assert summary_of(analyzer.build_hot_topic_input([B1])[0], B1["title"]) == B1["summary"][:9]
+
+
+def capture_check_sources(monkeypatch):
+    seen, real = [], m.check_report
+    monkeypatch.setattr(m, "check_report", lambda text, **kw: seen.append(kw["sources"]) or real(text, **kw))
+    return seen
+
+
+def test_regenerated_hot_sources_follow_the_analyzer_and_the_original_keeps_its_length(monkeypatch, tmp_path, gemini):
+    monkeypatch.setattr(analyzer, "HOT_SUMMARY_CHARS", 9, raising=False)
+    seen = capture_check_sources(monkeypatch)
+    gemini.reply = HOT_REGENERATED_RAW
+    assert run(monkeypatch, hot_db(), tmp_path, "--regenerate", topic=HOT_TOPIC) == 0
+    data, _ = output(tmp_path, f"{WEEK}-rep-hot-1")
+    assert summary_of(data["original"]["input_text"], B1["title"]) == B1["summary"][:600]
+    assert source_of(data["original"]["sources"], B1["link"])["summary"] == B1["summary"][:600]
+    assert summary_of(data["regenerated"]["input_text"], B1["title"]) == B1["summary"][:9]
+    assert source_of(data["regenerated"]["sources"], B1["link"])["summary"] == B1["summary"][:9]
+    assert [source_of(s, B1["link"])["summary"] for s in seen] == [B1["summary"][:600], B1["summary"][:9]]
+
+
+def test_regenerated_digest_sources_follow_the_analyzer_and_the_original_keeps_its_length(monkeypatch, tmp_path, gemini):
+    monkeypatch.setattr(analyzer, "DIGEST_SUMMARY_CHARS", 7, raising=False)
+    seen = capture_check_sources(monkeypatch)
+    assert run(monkeypatch, digest_db(), tmp_path, "--regenerate") == 0
+    data, _ = output(tmp_path, f"{WEEK}-rep-digest-1")
+    assert summary_of(data["original"]["input_text"], A1["title"]) == A1["summary"][:400]
+    assert source_of(data["original"]["sources"], A1["link"])["summary"] == A1["summary"][:400]
+    assert summary_of(data["regenerated"]["input_text"], A1["title"]) == A1["summary"][:7]
+    assert source_of(data["regenerated"]["sources"], A1["link"])["summary"] == A1["summary"][:7]
+    assert [source_of(s, A1["link"])["summary"] for s in seen] == [A1["summary"][:400], A1["summary"][:7]]

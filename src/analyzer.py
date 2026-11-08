@@ -740,6 +740,11 @@ def analyze_all(articles, delay=6):
     return results
 
 
+# 給模型的摘要截幾個字；重播（scripts/replay_report_review.py）重生成時讀同一份
+DIGEST_SUMMARY_CHARS = 400
+HOT_SUMMARY_CHARS = 600
+
+
 HOT_TOPIC_SYSTEM_PROMPT = (
     "你是台灣交通安全結構性分析師，專精機車與道路安全議題。"
     "本分析採「結構性懷疑論」方法：對官方新聞稿的歸因假設持系統性質疑，"
@@ -842,7 +847,7 @@ def build_hot_topic_input(bucket_articles: list) -> tuple:
     lines = []
     for i, a in enumerate(top_articles, 1):
         title = a.get("title", "（無標題）")
-        body = "（僅標題）" if _is_title_only_article(a) else (a.get("summary", "") or "")[:600]
+        body = "（僅標題）" if _is_title_only_article(a) else (a.get("summary", "") or "")[:HOT_SUMMARY_CHARS]
         lines.append(f"[{i}] 標題：{title}\n    摘要：{body}")
 
     counts = {"articles": len(top_articles), "title_only": sum(map(_is_title_only_article, top_articles))}
@@ -1029,7 +1034,7 @@ def build_digest_input(pool_articles: list, max_articles: int) -> tuple:
     lines = []
     for i, a in enumerate(listed, 1):
         title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or "")[:400]
+        body = (a.get("summary", "") or "")[:DIGEST_SUMMARY_CHARS]
         lines.append(f"[{i}] 報導日：{(a.get('published') or '')[:10]}\n    標題：{title}\n    摘要：{body}")
 
     ordered_links = [_source_link(a) for a in listed + title_only]

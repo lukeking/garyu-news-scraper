@@ -19,7 +19,8 @@ REVIEWS_TABLE = "hot_topic_report_reviews"
 MISSING_TABLE_CODES = ("PGRST205", "42P01")
 DIGEST_MARK = "彙整"
 ARTICLE_COLUMNS = "link,title,summary,published,initial_quality_score"
-SUMMARY_CHARS = {"digest": 400, "hot": 600}  # analyzer 給模型的摘要長度，sources 照這個截
+# 018 之前 analyzer 給模型的摘要長度：重建舊報告的清單與原稿的 sources 照這個截，不跟著現行 analyzer 改
+OLD_SUMMARY_CHARS = {"digest": 400, "hot": 600}
 # 一份報告一次生成呼叫的實測費用（US$；現價、漲價後）
 # 出處 experiments/model-quality-3p8flash-vs-argon/README.md「成本與延遲」，量的是三軸熱點
 COST_PER_REPORT = {"gemini-3.8-flash": (0.0123, 0.0246), "gemini-4-argon": (0.0104, 0.0207)}
@@ -89,23 +90,29 @@ def old_input(template: str, articles: list) -> str:
     lines = []
     for i, a in enumerate(articles, 1):
         title = a.get("title", "（無標題）")
-        body = (a.get("summary", "") or "")[:SUMMARY_CHARS[template]]
+        body = (a.get("summary", "") or "")[:OLD_SUMMARY_CHARS[template]]
         head = f"[{i}] 日期：{(a.get('published') or '')[:10]}\n    " if template == "digest" else f"[{i}] "
         lines.append(f"{head}標題：{title}\n    摘要：{body}")
     return "\n\n".join(lines)
 
 
-def as_sources(template: str, articles: list) -> list:
+def current_chars(template: str) -> int:
+    from src import analyzer
+
+    return analyzer.DIGEST_SUMMARY_CHARS if template == "digest" else analyzer.HOT_SUMMARY_CHARS
+
+
+def as_sources(articles: list, chars: int) -> list:
     return [{"link": a.get("link"), "title": a.get("title"), "published": (a.get("published") or "")[:10],
-             "summary": (a.get("summary") or "")[:SUMMARY_CHARS[template]]} for a in articles]
+             "summary": (a.get("summary") or "")[:chars]} for a in articles]
 
 
 def title_only_ids(articles: list) -> list:
     return [i for i, a in enumerate(articles, 1) if is_title_only(a.get("title") or "", a.get("summary") or "")]
 
 
-def run_checks(text: str, template: str, articles: list) -> dict:
-    hits = check_report(text, template=template, sources=as_sources(template, articles),
+def run_checks(text: str, template: str, articles: list, chars: int) -> dict:
+    hits = check_report(text, template=template, sources=as_sources(articles, chars),
                         title_only_ids=title_only_ids(articles))
     counts = {name: len(found) for name, found in hits.items()}
     return {"sc001": {k: counts[k] for k in SC001_CHECKS if k in counts}, "counts": counts, "hits": hits}
@@ -150,7 +157,7 @@ def regenerate(template: str, articles: list, topic: str, week: str) -> tuple:
     by_link = {a["link"]: a for a in articles}
     ordered = [by_link[item["link"]] for item in links]
     return {"model": analyzer.GEMINI_MODEL, "text": text, "input_text": input_text,
-            "sources": as_sources(template, ordered), "title_only_ids": title_only_ids(ordered)}, ordered, seconds
+            "sources": as_sources(ordered, current_chars(template)), "title_only_ids": title_only_ids(ordered)}, ordered, seconds
 
 
 def cost_line(regenerate_flag: bool, model: str) -> str:
@@ -206,10 +213,10 @@ def replay(args, state: dict) -> tuple:
         "week": args.week, "topic": args.topic, "report_id": report["id"], "template": template,
         "input": inputs["input"],
         "original": {"text": report["report_text"], "input_text": inputs["input_text"],
-                     "sources": as_sources(template, articles), "title_only_ids": title_only_ids(articles)},
+                     "sources": as_sources(articles, OLD_SUMMARY_CHARS[template]), "title_only_ids": title_only_ids(articles)},
         "regenerated": regen,
-        "checks": {"original": run_checks(report["report_text"], template, articles),
-                   "regenerated": run_checks(regen["text"], template, ordered) if regen else None},
+        "checks": {"original": run_checks(report["report_text"], template, articles, OLD_SUMMARY_CHARS[template]),
+                   "regenerated": run_checks(regen["text"], template, ordered, current_chars(template)) if regen else None},
         "usage": {"tokens": None if regen else 0, "tokens_note": TOKENS_NOTE if regen else "沒有呼叫 Gemini",
                   "seconds": seconds},
     }
