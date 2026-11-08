@@ -1,12 +1,15 @@
 """report_review.py：週報審稿的純函式，只有標題的判定與報告的機械檢查。
 介面與檢查名照 specs/018-prepublish-review/contracts/check-report.md；不碰網路、資料庫與檔案。
 """
+import html
 import re
 import unicodedata
 
 BOILERPLATE = (
     "0則貼文 | 快來參與LINE TODAY討論牆上的討論 |",
     "台視影音：提供台視最新的綜藝、專題、節目預告及新聞影音，並有數個完整影音節目，供網友選擇收看。",
+    "台灣新聞雲報提供台灣最中立最公正最即時的各類型新聞報導，包括政治新聞、焦點新聞、社會新聞、國際新聞、地方新聞、娛樂新聞、"
+    "科技新聞、專訪新聞、政黨新聞、藝文活動、美食推廣、體育賽事等相關新聞報導。歡迎各界好友踴躍贊助推廣。",
 )
 TITLE_ONLY_MIN_CHARS = 20
 DELETION_CAP = 0.30
@@ -20,6 +23,7 @@ INDEPENDENCE_WORDS = ("互相獨立", "無直接因果", "各自獨立")
 REPORT_LABEL = "報導"
 REPORT_LABEL_WINDOW = 10
 
+_TAG = re.compile(r"</?[A-Za-z][^<>]*(?:>|\Z)")   # 結尾沒閉合的片段也算（存進庫時截斷的錨點）
 _BRACKET = re.compile(r"\[([^\[\]]*)\]")
 _ID_LIST = re.compile(r"\s*\d+(?:\s*[,，、]\s*\d+)*\s*")
 _SELF_COUNT = re.compile(r"(?:本期)?共[^，。；\n]{0,8}?\d[\d,]*\s*[起個][^，。；\n]{0,8}?事件")
@@ -39,7 +43,7 @@ _BOILERPLATE_NORMALISED = tuple(_normalise(b) for b in BOILERPLATE)
 
 
 def is_title_only(title: str, summary: str) -> bool:
-    s = _normalise(summary)
+    s = _normalise(html.unescape(_TAG.sub("", summary or "")))
     for b in _BOILERPLATE_NORMALISED:
         s = s.replace(b, "")
     if not s:

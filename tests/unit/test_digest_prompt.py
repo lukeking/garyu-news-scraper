@@ -20,6 +20,7 @@ from src.analyzer import (  # noqa: E402
 from src.report_review import check_report  # noqa: E402
 
 NUMBERS_RULE = ("範圍、期間與基準", "不得加上來源沒有的範圍詞", "不得把統計定義的改變寫成因果")
+FIVE_CLASS_LINE = "交織度分布：[工程主導] __篇 ／ [雙因交織] __篇 ／ [人因主導] __篇 ／ [工程資料未載] __篇 ／ [非事故] __篇"
 REAL_B = "台中市自下月起在三處路口啟用科技執法設備，取締闖紅燈與未禮讓行人。" + "市府表示將視成效逐步擴大到其他路口。" * 30
 REAL_D = "立法委員在交通委員會質詢交通部，要求說明行人路權改善計畫的進度與經費來源。"
 REAL_E = "某縣市道安會報討論校園周邊人行道改善，決議下個月由工務局提出具體工程規劃與預算需求。"
@@ -286,6 +287,60 @@ def test_hot_template_allows_source_not_stated():
     for field in ("人因變數：", "工程變數："):
         line = next(x for x in lines if x.startswith(field))
         assert "來源未載" in line
+
+
+def test_hot_template_interweave_has_five_classes():
+    """交織度分布五類（FR-005b）：輸出格式照列，A 軸定義兩個新類，寫明每篇一類、各類加總等於清單篇數。"""
+    assert FIVE_CLASS_LINE in HOT_TOPIC_PROMPT_TEMPLATE.splitlines()
+    axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+    for label in ("[工程主導]", "[雙因交織]", "[人因主導]", "[工程資料未載]", "[非事故]"):
+        assert f"- {label}：" in axis_a
+    no_data = next(x for x in axis_a.splitlines() if x.startswith("- [工程資料未載]："))
+    assert "來源沒有寫道路幾何、號誌或設施" in no_data and "不歸入 [工程主導] 或 [雙因交織]" in no_data
+    assert "不是交通事故" in next(x for x in axis_a.splitlines() if x.startswith("- [非事故]："))
+    assert "每篇只歸一類" in axis_a and "五類加總等於清單篇數" in axis_a
+    assert "三級分類" not in axis_a
+
+
+def test_hot_template_engineering_standards_only_on_stated_conditions():
+    """「評估工程缺陷必須對照具體標準」那一段限定只評估來源寫到的道路條件（FR-005b）。"""
+    axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+    block = _between(axis_a, "評估工程缺陷必須對照具體標準（禁止空洞泛稱「設計不良」）：", "引用外國原則時的轉譯紀律")
+    assert "只評估來源寫到的道路條件" in block
+    assert "不得用「未落實」「缺乏」「未設置」斷言" in block
+
+
+def test_hot_template_interweave_note_has_exit():
+    """交織說明有「來源未載」的出口，值得查的工程條件寫成「待查證：…？」；A 軸規則與輸出格式兩處都有（FR-005b）。"""
+    exit_text, ask = "來源未載，無法判定工程是否放大人因", "待查證：…？"
+    axis_a = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+    assert exit_text in axis_a and ask in axis_a
+    assert "不得斷言工程變數標為來源未載的條件" in axis_a
+    line = next(x for x in HOT_TOPIC_PROMPT_TEMPLATE.splitlines() if x.startswith("交織說明："))
+    assert exit_text in line and ask in line
+
+
+def test_hot_template_axis_a_casualties_follow_source():
+    """傷亡人數、傷勢與行向照來源寫（FR-005b，11-08 量到「多人重傷」「直行車輛」）。"""
+    assert "傷亡人數、傷勢與行向照來源寫" in _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ A", "▌ B")
+
+
+def test_hot_template_axis_b_lists_stated_practices_only():
+    """B 軸審查結果只列來源明文的制度做法並附 Article ID，不寫機關動機；「分析制度慣性」拿掉（FR-005b）。"""
+    assert "分析制度慣性" not in HOT_TOPIC_PROMPT_TEMPLATE
+    section_two = _between(HOT_TOPIC_PROMPT_TEMPLATE, "### 二、", "### 三、")
+    line = next(x for x in section_two.splitlines() if x.startswith("審查結果："))
+    for phrase in ("來源明文提到的制度做法", "罰款金額、執法方式、設施", "Article ID", "動機", "「迴避」", "來源沒有寫就不寫", "「不適用」"):
+        assert phrase in line
+    axis_b = _between(HOT_TOPIC_PROMPT_TEMPLATE, "▌ B", "▌ C")
+    for phrase in ("來源明文提到的制度做法", "罰款金額、執法方式、設施", "Article ID", "來源沒有寫就不寫"):
+        assert phrase in axis_b
+
+
+def test_hot_system_prompt_questions_not_motives():
+    """結構性懷疑論照留，加上質疑寫成待查的問題、不寫成機關的動機（FR-005b）。"""
+    assert "對官方新聞稿的歸因假設持系統性質疑" in HOT_TOPIC_SYSTEM_PROMPT
+    assert "質疑寫成待查的問題，不寫成機關的動機。" in HOT_TOPIC_SYSTEM_PROMPT
 
 
 def test_hot_template_formats_cleanly():

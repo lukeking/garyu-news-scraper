@@ -14,6 +14,23 @@ from src.report_review import SC001_CHECKS, check_report, is_title_only  # noqa:
 FIXTURES = os.path.join(os.path.dirname(__file__), "..", "fixtures", "report_review")
 LINE_PREFIX = "0則貼文 | 快來參與LINE TODAY討論牆上的討論 |"
 TTV_INTRO = "台視影音：提供台視最新的綜藝、專題、節目預告及新聞影音，並有數個完整影音節目，供網友選擇收看。"
+FCL_PROMO = ("台灣新聞雲報提供台灣最中立最公正最即時的各類型新聞報導，包括政治新聞、焦點新聞、社會新聞、國際新聞、地方新聞、娛樂新聞、"
+             "科技新聞、專訪新聞、政黨新聞、藝文活動、美食推廣、體育賽事等相關新聞報導。歡迎各界好友踴躍贊助推廣。")
+GN_TITLE = "單車少年闖紅燈！害女騎士路口急剎摔車 - 自由時報"
+GN_ANCHOR = (
+    '<a href="https://news.google.com/rss/articles/CBMia0FVX3lxTE81N2xtR2pnS0lKb0xGSkZGUUVLSnctMkJkTTlpOUtXbkJicmlxV1I2cVNpbjFZ'
+    'dGRPbU9zTy10am5GMTJLTnkyQVVobHhTbkt4TEtEbWxPMHEwblJBNmhZM1dZQVZ2cGpCTnZJ0gFwQVVfeXFMT2kxcEVMUHBrZEZWNjVGOEw4R2kzdzUtODV4'
+    'enhURUNHZjBfOUFPdExqYzQ2TUViQi1ZOUtSaTEzX1NVaFpXeDNQQTR3MVptV3lOeFUyRnYzNUhTSXNNUlhwUHB6MlBkcDR2Yks2U2VOeg?oc=5" '
+    'target="_blank">單車少年闖紅燈！害女騎士路口急剎摔車</a>&nbsp;&nbsp;<font color="#6f6f6f">自由時報</font>'
+)
+GN_TRUNCATED_TITLE = "機車兩段式左轉取消？交通部拍板「因地制宜」 改採這招保護騎士 - Yahoo新聞"
+GN_TRUNCATED = (   # 07-20 [1]：存進庫時就截在 500 字，斷在 href 的網址中間，沒有「>」
+    '<a href="https://news.google.com/rss/articles/CBMijwNBVV95cUxNQUxGaXAzVVZkc1VMRHIxSUlSWE84MUxvS19NM1Q2MTQwZXo5Mkpxdjk0al'
+    'RNckxxLTZTZlJOSWdDQkUyX2V3dDNra1hpQnJLek12UFh4NUIzazRvTFJfMjg4VTc5akVnNEVDRjJhbzR4OGpIa3gwUUNnektKYzFCblBqNTYwN09oaHRINU'
+    'oyeG5xeEZHZEw1dnNHcUk1M2NBUlZ6a1dsODEwbHpDakU2MTFEcldadjh0TXU0OERySGk0d3R0MGtYd0V5bkR3c1E5QVhSQVlkbU45LUZRc0Y2aVJYZ282ZU'
+    'ZzZGpjVEJYem9LN2xENnpzbzFxYVlBTGI4Ujl6SHVaS2JKY2xmNWlPdkluNE0wc0Z1ZXZfNHlHeTNkUWhzQ0ZtSWZJc2NnQmVfd3dKVXdDUTY0LVB1SGJKcU'
+    'FCVE85RmFvalM2UWdTRE'
+)
 TWENTY = "甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉"   # 20 個不是標點的字
 DIGEST_KEYS = {
     "missing_section", "id_out_of_range", "title_only_in_sections", "self_count",
@@ -111,6 +128,66 @@ def test_title_only_real_short_summary_is_not_title_only():
     """41 字的真摘要（09-28 [11] 那型）不是只有標題。"""
     summary = "有民眾在公共政策網路參與平臺提案，要求機車駕照考試加考道路駕駛，附議人數已超過五千人，交通部須在兩個月內回應。"
     assert is_title_only("機車考照加考道路駕駛提案", summary) is False
+
+
+def test_title_only_google_news_html_anchor():
+    """Google News RSS 的 HTML 錨點摘要（06-22 [1]，research R4「11-08 補」）：去掉標籤後是標題＋媒體名。"""
+    assert is_title_only(GN_TITLE, GN_ANCHOR) is True
+
+
+def test_title_only_fclnews_promo():
+    """fclnews 推廣文字整段、前面加一個「-」（08-24 [2] 那型）。"""
+    title = "港灣新聞網／迴轉瞬間撞上機車！高雄七賢、自立路口車禍 女騎士送醫肇因待釐清 - 台灣新聞雲報"
+    assert is_title_only(title, "-" + FCL_PROMO) is True
+    assert is_title_only(title, title + " -" + FCL_PROMO) is True
+
+
+def test_title_only_tags_do_not_count_as_text():
+    """標籤不算字：<p> 包著 19 字仍是只有標題，包著 20 字是有摘要。"""
+    title = "台中市科技執法上路"
+    assert is_title_only(title, f"<p>{title}</p><p>{TWENTY[:19]}</p>") is True
+    assert is_title_only(title, f"<p>{title}</p><p>{TWENTY}</p>") is False
+
+
+def test_title_only_entities_are_unescaped():
+    """實體還原後才算字：五個 &nbsp; 不是 20 字的內容。"""
+    assert is_title_only("台中市科技執法上路", "台中市科技執法上路" + "&nbsp;" * 5) is True
+
+
+def test_title_only_strips_tags_before_unescaping():
+    """先去標籤再還原實體（契約第 0 步）：&lt;b&gt; 還原成的 <b> 是內文，算 3 字。"""
+    assert is_title_only("台中市科技執法上路", "台中市科技執法上路" + TWENTY[:17] + "&lt;b&gt;") is False
+
+
+def test_title_only_paragraph_with_real_lead_is_not_title_only():
+    """<p> 包著真導言，去掉標籤後扣掉標題仍至少 20 字，判成有摘要。"""
+    title = "台中市科技執法上路"
+    summary = f"<p><b>{title}</b></p><p>台中市自下月起在三處路口啟用科技執法設備，取締闖紅燈與未禮讓行人。</p>"
+    assert is_title_only(title, summary) is False
+
+
+def test_title_only_google_news_truncated_anchor():
+    """存進庫時截在 href 中間、沒有閉合的錨點（07-20 [1]）：結尾沒閉合的標籤片段也去掉。"""
+    assert is_title_only(GN_TRUNCATED_TITLE, GN_TRUNCATED) is True
+
+
+def test_title_only_keeps_trailing_angle_bracket_before_digit():
+    """結尾的「<」後面接數字是內文：<0.15 算 4 字，剩 20 字是有摘要。"""
+    title = "酒駕罰則分級"
+    assert is_title_only(title, title + "，騎士與駕駛的罰則分級標準為酒測值<0.15") is False
+
+
+def test_title_only_closed_tag_then_text_to_end():
+    """閉合的標籤後面接著內文到結尾：只去掉標籤，不把後面的字當成沒閉合的片段。"""
+    title = "台中市科技執法上路"
+    assert is_title_only(title, title + "<br>" + TWENTY) is False
+
+
+def test_title_only_keeps_bare_angle_brackets_in_text():
+    """「<」「>」後面不是標籤名的是內文，不當標籤去掉（免得去過頭）。"""
+    title = "酒駕罰則分級"
+    summary = title + "，酒測值<0.15毫克的騎士與酒測值>0.25毫克的駕駛罰則不同"
+    assert is_title_only(title, summary) is False
 
 
 @pytest.mark.parametrize("name", ["digest_2026-10-19", "digest_2026-10-26", "digest_2026-11-02"])
@@ -287,6 +364,14 @@ def test_interweave_sum_mismatch():
     r = check_report(_hot("交織度分布：[工程主導] 0 篇 ／ [雙因交織] 1 篇 ／ [人因主導] 1 篇"),
                      template="hot", sources=SOURCES)
     assert r["interweave_sum"] == ["0+1+1=2≠3"]
+
+
+def test_interweave_sum_counts_all_five_classes():
+    """FR-005b 的五類（含 [工程資料未載]、[非事故]）整行加總：等於篇數不命中，不等就命中。"""
+    head = "交織度分布：[工程主導] 0 篇 ／ [雙因交織] 0 篇 ／ [人因主導] 1 篇 ／ [工程資料未載] 1 篇 ／ [非事故] "
+    assert check_report(_hot(head + "1 篇"), template="hot", sources=SOURCES)["interweave_sum"] == []
+    r = check_report(_hot(head + "2 篇"), template="hot", sources=SOURCES)
+    assert r["interweave_sum"] == ["0+0+1+1+2=4≠3"]
 
 
 def test_interweave_sum_skipped_when_axis_a_not_applicable():
