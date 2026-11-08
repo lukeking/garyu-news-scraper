@@ -47,7 +47,7 @@ US1 的量測與 US2 的套用都用這兩樣。
 - [X] T038 [US1] [FR-004] 在 `src/report_review.py` 的 `is_title_only()` 判定前去掉 HTML 標籤、還原 HTML 實體，`BOILERPLATE` 加 fclnews 那一段，讓 T037 轉綠；`build_*_input()` 與重播都經過它，不另改呼叫點
 - [X] T039 [P] [US1] [FR-003, FR-005b] 在 `tests/unit/test_digest_prompt.py` 加測試（先紅）：`HOT_TOPIC_PROMPT_TEMPLATE` 的交織度分布有五類（含 `[工程資料未載]`、`[非事故]`），並寫明各類加總等於清單篇數；交織說明有「來源未載」的出口與「待查證：…？」的寫法；「評估工程缺陷必須對照具體標準」後面限定只評估來源寫到的道路條件；B 軸審查結果不再要求「分析制度慣性」，改成只列來源明文的制度做法並附 Article ID；A 軸有「傷亡人數、傷勢與行向照來源寫」一句；`HOT_TOPIC_SYSTEM_PROMPT` 有「質疑寫成待查的問題，不寫成機關的動機」。另在 `tests/unit/test_report_review.py` 加一例：五類的交織度分布加總等於篇數時 `interweave_sum` 不命中、不等時命中
 - [X] T040 [US1] [FR-005b] 在 `src/analyzer.py` 照 research R3 的 FR-005b 五列改 `HOT_TOPIC_PROMPT_TEMPLATE` 與 `HOT_TOPIC_SYSTEM_PROMPT`，讓 T039 轉綠；`analyze_hot_topic`、`build_hot_topic_input` 的回傳值不變
-- [ ] T041 [US1] [SC-007] （verification-only）用 T012 的 `--regenerate` 重跑 `evaluation.md` GNS-011 節的同樣 7 份（命令列明示生成模型），照同一套判準逐句核對，寫進 GNS-011 節的新小節「FR-005b 之後」，說明 SC-007 爬到哪一階；06-22、07-20、08-03、08-24 的清單會因 T038 多標「（僅標題）」，輸入與 FR-005a 版不同，比較時分開說。BACKLOG `GNS-011` 節補一段結論
+- [X] T041 [US1] [SC-007] （verification-only）用 T012 的 `--regenerate` 重跑 `evaluation.md` GNS-011 節的同樣 7 份（命令列明示生成模型），照同一套判準逐句核對，寫進 GNS-011 節的新小節「FR-005b 之後」，說明 SC-007 爬到哪一階；06-22、07-20、08-03、08-24 的清單會因 T038 多標「（僅標題）」，輸入與 FR-005a 版不同，比較時分開說。BACKLOG `GNS-011` 節補一段結論
 
 **Checkpoint**: US1 可以單獨驗收。
 
