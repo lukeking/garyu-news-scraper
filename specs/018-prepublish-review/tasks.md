@@ -227,3 +227,17 @@ US1 的量測與 US2 的套用都用這兩樣。
 - Verification: 探針與重播的 JSON 留在本機，main 逐句核對，數字寫進 evaluation.md。
 - Review: main 複驗。
 - Merge or split: 只跑既有入口（探針只換讀資料的邊界）、只改紀錄。
+
+## Phase 7: Convergence
+
+spec-reviewer 對 `7191557` 的結果（2026-11-08，矩陣與 main 的重跑在 PR 內文）。Luke 2026-11-08 裁示：四條 MANUAL 與 FR-016 的列內缺口開 task 補，
+六條 UNCOVERED 的呼叫邊接受（`signoff.md`），`tests/integration/test_weekly_analysis.py` 的 tuple 錯在 018 修。
+MANUAL 那幾條補的是「已量過的輸出在現行檢查下的判定」：模型重新生成會不會再出錯仍要呼叫 Gemini，測試鎖不住，補完後再跑 spec-reviewer 時照實寫。
+
+- [ ] T048 [Conv] [SC-001, FR-006] SC-001 可自動化的部分補成測試：三份彙整與兩份沒有事故的三軸（10-19「科技執法 · 新聞」、09-14「道安政策 · 交通安全」）的重生成輸出存成 `tests/fixtures/report_review/` 的 fixture（T013 的輸出不在了就用 `--regenerate` 重跑一次再存，命令列明示模型），測試斷言 `check_report()` 四類 0 命中、兩份三軸的 A 軸是「本批無事故報導，不適用」；`SOURCES.md` 記每個 fixture 的出處
+- [ ] T049 [Conv] [SC-007] SC-007 可自動化的部分補成測試：T047 的 7 份重生成（本機 `research/2026-11-08-intersection-data-probe/data/t047-gns011-fr005c/`）存成 fixture，測試斷言 `interweave_sum` 7 份都不命中、交織度分布是六類、非事故篇數與 `evaluation.md` GNS-011 節「FR-005c 之後」的表一致
+- [ ] T050 [Conv] [SC-008] SC-008 可自動化的部分補成測試：T046 的 12 份輸出（本機 `research/2026-11-08-intersection-data-probe/data/regen-fr005c/`）挑定義階梯的那幾份（三組對照、真實、反事實、正向案例各一份）存成 fixture，測試斷言交織度分布六類加總等於 4、與 `evaluation.md`「GNS-20261108-5xf」節「FR-005c 之後」的表一致
+- [ ] T051 [Conv] [FR-016] `tests/unit/test_replay_report_review.py` 補一條：沒有審核紀錄時，重播寫出的 `.md` 有「輸入：reconstructed」（spec-reviewer：拿掉 `render_md` 的「輸入：」，32 支測試照樣全綠，main 在 `7191557` 重跑過）
+- [ ] T052 [Conv] `tests/integration/test_weekly_analysis.py:83` 把 `analyze_hot_topic` 回傳的 `(text, links)` 整個當成 `report_text`（018 之前就這樣，`2ae42b5` 也是 tuple），`assert report_text` 永遠成立、存進去的不是字串：解開 tuple、斷言內文非空。驗證要起本機 Supabase（`CLAUDE.local.md`「整合測試的本機 Supabase」）並呼叫一次 Gemini（計費）
+
+Review units：T048–T051 一個 unit（補測試、行為不變，「先紅」改用突變證明：把對應的檢查或 `render_md` 那行改壞，新測試要紅）；T052 一個 unit（整合測試，本機 Supabase）。
