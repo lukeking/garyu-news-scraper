@@ -10,6 +10,15 @@
 # 新機器沒接線就沒有閘、判的是工作區而非索引（部分 staged 時會看到未 staged 的內容）。
 set -e
 
+# 預設分支閘先跑：在預設分支上 commit 會擱淺（GUB-20261031-6bw）。邏輯在 bare 的正本
+# `~/.agents/bin/default_branch_guard.py`，這裡只轉接；找不到正本（cloud、新機器）就印一行說沒檢查，往下跑註解閘。
+guard="$HOME/.agents/bin/default_branch_guard.py"
+if [ -f "$guard" ]; then
+  python3 "$guard"
+else
+  echo "pre-commit: 找不到 $guard，預設分支沒有檢查。" >&2
+fi
+
 if [ -x .venv/bin/python ]; then
   PY=.venv/bin/python
 elif command -v python3 >/dev/null 2>&1; then
