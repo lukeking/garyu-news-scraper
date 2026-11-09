@@ -74,7 +74,7 @@ description: "Tasks for Separate CF Pages + Modular Pipeline"
 
 - [x] T011 [P] Move all existing files from `pages/` into `pages/traffic/` (preserving the `data/`, `week/`, `feed.xml` structure); create `pages/ffxiv/` with a minimal placeholder `index.html`; confirm neither subdirectory is in `.gitignore` (matching existing `pages/` tracking); add a comment to `config/sources_ffxiv.example.yml` noting the `FFXIV_SITE_URL` environment variable
 
-- [ ] T012 End-to-end validation — trigger `Garyu News Scraper 週報` workflow manually (Actions → Run workflow); confirm: (a) workflow completes without errors, (b) `pages/traffic/` and `pages/ffxiv/` both contain current week's data, (c) Supabase has rows for both `content_type` values, (d) `deploy-pages-ffxiv.yml` workflow runs and produces a live FFXIV CF Pages URL, (e) no regression in traffic pipeline output
+- [X] T012 End-to-end validation — trigger `Garyu News Scraper 週報` workflow manually (Actions → Run workflow); confirm: (a) workflow completes without errors, (b) `pages/traffic/` and `pages/ffxiv/` both contain current week's data, (c) Supabase has rows for both `content_type` values, (d) `deploy-pages-ffxiv.yml` workflow runs and produces a live FFXIV CF Pages URL, (e) no regression in traffic pipeline output（2026-11-09 補記：(a)–(e) 逐項沒留紀錄；#29 merge 後 `deploy-pages-ffxiv` run `25294944160` 與週報排程 run `25297071221`（05-04）都成功；當時沒走審查）
 
 ---
 
