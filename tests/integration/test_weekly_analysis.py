@@ -80,7 +80,8 @@ def test_weekly_analysis_creates_hot_topic_reports():
     for bid in hot_ids[:1]:  # Only one Gemini call to limit API usage
         bucket_articles = buckets[bid]
         topic_label = bucket_articles[0].get("major_category", bid)
-        report_text = analyze_hot_topic(bucket_articles, topic_label, week_start)
+        report_text, _ = analyze_hot_topic(bucket_articles, topic_label, week_start)
+        assert isinstance(report_text, str), f"analyze_hot_topic report text is {type(report_text).__name__}, not str"
         assert report_text, "analyze_hot_topic returned empty string"
 
         source_links = [a.get("link", "") for a in bucket_articles if a.get("link")]
@@ -107,3 +108,7 @@ def test_weekly_analysis_creates_hot_topic_reports():
         .execute()
     )
     assert len(resp.data) >= 1, "No hot_topic_reports row found after upsert"
+    stored = {row["topic_label"]: row["report_text"] for row in resp.data}
+    assert stored.get(report["topic_label"]) == report["report_text"], (
+        "hot_topic_reports.report_text read back differs from the generated report text"
+    )
