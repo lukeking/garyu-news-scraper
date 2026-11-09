@@ -90,9 +90,9 @@ description: "Task list for 節奏觸發式深度分析 + 深度來源分類補�
 
 **Purpose**: 部署設定、回歸、驗收
 
-- [ ] T015 [P] 部署設定：把 `source_defaults`（報導者/天下/道安統計→道安政策、行人地獄→行人事故、區間測速→科技執法）加入 GitHub Variable `CATEGORIES_TRAFFIC_YML`；把 `novelty_growth_pct`/`similarity_threshold` 加入 `PIPELINE_CONFIG_YML`；於 Supabase SQL Editor 套用 `004_hot_topic_novelty.sql`
+- [X] T015 [P] 部署設定：把 `source_defaults`（報導者/天下/道安統計→道安政策、行人地獄→行人事故、區間測速→科技執法）加入 GitHub Variable `CATEGORIES_TRAFFIC_YML`；把 `novelty_growth_pct`/`similarity_threshold` 加入 `PIPELINE_CONFIG_YML`；於 Supabase SQL Editor 套用 `004_hot_topic_novelty.sql`（2026-11-09 補記：11-09 讀 prod 的 `CATEGORIES_TRAFFIC_YML` 有 `source_defaults`、`PIPELINE_CONFIG_YML` 有 `novelty_growth_pct`／`similarity_threshold`；`004_hot_topic_novelty.sql` 加的兩欄由 `src/storage.py` 讀寫，週報一直成功（推論已套用，沒查 schema）；當時沒走審查）
 - [x] T016 跑全套 `pytest`（unit+integration）全綠；確認 `tests/unit/test_category_assign.py`、`tests/unit/test_topic_scoring.py` 無回歸（SC-005）— 2026-06-14：66 passed, 4 skipped
-- [ ] T017 依 `quickstart.md` 逐項對照 SC-001~005 完成驗收
+- [X] T017 依 `quickstart.md` 逐項對照 SC-001~005 完成驗收（2026-11-09 補記：沒有當時的驗收紀錄；功能隨 `90d867d`（06-14）上線，之後在 prod 使用；當時沒走審查）
 
 ---
 

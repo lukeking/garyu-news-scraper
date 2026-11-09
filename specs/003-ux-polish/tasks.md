@@ -16,7 +16,7 @@
 
 **Purpose**: Create the one new directory required by the plan.
 
-- [ ] T001 Create `scripts/` directory at repository root (needed by US6)
+- [X] T001 Create `scripts/` directory at repository root (needed by US6)（2026-11-09 補記：`scripts/` 隨 `fb4d048`（05-06，US6）建立；當時沒走審查）
 
 ---
 
@@ -26,7 +26,7 @@
 
 **⚠️ CRITICAL**: Phase 3 (US1) cannot begin until T002 is complete.
 
-- [ ] T002 Extend `src/storage.py`: add `get_existing_title_fingerprints() -> set[str]` (SELECT non-null `content_fingerprint` from `articles`; returns empty set on failure with WARNING log); expand `upsert_articles()` to compute and write `sha256(re.sub(r'[^\w一-鿿぀-ヿ]', '', title.lower().strip()).encode()).hexdigest()` as `content_fingerprint` for every article regardless of whether it has a URL
+- [X] T002 Extend `src/storage.py`: add `get_existing_title_fingerprints() -> set[str]` (SELECT non-null `content_fingerprint` from `articles`; returns empty set on failure with WARNING log); expand `upsert_articles()` to compute and write `sha256(re.sub(r'[^\w一-鿿぀-ヿ]', '', title.lower().strip()).encode()).hexdigest()` as `content_fingerprint` for every article regardless of whether it has a URL（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
 
 **Checkpoint**: `get_existing_title_fingerprints()` and expanded `upsert_articles()` are in place. Phase 3 can now begin.
 
@@ -38,10 +38,10 @@
 
 **Independent Test**: Scenarios 1–3 in `specs/003-ux-polish/quickstart.md`.
 
-- [ ] T003 [US1] Add `FRESHNESS_THRESHOLD_DAYS = 30`, `_normalize_title_for_fingerprint(title)`, `title_fingerprint(article) -> str`, `_extract_url_date(url) -> date | None`, and `_is_too_old_by_age(article, threshold_days) -> bool` to `src/filter.py` per the algorithm in `contracts/freshness-filter.md`
-- [ ] T004 [US1] Add `freshness_filter(articles, existing_fingerprints, threshold_days=30) -> list[dict]` to `src/filter.py` implementing the per-article decision tree in `contracts/freshness-filter.md`: fingerprint match → exclude with INFO log; Google News URL-date → exclude if old; direct RSS pubDate → exclude if old; unparseable → include (depends on T003)
-- [ ] T005 [P] [US1] Update `filter()` in `src/pipeline/traffic.py`: call `get_existing_title_fingerprints()` then `freshness_filter(raw, fingerprints)` before the existing `filter_and_deduplicate()` call, per the four-step contract in `contracts/freshness-filter.md` (depends on T004)
-- [ ] T006 [P] [US1] Update `filter()` in `src/pipeline/ffxiv.py`: same four-step sequence as T005 (depends on T004)
+- [X] T003 [US1] Add `FRESHNESS_THRESHOLD_DAYS = 30`, `_normalize_title_for_fingerprint(title)`, `title_fingerprint(article) -> str`, `_extract_url_date(url) -> date | None`, and `_is_too_old_by_age(article, threshold_days) -> bool` to `src/filter.py` per the algorithm in `contracts/freshness-filter.md`（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T004 [US1] Add `freshness_filter(articles, existing_fingerprints, threshold_days=30) -> list[dict]` to `src/filter.py` implementing the per-article decision tree in `contracts/freshness-filter.md`: fingerprint match → exclude with INFO log; Google News URL-date → exclude if old; direct RSS pubDate → exclude if old; unparseable → include (depends on T003)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T005 [P] [US1] Update `filter()` in `src/pipeline/traffic.py`: call `get_existing_title_fingerprints()` then `freshness_filter(raw, fingerprints)` before the existing `filter_and_deduplicate()` call, per the four-step contract in `contracts/freshness-filter.md` (depends on T004)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T006 [P] [US1] Update `filter()` in `src/pipeline/ffxiv.py`: same four-step sequence as T005 (depends on T004)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
 
 **Checkpoint**: Run pipeline locally with a known stale article — it must be excluded and logged. US1 independently verifiable.
 
@@ -53,8 +53,8 @@
 
 **Independent Test**: Scenarios 4–5 in `specs/003-ux-polish/quickstart.md`.
 
-- [ ] T007 [P] [US2] Add dismiss button `<button class="dismiss-btn" data-url="{article.link}">標記過時</button>` to each article card in `pages/traffic/index.html`; add click handler (localStorage key `dismissed-traffic`, JSON array); add on-load/week-switch filter to hide dismissed cards; add empty-state with "清除過時標記" button; add localStorage fallback (session-only hide on quota error) — per `contracts/frontend-features.md` P2 section
-- [ ] T008 [P] [US2] Same as T007 for `pages/ffxiv/index.html` using localStorage key `dismissed-ffxiv`
+- [X] T007 [P] [US2] Add dismiss button `<button class="dismiss-btn" data-url="{article.link}">標記過時</button>` to each article card in `pages/traffic/index.html`; add click handler (localStorage key `dismissed-traffic`, JSON array); add on-load/week-switch filter to hide dismissed cards; add empty-state with "清除過時標記" button; add localStorage fallback (session-only hide on quota error) — per `contracts/frontend-features.md` P2 section（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T008 [P] [US2] Same as T007 for `pages/ffxiv/index.html` using localStorage key `dismissed-ffxiv`（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
 
 **Checkpoint**: Dismiss a card, reload — card absent. Click "清除過時標記" — card returns. US2 independently verifiable.
 
@@ -66,8 +66,8 @@
 
 **Independent Test**: Scenarios 6–7 in `specs/003-ux-polish/quickstart.md`.
 
-- [ ] T009 [P] [US3] In `pages/traffic/index.html`: add CSS custom properties under `:root` (light defaults) and `[data-theme="dark"]` overrides per `contracts/frontend-features.md` P3; replace all hardcoded colour values with `var(--token)` references; add `<button id="theme-toggle">` to header; add theme-init script in `<head>` (read localStorage `theme`, fall back to OS `prefers-color-scheme`, set `data-theme` on `<html>` before paint); add toggle click handler (flip theme, write to localStorage `theme`, update icon 🌙/☀️)
-- [ ] T010 [P] [US3] Same as T009 for `pages/ffxiv/index.html`
+- [X] T009 [P] [US3] In `pages/traffic/index.html`: add CSS custom properties under `:root` (light defaults) and `[data-theme="dark"]` overrides per `contracts/frontend-features.md` P3; replace all hardcoded colour values with `var(--token)` references; add `<button id="theme-toggle">` to header; add theme-init script in `<head>` (read localStorage `theme`, fall back to OS `prefers-color-scheme`, set `data-theme` on `<html>` before paint); add toggle click handler (flip theme, write to localStorage `theme`, update icon 🌙/☀️)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T010 [P] [US3] Same as T009 for `pages/ffxiv/index.html`（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
 
 **Checkpoint**: Toggle dark → close tab → reopen → dark mode active with no flash. US3 independently verifiable.
 
@@ -79,8 +79,8 @@
 
 **Independent Test**: Scenario 8 in `specs/003-ux-polish/quickstart.md`.
 
-- [ ] T011 [P] [US4] Update all article date rendering in `pages/traffic/index.html` so every date is `<span class="date-label">收錄時間 {date}</span>`; suppress element entirely when date is empty/null per `contracts/frontend-features.md` P4
-- [ ] T012 [P] [US4] Same as T011 for `pages/ffxiv/index.html`
+- [X] T011 [P] [US4] Update all article date rendering in `pages/traffic/index.html` so every date is `<span class="date-label">收錄時間 {date}</span>`; suppress element entirely when date is empty/null per `contracts/frontend-features.md` P4（2026-11-09 補記：#30（`2d451eb`，05-04）；「收錄時間」標籤後來在 `2396cb3`（05-05）改成顯示發布時間；當時沒走審查）
+- [X] T012 [P] [US4] Same as T011 for `pages/ffxiv/index.html`（2026-11-09 補記：#30（`2d451eb`，05-04）；「收錄時間」標籤後來在 `2396cb3`（05-05）改成顯示發布時間；當時沒走審查）
 
 **Checkpoint**: Inspect both sites — zero dates without "收錄時間" prefix. US4 independently verifiable.
 
@@ -92,9 +92,9 @@
 
 **Independent Test**: Scenario 9 in `specs/003-ux-polish/quickstart.md`.
 
-- [ ] T013 [US5] Add `feed_title: str` and `feed_description: str` parameters (with existing traffic values as defaults) to `build_feed()` and `publish()` in `src/publisher.py` per `contracts/frontend-features.md` P5 pipeline contract; traffic pipeline is unaffected (no call-site changes needed due to defaults)
-- [ ] T014 [US5] Update `FFXIVCategory.publish()` in `src/pipeline/ffxiv.py` to pass `feed_title="最終幻想XIV 週報"` and `feed_description="每週自動彙整 FFXIV 遊戲相關資訊，含 AI 摘要與重點分析"` to `publish()` (depends on T013)
-- [ ] T015 [P] [US5] Add `<a href="./feed.xml" class="rss-link" rel="alternate" type="application/rss+xml" title="RSS 訂閱">📡 RSS 訂閱</a>` to FFXIV site header in `pages/ffxiv/index.html` per `contracts/frontend-features.md` P5 DOM contract (independent of T013/T014)
+- [X] T013 [US5] Add `feed_title: str` and `feed_description: str` parameters (with existing traffic values as defaults) to `build_feed()` and `publish()` in `src/publisher.py` per `contracts/frontend-features.md` P5 pipeline contract; traffic pipeline is unaffected (no call-site changes needed due to defaults)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T014 [US5] Update `FFXIVCategory.publish()` in `src/pipeline/ffxiv.py` to pass `feed_title="最終幻想XIV 週報"` and `feed_description="每週自動彙整 FFXIV 遊戲相關資訊，含 AI 摘要與重點分析"` to `publish()` (depends on T013)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
+- [X] T015 [P] [US5] Add `<a href="./feed.xml" class="rss-link" rel="alternate" type="application/rss+xml" title="RSS 訂閱">📡 RSS 訂閱</a>` to FFXIV site header in `pages/ffxiv/index.html` per `contracts/frontend-features.md` P5 DOM contract (independent of T013/T014)（2026-11-09 補記：#30（`2d451eb`，05-04）；當時沒走審查）
 
 **Checkpoint**: Run FFXIV pipeline locally → inspect `pages/ffxiv/feed.xml` for `<title>最終幻想XIV 週報</title>` and valid RSS 2.0. US5 independently verifiable.
 
@@ -117,11 +117,11 @@
 
 **Purpose**: End-to-end validation against all quickstart scenarios and smoke-test the GH Actions workflow.
 
-- [ ] T018 [P] Validate Scenarios 1–3 (freshness filter: fingerprint dedup, RSS age gate, URL-date extraction) from `specs/003-ux-polish/quickstart.md`
-- [ ] T019 [P] Validate Scenarios 4–5 (dismiss button: hide + persist, empty state + clear) from `specs/003-ux-polish/quickstart.md`
-- [ ] T020 [P] Validate Scenarios 6–7 (theme toggle: persistence across reload, OS preference) from `specs/003-ux-polish/quickstart.md`
-- [ ] T021 [P] Validate Scenarios 8–9 (date label on both sites, FFXIV RSS feed structure and link) from `specs/003-ux-polish/quickstart.md`
-- [ ] T022 Smoke-test KB re-resolution job: confirm GH Actions workflow YAML is valid and triggers correctly on a `knowledge-base.md` push to `main`
+- [X] T018 [P] Validate Scenarios 1–3 (freshness filter: fingerprint dedup, RSS age gate, URL-date extraction) from `specs/003-ux-polish/quickstart.md`（2026-11-09 補記：沒有當時的驗證紀錄；功能隨 #30（`2d451eb`）上線，之後在 prod 使用；當時沒走審查）
+- [X] T019 [P] Validate Scenarios 4–5 (dismiss button: hide + persist, empty state + clear) from `specs/003-ux-polish/quickstart.md`（2026-11-09 補記：沒有當時的驗證紀錄；功能隨 #30（`2d451eb`）上線，之後在 prod 使用；當時沒走審查）
+- [X] T020 [P] Validate Scenarios 6–7 (theme toggle: persistence across reload, OS preference) from `specs/003-ux-polish/quickstart.md`（2026-11-09 補記：沒有當時的驗證紀錄；功能隨 #30（`2d451eb`）上線，之後在 prod 使用；當時沒走審查）
+- [X] T021 [P] Validate Scenarios 8–9 (date label on both sites, FFXIV RSS feed structure and link) from `specs/003-ux-polish/quickstart.md`（2026-11-09 補記：沒有當時的驗證紀錄；功能隨 #30（`2d451eb`）上線，之後在 prod 使用；當時沒走審查）
+- [X] T022 Smoke-test KB re-resolution job: confirm GH Actions workflow YAML is valid and triggers correctly on a `knowledge-base.md` push to `main`（2026-11-09 補記：`resolve-kb-misses.yml` 05-06 由 push 觸發的 run `25409260715` 成功；這個 workflow 與 `knowledge-base.md` 後來被 005（#37）取代；當時沒走審查）
 
 ---
 

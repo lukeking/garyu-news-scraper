@@ -122,7 +122,7 @@ collected, analysed, stored, and queryable independently via the Worker API.
 
 - [x] T024 [P] Verify `www.ffxiv.com.tw/robots.txt` (returned HTTP 404 — no restrictions); add TW patch log as disabled `html_patch` source in `config/sources_ffxiv.example.yml`; update `specs/001-extend-to-garyu-news-scraper/research.md` with finding
 - [x] T025 [P] Fix pipeline truncation — split `main.py` into per-category filter+budget: traffic capped at 20, FFXIV at 10; merged before `analyze_all()`; removes the `filtered[:30]` that silently discarded all FFXIV articles
-- [ ] T026 End-to-end validation — trigger GitHub Actions workflow manually (Actions → Garyu News Scraper 週報 → Run workflow); confirm: (a) run completes in ≤15 minutes, (b) Supabase contains both `content_type` values for the current `week_id`, (c) no `[KB MISS]` warnings for core 8.0 terms in `knowledge-base.md`, (d) Worker responds correctly to `?content_type=ffxiv`, (e) both content types appear in the published HTML
+- [X] T026 End-to-end validation — trigger GitHub Actions workflow manually (Actions → Garyu News Scraper 週報 → Run workflow); confirm: (a) run completes in ≤15 minutes, (b) Supabase contains both `content_type` values for the current `week_id`, (c) no `[KB MISS]` warnings for core 8.0 terms in `knowledge-base.md`, (d) Worker responds correctly to `?content_type=ffxiv`, (e) both content types appear in the published HTML（2026-11-09 補記：(a)–(e) 逐項沒留紀錄；`98508d9` 之後手動觸發的週報 run `25283127883`（05-03）成功，之後每週排程照常跑；當時沒走審查）
 
 ---
 
@@ -137,23 +137,23 @@ existing code.
 
 ### Abstract Plan
 
-- [ ] T027 Create `specs/002-modular-pipeline/` feature spec — define the per-category
+- [X] T027 Create `specs/002-modular-pipeline/` feature spec — define the per-category
   pipeline abstraction: each category module exposes `collect() -> list`,
   `filter(raw) -> list`, `analyze(articles) -> list`, `publish(articles, output_dir)`
-  and a `config: CategoryConfig` (name, max_articles, output_dir, content_type)
-- [ ] T028 [P] Design `src/pipeline/base.py` — abstract `Category` protocol/dataclass:
+  and a `config: CategoryConfig` (name, max_articles, output_dir, content_type)（2026-11-09 補記：由 002 接手實作，spec 開在 `specs/002-cf-pages-modular-pipeline/`，#29（`5e95f10`，05-04）；當時沒走審查）
+- [X] T028 [P] Design `src/pipeline/base.py` — abstract `Category` protocol/dataclass:
   `name`, `max_articles`, `output_dir`, `content_type`; `run() -> list[Article]` orchestrates
-  the four stages; `main.py` iterates registered categories
-- [ ] T029 [P] Design `src/pipeline/traffic.py` and `src/pipeline/ffxiv.py` — each implements
+  the four stages; `main.py` iterates registered categories（2026-11-09 補記：由 002 接手實作，`src/pipeline/base.py` 隨 #29（`5e95f10`）上線；當時沒走審查）
+- [X] T029 [P] Design `src/pipeline/traffic.py` and `src/pipeline/ffxiv.py` — each implements
   the `Category` protocol, wrapping existing collector/filter/analyzer logic; no logic
-  duplication — shared utilities stay in `src/`
-- [ ] T030 [P] Design publisher parameterisation — `publish(articles, output_dir='pages/')`
+  duplication — shared utilities stay in `src/`（2026-11-09 補記：由 002 接手實作，`src/pipeline/traffic.py`、`src/pipeline/ffxiv.py` 隨 #29（`5e95f10`）上線；當時沒走審查）
+- [X] T030 [P] Design publisher parameterisation — `publish(articles, output_dir='pages/')`
   so traffic writes to `pages/`, FFXIV to `pages-ffxiv/`; each maps to its own CF Pages
-  project and deploy workflow
-- [ ] T031 Update GitHub Actions — add `deploy-pages-ffxiv.yml` deploying `pages-ffxiv/`
-  to a second CF Pages project; traffic workflow unchanged
-- [ ] T032 Run `/speckit-plan` for `specs/002-modular-pipeline/` to produce full research,
-  data-model, contracts, and implementation plan before any code change
+  project and deploy workflow（2026-11-09 補記：由 002 接手實作，`output_dir` 參數先在 `e4da0c6`、隨 #29（`5e95f10`）上線；FFXIV 實際輸出到 `pages/ffxiv/`，不是 `pages-ffxiv/`；當時沒走審查）
+- [X] T031 Update GitHub Actions — add `deploy-pages-ffxiv.yml` deploying `pages-ffxiv/`
+  to a second CF Pages project; traffic workflow unchanged（2026-11-09 補記：由 002 接手實作，`deploy-pages-ffxiv.yml` 隨 #29（`5e95f10`）上線，部署 `pages/ffxiv/`，第一次成功的 run `25294944160`（05-04）；當時沒走審查）
+- [X] T032 Run `/speckit-plan` for `specs/002-modular-pipeline/` to produce full research,
+  data-model, contracts, and implementation plan before any code change（2026-11-09 補記：由 002 接手實作，`specs/002-cf-pages-modular-pipeline/plan.md` 等隨 #29（`5e95f10`）進版控；當時沒走審查）
 
 ---
 

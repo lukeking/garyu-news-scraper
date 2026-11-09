@@ -96,7 +96,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 ### Implementation for User Story 4
 
-- [ ] T014 [US4] Trigger `Garyu News Scraper 週報` via GitHub Actions `workflow_dispatch`; confirm `auto-kb.yml` run appears automatically after pipeline completes successfully (quickstart Scenario 7); confirm no run appears after a failed pipeline
+- [X] T014 [US4] Trigger `Garyu News Scraper 週報` via GitHub Actions `workflow_dispatch`; confirm `auto-kb.yml` run appears automatically after pipeline completes successfully (quickstart Scenario 7); confirm no run appears after a failed pipeline（2026-11-09 補記：`auto-kb.yml` 以 `workflow_run` 接在週報後面（#37），只在 `conclusion == 'success'` 時跑；到 11-09 有 27 次 success、2 次 skipped，第一次是 run `25921301095`（05-15）；當時沒走審查）
 
 **Checkpoint**: `workflow_run` trigger confirmed working end-to-end.
 
@@ -106,7 +106,7 @@ description: "Task list for Gemini-Powered Self-Evolving Knowledge Base"
 
 **Purpose**: End-to-end integration validation across all user stories.
 
-- [ ] T015 [P] Run quickstart Scenario 1: pipeline reads Supabase KB with no `knowledge-base.md` present; verify log `"知識庫載入完成：N 個術語"`
+- [X] T015 [P] Run quickstart Scenario 1: pipeline reads Supabase KB with no `knowledge-base.md` present; verify log `"知識庫載入完成：N 個術語"`（2026-11-09 補記：`knowledge-base.md` 已在 #37 刪除；11-09 週報 run `42556081408` 的 log 有「知識庫載入完成：202 個術語」；當時沒走審查）
 - [x] T016 [P] Run quickstart Scenario 3: insert synthetic `[[term]]` into Supabase article, run `python scripts/auto_kb.py`, verify KB row written with `auto_generated = true` and article patched
 - [x] T017 [P] Run quickstart Scenario 6: verify FFXIV page tag cloud shows/hides based on `[[term]]` presence in displayed articles
 - [x] T018 Run quickstart Scenario 8: run `python scripts/migrate_kb.py` twice, verify Supabase row count identical both runs (idempotency) — N/A: knowledge-base.md retired post-migration; upsert on_conflict='jp_term' guarantees idempotency by design

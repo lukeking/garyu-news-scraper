@@ -140,8 +140,8 @@
 - [X] T044 [P] Verify `config/*.example.yml` and `config/jieba_userdict.example.txt` are tracked by git (run `git status` and confirm they appear as untracked or modified, not ignored)
 - [X] T045 [P] Add `PIPELINE_CONFIG_YML` and `JIEBA_USERDICT_TXT` as GitHub Environment Variables (or Secrets) in the repository settings with the contents of their respective `.example` files as initial values
 - [X] T046 Run full unit test suite: `pytest tests/unit/ -v` — all tests pass
-- [ ] T047 [P] Run `scripts/traffic_buffer.py` in local dev mode and verify output matches quickstart.md expected log lines
-- [ ] T048 Run `scripts/traffic_weekly_analysis.py` in local dev mode with seeded buffer data and verify a `hot_topic_reports` row is created
+- [X] T047 [P] Run `scripts/traffic_buffer.py` in local dev mode and verify output matches quickstart.md expected log lines（2026-11-09 補記：本機 dev mode 那次沒留紀錄；`traffic_daily.yml` 05-14 起在 prod 跑，到 11-09 共 164 次 run；當時沒走審查）
+- [X] T048 Run `scripts/traffic_weekly_analysis.py` in local dev mode with seeded buffer data and verify a `hot_topic_reports` row is created（2026-11-09 補記：本機 dev mode 那次沒留紀錄；prod 由 `weekly.yml` 每週跑 `scripts/traffic_weekly_analysis.py`；當時沒走審查）
 
 **Checkpoint**: All tests pass; both scripts run cleanly locally; config files are properly gitignored with examples committed
 
