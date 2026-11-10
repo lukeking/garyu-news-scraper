@@ -208,8 +208,8 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
         blocked = (f"（失敗網域：{', '.join(sorted(stats['error_domains']))}）"
                    if stats["error_domains"] else "")
         logger.info(
-            "GN 充實：%d 篇中 %d 還原連結、%d 補摘要、%d 補圖、%d 失敗%s",
+            "GN 充實：%d 篇中 %d 還原連結、%d 補摘要、%d 補圖、%d 用媒體頁日期、%d 失敗%s",
             stats["gn_total"], stats["resolved"], stats["summary_filled"],
-            stats["image_filled"], stats["errors"], blocked,
+            stats["image_filled"], stats["published_from_page"], stats["errors"], blocked,
         )
     return stats

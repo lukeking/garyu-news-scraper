@@ -291,3 +291,14 @@ def test_enrich_keeps_gn_published_when_page_has_no_date(monkeypatch):
     stats = enrich_articles([a], throttle=0)
     assert a["published"] == "2026-11-09T07:00:00+00:00"
     assert stats["published_from_page"] == 0
+
+
+def test_summary_line_counts_page_dates(monkeypatch, caplog):
+    """FOCUS (3) 逐字引用這行；「用媒體頁日期」是 0 時，看得出是頁面都沒日期，不是沒有舊文（`[充實後過時]` 只印擋下數）。"""
+    import logging
+    dates = iter(["2026-11-09T01:00:00+00:00", ""])
+    monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
+    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: (LONG_DESC, "", next(dates)))
+    with caplog.at_level(logging.INFO, logger="src.gn_resolver"):
+        enrich_articles([_article(), _article()], throttle=0)
+    assert "GN 充實：2 篇中 2 還原連結、2 補摘要、0 補圖、1 用媒體頁日期、0 失敗" in caplog.text
