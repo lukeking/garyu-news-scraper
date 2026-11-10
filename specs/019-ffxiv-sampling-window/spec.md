@@ -36,6 +36,7 @@ patch-triggered 與聚合 digest 兩半的處置不變。同日排序：本 spec
 
 - Q: 拿掉 Reddit 與論壇列表頁要不要等英文論壇一起上線？（`/speckit-analyze` 的 H1：只改設定、不依賴 spike，prod 每週仍照常抓 Reddit）
   → A: 不等。從 `main` 另開小 PR 先出貨（Luke 2026-11-10，tasks Unit 0）；本 spec 因此有兩個 PR，英文論壇與上限在 `#210`。
+- Q: 分析篇數上限（`ffxiv.max_selected`）設多少？（T003；一週供給約 16～20 篇，research R5、R6，agent 建議 25）→ A: 30（Luke 2026-11-10）。
 
 ## User Scenarios & Testing *(mandatory)*
 

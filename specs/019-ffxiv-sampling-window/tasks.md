@@ -28,7 +28,7 @@ US1 與上限在 `#210`。英文版的 id、時區與供給先由 spike 查（Ph
 
 - [X] T001 Spike：英文子版 id 與時間格式、時區（research R3、R4）。對 642、656 的 RSS（`external.php?type=RSS2&forumids=<id>&lastpost=1`）各打一次，從每則的 `<category domain=…/forums/<id>-…>` 讀子版 id 與名稱，對出日文五個版的對應；每個對應的英文子版取一串，比對 RSS `pubDate`（GMT）與串頁面 `span.date` 的顯示，寫下格式與時區，存一份串頁面的 HTML 片段給 T004 當 fixture（`tests/fixtures/ffxiv/` 下，檔名照既有慣例）。請求之間至少隔 30 秒，429 就停、隔天再試或請 Luke 用瀏覽器看版頁。結果寫進 `specs/019-ffxiv-sampling-window/research.md` R3、R4。檢查 spec 的 Unchecked 假設「英文的五個子版各有對應…時間格式與時區可以解析」。
 - [X] T002 Spike：英文各子版每週的供給（research R5）。用 T001 查到的 id，對各子版的 `lastpost=1` RSS 數本週窗口（`_forum_window`）內的串數；可以的話隔週再量一次。加上日文版與 Lodestone（`3cq` 節三週約 7～11 篇），在 research R6 提出分析篇數上限的建議值與多出的分析時間（每篇約 15～18 秒）。檢查 spec 的 Unchecked 假設「英文版每週窗口內的串數」。
-- [ ] T003 Luke 核定分析篇數上限的值（可以維持 20），寫進 `specs/019-ffxiv-sampling-window/spec.md` Clarifications 與 research R6。
+- [X] T003 Luke 核定分析篇數上限的值（可以維持 20），寫進 `specs/019-ffxiv-sampling-window/spec.md` Clarifications 與 research R6。
 
 **Checkpoint**: 英文子版的 id、時區、上限值都定了，US1 的設定與時間解析可以開始。
 
