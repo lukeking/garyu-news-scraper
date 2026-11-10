@@ -12,6 +12,7 @@ Google News 的 RSS <link> 是 news.google.com/rss/articles/<id> 轉址頁，
 還原後順路抓 publisher 頁的 og:description / og:image 充實 summary 與 image。
 """
 
+import codecs
 import json
 import logging
 import re
@@ -20,18 +21,15 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from bs4.dammit import EncodingDetector
+
+from src.collector import HEADERS as _COLLECTOR_HEADERS
 
 logger = logging.getLogger(__name__)
 
-# GN 轉址頁對非瀏覽器 UA 可能不回 decode 參數，所以用瀏覽器 UA
-_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "zh-TW,zh;q=0.9",
-}
+# 跟 collector 抓 HTML 同一個正式 UA（憲章 IV）。2026-11-10 本機量測：換掉瀏覽器 UA 後，
+# GN 還原與 og 取得在 14 個網域上三輪結果相同。
+_HEADERS = {"User-Agent": _COLLECTOR_HEADERS["User-Agent"], "Accept-Language": "zh-TW,zh;q=0.9"}
 
 _BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 _GN_LINK_RE = re.compile(r"^https?://news\.google\.com/(?:rss/)?articles/")
@@ -95,11 +93,24 @@ def resolve_gn_link(session: requests.Session, link: str) -> str | None:
     return _parse_batch_response(resp.text)
 
 
+def _declared_charset(resp, raw: bytes) -> str | None:
+    """header 或 meta 宣告的編碼；沒有或不認得回 None，才交給 bs4 偵測（GNS-20261108-b6c：
+    宣告 utf-8 但截斷處不合法時，偵測曾猜成 PT154／cp866）。"""
+    m = re.search(r"charset=[\"']?([\w-]+)", resp.headers.get("Content-Type", ""), re.I)
+    name = m.group(1) if m else EncodingDetector.find_declared_encoding(raw, is_html=True)
+    try:
+        return codecs.lookup(name).name if name else None
+    except LookupError:
+        return None
+
+
 def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str]:
     """publisher 頁的 (og:description, og:image)；抓不到的欄位回空字串。"""
     resp = session.get(url, headers=_HEADERS, timeout=_TIMEOUT)
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.content[:400_000], "html.parser")
+    raw = resp.content[:400_000]
+    charset = _declared_charset(resp, raw)
+    soup = BeautifulSoup(raw.decode(charset, errors="replace") if charset else raw, "html.parser")
 
     def og(prop: str) -> str:
         tag = (soup.find("meta", attrs={"property": prop})

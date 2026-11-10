@@ -202,3 +202,49 @@ def test_error_domains_falls_back_to_gn_when_resolve_fails(monkeypatch):
     monkeypatch.setattr(gn, "resolve_gn_link", boom)
     stats = enrich_articles([_article()], throttle=0)
     assert list(stats["error_domains"]) == ["news.google.com"]
+
+
+# ── 送出的 UA 與 publisher 頁的解碼（2026-11-10） ─────────────────
+
+class _Resp:
+    def __init__(self, text="", content=b"", headers=None):
+        self.text, self.content, self.headers = text, content, headers or {}
+
+    def raise_for_status(self):
+        pass
+
+
+class _RecordingSession:
+    """記下每個請求帶的 header；GET GN 頁回 decode 參數、POST 回 batch、其他 GET 回 publisher 頁。"""
+    def __init__(self, page=b""):
+        self.headers_seen, self.page = [], page
+
+    def get(self, url, headers=None, timeout=None):
+        self.headers_seen.append(headers)
+        if "news.google.com" in url:
+            return _Resp(text='data-n-a-id="I" data-n-a-ts="1" data-n-a-sg="S"')
+        return _Resp(content=self.page, headers={"Content-Type": "text/html; charset=utf-8"})
+
+    def post(self, url, data=None, headers=None, timeout=None):
+        self.headers_seen.append(headers)
+        return _Resp(text=")]}'\n\n" + _batch_line(REAL_URL))
+
+
+def test_requests_identify_as_garyunewsbot_not_a_browser():
+    """憲章 IV：GN 還原（GET＋POST）與 publisher 頁都送正式 UA；11-10 本機三輪量測，換 UA 不改變結果。"""
+    session = _RecordingSession(page=b'<meta property="og:description" content="x">')
+    assert gn.resolve_gn_link(session, GN_LINK) == REAL_URL
+    gn.fetch_og_meta(session, REAL_URL)
+    agents = [h["User-Agent"] for h in session.headers_seen]
+    assert len(agents) == 3
+    assert all("GaryuNewsBot" in ua and "Chrome" not in ua for ua in agents), agents
+
+
+def test_declared_utf8_page_is_not_decoded_by_charset_guess(monkeypatch):
+    """GNS-20261108-b6c：頁面宣告 utf-8 但位元組不全合法時，不交給偵測去猜（當時猜成 PT154／cp866 → 西里爾亂碼）。"""
+    import bs4.dammit
+    monkeypatch.setattr(bs4.dammit, "chardet_dammit", lambda s: "ptcp154")
+    html = ('<html><head><meta charset="utf-8"><meta property="og:description" content="'
+            + LONG_DESC + '"></head><body>').encode("utf-8") + b"\xe4\xba"  # 截在一個中文字中間
+    desc, _ = gn.fetch_og_meta(_RecordingSession(page=html), REAL_URL)
+    assert desc == LONG_DESC
