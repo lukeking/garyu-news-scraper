@@ -64,7 +64,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 
 **Independent Test**: 上線後的 log 與 `ffxiv-pool` 沒有 Reddit；設定鏡像沒有 Reddit 項目。
 
-- [-] T010 [P] [US2] [FR-004] `config/sources_ffxiv.example.yml` 刪掉 `Reddit r/ffxiv` 項目；檔頭的說明若提到 Reddit 一起改。既有測試（`tests/unit/test_ffxiv_ranking.py`、`test_pll_priority.py`）只拿「Reddit r/ffxiv」當 fixture 名稱，不讀設定，不改。
+- [X] T010 [P] [US2] [FR-004] `config/sources_ffxiv.example.yml` 刪掉 `Reddit r/ffxiv` 項目；檔頭的說明若提到 Reddit 一起改。既有測試（`tests/unit/test_ffxiv_ranking.py`、`test_pll_priority.py`）只拿「Reddit r/ffxiv」當 fixture 名稱，不讀設定，不改。
 
 ---
 
@@ -74,7 +74,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 
 **Independent Test**: 上線後的 log 與 `ffxiv-pool` 沒有論壇列表頁；設定鏡像沒有那一項。
 
-- [-] T011 [P] [US3] [FR-005] `config/sources_ffxiv.example.yml` 刪掉 `FFXIV JP Forum`（`html_forum`，`512-Japanese-Forums`）項目；`html_forum` 型別的說明改成「目前沒有來源使用」（research R2：型別與程式碼留著）。
+- [X] T011 [P] [US3] [FR-005] `config/sources_ffxiv.example.yml` 刪掉 `FFXIV JP Forum`（`html_forum`，`512-Japanese-Forums`）項目；`html_forum` 型別的說明改成「目前沒有來源使用」（research R2：型別與程式碼留著）。
 
 ---
 
