@@ -44,7 +44,8 @@ def test_daily_enrich_default_on_calls_prefetch():
     """Key absent → default on → prefetch runs (the feature turns on at merge)."""
     cat = _run_with({"buffer": {}})
     cat.prefetch.assert_called_once_with(cat.filter.return_value)
-    cat.publish.assert_called_once_with(cat.filter.return_value)
+    # a7k：prefetch 會用媒體頁日期擋掉舊文，寫進 buffer 的是它的回傳值
+    cat.publish.assert_called_once_with(cat.prefetch.return_value)
 
 
 def test_daily_enrich_false_skips_prefetch_but_still_buffers():

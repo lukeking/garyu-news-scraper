@@ -79,14 +79,14 @@ def _article(**over):
 def test_enrich_replaces_link_summary_image(monkeypatch):
     monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
     monkeypatch.setattr(gn, "fetch_og_meta",
-                        lambda s, u: (LONG_DESC, "https://udn.com/img.jpg"))
+                        lambda s, u: (LONG_DESC, "https://udn.com/img.jpg", ""))
     a = _article()
     stats = enrich_articles([a], throttle=0)
     assert a["link"] == REAL_URL
     assert a["summary"] == LONG_DESC
     assert a["image"] == "https://udn.com/img.jpg"
     assert stats == {"gn_total": 1, "resolved": 1, "summary_filled": 1,
-                     "image_filled": 1, "errors": 0, "error_domains": {}}
+                     "image_filled": 1, "errors": 0, "error_domains": {}, "published_from_page": 0}
 
 
 def test_enrich_skips_non_gn_link(monkeypatch):
@@ -142,13 +142,13 @@ def test_error_domains_keeps_403_over_later_none(monkeypatch):
 def test_short_or_echo_desc_keeps_original_summary(monkeypatch):
     monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
     # 過短
-    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: ("太短", ""))
+    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: ("太短", "", ""))
     a = _article()
     enrich_articles([a], throttle=0)
     assert a["summary"] == "機車事故占近8成 UDN"
     # 與標題完全相同（且湊滿長度門檻）
     long_title = "機" * 50
-    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: (long_title, ""))
+    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: (long_title, "", ""))
     b = _article(title=long_title)
     enrich_articles([b], throttle=0)
     assert b["summary"] == "機車事故占近8成 UDN"
@@ -157,7 +157,7 @@ def test_short_or_echo_desc_keeps_original_summary(monkeypatch):
 def test_existing_image_not_overwritten(monkeypatch):
     monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
     monkeypatch.setattr(gn, "fetch_og_meta",
-                        lambda s, u: (LONG_DESC, "https://other.example/new.jpg"))
+                        lambda s, u: (LONG_DESC, "https://other.example/new.jpg", ""))
     a = _article(image="https://udn.com/original.jpg")
     stats = enrich_articles([a], throttle=0)
     assert a["image"] == "https://udn.com/original.jpg"
@@ -246,5 +246,48 @@ def test_declared_utf8_page_is_not_decoded_by_charset_guess(monkeypatch):
     monkeypatch.setattr(bs4.dammit, "chardet_dammit", lambda s: "ptcp154")
     html = ('<html><head><meta charset="utf-8"><meta property="og:description" content="'
             + LONG_DESC + '"></head><body>').encode("utf-8") + b"\xe4\xba"  # 截在一個中文字中間
-    desc, _ = gn.fetch_og_meta(_RecordingSession(page=html), REAL_URL)
+    desc, _, _ = gn.fetch_og_meta(_RecordingSession(page=html), REAL_URL)
     assert desc == LONG_DESC
+
+
+# ── 媒體頁的刊出日期（GNS-20261108-a7k，2026-11-10） ─────────────────
+
+def _page(head):
+    return f"<html><head>{head}</head><body></body></html>".encode("utf-8")
+
+
+def test_page_date_from_article_published_time_in_utc():
+    head = '<meta property="article:published_time" content="2026-10-01T10:56:00+08:00">'
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
+    assert published == "2026-10-01T02:56:00+00:00"
+
+
+def test_page_date_falls_back_to_jsonld_date_published():
+    head = ('<script type="application/ld+json">{"@context": "https://schema.org", '
+            '"@graph": [{"@type": "NewsArticle", "datePublished": "2019-03-05T08:00:00Z"}]}</script>')
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
+    assert published == "2019-03-05T08:00:00+00:00"
+
+
+def test_page_without_date_returns_empty():
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page('<meta property="og:title" content="t">')), REAL_URL)
+    assert published == ""
+
+
+def test_enrich_replaces_gn_published_with_page_date(monkeypatch):
+    """GN 給的 published 跟刊出媒體對不上（公視 41 篇被固定成 09-14）；讀得到媒體頁日期就用它。"""
+    monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
+    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: (LONG_DESC, "", "2019-03-05T08:00:00+00:00"))
+    a = _article(published="2026-09-14T07:00:00+00:00")
+    stats = enrich_articles([a], throttle=0)
+    assert a["published"] == "2019-03-05T08:00:00+00:00"
+    assert stats["published_from_page"] == 1
+
+
+def test_enrich_keeps_gn_published_when_page_has_no_date(monkeypatch):
+    monkeypatch.setattr(gn, "resolve_gn_link", lambda s, l: REAL_URL)
+    monkeypatch.setattr(gn, "fetch_og_meta", lambda s, u: (LONG_DESC, "", ""))
+    a = _article(published="2026-11-09T07:00:00+00:00")
+    stats = enrich_articles([a], throttle=0)
+    assert a["published"] == "2026-11-09T07:00:00+00:00"
+    assert stats["published_from_page"] == 0

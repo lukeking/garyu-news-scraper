@@ -17,6 +17,7 @@ import json
 import logging
 import re
 import time
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import requests
@@ -104,8 +105,25 @@ def _declared_charset(resp, raw: bytes) -> str | None:
         return None
 
 
-def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str]:
-    """publisher 頁的 (og:description, og:image)；抓不到的欄位回空字串。"""
+def _page_published(soup: BeautifulSoup) -> str:
+    """媒體頁的刊出時間：article:published_time，沒有就 JSON-LD 的 datePublished；換成 UTC ISO，沒時區的不猜，讀不到回 ""。"""
+    tag = (soup.find("meta", attrs={"property": "article:published_time"})
+           or soup.find("meta", attrs={"name": "article:published_time"}))
+    raws = [tag.get("content") or ""] if tag else []
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        raws += re.findall(r'"datePublished"\s*:\s*"([^"]+)"', script.get_text())
+    for raw in raws:
+        try:
+            dt = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if dt.tzinfo is not None:
+            return dt.astimezone(timezone.utc).isoformat()
+    return ""
+
+
+def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str, str]:
+    """publisher 頁的 (og:description, og:image, 刊出時間 UTC ISO)；抓不到的欄位回空字串。"""
     resp = session.get(url, headers=_HEADERS, timeout=_TIMEOUT)
     resp.raise_for_status()
     raw = resp.content[:400_000]
@@ -117,7 +135,7 @@ def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str]:
                or soup.find("meta", attrs={"name": prop}))
         return (tag.get("content") or "").strip() if tag else ""
 
-    return og("og:description"), og("og:image")
+    return og("og:description"), og("og:image"), _page_published(soup)
 
 
 def _record_error_domain(stats: dict, domain: str, status) -> None:
@@ -139,7 +157,7 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
     供 pipeline log 與 eval harness 共用。
     """
     stats = {"gn_total": 0, "resolved": 0, "summary_filled": 0,
-             "image_filled": 0, "errors": 0, "error_domains": {}}
+             "image_filled": 0, "errors": 0, "error_domains": {}, "published_from_page": 0}
     session = requests.Session()
     for a in articles:
         link = (a.get("link") or "").strip()
@@ -160,7 +178,10 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
             a["link"] = real_url
             stats["resolved"] += 1
 
-            desc, image = fetch_og_meta(session, real_url)
+            desc, image, published = fetch_og_meta(session, real_url)
+            if published:
+                a["published"] = published
+                stats["published_from_page"] += 1
             title = (a.get("title") or "").strip()
             if len(desc) >= _MIN_SUMMARY_LEN and desc != title:
                 a["summary"] = desc

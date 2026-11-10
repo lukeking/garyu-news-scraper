@@ -204,7 +204,23 @@ class TrafficCategory:
             enrich_articles(articles)
         except Exception as e:
             logger.warning("[%s] GN 充實整批失敗，文章維持原樣：%s", self.name, e)
-        return articles
+        return self._drop_old_after_enrich(articles)
+
+    def _drop_old_after_enrich(self, articles: list) -> list:
+        """GNS-20261108-a7k：充實把 published 換成媒體頁日期後再跑一次年齡門檻（GN 給公視舊文固定日期）；
+        媒體頁沒日期時看的是 GN 的 published，所以 log 只寫「日期」。"""
+        from urllib.parse import urlparse
+        from src.filter import FRESHNESS_THRESHOLD_DAYS, _is_too_old_by_age
+        kept = []
+        for a in articles:
+            if _is_too_old_by_age(a)[0]:
+                logger.info("[充實後過時] 擋下：%s 日期 %s「%s」", urlparse(a.get("link") or "").netloc,
+                            (a.get("published") or "")[:10], (a.get("title") or "")[:40])
+            else:
+                kept.append(a)
+        logger.info("[充實後過時] 擋下 %d/%d 篇（充實後的日期早於 %d 天前）",
+                    len(articles) - len(kept), len(articles), FRESHNESS_THRESHOLD_DAYS)
+        return kept
 
     def analyze(self, articles: list) -> list:
         # LLM analysis is deferred to the weekly phase (scripts/traffic_weekly_analysis.py).
