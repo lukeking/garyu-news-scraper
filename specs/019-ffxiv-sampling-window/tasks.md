@@ -82,7 +82,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 
 ### 先出貨（US2、US3）
 
-- [ ] T016 [US2, US3] [FR-004, FR-005, FR-008] 小 PR 的上線：merge 之後、下一次 00:00Z 排程之前（時機的理由見 T012），`gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.yml`（本機檔先與 example 對齊），`gh variable get` 讀回比對（去掉 CR），`scripts/check_config_drift.py` 通過。上線後第一個週一 07:00Z 前，FOCUS 加這週的檢查：Reddit 與論壇列表頁 0 篇、log 沒有對 reddit.com 的請求、FFXIV 篇數會少（日文版加 Lodestone 約 7～11 篇，不判 FAIL）。之後 `#210` 先 merge `origin/main` 再做 T009（同一個檔）。
+- [X] T016 [US2, US3] [FR-004, FR-005, FR-008] 小 PR 的上線：merge 之後、下一次 00:00Z 排程之前（時機的理由見 T012），`gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.yml`（本機檔先與 example 對齊），`gh variable get` 讀回比對（去掉 CR），`scripts/check_config_drift.py` 通過。上線後第一個週一 07:00Z 前，FOCUS 加這週的檢查：Reddit 與論壇列表頁 0 篇、log 沒有對 reddit.com 的請求、FFXIV 篇數會少（日文版加 Lodestone 約 7～11 篇，不判 FAIL）。之後 `#210` 先 merge `origin/main` 再做 T009（同一個檔）。
 - [ ] T017 [SC-002] 先出貨後第一份週報的讀回：讀 log 與 `gh run download <run id> -n ffxiv-pool`，記 SC-002 Gate，寫進 `specs/019-ffxiv-sampling-window/evaluation.md`（`#210`）。
 
 ### US1 上線
