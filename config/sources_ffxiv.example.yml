@@ -35,6 +35,7 @@
 #   detail_selector（有寫就抓每則的詳細頁，取這個節點的文字當內容）、max_chars（詳細頁文字上限，預設 2000）
 #
 # ── type: html_forum ───────────────────────────────────────────────────────
+# 目前沒有來源使用（2026-11-10 移除論壇列表頁，spec 019；型別與程式碼留著）。
 # 抓取 vBulletin 討論板的帖子列表（僅標題+連結），摘要自動設為 "[JP Forum] {標題}"
 # 必要欄位：name, type, url, content_type
 # 選用欄位：max_items（預設 15）、weight
@@ -45,13 +46,6 @@
 # 選用欄位：weight、max_pages（預設 3）、max_replies（預設 20）、max_chars（預設 6000）
 
 sources:
-
-  - name: "Reddit r/ffxiv"
-    type: rss
-    url: "https://www.reddit.com/r/ffxiv/new/.rss"
-    enabled: true
-    content_type: "ffxiv"
-    weight: 20
 
   - name: "FFXIV Lodestone JP 更新資訊"
     type: html_patch
@@ -66,14 +60,6 @@ sources:
     exclude_title_prefixes: ["Lodestone", "コンパニオンアプリ"]
     detail_selector: "div.news__detail__wrapper"
     max_chars: 2000
-
-  - name: "FFXIV JP Forum"
-    type: html_forum
-    url: "https://forum.square-enix.com/ffxiv/forums/512-Japanese-Forums"
-    enabled: true
-    content_type: "ffxiv"
-    weight: 10
-    max_items: 15
 
   # ── 台灣 FFXIV 官網修正說明（已驗證 robots.txt 無限制）─────────────────────
   # www.ffxiv.com.tw/robots.txt 回傳 HTTP 404（無限制），可安全抓取。
