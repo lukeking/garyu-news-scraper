@@ -135,9 +135,11 @@ sources:
     relevance_exempt: true
     url: "https://news.google.com/rss/search?q=%E7%A7%91%E6%8A%80%E5%9F%B7%E6%B3%95%20-%E7%92%B0%E4%BF%9D%E5%B1%80&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
+  # 2026-11-10 停用（GNS-20261102-akc）：query 撈到的是標籤頁與無關文章，10-20 起寫入都是 0；
+  # 改成「機車 site:twreporter.org」也一樣
   - name: Google News 報導者交通
     type: rss
-    enabled: true
+    enabled: false
     url: "https://news.google.com/rss/search?q=%E4%BA%A4%E9%80%9A%20site%3Atwreporter.org&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 
   # 2026-10-15 停用（spec 014 T016–T018）：site:cw.com.tw 幾乎全是一般內容，
