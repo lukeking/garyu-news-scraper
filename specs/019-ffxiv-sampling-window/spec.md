@@ -32,6 +32,11 @@ patch-triggered 與聚合 digest 兩半的處置不變。同日排序：本 spec
   Luke 裁示「留 Reddit：新聞討論＋回覆」。
 - Q: Reddit 的 robots.txt 是 `Disallow: /`，憲章 IV 要求加來源前檢查 robots.txt，怎麼處置？ → A: 拿掉 Reddit。
 
+### Session 2026-11-10
+
+- Q: 拿掉 Reddit 與論壇列表頁要不要等英文論壇一起上線？（`/speckit-analyze` 的 H1：只改設定、不依賴 spike，prod 每週仍照常抓 Reddit）
+  → A: 不等。從 `main` 另開小 PR 先出貨（Luke 2026-11-10，tasks Unit 0）；本 spec 因此有兩個 PR，英文論壇與上限在 `#210`。
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - 英文社群的視角改由官方論壇英文版提供 (Priority: P1)
@@ -122,7 +127,7 @@ Reddit 只拿得到收集前約 8 小時的開串，三週 39 篇的重要度全
 
 ### SC-002 Reddit 與論壇列表頁移除
 
-- **SC-002 Gate**：上線後第一週，候選池裡 Reddit 與論壇列表頁都是 0 篇，週報 log 沒有對 reddit.com 的請求。錨定：11-09 各 25、10 篇。
+- **SC-002 Gate**：拿掉 Reddit 與論壇列表頁的小 PR 上線後第一週（tasks Unit 0，比英文論壇早上線），候選池裡 Reddit 與論壇列表頁都是 0 篇，週報 log 沒有對 reddit.com 的請求。錨定：11-09 各 25、10 篇。
 
 ### SC-003 時間換算正確（硬門檻，測試）
 

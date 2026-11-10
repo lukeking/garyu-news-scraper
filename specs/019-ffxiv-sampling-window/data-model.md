@@ -15,7 +15,7 @@
 
 ## `PIPELINE_CONFIG_YML`（＋鏡像 `config/pipeline_config.example.yml`）
 
-- 新增 FFXIV 分析篇數上限的鍵（鍵名實作時定，放在 FFXIV 相關的位置）。缺鍵時是 20，行為跟現在一樣。值由 Luke 依 research R5／R6 核定。
+- 新增 FFXIV 分析篇數上限的鍵 `ffxiv.max_selected`（定義在 `contracts/config-and-logs.md`）。缺鍵時是 20，行為跟現在一樣。值由 Luke 依 research R5／R6 核定。
 
 ## log
 

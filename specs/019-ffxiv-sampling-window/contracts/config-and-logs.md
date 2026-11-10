@@ -4,8 +4,9 @@
 
 ## 分析篇數上限
 
-- 位置：`PIPELINE_CONFIG_YML`，`load_pipeline_config()` 讀得到，`game_deduplicate` 取用。
-- 型別：正整數。缺鍵 → 20。不是正整數 → 啟動時報錯停下（不靜靜退回 20）。
+- 位置：`PIPELINE_CONFIG_YML` 的 `ffxiv.max_selected`，`load_pipeline_config()` 讀得到，`game_deduplicate` 取用。T005、T007、T008 都用這個名字。
+  名字對應 log 的 `FFXIV 入選` 與 `game_deduplicate` 裡的 `selected`；不叫 `max_articles`，因為 `src/pipeline/ffxiv.py` 已有一個 `max_articles = 30`（T008 查它有沒有被用到）。
+- 型別：正整數。缺鍵（含整個 `ffxiv` 區塊不在）→ 20。不是正整數 → 啟動時報錯停下（不靜靜退回 20）。
 - 回復：刪掉鍵 → 20（FR-008）。
 
 ## 截掉論壇串的 log
