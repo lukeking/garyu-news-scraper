@@ -152,9 +152,9 @@ Reddit 只拿得到收集前約 8 小時的開串，三週 39 篇的重要度全
   Checked: 2026-11-09 `gh variable get SOURCES_FFXIV_YML --env production` 解析出的欄位，與 `config/sources_ffxiv.example.yml` 一致。
 - Reddit 的 robots.txt 不准任何爬蟲抓任何路徑。Checked: 2026-11-09 用 `GaryuNewsBot/1.0` 的 UA 讀 `https://www.reddit.com/robots.txt`，200，`User-agent: *`、`Disallow: /`。
 - 英文官方論壇的上層版是 642 Letters from the Producer、656 Classes & Jobs。Checked: 2026-11-09 讀 `forum.php` 的版列表（200）；日文對應是 535、549。
-- 英文的五個子版各有對應、id 是什麼；有依最後回覆排序的 RSS、串頁面不必登入讀得到、時間格式與時區可以解析。Unchecked: 11-09 讀子版頁面與 RSS 連續 429；
-  015 只驗過日文五個版（R2，日本時間）。沒有對應的版時 US1 的範圍要改；時區不同而沒發現的話，窗口判斷會整批偏移（SC-003 鎖住）。
-- 英文版每週窗口內的串數。Unchecked: 沒量；它決定 FR-003 的上限與 SC-005 的 runtime。
+- 英文的五個子版各有對應、id 是什麼；有依最後回覆排序的 RSS、串頁面不必登入讀得到、時間格式與時區可以解析。Checked: 2026-11-10 T001——644、657、658、659、660，
+  RSS 與串頁面都 200、不必登入；串頁面跟日文版同格式、日本時間（research R3、R4）。
+- 英文版每週窗口內的串數。Checked: 2026-11-10 T002——窗口 11-02～11-09 共 9 串（PLL 0、Tank 1、DPS 6、Healer 1、Other 1），只量了一週（research R5）。
 - 日文版加 Lodestone 一週約 7～11 篇。Checked: `3cq` 節的三週候選池（論壇版 7、4、9 篇入選，Lodestone 0～1）。
 - FFXIV 每篇分析約 15～18 秒。Checked: `GAR-33` 10-20 那則 handoff 留言（10-12 15.0 秒、10-19 17.6 秒）。
 - 論壇列表頁移除後，營運公告與玩家回報沒有管道進分析，接受。Checked: Luke 2026-11-09 選「整個移除」；這兩類現在也 0 篇入選。

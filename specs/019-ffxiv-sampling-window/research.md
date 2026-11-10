@@ -1,6 +1,6 @@
 # Research: FFXIV 週報來源調整（019）
 
-證據等級照慣例：實測／推論／判斷。硬門檻只收實測。三題 2026-11-09 沒查完（R3–R5），它們是 tasks 的第一個 spike，不是猜出來的答案。
+證據等級照慣例：實測／推論／判斷。硬門檻只收實測。三題 2026-11-09 沒查完（R3–R5），11-10 由 T001、T002 的 spike 查完。
 
 ## R0 現況（實測，讀程式＋11-09 artifact）
 
@@ -30,24 +30,37 @@
 - **Rationale**: 只有標題、沒有時間，三週 0 篇入選；營運公告與玩家回報因此沒有管道進分析，接受（現在也進不來）。
 - 移除後 `html_forum` 這個收集型別沒有任何來源在用。型別與程式碼留著（推論：刪型別是另一件事，不在範圍），設定說明照實寫「目前沒有來源使用」。
 
-## R3 英文官方論壇的五個子版（未完成：spike）
+## R3 英文官方論壇的五個子版（實測，11-10 T001）
 
-- 實測（11-09）：`forum.php` 回 200，英文上層版是 642 Letters from the Producer、656 Classes & Jobs（日文 535、549）。
-- 子版 id 沒查到：讀 642、656、535、549 的版頁連續 429；等 2 分鐘、每頁隔 15 秒重抓仍 429；約 10 分鐘後打一次 RSS（`forumids=656,642`）也 429。
-  約 20 分鐘內本機對 `forum.square-enix.com` 送了 10 個請求。日文的子版是連號（549 → 550–553、535 → 537），英文照推只是猜測。
-- **怎麼查**：RSS2 每則帶 `<category domain=…/forums/<id>-…>`，對 642、656 各打一次就能列出子版 id 與名稱；請求之間至少隔 30 秒，429 就停、隔天再試；
-  或請 Luke 用瀏覽器看版頁。查到的對應寫回本節。
+- 11-09 的實測：`forum.php` 回 200，英文上層版是 642 Letters from the Producer、656 Classes & Jobs（日文 535、549）；讀版頁連續 429。
+- 原本的查法（父版 RSS 的 `<category>`）行不通：11-10 對 642、656 的 `external.php?type=RSS2&forumids=<id>&lastpost=1` 都回 200 但 0 則——分類版本身不放串，RSS 不含子版的串。
+- 改讀父版的版頁 HTML（collector 的 `HEADERS`），子版是 `li[id^=forum]`：642 底下 643 Letters from the Producer、644 Letter from the Producer LIVE；
+  656 底下 657 Tank Roles、658 DPS Roles、659 Healer Roles、660 Other Battle Systems、661 Disciples of the Land、662 Disciples of the Hand。
+- **Decision**：對應是 537 プロデューサーレターLIVE → 644、550 TANK → 657、551 DPS → 658、552 HEALER → 659、553 その他バトルシステム → 660。
+- 請求：11-10 本機對 `forum.square-enix.com` 送 13 個請求、間隔 ≥ 60 秒（約 10 分鐘），全部 200，沒有 429。
 
-## R4 英文版串頁面的時間格式與時區（未完成：spike）
+## R4 英文版串頁面的時間格式與時區（實測，11-10 T001）
 
-- 015 R2 的做法：同一則回覆，比 RSS 的 `pubDate`（GMT）與頁面 `span.date` 的顯示。日文版是日本時間、格式 `MM-DD-YYYY hh:mm AM/PM`／`Today`／`Yesterday`。
-- 英文版是同一套 vBulletin，訪客的顯示時區可能是站台預設（推論），但沒驗；`_parse_vb_time` 寫死 `JST`。
-- **怎麼查**：英文每個子版取一串，比對 RSS `pubDate` 與頁面顯示；格式、時區跟日文版相同就沿用，不同就讓時區變成來源設定的一個欄位（預設日本時間，日文版不變）。
+- 015 R2 的做法：同一則回覆比 RSS 的 `pubDate`（GMT）與頁面 `span.date`。
+- 659 最新一串（`threads/532931`，post 6857299）：頁面 `span.date` 是 `11-08-2026 06:11 AM`，`_parse_vb_time` 照日本時間換成 `2026-11-07T21:11Z`；
+  RSS `pubDate` 是 `Sat, 07 Nov 2026 21:11:58 GMT`，分鐘精度一致。版頁的「最後回覆」也對得上：657 顯示 `11-07-2026, 05:52 AM`、RSS `2026-11-06T20:52:27Z`；658 顯示 `11-05-2026, 02:24 AM`、RSS `2026-11-04T17:24:56Z`（都是 +9 小時）。
+- **Decision**：英文版跟日文版同一個時區（日本時間）、同一個串頁面格式，T006 不改程式；T004 用英文串頁面的片段把它鎖住。
+- 注意：版頁列表的格式多一個逗號（`MM-DD-YYYY, hh:mm AM`），串頁面的 `span.date` 沒有；collector 只解析串頁面。
+- T004 的 fixture 要重抓：上面那串的頁面（`https://forum.square-enix.com/ffxiv/threads/532931`），11-10 的原文只存在當時 session 的 scratch。
 
-## R5 英文版每週的供給（未完成：spike）
+## R5 英文版每週的供給（實測，11-10 T002；只量了一週）
 
-- 沒量。決定 R6 的上限與 SC-005 的 runtime。
-- **怎麼查**：R3 查到 id 後，對各子版的 `lastpost=1` RSS 數窗口內的串數（015 的量法）；至少一週，最好兩週。上線前量不到的話，先用 20 上線，從第一週的 log 讀。
+| 子版 | RSS 則數 | 窗口內（11-02～11-09） | 最近 7 天 |
+|---|---|---|---|
+| 644 PLL | 0 | 0 | 0 |
+| 657 Tank | 2 | 1 | 1 |
+| 658 DPS | 7 | 6 | 3 |
+| 659 Healer | 3 | 1 | 1 |
+| 660 Other Battle Systems | 2 | 1 | 1 |
+| 合計 | 14 | 9 | 6 |
+
+- 量法：`_forum_window`（11-10 跑，窗口是 11-02 00:00Z～11-09 00:00Z）對各子版 `lastpost=1` RSS 的 `pubDate` 計數；沒有一版回滿 15 則，沒有被 RSS 截掉。
+- 644 最後一次回覆是 08-14（版頁顯示），RSS 0 則。英文版的量比日文版少；只量了一週，隔週可以再量一次。
 
 ## R6 分析篇數上限（判斷，Luke 裁示「可以考慮加大」）
 
@@ -55,6 +68,8 @@
 - **Rationale**: 憲章 IV 要求生成式呼叫有明寫的上限，值住在執行它的地方；`docs/external-services.md` 的 Gemini 那一列同步改成指向這個鍵。
 - 參考量：拿掉 Reddit 後，日文版加 Lodestone 一週約 7～11 篇（`3cq` 節三週）；每篇分析約 15～18 秒，多 10 篇約多 3 分鐘。
 - 上限截掉論壇串時印一行（FR-003），讓之後調整有依據。
+- 11-10 的量（R5）：英文版一週 9 串，加上日文版與 Lodestone 的 7～11 篇，一週約 16～20 篇，接近 20。11-09 週報每篇分析平均 19.6 秒（FOCUS 的 runtime 基準），多 5 篇約多 100 秒。
+- **建議**（判斷，T003 由 Luke 核定）：25。理由：正常週約 16～20 篇，20 會在大 patch 週先截掉論壇串；25 留 5 篇餘裕，週報多約 1.5 分鐘，離 SC-005 L1 的 20 分鐘還遠。截掉時照 FR-003 印一行，之後依實際截斷再調。
 
 ## R7 請求量與間隔（判斷，憲章 IV）
 
@@ -66,5 +81,6 @@
 
 - RSS 走 `_fetch_rss_bytes`，送 `GaryuNewsBot/1.0 (+mailto:…)`（`src/collector.py:176`）；HTML 送 `Mozilla/5.0 (compatible; GaryuNewsBot/1.0; +mailto:…)`（`src/collector.py:23`）。
   只有 `PTT_HEADERS`（`src/collector.py:28`，交通來源）是瀏覽器 UA。
+  2026-11-10：PTT 連程式一起移除（Luke 裁示，另一個 PR），`PTT_HEADERS` 跟著刪；`src/gn_resolver.py` 的 `_HEADERS`（GN 還原與媒體頁 og）也是瀏覽器 UA，同一個 PR 換成正式 UA。
 - 更正：11-09 討論中 agent 一度說「collector 靠瀏覽器 UA 讀 Reddit」，是把 `PTT_HEADERS` 當成 collector 的 UA 讀錯了；當天讀本週熱門 feed 也是用那個（拼壞的）字串打的。
   拿掉 Reddit 之後，FFXIV 的來源都送 `GaryuNewsBot` 的 UA。PTT 的瀏覽器 UA 屬交通來源，不在本 spec。
