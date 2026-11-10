@@ -3,6 +3,8 @@
 **Input**: Design documents from `specs/019-ffxiv-sampling-window/`
 **Prerequisites**: plan.md、spec.md、research.md、data-model.md、contracts/config-and-logs.md、quickstart.md
 
+> Markers: [ ] not started · [-] implemented, awaiting review · [X] reviewed + verified (verification-only task: main-verified)
+
 **Tests**: 要寫。SC-003、SC-004 是 unit test 的硬門檻，repo 走 delegated-TDD（三態標記 `[ ]` → `[-]` → `[X]`）。
 
 **Organization**: US1（英文官方論壇）、US2（拿掉 Reddit）、US3（拿掉論壇列表頁）。US2、US3 只改設定、不等 spike，從 `main` 另開小 PR 先出貨（Unit 0，Luke 2026-11-10）；
@@ -62,7 +64,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 
 **Independent Test**: 上線後的 log 與 `ffxiv-pool` 沒有 Reddit；設定鏡像沒有 Reddit 項目。
 
-- [ ] T010 [P] [US2] [FR-004] `config/sources_ffxiv.example.yml` 刪掉 `Reddit r/ffxiv` 項目；檔頭的說明若提到 Reddit 一起改。既有測試（`tests/unit/test_ffxiv_ranking.py`、`test_pll_priority.py`）只拿「Reddit r/ffxiv」當 fixture 名稱，不讀設定，不改。
+- [-] T010 [P] [US2] [FR-004] `config/sources_ffxiv.example.yml` 刪掉 `Reddit r/ffxiv` 項目；檔頭的說明若提到 Reddit 一起改。既有測試（`tests/unit/test_ffxiv_ranking.py`、`test_pll_priority.py`）只拿「Reddit r/ffxiv」當 fixture 名稱，不讀設定，不改。
 
 ---
 
@@ -72,7 +74,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 
 **Independent Test**: 上線後的 log 與 `ffxiv-pool` 沒有論壇列表頁；設定鏡像沒有那一項。
 
-- [ ] T011 [P] [US3] [FR-005] `config/sources_ffxiv.example.yml` 刪掉 `FFXIV JP Forum`（`html_forum`，`512-Japanese-Forums`）項目；`html_forum` 型別的說明改成「目前沒有來源使用」（research R2：型別與程式碼留著）。
+- [-] T011 [P] [US3] [FR-005] `config/sources_ffxiv.example.yml` 刪掉 `FFXIV JP Forum`（`html_forum`，`512-Japanese-Forums`）項目；`html_forum` 型別的說明改成「目前沒有來源使用」（research R2：型別與程式碼留著）。
 
 ---
 
@@ -112,7 +114,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 - Tasks: T010, T011, T016
 - Outcome: `config/sources_ffxiv.example.yml` 沒有 Reddit 與論壇列表頁；prod `SOURCES_FFXIV_YML` 與鏡像一致；FOCUS 在上線那週帶這兩項的檢查。
 - Prerequisites: 無（不等 spike）。小 PR 從最新的 `origin/main` 切。
-- Verification: `load_ffxiv_sources()` 讀得出 7 項（日文 5、Lodestone、停用的 TW），沒有 `rss`、`html_forum` 型別的項目；`pytest tests/unit` 綠；
+- Verification: YAML 有 7 項（日文 5、Lodestone、停用的 TW），`load_ffxiv_sources()` 載入 6 個啟用來源，沒有 `rss`、`html_forum` 型別的項目；`pytest tests/unit` 綠；
   上線後 `gh variable get` 讀回比對、`scripts/check_config_drift.py` 通過。
 - Review: 小 PR 的 diff（`config/sources_ffxiv.example.yml`、FOCUS）、設定讀回結果。
 - Merge or split: 兩項都是只改設定的移除、各自可以回復（FR-008），同一份檔、同一次上線；跟 US1 分開是 Luke 2026-11-10 的裁示（spec Clarifications）。
@@ -151,7 +153,7 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 - Tasks: T009
 - Outcome: `config/sources_ffxiv.example.yml` 加英文五版，變成新的來源組合。
 - Prerequisites: Unit 0 已 merge 進 `main`、`#210` merge 過 `origin/main`；Unit 1 的 id；Unit 2 決定有沒有時區欄位。
-- Verification: YAML 解析與 `load_ffxiv_sources()` 讀得出 12 項（日文 5、英文 5、Lodestone、停用的 TW）；`pytest tests/unit` 綠。設定的真身在 T012 才生效。
+- Verification: YAML 有 12 項（日文 5、英文 5、Lodestone、停用的 TW），`load_ffxiv_sources()` 載入 11 個啟用來源（它只回傳啟用的）；`pytest tests/unit` 綠。設定的真身在 T012 才生效。
 - Review: `config/sources_ffxiv.example.yml`。
 - Merge or split: 只剩加英文版（刪除的兩項在 Unit 0 先出貨）；review 看完整的來源組合。
 
