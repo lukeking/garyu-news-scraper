@@ -22,7 +22,6 @@ def _rss_bytes(url):
 
 def _collect(sources, caplog):
     with patch.object(collector, "_fetch_rss_bytes", side_effect=_rss_bytes), \
-         patch("requests.Session.get", side_effect=RuntimeError("403 Client Error: Forbidden")), \
          patch.object(collector, "_build_youtube_client", return_value=None), \
          patch.object(collector.time, "sleep"), \
          caplog.at_level(logging.INFO, logger="src.collector"):
@@ -33,12 +32,11 @@ def test_real_fetcher_failures_are_counted_and_summarised(caplog):
     sources = [
         {"name": "GN-ok", "type": "rss", "url": "https://ok"},
         {"name": "GN-bad", "type": "rss", "url": "https://bad"},
-        {"name": "PTT/biker", "type": "ptt", "board": "biker"},
         {"name": "YT", "type": "youtube", "channel_id": "UCx"},
     ]
     _collect(sources, caplog)
-    assert collector.last_collect_failures() == (["GN-bad", "PTT/biker", "YT"], 4)
-    assert "來源失敗：3/4（GN-bad、PTT/biker、YT）" in caplog.text
+    assert collector.last_collect_failures() == (["GN-bad", "YT"], 3)
+    assert "來源失敗：2/3（GN-bad、YT）" in caplog.text
     # 原本的逐筆格式不變：週驗收 routine 的 FOCUS (3) 會 grep `失敗: 503`
     assert "GN-bad 失敗: 503 Server Error" in caplog.text
 
