@@ -94,15 +94,38 @@ def resolve_gn_link(session: requests.Session, link: str) -> str | None:
     return _parse_batch_response(resp.text)
 
 
+# 瀏覽器把這些標籤當成超集解（WHATWG）；照 Python 字面解，超集才有的字（例 big5 的「碁」）會壞（#212 review N3）
+_BROWSER_SUPERSETS = {"big5": "cp950", "shift_jis": "cp932", "gb2312": "gb18030", "gbk": "gb18030"}
+
+
 def _declared_charset(resp, raw: bytes) -> str | None:
     """header 或 meta 宣告的編碼；沒有或不認得回 None，才交給 bs4 偵測（GNS-20261108-b6c：
     宣告 utf-8 但截斷處不合法時，偵測曾猜成 PT154／cp866）。"""
     m = re.search(r"charset=[\"']?([\w-]+)", resp.headers.get("Content-Type", ""), re.I)
     name = m.group(1) if m else EncodingDetector.find_declared_encoding(raw, is_html=True)
     try:
-        return codecs.lookup(name).name if name else None
+        name = codecs.lookup(name).name if name else None
     except LookupError:
         return None
+    return _BROWSER_SUPERSETS.get(name, name)
+
+
+def _jsonld_article_dates(soup: BeautifulSoup) -> list[str]:
+    """JSON-LD 頂層（含 @graph）裡 @type 是 *Article 的 datePublished；巢狀的相關文章不算（#212 review N1）。"""
+    dates = []
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            data = json.loads(script.get_text())
+        except ValueError:
+            continue
+        items = data if isinstance(data, list) else [data]
+        items += [g for d in items if isinstance(d, dict) for g in (d.get("@graph") or [])]
+        for d in items:
+            types = d.get("@type") if isinstance(d, dict) else None
+            types = [types] if isinstance(types, str) else (types or [])
+            if any(str(t).endswith("Article") for t in types) and isinstance(d.get("datePublished"), str):
+                dates.append(d["datePublished"])
+    return dates
 
 
 def _page_published(soup: BeautifulSoup) -> str:
@@ -110,8 +133,7 @@ def _page_published(soup: BeautifulSoup) -> str:
     tag = (soup.find("meta", attrs={"property": "article:published_time"})
            or soup.find("meta", attrs={"name": "article:published_time"}))
     raws = [tag.get("content") or ""] if tag else []
-    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
-        raws += re.findall(r'"datePublished"\s*:\s*"([^"]+)"', script.get_text())
+    raws += _jsonld_article_dates(soup)
     for raw in raws:
         try:
             dt = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))

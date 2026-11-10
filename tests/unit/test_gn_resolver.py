@@ -302,3 +302,37 @@ def test_summary_line_counts_page_dates(monkeypatch, caplog):
     with caplog.at_level(logging.INFO, logger="src.gn_resolver"):
         enrich_articles([_article(), _article()], throttle=0)
     assert "GN 充實：2 篇中 2 還原連結、2 補摘要、0 補圖、1 用媒體頁日期、0 失敗" in caplog.text
+
+
+# ── #212 review N1、N3（2026-11-10） ───────────────────────────────
+
+def test_big5_declared_page_decodes_cp950_only_characters():
+    """N3：Python 的 big5 沒有 cp950 的擴充字（例「碁」），解壞會連帶吃掉前後字；瀏覽器把 big5 當 cp950。"""
+    text = "碁交通部公告機車新制上路，騎士須注意相關規定與罰則內容說明"
+    page = f'<meta property="og:description" content="{text}">'.encode("cp950")
+
+    class S(_RecordingSession):
+        def get(self, url, headers=None, timeout=None):
+            return _Resp(content=page, headers={"Content-Type": "text/html; charset=big5"})
+    desc, _, _ = gn.fetch_og_meta(S(), REAL_URL)
+    assert desc == text
+
+
+def _jsonld(*objs):
+    return "".join(f'<script type="application/ld+json">{o}</script>' for o in objs)
+
+
+RELATED = '{"@type": "ItemList", "itemListElement": [{"@type": "NewsArticle", "datePublished": "2023-06-30T16:00:00Z"}]}'
+
+
+def test_jsonld_takes_the_article_not_a_related_item_listed_first():
+    """N1：相關文章清單排在前面時，取的是頁面本身那篇 Article 的日期。"""
+    head = _jsonld(RELATED, '{"@type": "NewsArticle", "datePublished": "2026-11-09T01:00:00Z"}')
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
+    assert published == "2026-11-09T01:00:00+00:00"
+
+
+def test_article_date_without_timezone_does_not_fall_back_to_a_related_item():
+    head = _jsonld(RELATED, '{"@type": ["NewsArticle"], "datePublished": "2026-11-09T09:00:00"}')
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
+    assert published == ""
