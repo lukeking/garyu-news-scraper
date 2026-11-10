@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
-# GN 轉址頁對非瀏覽器 UA 可能不回 decode 參數，比照 collector 的 PTT_HEADERS 用瀏覽器 UA
+# GN 轉址頁對非瀏覽器 UA 可能不回 decode 參數，所以用瀏覽器 UA
 _HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

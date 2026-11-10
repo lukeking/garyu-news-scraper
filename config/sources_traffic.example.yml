@@ -7,7 +7,6 @@
 # ┌─────────────────────────────────────────────────────────────┐
 # │  支援的 type                                                 │
 # │  rss     → feedparser 抓取 RSS / Atom feed                  │
-# │  ptt     → PTT 看板爬蟲（含 over18 cookie）                 │
 # │  web     → 一般網頁爬蟲（BeautifulSoup）                    │
 # │  youtube → YouTube 頻道影片（需設定 YOUTUBE_API_KEY）        │
 # └─────────────────────────────────────────────────────────────┘
@@ -26,10 +25,6 @@
 #          機車字眼，不豁免會在 filter 端全滅。
 # 非 Google News 的 RSS 會再用 MOTORCYCLE_KEYWORDS 過濾一次；
 # Google News 的 RSS 因為 query 已鎖定主題，不做這一層。
-#
-# ── type: ptt ──────────────────────────────────────────────
-# 必要欄位：name, type, board（PTT 板名，注意大小寫：biker、SuperBike）
-# 選用欄位：enabled（預設 true）、min_pushes（預設 5；只收推文數 >= 此值的文章，「爆」自動視為 10）
 #
 # ── type: web ──────────────────────────────────────────────
 # 必要欄位：name, type, url
@@ -172,20 +167,6 @@ sources:
     lookback_days: 30
     relevance_exempt: true
     url: "https://news.google.com/rss/search?q=%E9%A1%98%E6%99%AF%E9%9B%B6%E6%AD%BB%E4%BA%A1&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
-
-  # ── PTT 類型 ────────────────────────────────────────────────
-  # 2026-10-31 停用：Actions 上 /bbs/ 被 Cloudflare managed challenge 擋（任何請求形狀都 403，家用 IP 正常；GNS-016），重開見 BACKLOG GNS-20261005-24s
-  - name: PTT/biker
-    type: ptt
-    enabled: false
-    board: biker       # 白牌機車板
-    min_pushes: 5
-
-  - name: PTT/SuperBike
-    type: ptt
-    enabled: false
-    board: SuperBike   # 紅黃牌重機板（注意大小寫）
-    min_pushes: 5
 
   # ── 網頁爬蟲類型 ────────────────────────────────────────────
   - name: 交通部

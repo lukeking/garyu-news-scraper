@@ -304,17 +304,6 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 | 08-10（滿週全量，實測） | 7 個：`n.yam.com`、`news.pchome.com.tw`、`www.cdns.com.tw`、`leho.com.tw`、`www.gov.tw`、`rise-mediacorp.com`、`www.allnews.tw`；覆蓋率 84.8% | (1)(2) 皆未成立：新增的都不是主流原生媒體，UDN／自由／中時／中央社／TVBS／三立全部正常；`www.cdns.com.tw`（中華日報）07-20 就在名單上 |
 | 10-25、10-27、10-28（3 次 daily，實測；只抽這 3 天） | 7 個：`n.yam.com`、`www.cdns.com.tw`、`news.pchome.com.tw`（502，不是 403）、`www.teepr.com`、`www.watchmedia01.com`、`pronews.tw`、`www.marketersgo.com` | (1)(2) 皆未成立：主流原生媒體一個都沒有；`n.yam.com`、`www.cdns.com.tw` 07-20 起就在名單上 |
 
-### PTT 兩個看板（`GNS-016` 移入，2026-10-31）
-
-- **事實**（實測）：Actions 上 `PTT/biker`、`PTT/SuperBike` 09-17 起每天 403。10-31 的診斷（`measure-ptt-access.yml`，run `41165997831`）：
-  6 種請求（含 TLS 指紋不同的 curl）全部 403，且都帶 `cf-mitigated: challenge`；同樣的請求從家用 IP 全部 200 → 擋的是 Actions 的網路來源，
-  不是請求形狀。損失量：`articles` 裡 08-01～09-16 共 14 篇，約一週 2 篇。
-- **處置**：10-31 兩個看板改 `enabled: false`（prod `SOURCES_TRAFFIC_YML` 與鏡像同一天）。用瀏覽器解 challenge 沒有列為選項：那是繞過網站刻意設的防護。
-- **停用之後不會出聲**：daily 不再印 PTT 的 403，PTT 自己不構成這一列的觸發點；它的狀態只有重跑診斷才看得到，跟著這一列的評估走。
-- **重新啟用之前**：(a) 在新的出口上重跑 `python scripts/measure_ptt_access.py`（Actions 上是 `gh workflow run measure-ptt-access.yml`），判讀要是全部 200；
-  (b) 家用 IP 下 PTT 回 `br`，`requests` 沒有 brotli 可解，`prod` 變體解析出 0 列（10-31 本機實測）——`PTT_HEADERS` 的 `Accept-Encoding`
-  拿掉 `br`，或把 brotli 加進 requirements；`_flag_parsed_zero` 會把 0 列記成來源失敗，不會再沉默。
-
 ## GNS-20261005-gg3 機車事故 require 表的真實 recall 未量
 
 **出處**：GNS-010（PR #97）。08-10 的 prod log 查出 9 筆被 require 表誤殺的真事故，PR #97 補 8 個近失詞救回 8 筆。

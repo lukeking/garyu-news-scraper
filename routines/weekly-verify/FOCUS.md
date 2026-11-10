@@ -4,7 +4,7 @@
 
 <!-- 維護者：每週怎麼更新見同目錄 README.md。常設的東西在 PROMPT.md，不要搬進來。 -->
 
-(1)(2) 追的 GNS-014（PostgREST 1000 列上限，PR #132）與 GNS-013（embedding 429，PR #128／#137）已完成、移出 BACKLOG，需要的脈絡已寫在各條裡；(3) 的 `來源失敗` 彙總行由 PR #152 加入，PTT 兩個看板 10-31 停用，重開條件在 `specs/BACKLOG.md` 的 `GNS-20261005-24s`（PTT 小節）。BACKLOG 的舊條目是 `GNS-NNN`（舊的 `#14` 就是 `GNS-014`），10-05 起的新條目是 `GNS-YYYYMMDD-xxx`；PROMPT.md 常設檢查 (A) 追的 `GNS-20261019-dkm` 在 10-19 接手了 `GNS-008`（spec 014 closeout）。
+(1)(2) 追的 GNS-014（PostgREST 1000 列上限，PR #132）與 GNS-013（embedding 429，PR #128／#137）已完成、移出 BACKLOG，需要的脈絡已寫在各條裡；(3) 的 `來源失敗` 彙總行由 PR #152 加入，PTT 兩個看板 10-31 停用，11-10 連程式一起移除（Luke 裁示）。BACKLOG 的舊條目是 `GNS-NNN`（舊的 `#14` 就是 `GNS-014`），10-05 起的新條目是 `GNS-YYYYMMDD-xxx`；PROMPT.md 常設檢查 (A) 追的 `GNS-20261019-dkm` 在 10-19 接手了 `GNS-008`（spec 014 closeout）。
 
 ## (1) GNS-014 分頁修法的回歸檢查（PostgREST 1000 列上限）
 
