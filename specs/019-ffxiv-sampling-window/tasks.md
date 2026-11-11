@@ -43,13 +43,13 @@ US1 與上限在 `#210`。英文版的 id、時區與供給先由 spike 查（Ph
 ### Tests for User Story 1
 
 - [ ] T004 [P] [US1] [FR-002, SC-003] 在 `tests/unit/test_vb_forum_parse.py` 加英文串頁面的時間解析測試：用 T001 存的英文頁面片段，斷言回覆時間換成的 UTC 等於 RSS `pubDate` 對到的那一刻；`Today`／`Yesterday` 依頁面時區的日期。突變：把時區改成別的（例 UTC），測試轉紅。
-- [-] T005 [P] [US1] [FR-003, SC-001] 在 `tests/unit/test_game_deduplicate.py` 加上限（`ffxiv.max_selected`）的測試：缺鍵 → 20（行為不變）；鍵為 25 → 取 25 篇；鍵不是正整數 → 報錯，不退回 20；上限截掉至少一篇論壇（`vb_forum`）項目時印一行 WARNING，格式照 `contracts/config-and-logs.md`，字面寫進斷言；沒截掉論壇時不印。
+- [X] T005 [P] [US1] [FR-003, SC-001] 在 `tests/unit/test_game_deduplicate.py` 加上限（`ffxiv.max_selected`）的測試：缺鍵 → 20（行為不變）；鍵為 25 → 取 25 篇；鍵不是正整數 → 報錯，不退回 20；上限截掉至少一篇論壇（`vb_forum`）項目時印一行 WARNING，格式照 `contracts/config-and-logs.md`，字面寫進斷言；沒截掉論壇時不印。
 
 ### Implementation for User Story 1
 
 - [ ] T006 [US1] [FR-002] 依 T001 的結果改 `src/collector.py`：英文頁面不是日本時間 → `vb_forum` 來源加一個時區欄位（缺欄位＝日本時間，日文版設定不用改），`_parse_vb_time`／`_parse_vb_page` 用它換算；是日本時間、格式相同 → 程式不改，在 research R4 寫明，T004 用英文樣本鎖住。
-- [-] T007 [US1] [FR-003] 改 `src/filter.py` 的 `game_deduplicate`：上限從 `load_pipeline_config()` 的 `ffxiv.max_selected` 讀（`contracts/config-and-logs.md`），取代 `retained[:20]`；截掉論壇項目時印契約那一行。docstring 的「取前 20」一起改。
-- [-] T008 [US1] [FR-003] 上限的設定鏡像與預算紀錄：`config/pipeline_config.example.yml` 加 `ffxiv.max_selected`（值照 T003）；`docs/external-services.md` Gemini 那一列的「每次篇數」改指向這個鍵，並讀一次 `src/pipeline/ffxiv.py` 的 `max_articles = 30` 有沒有被用到，結果寫進那一列（沒用到就照實寫，不在本 spec 刪它）。
+- [X] T007 [US1] [FR-003] 改 `src/filter.py` 的 `game_deduplicate`：上限從 `load_pipeline_config()` 的 `ffxiv.max_selected` 讀（`contracts/config-and-logs.md`），取代 `retained[:20]`；截掉論壇項目時印契約那一行。docstring 的「取前 20」一起改。
+- [X] T008 [US1] [FR-003] 上限的設定鏡像與預算紀錄：`config/pipeline_config.example.yml` 加 `ffxiv.max_selected`（值照 T003）；`docs/external-services.md` Gemini 那一列的「每次篇數」改指向這個鍵，並讀一次 `src/pipeline/ffxiv.py` 的 `max_articles = 30` 有沒有被用到，結果寫進那一列（沒用到就照實寫，不在本 spec 刪它）。
 - [ ] T009 [US1] [FR-001, FR-007] `config/sources_ffxiv.example.yml` 加英文五個 `vb_forum` 項目：名稱 `FFXIV EN Forum - <版名>`、url 用 T001 的 id、權重 PLL 100 其他 80、其他欄位沿用日文版；T006 若加了時區欄位，英文項目照實填。
 
 **Checkpoint**: `pytest tests/unit` 全綠；英文樣本與上限的測試咬得到。
