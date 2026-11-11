@@ -16,6 +16,9 @@ THREAD = "https://forum.square-enix.com/ffxiv/threads/498925-%E7%8D%A3%E4%BD%BF%
 CAPTURED = datetime(2026, 10, 20, 12, 26, tzinfo=UTC)
 # 日本時間 10-20 00:30，UTC 仍是 10-19
 JST_EARLY_MORNING = datetime(2026, 10, 19, 15, 30, tzinfo=UTC)
+EN_THREAD = "https://forum.square-enix.com/ffxiv/threads/532931"
+# 英文版 fixture 的抓取時刻：日本時間 11-11 20:46（SOURCES.md）
+EN_CAPTURED = datetime(2026, 11, 11, 11, 46, tzinfo=UTC)
 
 
 def _read(name):
@@ -116,3 +119,25 @@ def test_page_without_posts_parses_to_empty_list():
     posts, prev_url = _parse_vb_page("<html><body><p>Page 2 of 2</p></body></html>", THREAD, CAPTURED)
     assert posts == []
     assert prev_url == THREAD + "/page1"
+
+
+# ── 英文版串頁面（spec 019 T004，research R4）─────────────────────
+
+@pytest.mark.parametrize("text, now", [
+    ("11-08-2026 06:11 AM", EN_CAPTURED),
+    ("Today 06:11 AM", datetime(2026, 11, 7, 21, 30, tzinfo=UTC)),      # 日本時間 11-08 06:30，UTC 仍是 11-07
+    ("Yesterday 06:11 AM", datetime(2026, 11, 8, 21, 30, tzinfo=UTC)),  # 日本時間 11-09 06:30，UTC 仍是 11-08
+])
+def test_english_reply_time_matches_rss_pubdate(text, now):
+    # post 6857299 的 RSS pubDate 是 Sat, 07 Nov 2026 21:11:58 GMT（research R4）；頁面只到分鐘
+    assert _iso(_parse_vb_time(text, now)) == "2026-11-07T21:11:00+00:00"
+
+
+def test_english_single_page_thread_post_and_no_previous_page():
+    posts, prev_url = _parse_vb_page(_read("en_thread_single_page.html"), EN_THREAD, EN_CAPTURED)
+    assert [p["id"] for p in posts] == [6857299]
+    assert [_iso(p["time"]) for p in posts] == ["2026-11-07T21:11:00+00:00"]
+    assert [p["raw_time"] for p in posts] == ["11-08-2026 06:11 AM"]
+    assert posts[0]["text"].startswith("Hi, Square and dev team, how are you?")
+    assert posts[0]["text"].endswith("Thats all my sugestion! Thank you so much!")
+    assert prev_url is None

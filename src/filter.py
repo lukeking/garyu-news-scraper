@@ -514,9 +514,24 @@ def _dump_ffxiv_pool(pool: list, selected_count: int) -> None:
     logger.info("FFXIV 候選池內容：寫入 %s（%d 篇，入選 %d 篇）", path, len(pool), selected_count)
 
 
+def _ffxiv_max_selected(config: dict) -> int:
+    """`ffxiv.max_selected`：缺區塊或缺鍵 → 20；有值卻不是正整數 → 報錯，不退回 20。"""
+    block = config.get("ffxiv")
+    if block is None:
+        block = {}
+    if not isinstance(block, dict):
+        raise RuntimeError(f"[pipeline_config] ffxiv 必須為 map，目前為 {block!r}")
+    cap = block.get("max_selected", 20)
+    if isinstance(cap, bool) or not isinstance(cap, int) or cap <= 0:
+        raise RuntimeError(f"[pipeline_config] ffxiv.max_selected 必須為正整數，目前為 {cap!r}")
+    return cap
+
+
 def game_deduplicate(articles: list, config: dict) -> list:
     """FFXIV 去重：排除包含關係與 Jaccard > game_threshold 的標題，重複時留先出現的（呼叫端先依 ffxiv_rank_key
-    排好，留下的就是權重高的那份）；再依同一個鍵取前 20，並印候選池與入選的逐來源篇數。"""
+    排好，留下的就是權重高的那份）；再依同一個鍵取前 ffxiv.max_selected 篇（缺鍵 20），並印候選池與入選的
+    逐來源篇數；上限截掉論壇（vb_forum）串時多印一行 WARNING。"""
+    cap = _ffxiv_max_selected(config)
     game_threshold = config.get("jaccard", {}).get("game_threshold", 0.50)
 
     # 預先計算 token set
@@ -546,8 +561,11 @@ def game_deduplicate(articles: list, config: dict) -> list:
 
     retained = [articles[i] for i in retained_indices]
     retained.sort(key=ffxiv_rank_key)
-    selected = retained[:20]
+    selected = retained[:cap]
     logger.info("%s", _ffxiv_source_counts("候選池", retained))
     logger.info("%s", _ffxiv_source_counts("入選", selected))
+    cut_forum = [a for a in retained[cap:] if (a.get("dedup_key") or "").startswith("forum:")]
+    if cut_forum:
+        logger.warning("%s", _ffxiv_source_counts(f"上限 {cap} 截掉論壇", cut_forum))
     _dump_ffxiv_pool(retained, len(selected))
     return selected

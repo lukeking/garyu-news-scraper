@@ -46,11 +46,11 @@ def _build_articles():
     return unique + pairs
 
 
-def test_result_capped_at_twenty(config):
-    articles = _build_articles()
-    assert len(articles) == 40
+def test_result_capped_at_configured_max_selected(config):
+    cap = config["ffxiv"]["max_selected"]
+    articles = [_article(f"gamefeed{i:03d}") for i in range(cap + 5)]
     result = game_deduplicate(articles, config)
-    assert len(result) <= 20
+    assert len(result) == cap
 
 
 def test_no_duplicate_pairs_remain(config):
