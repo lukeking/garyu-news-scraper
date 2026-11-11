@@ -37,9 +37,6 @@ EXCLUDE_KEYWORDS = [
     "汽車貸款廣告", "二手車廣告", "保險推銷",
 ]
 
-# PTT 排除的文章類型
-PTT_EXCLUDE_PREFIXES = ["[公告]", "[版規]", "Fw:", "[Fw]"]
-
 # 同主題去重：標題中若包含這些核心詞組，視為同一主題
 # 格式：(主題識別詞組, 最多保留篇數)
 TOPIC_THROTTLE = [
@@ -56,11 +53,6 @@ def _is_relevant(article: dict) -> bool:
     title = _clean_html(article.get("title", ""))
     summary = _clean_html(article.get("summary", ""))
     combined = title + " " + summary
-
-    if article.get("source", "").startswith("PTT"):
-        for prefix in PTT_EXCLUDE_PREFIXES:
-            if title.startswith(prefix):
-                return False
 
     for kw in EXCLUDE_KEYWORDS:
         if kw in combined:

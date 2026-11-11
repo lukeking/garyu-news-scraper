@@ -35,17 +35,15 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
-| `GNS-20261108-a7k` | Google News 給的 `published` 可能比刊出媒體的日期早一天：Yahoo「北市1路口科技執法今起取締」頁面的 `datePublished` 是 `2026-10-01T02:56:00Z`，`articles.published` 存的是 GN RSS 給的 `2026-09-30T07:00:00+00:00`（`src/collector.py` 照 RSS 存 UTC，彙整取前 10 碼當報導日）。彙整照這個報導日把「今天將正式啟用」換成 9 月 30 日，實際是 10 月 1 日（CTWANT 2026-09-30 15:31 的全文寫「預計將於10月1日正式啟用」）；11-02「道安政策 · 彙整」4 次取樣都寫「9 月 30 日啟用」，改指令修不到。GN 來源 09-01 起入庫 978 篇有 233 篇（24%）的 `published` 剛好是 `07:00:00Z`，非 GN 的 561 篇沒有這種集中；（018 T048，2026-11-08）。11-08 抽樣：差一天少見，07:00Z 那批裡的公視 41 篇被固定標成 09-14、抽到的 6 篇都是舊文，見小節 | `pre-edit: {"paths":["src/collector.py","src/gn_resolver.py"]}`<br>下次動 RSS 的 `published` 轉換或 GN 還原時，先量範圍再改 | 唯讀抽樣量出 GN `07:00:00Z` 那批跟刊出媒體頁面的日期差一天的比例；改用媒體頁的日期（例如 GN 還原時讀 `datePublished`）或寫明不改的理由；已存的報導日怎麼處理有裁示 |
+| `GNS-20261110-sjc` | `#212` review 的非阻擋 findings：充實後門檻擋下的文章不入庫，隔天再收集、再 embedding（Gemini 計費）、再擋（N5）；跨期去重的候選帶 GN 日期、已存列帶媒體頁日期，差 1～3 天的比不到（N2）；header／meta 編碼優先序、沒時區不猜、週報 `analyze` 接回傳值、整批失敗仍跑門檻沒有測試（N4）；逐篇擋下的 log 印網域不印來源，漏斗逐來源對不回（N7）；`pages/traffic/index.html` 頁尾仍寫「PTT 機車板」（N8） | `pre-edit: {"paths":["src/gn_resolver.py","src/pipeline/traffic.py","pages/traffic/index.html"]}`<br>下次動這三支檔時；或 11-16 週報後讀 11-11～11-16 daily 的 `[充實後過時] 擋下：` 行，同一篇連日出現時（N5 的量） | N5 量出每天重複擋下的篇數，決定要不要讓擋下的文章不再被收（例如記進指紋），或寫明不處理的理由；N2、N4、N7、N8 各自修好或寫明不修。依據：`#212` 的分級表留言（2026-11-10） |
 | `GNS-20261108-sx9` | 彙整把報導日寫成事件日的殘餘：spec 018 的彙整指令（「寫到時間時標明是報導日…除非來源明文寫出事件發生的日期」）之下，三份彙整（10-19、10-26、11-02）4 次取樣的日期類真錯型是 0、2、4、4 處（只算 `date_unlabeled` 命中，是下限）：來源沒寫事件日卻寫成「於 N 月 N 日宣布／發布／表示／批評」7 處（新北高灘處那句 3 次新取樣都出現），「10月起」補成「10 月 1 日」3 處。Luke 2026-11-08 裁示 018 照這個指令出貨。逐條判定在 018 `evaluation.md` SC-001 節「第二批取樣」 | `pre-edit: {"paths":["src/analyzer.py"]}`<br>下次動彙整指令（`DIGEST_PROMPT_TEMPLATE`）時 | 三份彙整各重生成至少 2 次，逐份判所有日期（不只 `date_unlabeled` 命中：同一個日期在別篇來源出現過，檢查就不標），這兩型合計 0；或寫明不改的理由 |
 | `GNS-20261108-tz1` | 三軸 A 軸在 FR-005c（spec 018）之後仍分不穩：反事實、人因充分的正向案例各只有 2 次裡 1 次走到對的類；全文輸入下只寫到設施名稱（機車待轉區）的事故會被推成 [雙因交織]，放大機制靠來源沒寫的「無實體防護」「未實施物理限速」 | `pre-edit: {"paths":["src/analyzer.py"]}`<br>開 `GNS-20261108-2zc` 的 spec 時一起做（接全文輸入就是這個洞出現的地方）；或下次動 `src/analyzer.py` 的三軸 A 軸指令時 | spec 018 的 SC-008 爬到「分得開」與「到得了」（018 `evaluation.md`「GNS-20261108-5xf」節的六組輸入，各 2 次一致），且只寫到設施名稱的事故在全文輸入下不出現來源沒寫的工程條件斷言；或寫明不改的理由 |
 | `GNS-20261108-r2t` | 彙整報告的模型杜撰沒有審核者：模型在薄輸入上自己補的錯（10-26「道安政策 · 彙整」把毒駕的統計定義寫成「單月造成 7 死」、在 154 萬張罰單前自己加「全國」），spec 018 的指令修正只能降低機率；018 原本的發布前審稿（US2）在 2026-11-08 拿掉（Luke：對新聞文字再審審不出新聞濾鏡外的東西，方向改成來源追查），這一型因此沒人攔 | `trigger: none — 觸發是讀到報告寫錯，不是動某個檔或跑某個指令；綁 src/analyzer.py 會在每次改指令時響`<br>週驗收或讀者讀到彙整寫出來源沒有的數字、範圍或因果時；或從新聞曝光事件往外做來源追查的那個方向開 spec 時一起評估 | 有一個在發布前攔得到這兩型錯的做法（審稿、機械檢查或人審），拿 10-19、10-26、11-02 三份已發布彙整重播量過；或寫明不做的理由。依據：018 `research.md` R1、R9（`gemini-4-argon` 用逐句核對的提示 3/3 次點出兩型，每次約 US$0.095、68 秒）；錨點與資深編輯評論的待查清單在 `GNS-20261031-s3h` 移出前的節（`git show 8202e60:specs/BACKLOG.md`） |
-| `GNS-20261108-b6c` | Google News 還原後充實的摘要有亂碼：018 T013（2026-11-08）重播 11-02「道安政策 · 彙整」時，來源之一（Yahoo 新聞 `…-153200112.html`，來源「Google News 科技執法」，10-02 報導、10-27 入庫）的 `articles.summary` 與生成當時存進 `source_article_links` 的前 200 字都是亂碼（UTF-8 位元組被解成西里爾字母），模型拿到的輸入就是亂碼。範圍（多少篇、哪些來源）與成因都沒查；推論是 `src/gn_resolver.py` 抓 publisher 頁 og:description 時解碼錯。 | `pre-edit: {"paths":["src/gn_resolver.py"]}`<br>下次動 GN 還原與充實時，先量範圍再改 | 唯讀查詢量出亂碼摘要的篇數與來源分布；定位是哪一步解碼錯；修好或寫明不修的理由；已存的亂碼摘要怎麼處理有裁示 |
 | `GNS-20261108-2zc` | 熱點分析補足新聞缺的元素：抓內文定位地點，接警政署逐案 A1／A2 的現場欄位（來源追查的第一層） | `trigger: none — 開不開由 Luke 決定，還沒有檔案或指令是它的入口`<br>開 spec 的時點由 Luke 決定；開 spec 時先做 `GNS-20261108-tz1`（`5xf` 在 018 以 FR-005c 出貨、只到 SC-008 的門檻，全文輸入下只寫到設施的事故會被推成 [雙因交織]） | 開 spec，寫明進入點（新聞，地點從內文）、資料來源與欄位語意（即時 A1、即時 A2 月檔、年度逐案資料；例「有照明未開啟或故障」不等於故障、肇因研判標成警方研判）、同一件事的驗證（日期、路名、車種、死傷），並在能定位的事故上量過對中率；或寫明不做的理由 |
 | `GNS-20261105-v4e` | CI 版面測試的成本分層：觸發面、安裝來源、上限、量測 | `pre-edit: {"paths":[".github/workflows/tests.yml"]}`<br>Luke 2026-11-05 裁示先分層，實作順序與時間點之後再決定；`timeout-minutes` 維持 10。下次 `unit` job 逾時、或進入密集改前端的時期時重新評估 | 四層各有裁示（做，或寫明不做與理由）；做了的那幾層上線後，`unit` job 每次的安裝耗時查得到 |
 | `GNS-20261103-f71` | 交通的週次清單被截在 1000 列：W30～W37 不在週次導覽裡，最舊那週的篇數算少 | `pre-edit: {"paths":["workers/api/src/index.js"]}`<br>下次動 `workers/api/src/index.js` 的 `handleWeeks` 時；或讀者發現週次導覽缺週時 | `/api/weeks?content_type=traffic` 列出所有有文章的週次，每週篇數與 `/api/weeks/<週>` 的 `article_count` 一致；Worker 有測試 runner，並有一條在超過 1000 列時會紅的測試（故意改壞看它紅）；或寫明不修的理由 |
 | `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口`<br>等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
 | `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口`<br>spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
-| `GNS-20261102-akc` | `Google News 報導者交通` 每天收集到的文章在關鍵字過濾全部被擋：10-20～11-01 的 daily 寫入都是 0 | `pre-edit: {"paths":["config/sources_traffic.example.yml"]}`<br>下次動這個來源的設定（prod `SOURCES_TRAFFIC_YML` 與鏡像），或檢討交通來源清單時 | 查出過濾全擋的原因（query `交通 site:twreporter.org` 撈到的是什麼、擋在哪一條），決定改 query、停用，或寫明保留的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | `pre-edit: {"paths":["scripts/auto_kb.py"]}`<br>每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：Gemini API changelog 讀到 10-30 那則，沒有新的 flash／pro GA（10-13 GA 的 `gemini-4-argon` 已在 10-19 那輪評過），也沒有 `gemini-3.8-flash` deprecated 或被轉送 | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
@@ -55,7 +53,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | `pre-edit: {"paths":["scripts/check_config_drift.py"]}`<br>下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時；2026-10-31 延後：兩個觸發點都還沒發生，新增 example 檔沒有既有路徑可綁 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | `pre-edit: {"paths":[".github/workflows/weekly.yml"]}`<br>下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt）；2026-11-02 動了 `weekly.yml`（加 FFXIV 候選池 artifact 上傳）但不拆，Luke 裁示延後：11-02 是 14.3 分（job 14m20s，多出的 215 秒拆解在 `routines/weekly-verify/FOCUS.md` 的 runtime 基準），還沒到 20 分 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}`<br>下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
-| `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口`<br>daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄） | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
+| `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口`<br>daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄）；2026-11-11 再延後：11-10 的 `money.udn.com` 是 2 次逾時、不是 403，11-11 未再出現（本節觀測記錄） | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴`<br>基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
 | `GNS-007` | 政策 digest 的離題雜訊 | `trigger: none — 已觸發，等開 spec；做法未定，還沒有對應的檔案`<br>已觸發：Luke 2026-10-28 裁示重開（重開條件 2 於 09-07 成立）；下一步開 spec，做法須換成判實質而非判詞彙 | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
 
@@ -303,17 +301,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 | 07-20 | 403 網域 5 個：n.yam／pchome／cdns／mobile01／newstaiwan | 基準 |
 | 08-10（滿週全量，實測） | 7 個：`n.yam.com`、`news.pchome.com.tw`、`www.cdns.com.tw`、`leho.com.tw`、`www.gov.tw`、`rise-mediacorp.com`、`www.allnews.tw`；覆蓋率 84.8% | (1)(2) 皆未成立：新增的都不是主流原生媒體，UDN／自由／中時／中央社／TVBS／三立全部正常；`www.cdns.com.tw`（中華日報）07-20 就在名單上 |
 | 10-25、10-27、10-28（3 次 daily，實測；只抽這 3 天） | 7 個：`n.yam.com`、`www.cdns.com.tw`、`news.pchome.com.tw`（502，不是 403）、`www.teepr.com`、`www.watchmedia01.com`、`pronews.tw`、`www.marketersgo.com` | (1)(2) 皆未成立：主流原生媒體一個都沒有；`n.yam.com`、`www.cdns.com.tw` 07-20 起就在名單上 |
-
-### PTT 兩個看板（`GNS-016` 移入，2026-10-31）
-
-- **事實**（實測）：Actions 上 `PTT/biker`、`PTT/SuperBike` 09-17 起每天 403。10-31 的診斷（`measure-ptt-access.yml`，run `41165997831`）：
-  6 種請求（含 TLS 指紋不同的 curl）全部 403，且都帶 `cf-mitigated: challenge`；同樣的請求從家用 IP 全部 200 → 擋的是 Actions 的網路來源，
-  不是請求形狀。損失量：`articles` 裡 08-01～09-16 共 14 篇，約一週 2 篇。
-- **處置**：10-31 兩個看板改 `enabled: false`（prod `SOURCES_TRAFFIC_YML` 與鏡像同一天）。用瀏覽器解 challenge 沒有列為選項：那是繞過網站刻意設的防護。
-- **停用之後不會出聲**：daily 不再印 PTT 的 403，PTT 自己不構成這一列的觸發點；它的狀態只有重跑診斷才看得到，跟著這一列的評估走。
-- **重新啟用之前**：(a) 在新的出口上重跑 `python scripts/measure_ptt_access.py`（Actions 上是 `gh workflow run measure-ptt-access.yml`），判讀要是全部 200；
-  (b) 家用 IP 下 PTT 回 `br`，`requests` 沒有 brotli 可解，`prod` 變體解析出 0 列（10-31 本機實測）——`PTT_HEADERS` 的 `Accept-Encoding`
-  拿掉 `br`，或把 brotli 加進 requirements；`_flag_parsed_zero` 會把 0 列記成來源失敗，不會再沉默。
+| 11-10、11-11（2 次 daily，實測；只看這 2 天） | 11-10（run `42762366280`，`#212` 之前）：35 篇中 35 還原，失敗 4 篇——`money.udn.com` 2 篇（`status=None`，read timeout 10 秒）、`news.pchome.com.tw`（403）、`rise-mediacorp.com`（403）。11-11（run `42956243767`，`#212` 之後第一個 daily）：13 篇中 13 還原，失敗 1 篇——`cnews.com.tw`（403） | (1) 觸發點的字面命中一次：UDN 的子網域出現在失敗網域，但是逾時、不是被擋，隔天沒有再出現；Luke 11-11 裁示記下、延後。(2) 未成立。`#212`（11-10 merge）起 GN 還原與 og 改送 GaryuNewsBot UA，11-11 起的名單不能直接跟之前比 |
 
 ## GNS-20261005-gg3 機車事故 require 表的真實 recall 未量
 
@@ -551,22 +539,6 @@ Luke 10-26 裁示人工條目新增類別 `魔物`，兩列已改；`auto_kb.py`
 
 ---
 
-## GNS-20261102-akc `Google News 報導者交通` 寫入一直是 0
-
-**發現**：2026-11-02，查 11-02 驗收報告（GAR-63）說的「多來源本週收集量明顯偏低」時。Luke 裁示另開一列。
-
-**證據**（daily log 的 `[來源漏斗] Google News 報導者交通：…` 行，`gh run view <run id> --log`）：
-
-| 日 | 收集 | 新鮮度 | 過濾 | 寫入上限 |
-|---|---|---|---|---|
-| 10-20～10-25（6 個 daily） | 100 | 100 | 0 | 0 |
-| 10-27～11-01（6 個 daily） | 4～5 | 4～5 | 0 | 0 |
-
-- 收集量 10-26 週報還是 100，10-27 daily 起每天 4～5。鏡像 `config/sources_traffic.example.yml` 在 10-21～10-30 沒有 commit
-  （下一次是 10-31 停 PTT），prod 變數那段期間有沒有另外改沒查；推論是 Google News 那端變了。這一掉就讓 daily 的 `過濾後剩 X 筆（原 Y 筆）` 的 Y 每天少約 95，週驗收 routine 照 FOCUS 的舊範圍判成「偏低」；
-  但前後寫入都是 0，對輸出沒有影響。
-- 看過的只有上表 12 個 daily；10-20 以前是不是也全擋沒查。query 是 `交通 site:twreporter.org`。
-
 ## GNS-20261103-f71 交通的週次清單被截在 1000 列
 
 **發現**：2026-11-03，spec 017 的 plan（量「跨週數新文章」要打幾次 API 時）。
@@ -647,27 +619,3 @@ Luke 2026-11-08 改寫來源追查的問題：「可能不是管線篩的問題�
   prod 現在的輸入（標題＋600 字摘要）上，T047 的 7 份 A 軸都沒有這種斷言；`2zc` 接全文就是它出現的地方。
 - 還沒試的改法（018 Clarifications 列過、Luke 沒選）：補那句「只評估來源寫到的條件」到部分資料的情況（沒寫到的「沒有／未實施」不能當放大機制）；定義只寫到設施名稱算不算工程資料；
   system prompt 的「結構性懷疑論：對官方歸因系統性質疑」沒消融過（018 evaluation「讀法」）。
-
-## GNS-20261108-a7k Google News 的報導日跟刊出媒體對不上（2026-11-08）
-
-2026-11-08（018 T048 之後，Luke 裁示先量）：從 09-01 起入庫的 GN 報導抽樣，抓刊出媒體頁面的 `datePublished`（或 `article:published_time`），換成 +0800 的日期跟 `articles.published` 換成 +0800 的日期比。
-樣本用 `random.Random(20261108)` 抽：`published` 剛好是 `07:00:00Z` 的 233 篇裡抽 30，其他時間的 745 篇裡抽 15 當對照。978 篇的 `link` 都已還原成媒體網址。
-
-| 組 | 抽 | 讀到日期 | 同一天 | 差 1～3 天 | 差幾個月到幾年 | 讀不到 |
-|---|---|---|---|---|---|---|
-| 07:00Z | 30 | 28 | 20 | 2（NOWnews −1；一篇是列表頁 +2） | 6（全是公視） | 2 |
-| 對照 | 15 | 11 | 9 | 2（蕃薯藤 −2、風傳媒 +3） | 0 | 4 |
-
-- 「早一天」不是主要的形狀：07:00Z 組只抽到 1 篇差一天，方向還相反。觸發這條的 Yahoo 那篇（存 09-30、頁面 10-01）在樣本外。
-- 大的是公視：07:00Z 的 233 篇裡 41 篇是 `news.pts.org.tw`，41 篇存的 `published` 全是 `2026-09-14T07:00:00+00:00`，入庫日卻散在 09-17～10-05；GN 來源裡公視就這 41 篇。
-  抽到的 6 篇頁面日期是 2019-03、2023-07、2023-08、2025-12、2026-02、2026-07（`datePublished` 與 `article:published_time` 一致，main 讀過兩篇的原始頁面）。推論：GN 給公視的是固定日期，這批多半是舊文。
-- 沒查：這 41 篇有沒有進到週報的池子或報告（池子用 `published` 還是 `created_at` 框週次）；差 1～3 天那幾篇是媒體改過時間還是 GN 給錯。
-- 腳本與每篇的結果在本機 `research/2026-11-08-a7k-gn-dates/`（gitignored）：`scripts/sample_gn.py <sample.json>` 唯讀抽樣，`python3 -I scripts/fetch_dates.py <sample.json> <下載目錄> <結果.json>` 抓頁面比日期；`data/results.json` 是這次 45 篇的逐篇結果。
-
-## GNS-20261108-b6c Google News 充實的摘要有亂碼（2026-11-08）
-
-2026-11-08（018 T048 時順手查，沒有動程式）：亂碼用 PT154 解回 UTF-8 就完整還原——`"дәӨйҖҡйғЁд»Ҡ".encode("ptcp154").decode("utf-8") == "交通部今"`；cp1251、koi8_r、kz1048、cp866、iso8859_5 都還原不了。
-所以是某一步把 UTF-8 位元組當 PT154 解，不是資料本身壞掉。
-
-- `src/gn_resolver.py:102` 把 `resp.content[:400_000]`（位元組）直接交給 BeautifulSoup，編碼由它自己判（本機裝了 `charset_normalizer`、沒有 `chardet`），`requests` 從 header 判的編碼沒用上。推論，沒驗：猜錯編碼的是這一步。
-- 反證一筆：另一篇 Yahoo 頁面（`…-003100722.html`）在第 45 byte 就宣告 `<meta charSet="utf-8"/>`，這個樣板照理不會猜錯；亂碼那一篇（`…-153200112.html`）的原始頁面沒抓來看。下次先抓那一頁，用同一個 `BeautifulSoup(content[:400_000])` 重現。

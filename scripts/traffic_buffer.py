@@ -56,7 +56,7 @@ def main():
         daily_enrich = True
 
     if daily_enrich:
-        cat.prefetch(filtered)
+        filtered = cat.prefetch(filtered)
     else:
         from src.gn_resolver import is_gn_article_link
         gn_pending = sum(1 for a in filtered if is_gn_article_link(a.get("link") or ""))

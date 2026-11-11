@@ -16,7 +16,6 @@
 ```
 收集（collector.py）
   ├── Google News RSS
-  ├── PTT 看板爬蟲
   ├── 各大新聞網 RSS
   └── 官網爬蟲（交通部等）
         ↓
@@ -145,16 +144,6 @@ Dashboard → Pages 專案 → Settings → Functions → Service bindings → A
   url: "https://news.google.com/rss/search?q=機車+交通&hl=zh-TW&gl=TW&ceid=TW:zh-Hant"
 ```
 
-### type: ptt
-
-```yaml
-- name: PTT/biker
-  type: ptt
-  enabled: true
-  board: biker       # 板名大小寫有別（biker、SuperBike）
-  min_pushes: 5      # 只收推文數 >= N 的文章
-```
-
 ### type: web
 
 ```yaml
@@ -169,8 +158,6 @@ Dashboard → Pages 專案 → Settings → Functions → Service bindings → A
 |---------|------|
 | 停用來源 | `enabled: false` |
 | 新增 Google News 主題 | 複製 rss block，修改 `url` 的 `q=` 參數 |
-| 新增 PTT 看板 | 複製 ptt block，修改 `board` |
-| 調整推文門檻 | 修改 `min_pushes` |
 
 ---
 

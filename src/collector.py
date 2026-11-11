@@ -2,7 +2,7 @@
 collector.py
 抓取多來源新聞：台灣機車交通（traffic）和 FFXIV 遊戲資訊（ffxiv）
 來源分別由 config/sources_traffic.yml 和 config/sources_ffxiv.yml 設定。
-支援的 type：rss、ptt、web、html_patch、html_forum
+支援的 type：rss、web、html_patch、html_forum
 """
 
 import re
@@ -23,19 +23,6 @@ logger = logging.getLogger(__name__)
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (compatible; GaryuNewsBot/1.0; +mailto:lukeking0325@gmail.com)",
     "Accept-Language": "zh-TW,zh;q=0.9",
-}
-
-PTT_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "zh-TW,zh;q=0.9,en-US;q=0.8",
-    "Accept-Encoding": "gzip, deflate, br",
-    "Connection": "keep-alive",
-    "Referer": "https://www.ptt.cc/bbs/index.html",
 }
 
 MOTORCYCLE_KEYWORDS = [
@@ -274,50 +261,6 @@ def _fetch_rss(source: dict) -> list:
             if content_type == "ffxiv" or is_google_news or any(kw in text for kw in MOTORCYCLE_KEYWORDS):
                 articles.append(_entry_to_dict(entry, name, content_type))
         logger.info("%s: %d 筆", name, len(articles))
-    except Exception as e:
-        logger.warning("%s 失敗: %s", name, e)
-        _mark_failed(name)
-    return articles
-
-
-def _fetch_ptt(source: dict) -> list:
-    name = source["name"]
-    board = source["board"]
-    min_pushes = source.get("min_pushes", 5)
-    content_type = source.get("content_type", "traffic")
-    articles = []
-    url = f"https://www.ptt.cc/bbs/{board}/index.html"
-    try:
-        session = requests.Session()
-        session.cookies.set("over18", "1", domain="www.ptt.cc")
-        resp = session.get(url, headers=PTT_HEADERS, timeout=15)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "lxml")
-        entries = soup.select("div.r-ent")
-        _flag_parsed_zero(name, len(entries))
-        for div in entries:
-            title_tag = div.select_one("div.title a")
-            if not title_tag:
-                continue
-            title = title_tag.text.strip()
-            link = "https://www.ptt.cc" + title_tag["href"]
-            push_tag = div.select_one("div.nrec span")
-            push_count = 0
-            if push_tag:
-                try:
-                    push_count = int(push_tag.text.strip())
-                except ValueError:
-                    push_count = 10 if push_tag.text.strip() == "爆" else 0
-            if push_count >= min_pushes:
-                articles.append({
-                    "title": title,
-                    "link": link,
-                    "summary": f"PTT {board} 推文數：{push_count}",
-                    "source": name,
-                    "published": "",
-                    "content_type": content_type,
-                })
-        logger.info("%s: %d 筆熱門文章", name, len(articles))
     except Exception as e:
         logger.warning("%s 失敗: %s", name, e)
         _mark_failed(name)
@@ -790,7 +733,6 @@ def _fetch_vb_forum(source: dict, now: datetime | None = None) -> list:
 
 FETCHERS = {
     "rss": _fetch_rss,
-    "ptt": _fetch_ptt,
     "web": _fetch_web,
     "html_patch": _fetch_html_patch,
     "html_forum": _fetch_html_forum,

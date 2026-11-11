@@ -12,26 +12,25 @@ Google News 的 RSS <link> 是 news.google.com/rss/articles/<id> 轉址頁，
 還原後順路抓 publisher 頁的 og:description / og:image 充實 summary 與 image。
 """
 
+import codecs
 import json
 import logging
 import re
 import time
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
+from bs4.dammit import EncodingDetector
+
+from src.collector import HEADERS as _COLLECTOR_HEADERS
 
 logger = logging.getLogger(__name__)
 
-# GN 轉址頁對非瀏覽器 UA 可能不回 decode 參數，比照 collector 的 PTT_HEADERS 用瀏覽器 UA
-_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "zh-TW,zh;q=0.9",
-}
+# 跟 collector 抓 HTML 同一個正式 UA（憲章 IV）。2026-11-10 本機量測：換掉瀏覽器 UA 後，
+# GN 還原與 og 取得在 14 個網域上三輪結果相同。
+_HEADERS = {"User-Agent": _COLLECTOR_HEADERS["User-Agent"], "Accept-Language": "zh-TW,zh;q=0.9"}
 
 _BATCH_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute"
 _GN_LINK_RE = re.compile(r"^https?://news\.google\.com/(?:rss/)?articles/")
@@ -95,18 +94,70 @@ def resolve_gn_link(session: requests.Session, link: str) -> str | None:
     return _parse_batch_response(resp.text)
 
 
-def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str]:
-    """publisher 頁的 (og:description, og:image)；抓不到的欄位回空字串。"""
+# 瀏覽器把這些標籤當成超集解（WHATWG）；照 Python 字面解，超集才有的字（例 big5 的「碁」）會壞（#212 review N3）
+_BROWSER_SUPERSETS = {"big5": "cp950", "shift_jis": "cp932", "gb2312": "gb18030", "gbk": "gb18030"}
+
+
+def _declared_charset(resp, raw: bytes) -> str | None:
+    """header 或 meta 宣告的編碼；沒有或不認得回 None，才交給 bs4 偵測（GNS-20261108-b6c：
+    宣告 utf-8 但截斷處不合法時，偵測曾猜成 PT154／cp866）。"""
+    m = re.search(r"charset=[\"']?([\w-]+)", resp.headers.get("Content-Type", ""), re.I)
+    name = m.group(1) if m else EncodingDetector.find_declared_encoding(raw, is_html=True)
+    try:
+        name = codecs.lookup(name).name if name else None
+    except LookupError:
+        return None
+    return _BROWSER_SUPERSETS.get(name, name)
+
+
+def _jsonld_article_dates(soup: BeautifulSoup) -> list[str]:
+    """JSON-LD 頂層（含 @graph）裡 @type 是 *Article 的 datePublished；巢狀的相關文章不算（#212 review N1）。"""
+    dates = []
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            data = json.loads(script.get_text())
+        except ValueError:
+            continue
+        items = data if isinstance(data, list) else [data]
+        items += [g for d in items if isinstance(d, dict) for g in (d.get("@graph") or [])]
+        for d in items:
+            types = d.get("@type") if isinstance(d, dict) else None
+            types = [types] if isinstance(types, str) else (types or [])
+            if any(str(t).endswith("Article") for t in types) and isinstance(d.get("datePublished"), str):
+                dates.append(d["datePublished"])
+    return dates
+
+
+def _page_published(soup: BeautifulSoup) -> str:
+    """媒體頁的刊出時間：article:published_time，沒有就 JSON-LD 的 datePublished；換成 UTC ISO，沒時區的不猜，讀不到回 ""。"""
+    tag = (soup.find("meta", attrs={"property": "article:published_time"})
+           or soup.find("meta", attrs={"name": "article:published_time"}))
+    raws = [tag.get("content") or ""] if tag else []
+    raws += _jsonld_article_dates(soup)
+    for raw in raws:
+        try:
+            dt = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if dt.tzinfo is not None:
+            return dt.astimezone(timezone.utc).isoformat()
+    return ""
+
+
+def fetch_og_meta(session: requests.Session, url: str) -> tuple[str, str, str]:
+    """publisher 頁的 (og:description, og:image, 刊出時間 UTC ISO)；抓不到的欄位回空字串。"""
     resp = session.get(url, headers=_HEADERS, timeout=_TIMEOUT)
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.content[:400_000], "html.parser")
+    raw = resp.content[:400_000]
+    charset = _declared_charset(resp, raw)
+    soup = BeautifulSoup(raw.decode(charset, errors="replace") if charset else raw, "html.parser")
 
     def og(prop: str) -> str:
         tag = (soup.find("meta", attrs={"property": prop})
                or soup.find("meta", attrs={"name": prop}))
         return (tag.get("content") or "").strip() if tag else ""
 
-    return og("og:description"), og("og:image")
+    return og("og:description"), og("og:image"), _page_published(soup)
 
 
 def _record_error_domain(stats: dict, domain: str, status) -> None:
@@ -128,7 +179,7 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
     供 pipeline log 與 eval harness 共用。
     """
     stats = {"gn_total": 0, "resolved": 0, "summary_filled": 0,
-             "image_filled": 0, "errors": 0, "error_domains": {}}
+             "image_filled": 0, "errors": 0, "error_domains": {}, "published_from_page": 0}
     session = requests.Session()
     for a in articles:
         link = (a.get("link") or "").strip()
@@ -149,7 +200,10 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
             a["link"] = real_url
             stats["resolved"] += 1
 
-            desc, image = fetch_og_meta(session, real_url)
+            desc, image, published = fetch_og_meta(session, real_url)
+            if published:
+                a["published"] = published
+                stats["published_from_page"] += 1
             title = (a.get("title") or "").strip()
             if len(desc) >= _MIN_SUMMARY_LEN and desc != title:
                 a["summary"] = desc
@@ -176,8 +230,8 @@ def enrich_articles(articles: list, throttle: float = 0.4) -> dict:
         blocked = (f"（失敗網域：{', '.join(sorted(stats['error_domains']))}）"
                    if stats["error_domains"] else "")
         logger.info(
-            "GN 充實：%d 篇中 %d 還原連結、%d 補摘要、%d 補圖、%d 失敗%s",
+            "GN 充實：%d 篇中 %d 還原連結、%d 補摘要、%d 補圖、%d 用媒體頁日期、%d 失敗%s",
             stats["gn_total"], stats["resolved"], stats["summary_filled"],
-            stats["image_filled"], stats["errors"], blocked,
+            stats["image_filled"], stats["published_from_page"], stats["errors"], blocked,
         )
     return stats
