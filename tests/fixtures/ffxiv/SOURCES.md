@@ -25,3 +25,15 @@
 每個 `li` 照抓到的原樣，含 `<a href>`、`p.news__list--title` 與 `ldst_strftime(<epoch>, 'YMD')`。五則的 epoch（UTC）：
 10-20 06:50、10-13 11:00、10-13 07:27、10-13 07:13、09-19 02:38。
 詳細頁拿掉了 `div.news__footer`；留下 `header` 是為了讓測試分得出「取 `detail_selector` 的節點」與「取整頁」。
+
+## 英文論壇（spec 019 T004）
+
+抓取日：2026-11-11（11:46:41 UTC，回應的 `Date` 標頭＝日本時間 20:46），用 `collector.HEADERS`，200、沒有轉址。
+11-10 T001 存的原文只留在當時 session 的 scratch，這份是重抓的（research R4）。
+
+| 檔案 | 來源網址 | 留下的節點 |
+|---|---|---|
+| `en_thread_single_page.html` | `https://forum.square-enix.com/ffxiv/threads/532931`（659 Healer Roles，「[Sugestion] Astroligian kit upgrade ideas <3」） | 整串只有一頁、一則回覆（post 6857299，`span.date` 是絕對日期 `11-08-2026 06:11 AM`）；分頁區只有 `Results 1 to 1 of 1`，沒有「Page N of M」，照原樣留下 |
+
+回覆照上面論壇那段的規則修剪。同一則回覆的 RSS `pubDate` 是 `Sat, 07 Nov 2026 21:11:58 GMT`（research R4，2026-11-10 量），
+頁面只到分鐘，換成 UTC 應是 `2026-11-07T21:11Z`。這頁沒有 `Today`／`Yesterday`，那兩種寫法在 `_parse_vb_time` 那一層用同一則的數字測。
