@@ -47,7 +47,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | `pre-edit: {"paths":["scripts/auto_kb.py"]}`<br>每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：Gemini API changelog 讀到 10-30 那則，沒有新的 flash／pro GA（10-13 GA 的 `gemini-4-argon` 已在 10-19 那輪評過），也沒有 `gemini-3.8-flash` deprecated 或被轉送 | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
-| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定） | `trigger: none — 觸發是 11-09 週報產生的 artifact，沒有檔案或指令是它的入口`<br>11-09 週報後讀它的 `ffxiv-pool` artifact（整個候選池，含沒入選的全文），看被擠掉的值不值得進分析，再決定要不要調整輸出形式——對齊交通週報的彙整，或第三套方法（Luke 10-20；11-02 裁示先看內容，見本節）。聚合那半另卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
+| `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定；取樣那半已由 spec 019 做掉） | `trigger: none — 觸發是 019 上線後連兩週的週報讀回，沒有檔案或指令是它的入口`<br>019（`#210`）上線後連兩週的讀回做完時（`specs/019-ffxiv-sampling-window/evaluation.md`，預計 11-23 週報之後），看論壇版的串夠不夠當 patch-triggered 的討論來源——原設計用 Reddit，Reddit 因 robots.txt 拿掉（11-10），要另找來源。聚合那半仍卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | `pre-edit: {"paths":["src/collector.py","config/sources_traffic.example.yml"]}`<br>下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時；2026-10-31 延後：兩個觸發點都還沒發生 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | `pre-edit: {"paths":["scripts/check_config_drift.py"]}`<br>下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時；2026-10-31 延後：兩個觸發點都還沒發生，新增 example 檔沒有既有路徑可綁 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
@@ -440,6 +440,14 @@ L1 從 10-26 起每週少 9～12（10-19 含存量，不算）。`Google News �
 - **11-09 Luke 裁示 spec 排序：`3cq` → `GNS-20261108-2zc`（spec 裡先做 `GNS-20261108-tz1`）→ `GNS-007`**，本列排第一；開 spec 的時點仍未定。
   依據是 `GAR-33` session 的評分（權重是判斷）：每週損害 ×3、做法明確 ×2、規模 ×1，`3cq` 25、`2zc`＋`tz1` 11、`GNS-007` 8。
   `3cq` 跟交通那三條沒有共用的底層（推論）。
+- **11-10～11-11 spec 019 做掉取樣那半**（`#211`、`#210`）：
+  - 拿掉 `Reddit r/ffxiv`（robots.txt `Disallow: /`，Luke 11-09）與論壇列表頁 `FFXIV JP Forum`（只有標題）；`#211` 11-10 上線。
+  - 加收英文官方論壇五個版（日文五個版的對應：644、657、658、659、660；PLL 版權重 100、其他 80），分析篇數上限從程式裡的 20
+    搬進 `PIPELINE_CONFIG_YML` 的 `ffxiv.max_selected`（30，Luke 11-10），上限截掉論壇串時 log 印一行；`#210`。
+  - 上線後的驗收（SC-001～SC-005）記在 `specs/019-ffxiv-sampling-window/evaluation.md`（T017、T014 寫入）與 FOCUS (7)，不在這一列。
+- **11-11 Luke 裁示：這一列改寫後留著，只剩 patch-triggered 與聚合 digest 兩半**。patch-triggered 的原設計用 Reddit JSON API 抓討論，
+  Reddit 已拿掉，要另找討論來源；候選是 019 加進來的論壇版，夠不夠要看上線後兩週的內容，還沒量。聚合 digest 仍卡在日文來源。
+  上面 11-09 的 spec 排序裡第一項（取樣）已完成，下一個是 `GNS-20261108-2zc`。
 
 ## GNS-20261019-1vk 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送
 
