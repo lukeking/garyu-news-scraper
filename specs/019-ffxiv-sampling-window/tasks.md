@@ -50,7 +50,7 @@ US1 與上限在 `#210`。英文版的 id、時區與供給先由 spike 查（Ph
 - [X] T006 [US1] [FR-002] 依 T001 的結果改 `src/collector.py`：英文頁面不是日本時間 → `vb_forum` 來源加一個時區欄位（缺欄位＝日本時間，日文版設定不用改），`_parse_vb_time`／`_parse_vb_page` 用它換算；是日本時間、格式相同 → 程式不改，在 research R4 寫明，T004 用英文樣本鎖住。
 - [X] T007 [US1] [FR-003] 改 `src/filter.py` 的 `game_deduplicate`：上限從 `load_pipeline_config()` 的 `ffxiv.max_selected` 讀（`contracts/config-and-logs.md`），取代 `retained[:20]`；截掉論壇項目時印契約那一行。docstring 的「取前 20」一起改。
 - [X] T008 [US1] [FR-003] 上限的設定鏡像與預算紀錄：`config/pipeline_config.example.yml` 加 `ffxiv.max_selected`（值照 T003）；`docs/external-services.md` Gemini 那一列的「每次篇數」改指向這個鍵，並讀一次 `src/pipeline/ffxiv.py` 的 `max_articles = 30` 有沒有被用到，結果寫進那一列（沒用到就照實寫，不在本 spec 刪它）。
-- [ ] T009 [US1] [FR-001, FR-007] `config/sources_ffxiv.example.yml` 加英文五個 `vb_forum` 項目：名稱 `FFXIV EN Forum - <版名>`、url 用 T001 的 id、權重 PLL 100 其他 80、其他欄位沿用日文版；T006 若加了時區欄位，英文項目照實填。
+- [-] T009 [US1] [FR-001, FR-007] `config/sources_ffxiv.example.yml` 加英文五個 `vb_forum` 項目：名稱 `FFXIV EN Forum - <版名>`、url 用 T001 的 id、權重 PLL 100 其他 80、其他欄位沿用日文版；T006 若加了時區欄位，英文項目照實填。
 
 **Checkpoint**: `pytest tests/unit` 全綠；英文樣本與上限的測試咬得到。
 

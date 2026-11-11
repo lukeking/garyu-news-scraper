@@ -13,7 +13,7 @@
 # └──────────────────────────────────────────────────────────────────┘
 #
 # 每個來源務必設定 content_type: "ffxiv"
-# 每個來源設 weight（整數，越大越先入選週報的 20 篇；沒寫＝0、排在最後並印警告）。spec 015。
+# 每個來源設 weight（整數，越大越先入選週報；名額是 PIPELINE_CONFIG_YML 的 ffxiv.max_selected；沒寫＝0、排在最後並印警告）。spec 015。
 #
 # FFXIV 靜態網站輸出目錄：pages/ffxiv/
 # 公開網址（CF Pages 專案 garyu-ffxiv-news）請在 GitHub Environment Variables 設定：
@@ -119,6 +119,59 @@ sources:
   - name: "FFXIV JP Forum - その他バトルシステム"
     type: vb_forum
     url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=553&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 80
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # ── EN Forum 各版（type: vb_forum，spec 019）──────────────────────────────
+  # 日文五個版的英文對應（537→644、550→657、551→658、552→659、553→660）；串頁面同樣是日本時間，沒有時區欄位。
+
+  - name: "FFXIV EN Forum - Letter from the Producer LIVE"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=644&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 100
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Tank Roles"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=657&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 80
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - DPS Roles"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=658&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 80
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Healer Roles"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=659&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 80
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Other Battle Systems"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=660&lastpost=1"
     enabled: true
     content_type: "ffxiv"
     weight: 80
