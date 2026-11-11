@@ -9,6 +9,11 @@ jaccard:
   cluster_lower: 0.20        # Traffic: 0.20–0.45 → cluster into same topic bucket
   game_threshold: 0.50       # Game (FFXIV): Jaccard > this → discard as duplicate
 
+ffxiv:
+  max_selected: 30           # Max FFXIV articles analysed per weekly run (one Gemini call each). Missing → 20;
+                             # not a positive integer → the FFXIV run fails, no fallback. Luke 2026-11-10 (spec 019 R6).
+                             # When it cuts vb_forum threads the log prints "FFXIV 上限 N 截掉論壇 k 篇：…".
+
 topic_scoring:
   min_threshold: 1.5         # Cumulative score must meet/exceed this to qualify as hot topic
   max_hot_topics: 3          # Maximum hot-topic reports generated per weekly run
