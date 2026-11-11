@@ -6,7 +6,10 @@
 
 - 位置：`PIPELINE_CONFIG_YML` 的 `ffxiv.max_selected`，`load_pipeline_config()` 讀得到，`game_deduplicate` 取用。T005、T007、T008 都用這個名字。
   名字對應 log 的 `FFXIV 入選` 與 `game_deduplicate` 裡的 `selected`；不叫 `max_articles`，因為 `src/pipeline/ffxiv.py` 已有一個 `max_articles = 30`（T008 查它有沒有被用到）。
-- 型別：正整數。缺鍵（含整個 `ffxiv` 區塊不在）→ 20。不是正整數 → 啟動時報錯停下（不靜靜退回 20）。
+- 型別：正整數。缺鍵（含整個 `ffxiv` 區塊不在或是空的）→ 20。不是正整數 → `game_deduplicate` 一開始就報錯（`RuntimeError`，不靜靜退回 20），輸入是空的也報。
+- 報錯落在 FFXIV 的 filter 階段，不在載入設定時：`src/main.py` 逐 category 接住例外，印 `[ffxiv] 處理失敗：[pipeline_config] ffxiv.max_selected 必須為正整數…`，
+  那一週沒有 FFXIV 報告，交通照常，job 不標紅。Luke 2026-11-11 裁示照實際行為寫（原本寫「啟動時報錯停下」）：檢查不搬進 `load_pipeline_config`，
+  交通的 daily 讀同一份設定、載入失敗時會降級跑。週驗收靠 FOCUS 找 `[ffxiv] 處理失敗` 那一行（T013）。
 - 回復：刪掉鍵 → 20（FR-008）。
 
 ## 截掉論壇串的 log
