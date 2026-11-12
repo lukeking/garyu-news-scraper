@@ -46,7 +46,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口`<br>spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | `pre-edit: {"paths":["scripts/auto_kb.py"]}`<br>每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
-| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 Gemini 文字生成模型釋出 GA（官方 changelog 沒標 flash／pro 的也算，argon、carbon 都是）；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：changelog 讀到 10-30 那則，沒有新的 GA；2026-11-12 觸發：`gemini-4-carbon` 11-10 GA，那輪已跑（本節「2026-11-12」），Luke 定方向：按功能分模型 | 照 Luke 11-12 的方向實作按功能分模型：各呼叫端讀自己的模型設定，三軸（交通熱點）換 carbon 並放寬那條路徑的輸出上限與 timeout，其餘留 3.8，prod 不早於 11-23 週報之後換；下一輪照 `experiments/model-quality-3p8flash-vs-carbon/` 的做法（018 重播素材、裁判看到與生成相同的輸入），但裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，要先換裁判 |
+| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 Gemini 文字生成模型釋出 GA（官方 changelog 沒標 flash／pro 的也算，argon、carbon 都是）；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：changelog 讀到 10-30 那則，沒有新的 GA；2026-11-12 觸發：`gemini-4-carbon` 11-10 GA，那輪已跑（本節「2026-11-12」），Luke 定方向：按功能分模型 | 照 Luke 11-12 的方向實作按功能分模型（哪幾條呼叫端分出自己的變數未定案）：三軸（交通熱點）換 carbon 並放寬那條路徑的輸出上限與 timeout，其餘先指到 3.8，prod 不早於 11-23 週報之後換；下一輪照 `experiments/model-quality-3p8flash-vs-carbon/` 的做法（018 重播素材、裁判看到與生成相同的輸入），但裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，要先換裁判 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定；取樣那半已由 spec 019 做掉） | `trigger: none — 觸發是 019 上線後連兩週的週報讀回，沒有檔案或指令是它的入口`<br>019（`#210`）上線後連兩週的讀回做完時（`specs/019-ffxiv-sampling-window/evaluation.md`，預計 11-23 週報之後），看論壇版的串夠不夠當 patch-triggered 的討論來源——原設計用 Reddit，Reddit 因 robots.txt 拿掉（11-10），要另找來源。聚合那半仍卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | `pre-edit: {"paths":["src/collector.py","config/sources_traffic.example.yml"]}`<br>下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時；2026-10-31 延後：兩個觸發點都還沒發生 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
@@ -484,7 +484,8 @@ argon 對 3.8 過不了 L1（觸發制紀律 −1.22、文本依據 −0.50）�
   但 5 次超過 120 秒。
 - 3.8 對 carbon@65536：三軸 carbon 勝 88%、逐軸 +0.33～+1.29（L2）；彙整 50%、逐軸 ±0.08（L1，位置偏誤重）；Claude 抽查事故類三軸 3／3 carbon。
   成本約 4 倍：月成本上界 3.8 $1.40／$2.81（2027-01-01 漲價）、carbon $5.26／$10.52（2026-12-01 漲價），12 月全部換 carbon 是 7.5 倍。
-- Luke 11-12 定方向：按需求／功能分模型，不全綁在 `GEMINI_MODEL_NAME`；argon 與 carbon 同價、對 3.8 差距不大，不採用。實作還沒開。
+- Luke 11-12 定方向：按需求／功能分模型，不全綁在 `GEMINI_MODEL_NAME`；FFXIV、交通日常要不要也分出變數（先都指到 3.8）未定案。
+  argon 與 carbon 同價，10-19 那輪對 3.8 過不了 L1（總平均 −0.26）。實作還沒開。
 - 未裁示：`_call_gemini` 遇到沒有 parts 的回應會丟 `KeyError`（這輪裁判撞到），要不要開一列。prod 在 11-23 週報之前不換。
 
 ## GNS-20261026-fwz 015 上線後日文論壇每週帶進未知術語
