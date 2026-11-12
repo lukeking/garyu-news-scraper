@@ -46,7 +46,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口`<br>spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | `pre-edit: {"paths":["scripts/auto_kb.py"]}`<br>每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
 | `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
-| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 flash／pro 釋出 GA；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：Gemini API changelog 讀到 10-30 那則，沒有新的 flash／pro GA（10-13 GA 的 `gemini-4-argon` 已在 10-19 那輪評過），也沒有 `gemini-3.8-flash` deprecated 或被轉送 | 照 `experiments/model-quality-3p8flash-vs-argon/` 的做法再跑一輪（先把裁判看到的來源改成與生成相同的 600 字），結果寫進 `experiments/` 新目錄，據此設定 `GEMINI_MODEL_NAME`；或寫明不跑的理由 |
+| `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 Gemini 文字生成模型釋出 GA（官方 changelog 沒標 flash／pro 的也算，argon、carbon 都是）；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：changelog 讀到 10-30 那則，沒有新的 GA；2026-11-12 觸發：`gemini-4-carbon` 11-10 GA，那輪已跑（本節「2026-11-12」），`GEMINI_MODEL_NAME` 等 Luke 裁示 | 11-12 那輪（carbon）的處置由 Luke 裁示——全部換、只換熱點，或不換——照做並寫回本節；下一輪照 `experiments/model-quality-3p8flash-vs-carbon/` 的做法（018 重播素材、裁判看到與生成相同的輸入），但裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，要先換裁判 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定；取樣那半已由 spec 019 做掉） | `trigger: none — 觸發是 019 上線後連兩週的週報讀回，沒有檔案或指令是它的入口`<br>019（`#210`）上線後連兩週的讀回做完時（`specs/019-ffxiv-sampling-window/evaluation.md`，預計 11-23 週報之後），看論壇版的串夠不夠當 patch-triggered 的討論來源——原設計用 Reddit，Reddit 因 robots.txt 拿掉（11-10），要另找來源。聚合那半仍卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
 | `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | `pre-edit: {"paths":["src/collector.py","config/sources_traffic.example.yml"]}`<br>下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時；2026-10-31 延後：兩個觸發點都還沒發生 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
@@ -458,7 +458,7 @@ L1 從 10-26 起每週少 9～12（10-19 含存量，不算）。`Google News �
 **10-19 那輪的結論**（`experiments/model-quality-3p8flash-vs-argon/README.md`）：3.8 對 3.7 非劣（L1）；
 argon 對 3.8 過不了 L1（觸發制紀律 −1.22、文本依據 −0.50）。prod 明寫 `gemini-3.8-flash`。
 
-**下一輪開跑前要先做的**：
+**下一輪開跑前要先做的**（10-19 寫；前兩條 11-12 那輪已處理，見本節最後一段）：
 
 - **裁判看到的來源長度改成與生成相同**：生成拿每篇 `summary` 前 600 字，裁判只看到凍結時存下的前 200 字
   （PR `#74` 起的 framework 都是這樣）。200–600 字之間的內容，裁判一律當成查無來源；引證越多的模型吃虧越大
@@ -476,6 +476,16 @@ argon 對 3.8 過不了 L1（觸發制紀律 −1.22、文本依據 −0.50）�
 週報耗時連兩週上升（FFXIV 那段 3.7 時期 199–218 秒、3.8 時期 292–352 秒）也沒有人連到換了模型。
 要讓觸發點變成一個事件，可以在 `src/analyzer.py` 的 `_call_gemini` 比對回應的 `modelVersion` 與 `GEMINI_MODEL`，
 不符時印 warning，週驗收 routine 讀得到週報 log。這是提議，還沒做。
+
+**2026-11-12**：`gemini-4-carbon`（11-10 GA）那輪跑完，`experiments/model-quality-3p8flash-vs-carbon/`（分支 `docs/model-quality-3p8-carbon`）。
+- 素材改用 018 重播 fixture 的 9 份真實輸入（Luke 11-12 裁示）：018 改寫了三軸指令，10-19 的 3.8 存檔不能當對照組，08-10 快照三桶全是政策類、量不到 A 軸與彙整。
+  裁判看到的就是生成時的 `input_text`，上面「下一輪開跑前」的前兩條因此處理掉了。
+- 照 prod 的呼叫設定（輸出上限 8192、timeout 120 秒）carbon 18 次有 4 次 thinking 用完上限、輸出空白，過不了 Gate；放寬到 65536 全部成功，
+  但 5 次超過 120 秒。
+- 3.8 對 carbon@65536：三軸 carbon 勝 88%、逐軸 +0.33～+1.29（L2）；彙整 50%、逐軸 ±0.08（L1，位置偏誤重）；Claude 抽查事故類三軸 3／3 carbon。
+  成本約 4 倍：月成本上界 3.8 $1.40／$2.81、carbon $5.26／$10.52（12-01 之前／之後）。
+- agent 的提案：只把三軸換成 carbon（要讓熱點讀自己的模型設定，月多約 $1）；`_call_gemini` 遇到沒有 parts 的回應會丟 `KeyError`
+  （這輪裁判撞到）。兩件都等 Luke 裁示；prod 在 11-23 週報之前不換。
 
 ## GNS-20261026-fwz 015 上線後日文論壇每週帶進未知術語
 

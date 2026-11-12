@@ -1,0 +1,276 @@
+{
+  "gemini-3.8-flash": [
+    {
+      "title": "先釣りについて",
+      "seconds": 18.4,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 4662,
+        "candidatesTokenCount": 326,
+        "totalTokenCount": 6034,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4662
+          }
+        ],
+        "thoughtsTokenCount": 1046,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 8192,
+        "timeout": 120
+      }
+    },
+    {
+      "title": "[Sugestion] Astroligian kit upgrade ideas <3",
+      "seconds": 21.1,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 4872,
+        "candidatesTokenCount": 350,
+        "totalTokenCount": 6853,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4872
+          }
+        ],
+        "thoughtsTokenCount": 1631,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 8192,
+        "timeout": 120
+      }
+    },
+    {
+      "title": "操作タイプ(リボーンモード、エヴォルヴモード)総合スレ",
+      "seconds": 18.4,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 5128,
+        "candidatesTokenCount": 373,
+        "totalTokenCount": 7273,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5128
+          }
+        ],
+        "thoughtsTokenCount": 1772,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 8192,
+        "timeout": 120
+      }
+    },
+    {
+      "title": "パーティ募集の検索について",
+      "seconds": 9.0,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 4406,
+        "candidatesTokenCount": 246,
+        "totalTokenCount": 5171,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4406
+          }
+        ],
+        "thoughtsTokenCount": 519,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 8192,
+        "timeout": 120
+      }
+    },
+    {
+      "title": "機工士スレ",
+      "seconds": 12.6,
+      "ok": true,
+      "modelVersion": "gemini-3.8-flash",
+      "usage": {
+        "promptTokenCount": 4583,
+        "candidatesTokenCount": 314,
+        "totalTokenCount": 5639,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4583
+          }
+        ],
+        "thoughtsTokenCount": 742,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 8192,
+        "timeout": 120
+      }
+    }
+  ],
+  "gemini-4-carbon": [
+    {
+      "title": "先釣りについて",
+      "seconds": 32.0,
+      "ok": true,
+      "modelVersion": "gemini-4-carbon",
+      "usage": {
+        "promptTokenCount": 4631,
+        "candidatesTokenCount": 395,
+        "totalTokenCount": 6665,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4631
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 395
+          }
+        ],
+        "thoughtsTokenCount": 1639,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      }
+    },
+    {
+      "title": "[Sugestion] Astroligian kit upgrade ideas <3",
+      "seconds": 26.4,
+      "ok": true,
+      "modelVersion": "gemini-4-carbon",
+      "usage": {
+        "promptTokenCount": 4856,
+        "candidatesTokenCount": 312,
+        "totalTokenCount": 6472,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4856
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 312
+          }
+        ],
+        "thoughtsTokenCount": 1304,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      }
+    },
+    {
+      "title": "操作タイプ(リボーンモード、エヴォルヴモード)総合スレ",
+      "seconds": 53.6,
+      "ok": true,
+      "modelVersion": "gemini-4-carbon",
+      "usage": {
+        "promptTokenCount": 5082,
+        "candidatesTokenCount": 393,
+        "totalTokenCount": 8747,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 5082
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 393
+          }
+        ],
+        "thoughtsTokenCount": 3272,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      }
+    },
+    {
+      "title": "パーティ募集の検索について",
+      "seconds": 32.3,
+      "ok": true,
+      "modelVersion": "gemini-4-carbon",
+      "usage": {
+        "promptTokenCount": 4388,
+        "candidatesTokenCount": 288,
+        "totalTokenCount": 6466,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4388
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 288
+          }
+        ],
+        "thoughtsTokenCount": 1790,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      }
+    },
+    {
+      "title": "機工士スレ",
+      "seconds": 39.0,
+      "ok": true,
+      "modelVersion": "gemini-4-carbon",
+      "usage": {
+        "promptTokenCount": 4562,
+        "candidatesTokenCount": 366,
+        "totalTokenCount": 7358,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4562
+          }
+        ],
+        "candidatesTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 366
+          }
+        ],
+        "thoughtsTokenCount": 2430,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      }
+    }
+  ]
+}
