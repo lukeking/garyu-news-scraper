@@ -139,6 +139,18 @@ def test_analyze_all_log_names_the_model_the_batch_uses(sent, monkeypatch, caplo
     assert "模型尾段=own，" in caplog.text
 
 
+@pytest.mark.parametrize("article", [
+    {"title": "t", "source": "s", "summary": "x", "link": "https://l"},
+    dict(FFXIV_ARTICLE, source_type="youtube"),
+])
+def test_analyze_all_log_matches_what_non_ffxiv_branches_send(sent, monkeypatch, caplog, article):
+    monkeypatch.setenv("GEMINI_MODEL_FFXIV", "gemini-4-own")
+    with caplog.at_level(logging.INFO):
+        analyzer.analyze_all([article], delay=0)
+    assert sent[0]["model"] == BASE
+    assert "模型尾段=model，" in caplog.text
+
+
 @pytest.mark.parametrize("candidate", [
     {"finishReason": "MAX_TOKENS"},
     {"content": {}, "finishReason": "MAX_TOKENS"},
