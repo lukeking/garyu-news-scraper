@@ -1,0 +1,17 @@
+{
+  "run": 1,
+  "key": {
+    "2026-08-03｜機車事故 · 中時": {
+      "X": "gemini-4-carbon",
+      "Y": "gemini-3.8-flash"
+    },
+    "2026-09-07｜機車事故 · TVBS": {
+      "X": "gemini-4-carbon",
+      "Y": "gemini-3.8-flash"
+    },
+    "2026-09-21｜行人事故 · 行人": {
+      "X": "gemini-4-carbon",
+      "Y": "gemini-3.8-flash"
+    }
+  }
+}

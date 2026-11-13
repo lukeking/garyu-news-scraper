@@ -1,0 +1,57 @@
+{
+  "frozen_at": "2026-11-12T13:17:38.292496+00:00",
+  "n_collected": 19,
+  "n_selected": 18,
+  "articles": [
+    {
+      "title": "先釣りについて",
+      "link": "https://forum.square-enix.com/ffxiv/threads/517309-%E5%85%88%E9%87%A3%E3%82%8A%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6?p=6857379",
+      "summary": "[11/08 12:10] 先釣りによって他人に負担が生じる場合があることは理解できます。 ただし、「ロールの基本的な役割から外れること」と「攻略上、不適切な行為をすること」は区別すべきだと考えます。 タンクが最初に敵視を取るのは基本的な攻略手順ですが、DPSやヒーラーが先に攻撃したとしても、タンクが敵視を回収し、問題なくクリアできるのであれば、それだけで攻略妨害とはいえません。 基本的な攻略手順は存在しても、それ以外の攻略方法がすべて不適切になるわけではないはずです。 一方、先釣りへの報復として意図的に敵視回収や回復を拒否する行為については、公式禁止事項の「利敵行為／非協力的な行為／無気力行為」に、 「嫌いなプレイヤーがいるからヒールしないでおこう」 という具体例が明記されています。 つまり、判断すべきなのは、基本手順と異なるかどうかではなく、実際に攻略へ支障を生じさせているか、他者への強要や意図的な妨害があるか、という点ではないでしょうか。 もちろん、クリアできれば何をしてもよいという意味ではありません。暴言や強要は、攻略の成否とは別に問題です。 先釣りを嫌うこと自体は自由ですが、それを理由に一律に不適切な行為と断定したり、報復を正当化したりすることには疑問があります。 攻略方法の違いは攻略可能性と実際の支障で判断し、他者への言動や妨害などクリアの障害になりうる際には公式禁止事項で判断する。 この2つを分けることが、感情論ではなく共通の基準で議論するために必要だと思います。",
+      "source": "FFXIV JP Forum - TANK",
+      "published": "2026-11-08T03:10:00+00:00",
+      "content_type": "ffxiv",
+      "dedup_key": "forum:517309:6857379",
+      "source_weight": 80
+    },
+    {
+      "title": "[Sugestion] Astroligian kit upgrade ideas <3",
+      "link": "https://forum.square-enix.com/ffxiv/threads/532931-Sugestion-Astroligian-kit-upgrade-ideas?p=6857299",
+      "summary": "[11/08 06:11] Hi, Square and dev team, how are you? I hope you’re doing well. I’d like to share some feedback about the Astrologian class here. I’ve been leveling it up, and I think there’s room for improvement with this class. First of all, what makes the class fun to play, in my opinion, are the skill effects, the theme, and the fact that it gives me an AoE option with Gravity in DG, using the Lightspeedy skill. That’s what’s kept me playing the class so far, but I’d like to offer a few suggestions. 01 - Astro is by far the most stressful healer to play, in my opinion. Mainly because of the unique mechanics we have with the cards. Although this is an iconic feature of the class, the logistics of using the buffs while keeping the party alive can sometimes get complicated. They were pretty annoying to learn at first, but even once you figure out what each one does and get the hang of them, they still tend to be a real hassle most of the time. Sugestion - Instead of using each card on a single character, I suggest changing the mechanic so that we can only draw one random card. And make the buff from that card apply to the entire party for 30 seconds. This would make the mechanic more powerful and reduce the stress of organizing these cards for each specific situation in the game. 2 - As a Regen healer, I think the duration of the active buff is too short when it comes to the Aspect of Benefic and Aspect of Helios skills. 15 seconds go by way too fast, and you’ll always have to keep reapplying them to keep the party alive. I feel that other healers who just cast a single regen spell on the tank are much more effective than an Astro with two regen casting on the same tank. That’s because other classes have plenty of other ways to mitigate damage or heal, while Astro relies heavily on this mechanic, with just one or two healing skills to spam. Sugestion - Make the Regen from Aspect benefic and Aspect Helios to be 20 seconds cdr. Is a small buff but it will make the class overall better to perform. 3 - Since Astro is so focused on regen, I miss having raw healing skills. Since there are plenty of Sage and White Mages, adding one or two of these skills could reduce the reliance on regen and open up opportunities in emergencies. 4 - The Synastry skill is a cool concept, but I think it’s been pretty much overlooked in the class. Reducing the cooldown to 30 seconds would make it more viable to use. It would lessen the reliance on regen alone and enable better plays in emergencies. Or you could simply rework it—I’d honestly be happier with a new raw healing skill to replace it. Thats all my sugestion! Thank you so much!",
+      "source": "FFXIV EN Forum - Healer Roles",
+      "published": "2026-11-07T21:11:00+00:00",
+      "content_type": "ffxiv",
+      "dedup_key": "forum:532931:6857299",
+      "source_weight": 80
+    },
+    {
+      "title": "操作タイプ(リボーンモード、エヴォルヴモード)総合スレ",
+      "link": "https://forum.square-enix.com/ffxiv/threads/527705-%E6%93%8D%E4%BD%9C%E3%82%BF%E3%82%A4%E3%83%97%28%E3%83%AA%E3%83%9C%E3%83%BC%E3%83%B3%E3%83%A2%E3%83%BC%E3%83%89%E3%80%81%E3%82%A8%E3%83%B4%E3%82%A9%E3%83%AB%E3%83%B4%E3%83%A2%E3%83%BC%E3%83%89%29%E7%B7%8F%E5%90%88%E3%82%B9%E3%83%AC?p=6857269",
+      "summary": "[11/07 12:09] エヴォルブを見た感じボタン数縮減や新規プレイヤーのメリットも分かりますし変更は好意的にみているのですが、 置き換えが多くなるとレベル上がった後の「何か技増えて強くなってる感」や高難易度での「何か難しいことやってる感」が薄くなりそうとも思います。 現在はリソース管理をレイドごとに合わせて基本のスキル回しを守りつつ、長めのギミック判断時間がありスキル回しの合間に確認して移動や安置確認を行うような形が多いですが エヴォルブの操作感をみると、ギミック判断の時間が短くなってアクション寄りになるのかなという気がします。 また威力値から見ると現在の120秒バーストでPT火力のおおよそ45％前後なので、エヴォルブで120秒バースト廃止とするとシナジーは確実に1％分は減ることになり、 早期の零式だと0.1～1％に泣かされたことも多いので操作性も考えるとレイドは基本リボーン一択になる可能性が高く、情報が少ないうちはリボーン×の募集も増えそうだなと思います。 先にエヴォルブを触れるというのは難しいと思いますが、火力に言及されている以上はやはり高難易度での扱いも気になるところが多いので、ジョブガイドで現パッチの早いうちに威力や仕様の確認が出来れば嬉しいなぁと思います。\n[11/07 16:08] シナジースキル等エヴォルヴで大きく変更点(スキル効果の変更、スキルの削除)があるジョブは、リボーンでもほぼ同じ変更がなされると考えています。リボーンが今までの感覚を踏襲している、というのは全てのスキルをホットバーに並べて順序よく押していく、2種類のスキルが混ざったスキルもバラバラにホットバーに登録できるという「操作性」に関してのみだと理解していますが、そうするとシナジー系のジョブはリボーンでも結構操作感変わりそうですがどうなのでしょうね。詩人は別物でしたし。 「エヴォルヴモードでシナジーが消える」という書き方してる記事もありましたが、シナジーの扱いどっちなんでしょうね。 追記：リボーンでもシナジー削除ってファンフェスの開発パネルでおっしゃってましたね。\n[11/07 16:32] ジョブの個性やプレイスタイルでの制約を無くす意味では、おそらくバトルボイスなど一時的なシナジーバフを無くして、スキル回しによって常時維持できるもの（詩人の歌や踊り子のスタンダードステップなど）は残せるのではないかと思いますが、追加の情報の出るPLLに期待ですね。\n[11/08 02:38] EUファンフェス辺りから後々PLLで全部見せるって表明してるけど待ち遠しい… 多分１２月のベンチマークとキャラメイクの放送が先になるから1月まで判らないままかもしれませんね",
+      "source": "FFXIV JP Forum - その他バトルシステム",
+      "published": "2026-11-07T17:38:00+00:00",
+      "content_type": "ffxiv",
+      "dedup_key": "forum:527705:6857269",
+      "source_weight": 80
+    },
+    {
+      "title": "パーティ募集の検索について",
+      "link": "https://forum.square-enix.com/ffxiv/threads/532928-%E3%83%91%E3%83%BC%E3%83%86%E3%82%A3%E5%8B%9F%E9%9B%86%E3%81%AE%E6%A4%9C%E7%B4%A2%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6?p=6857251",
+      "summary": "[11/08 00:31] 現在のジョブで入れる募集を検索できますが、 現在組んでいるPT構成で入れる応募を検索する、 という機能の導入を検討いただけますと幸甚です。",
+      "source": "FFXIV JP Forum - その他バトルシステム",
+      "published": "2026-11-07T15:31:00+00:00",
+      "content_type": "ffxiv",
+      "dedup_key": "forum:532928:6857251",
+      "source_weight": 80
+    },
+    {
+      "title": "機工士スレ",
+      "link": "https://forum.square-enix.com/ffxiv/threads/210632-%E6%A9%9F%E5%B7%A5%E5%A3%AB%E3%82%B9%E3%83%AC?p=6857236",
+      "summary": "[11/02 11:18] ゼファーがかなり身軽な、機工士のラピッドファイアや古のタレットを連想するような戦い方だったので、機工士側が今よりもっとエドガーの\"きかい\"に振った重たい一撃コンセプトになってる可能性もあったりするのかな？とちょっと妄想してみたり。ゼファー実装も機工士の進化も楽しみにしてま〜す！\n[11/07 22:14] ゼファーに浮遊しながらの持続攻撃アクションがあるなら、機工士のフレイムスロアーも続投か！？って思った 移動できないけど範囲攻撃で焼き続けるってある意味個性だし雑魚や二体フェーズの範囲焼きで活躍する形で続投希望 ゼファーが軽快に飛び回るタイプのレンジなら 魔弾の射手をエヴォルヴ機工士に逆輸入して長い硬直を引き換えにどデカイ一撃を喰らわす重厚感あるジョブになって欲しいと期待\n[11/07 22:28] 魔弾といえば、エヴォルヴモードになって機工士のロボ要素と銃要素がどう強化されるかが気になる。 ロボ寄りになるのかそれとも銃寄りになるのか、はたまたどちらの派閥も大満足の欲張りジョブになるのか。",
+      "source": "FFXIV JP Forum - DPS",
+      "published": "2026-11-07T13:28:00+00:00",
+      "content_type": "ffxiv",
+      "dedup_key": "forum:210632:6857236",
+      "source_weight": 80
+    }
+  ]
+}
