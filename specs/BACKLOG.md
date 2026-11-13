@@ -496,6 +496,11 @@ argon 對 3.8 過不了 L1（觸發制紀律 −1.22、文本依據 −0.50）�
   `dedup_same_event` 只有 `scripts/debug_dedup.py` 在叫。`traffic_daily.yml` 仍把 `GEMINI_MODEL_NAME` 傳進去，哪一步在讀沒追。
 - `_call_gemini` 遇到沒有 parts 的回應：不另開列，併進分模型的實作（這一列的完成標準）。現況是三軸與彙整的呼叫端有 `except Exception`、那一份被跳過；
   FFXIV 的 `analyze_all` 逐篇迴圈沒有接。
+- 實作（同日，分支 `feat/per-function-gemini-models`）：變數是 `GEMINI_MODEL_HOT_TOPIC`、`GEMINI_MODEL_DIGEST`、`GEMINI_MODEL_FFXIV`、`GEMINI_MODEL_AUTO_KB`，
+  三軸另有 `GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS`、`GEMINI_HOT_TOPIC_TIMEOUT_SECONDS`；`weekly.yml`、`auto-kb.yml` 用 `vars.` 接線，沒設時行為不變。
+  用了自己的設定的呼叫會印一行 `Gemini 呼叫用這條路徑自己的設定：模型尾段=…`，上 prod 後的讀回看這一行。沒有 parts 的回應印 `Gemini 回應沒有文字（finishReason=…）`、回 `None`、不重試。
+- 這一列還剩：11-23 週報之後設 prod 變數並讀回。還沒處理的：`scripts/replay_report_review.py` 記的 `model` 仍讀共用的 `GEMINI_MODEL`，三軸換模型後重播會記錯；
+  timeout 放寬後一次呼叫最長是 timeout × `GEMINI_MAX_RETRIES`（預設 8），設值時要對 `weekly.yml` 的 `timeout-minutes: 30` 算一次；回應連 `candidates` 都沒有時仍會丟例外（這次只處理沒有 parts）。
 
 ## GNS-20261026-fwz 015 上線後日文論壇每週帶進未知術語
 
@@ -647,3 +652,6 @@ Luke 2026-11-08 改寫來源追查的問題：「可能不是管線篩的問題�
   prod 現在的輸入（標題＋600 字摘要）上，T047 的 7 份 A 軸都沒有這種斷言；`2zc` 接全文就是它出現的地方。
 - 還沒試的改法（018 Clarifications 列過、Luke 沒選）：補那句「只評估來源寫到的條件」到部分資料的情況（沒寫到的「沒有／未實施」不能當放大機制）；定義只寫到設施名稱算不算工程資料；
   system prompt 的「結構性懷疑論：對官方歸因系統性質疑」沒消融過（018 evaluation「讀法」）。
+
+**2026-11-13**：三軸的模型之後會換成 `gemini-4-carbon`（`GNS-20261019-1vk`，不早於 11-23 週報之後）。上面的量測都是在 3.8 上做的，
+換了之後這一列的六組輸入要在 carbon 上重跑，再決定指令怎麼改。

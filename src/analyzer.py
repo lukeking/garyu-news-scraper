@@ -496,17 +496,47 @@ def _retry_after_seconds(resp, attempt, status_code):
     return min(5 * attempt, 30)
 
 
-def _call_gemini(prompt, api_key, retries=None, system_prompt=None):
+def _model_from_env(env_name):
+    """呼叫端自己的模型變數；沒設或空字串（Actions 對沒設的變數傳空字串）回共用的 GEMINI_MODEL。"""
+    return (os.environ.get(env_name) or "").strip() or GEMINI_MODEL
+
+
+def _number_from_env(env_name, default, cast):
+    """呼叫端自己的數值設定；沒設回 default，不是數字時印一行並回 default。"""
+    raw = (os.environ.get(env_name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return cast(raw)
+    except ValueError:
+        logger.warning("%s=%r 不是數字，改用 %s", env_name, raw, default)
+        return default
+
+
+def _article_model(article):
+    """analyze_article 那一篇會用的模型：FFXIV 分支讀自己的變數，其餘用共用的。"""
+    if article.get("source_type") != "youtube" and article.get("content_type", "traffic") == "ffxiv":
+        return _model_from_env("GEMINI_MODEL_FFXIV")
+    return GEMINI_MODEL
+
+
+def _call_gemini(prompt, api_key, retries=None, system_prompt=None, model=None, max_output_tokens=None, timeout=120):
     if retries is None:
         retries = int(os.environ.get("GEMINI_MAX_RETRIES", "8"))
     if system_prompt is None:
         system_prompt = SYSTEM_PROMPT
-    url = GEMINI_API_URL.format(model=GEMINI_MODEL)
+    model = model or GEMINI_MODEL
+    url = GEMINI_API_URL.format(model=model)
     headers = {"x-goog-api-key": api_key}
     try:
         maxOutputTokens = int(os.environ.get("GEMINI_MAX_OUTPUT_TOKENS", "8192"))
     except ValueError:
         maxOutputTokens = 8192
+    if max_output_tokens is not None:
+        maxOutputTokens = max_output_tokens
+    if model != GEMINI_MODEL or max_output_tokens is not None or timeout != 120:
+        logger.info("Gemini 呼叫用這條路徑自己的設定：模型尾段=%s，maxOutputTokens=%s，timeout=%s 秒",
+                    model.rpartition("-")[-1], maxOutputTokens, timeout)
     payload = {
         "system_instruction": {
             "parts": [{"text": system_prompt}]
@@ -524,7 +554,7 @@ def _call_gemini(prompt, api_key, retries=None, system_prompt=None):
     for attempt in range(1, retries + 1):
         resp = None
         try:
-            resp = requests.post(url, json=payload, headers=headers, timeout=120)
+            resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
             last_status = resp.status_code
             if resp.status_code == 200:
                 data = resp.json()
@@ -535,8 +565,12 @@ def _call_gemini(prompt, api_key, retries=None, system_prompt=None):
                         "⚠️  輸出被截斷（MAX_TOKENS），已用 maxOutputTokens=%s；可再提高環境變數 GEMINI_MAX_OUTPUT_TOKENS 或降低 max_articles",
                         maxOutputTokens,
                     )
-                text = candidate["content"]["parts"][0]["text"]
-                return text
+                parts = (candidate.get("content") or {}).get("parts") or []
+                if not parts or "text" not in parts[0]:
+                    logger.warning("Gemini 回應沒有文字（finishReason=%s，maxOutputTokens=%s），不重試",
+                                   finish_reason, maxOutputTokens)
+                    return None
+                return parts[0]["text"]
             wait = _retry_after_seconds(resp, attempt, resp.status_code)
             logger.warning(
                 "Gemini API 回應 %s（第 %d/%d 次），%.0f 秒後重試：%s",
@@ -665,7 +699,7 @@ def analyze_article(article, api_key):
             knowledge_base=kb_block,
             available_tags="、".join(all_tags),
         )
-        raw = _call_gemini(prompt, api_key, system_prompt=FFXIV_SYSTEM_PROMPT)
+        raw = _call_gemini(prompt, api_key, system_prompt=FFXIV_SYSTEM_PROMPT, model=_article_model(article))
         if raw:
             _check_kb_misses(raw, kb)
     else:
@@ -711,7 +745,8 @@ def analyze_all(articles, delay=6):
     except ValueError:
         mot_log = 8192
     # 完整模型 id 若在 GitHub Secrets 與日誌相同字串會被遮罩；尾段通常足供除錯且不易觸發遮罩
-    model_hint = GEMINI_MODEL.rpartition("-")[-1] if GEMINI_MODEL else "default"
+    models = {_article_model(a) for a in articles} or {GEMINI_MODEL}
+    model_hint = "、".join(sorted(m.rpartition("-")[-1] for m in models)) or "default"
     logger.info(
         "=== 開始 AI 分析，模型尾段=%s，maxOutputTokens=%s，共 %d 篇（間隔 %ds，預估 %.1f 分鐘）===",
         model_hint,
@@ -876,7 +911,12 @@ def analyze_hot_topic(bucket_articles: list, topic_label: str, week_start_date: 
         article_list=article_list,
     )
 
-    raw = _call_gemini(prompt, api_key, system_prompt=HOT_TOPIC_SYSTEM_PROMPT)
+    raw = _call_gemini(
+        prompt, api_key, system_prompt=HOT_TOPIC_SYSTEM_PROMPT,
+        model=_model_from_env("GEMINI_MODEL_HOT_TOPIC"),
+        max_output_tokens=_number_from_env("GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS", None, int),
+        timeout=_number_from_env("GEMINI_HOT_TOPIC_TIMEOUT_SECONDS", 120, float),
+    )
     if raw:
         logger.info("✓ 熱點分析完成：%s (%s)", topic_label, week_start_date)
         return raw.strip(), ordered_articles
@@ -1094,7 +1134,7 @@ def analyze_category_digest(pool_articles: list, topic_label: str,
         article_list=article_list,
     )
 
-    raw = _call_gemini(prompt, api_key, system_prompt=DIGEST_SYSTEM_PROMPT)
+    raw = _call_gemini(prompt, api_key, system_prompt=DIGEST_SYSTEM_PROMPT, model=_model_from_env("GEMINI_MODEL_DIGEST"))
     if raw:
         logger.info("✓ 彙整分析完成：%s (%s)", topic_label, week_start_date)
         return _assemble_digest(raw.strip(), ordered_articles, counts), ordered_articles

@@ -82,6 +82,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # 模型 id 非機密：建議在 Repository variables 設定 GEMINI_MODEL_NAME，日誌才不會被 *** 遮罩
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_FFXIV: ${{ vars.GEMINI_MODEL_FFXIV }}
           TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
           FFXIV_SITE_URL: ${{ vars.FFXIV_SITE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -134,6 +135,10 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_HOT_TOPIC: ${{ vars.GEMINI_MODEL_HOT_TOPIC }}
+          GEMINI_MODEL_DIGEST: ${{ vars.GEMINI_MODEL_DIGEST }}
+          GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS: ${{ vars.GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS }}
+          GEMINI_HOT_TOPIC_TIMEOUT_SECONDS: ${{ vars.GEMINI_HOT_TOPIC_TIMEOUT_SECONDS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
