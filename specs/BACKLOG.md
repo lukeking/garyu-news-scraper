@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261113-m23` | 長期抓不到的媒體網域整篇不收：設定檔驅動的網域名單（Luke 2026-11-13，見 `GNS-20261005-24s` 節「2026-11-13」） | `pre-edit: {"paths":["src/gn_resolver.py"]}`<br>下次動 GN 充實的程式時；或 Luke 排進 spec 排序時 | `pipeline_config` 有一份網域名單（prod 的真身是 `PIPELINE_CONFIG_YML`，`config/pipeline_config.example.yml` 同步）；名單上的網域，文章在還原 Google News 連結後不往下游送（不進 buffer）、也不抓媒體頁；每個 run 印一行丟了幾篇、各是哪個網域，格式用測試鎖住；名單是空的或沒設時行為不變；初始名單由 Luke 定（候選是 07-20 起一直在失敗名單上的 `news.pchome.com.tw`、`n.yam.com`、`www.cdns.com.tw`）；prod 變數設好並讀回；上線那週在 FOCUS 註記篇數基準會變 |
 | `GNS-20261110-sjc` | `#212` review 的非阻擋 findings：充實後門檻擋下的文章不入庫，隔天再收集、再 embedding（Gemini 計費）、再擋（N5）；跨期去重的候選帶 GN 日期、已存列帶媒體頁日期，差 1～3 天的比不到（N2）；header／meta 編碼優先序、沒時區不猜、週報 `analyze` 接回傳值、整批失敗仍跑門檻沒有測試（N4）；逐篇擋下的 log 印網域不印來源，漏斗逐來源對不回（N7）；`pages/traffic/index.html` 頁尾仍寫「PTT 機車板」（N8） | `pre-edit: {"paths":["src/gn_resolver.py","src/pipeline/traffic.py","pages/traffic/index.html"]}`<br>下次動這三支檔時；或 11-16 週報後讀 11-11～11-16 daily 的 `[充實後過時] 擋下：` 行，同一篇連日出現時（N5 的量） | N5 量出每天重複擋下的篇數，決定要不要讓擋下的文章不再被收（例如記進指紋），或寫明不處理的理由；N2、N4、N7、N8 各自修好或寫明不修。依據：`#212` 的分級表留言（2026-11-10） |
 | `GNS-20261108-sx9` | 彙整把報導日寫成事件日的殘餘：spec 018 的彙整指令（「寫到時間時標明是報導日…除非來源明文寫出事件發生的日期」）之下，三份彙整（10-19、10-26、11-02）4 次取樣的日期類真錯型是 0、2、4、4 處（只算 `date_unlabeled` 命中，是下限）：來源沒寫事件日卻寫成「於 N 月 N 日宣布／發布／表示／批評」7 處（新北高灘處那句 3 次新取樣都出現），「10月起」補成「10 月 1 日」3 處。Luke 2026-11-08 裁示 018 照這個指令出貨。逐條判定在 018 `evaluation.md` SC-001 節「第二批取樣」 | `pre-edit: {"paths":["src/analyzer.py"]}`<br>下次動彙整指令（`DIGEST_PROMPT_TEMPLATE`）時 | 三份彙整各重生成至少 2 次，逐份判所有日期（不只 `date_unlabeled` 命中：同一個日期在別篇來源出現過，檢查就不標），這兩型合計 0；或寫明不改的理由 |
 | `GNS-20261108-tz1` | 三軸 A 軸在 FR-005c（spec 018）之後仍分不穩：反事實、人因充分的正向案例各只有 2 次裡 1 次走到對的類；全文輸入下只寫到設施名稱（機車待轉區）的事故會被推成 [雙因交織]，放大機制靠來源沒寫的「無實體防護」「未實施物理限速」 | `pre-edit: {"paths":["src/analyzer.py"]}`<br>開 `GNS-20261108-2zc` 的 spec 時一起做（接全文輸入就是這個洞出現的地方）；或下次動 `src/analyzer.py` 的三軸 A 軸指令時 | spec 018 的 SC-008 爬到「分得開」與「到得了」（018 `evaluation.md`「GNS-20261108-5xf」節的六組輸入，各 2 次一致），且只寫到設施名稱的事故在全文輸入下不出現來源沒寫的工程條件斷言；或寫明不改的理由 |
@@ -53,7 +54,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261015-cet` | 漂移檢查的鏡像清單改由 example 檔頭的標記決定（守門員機械化） | `pre-edit: {"paths":["scripts/check_config_drift.py"]}`<br>下次增減 `scripts/check_config_drift.py` 的 `MIRRORED` 成員，或新增一份 `config/*.example.yml` 時；2026-10-31 延後：兩個觸發點都還沒發生，新增 example 檔沒有既有路徑可綁 | 四份 example 檔頭有同一個可 grep 的鏡像標記（現在兩份寫英文「Stored as …」、兩份寫中文「…的鏡像」）；守門員測試讀檔頭標記算出應有成員並與 `MIRRORED` 比對，改壞任一邊會紅；或寫明不做的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | `pre-edit: {"paths":[".github/workflows/weekly.yml"]}`<br>下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt）；2026-11-02 動了 `weekly.yml`（加 FFXIV 候選池 artifact 上傳）但不拆，Luke 裁示延後：11-02 是 14.3 分（job 14m20s，多出的 215 秒拆解在 `routines/weekly-verify/FOCUS.md` 的 runtime 基準），還沒到 20 分 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}`<br>下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
-| `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口`<br>daily log 的 `GN 充實：…（失敗網域：…）` 出現主流原生媒體（UDN／自由／中時／中央社／TVBS／三立），或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄）；2026-11-11 再延後：11-10 的 `money.udn.com` 是 2 次逾時、不是 403，11-11 未再出現（本節觀測記錄） | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
+| `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口`<br>daily log 的 `GN 充實：…（失敗網域：…）` 裡，主流原生媒體（UDN／自由／中時／中央社／TVBS／三立）的網域是 403，或同一個主流原生媒體網域連續兩個 daily 都失敗（status 看同一份 log 的 `GN 充實失敗…status=` 那行）；或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄）；2026-11-11 再延後：11-10 的 `money.udn.com` 是 2 次逾時、不是 403，11-11 未再出現（本節觀測記錄）；2026-11-13 Luke 裁示收窄成上面的字面：單次逾時不算（本節「2026-11-13」） | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴`<br>基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
 | `GNS-007` | 政策 digest 的離題雜訊 | `trigger: none — 已觸發，等開 spec；做法未定，還沒有對應的檔案`<br>已觸發：Luke 2026-10-28 裁示重開（重開條件 2 於 09-07 成立）；下一步開 spec，做法須換成判實質而非判詞彙 | 判實質的做法上線後連兩週離題 < 3/25（重開條件 1 的門檻）；或寫明理由再關一次 |
 
@@ -302,6 +303,13 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 | 08-10（滿週全量，實測） | 7 個：`n.yam.com`、`news.pchome.com.tw`、`www.cdns.com.tw`、`leho.com.tw`、`www.gov.tw`、`rise-mediacorp.com`、`www.allnews.tw`；覆蓋率 84.8% | (1)(2) 皆未成立：新增的都不是主流原生媒體，UDN／自由／中時／中央社／TVBS／三立全部正常；`www.cdns.com.tw`（中華日報）07-20 就在名單上 |
 | 10-25、10-27、10-28（3 次 daily，實測；只抽這 3 天） | 7 個：`n.yam.com`、`www.cdns.com.tw`、`news.pchome.com.tw`（502，不是 403）、`www.teepr.com`、`www.watchmedia01.com`、`pronews.tw`、`www.marketersgo.com` | (1)(2) 皆未成立：主流原生媒體一個都沒有；`n.yam.com`、`www.cdns.com.tw` 07-20 起就在名單上 |
 | 11-10、11-11（2 次 daily，實測；只看這 2 天） | 11-10（run `42762366280`，`#212` 之前）：35 篇中 35 還原，失敗 4 篇——`money.udn.com` 2 篇（`status=None`，read timeout 10 秒）、`news.pchome.com.tw`（403）、`rise-mediacorp.com`（403）。11-11（run `42956243767`，`#212` 之後第一個 daily）：13 篇中 13 還原，失敗 1 篇——`cnews.com.tw`（403） | (1) 觸發點的字面命中一次：UDN 的子網域出現在失敗網域，但是逾時、不是被擋，隔天沒有再出現；Luke 11-11 裁示記下、延後。(2) 未成立。`#212`（11-10 merge）起 GN 還原與 og 改送 GaryuNewsBot UA，11-11 起的名單不能直接跟之前比 |
+| 11-12（1 次 daily，實測） | run `43159552846`：15 篇中 15 還原，失敗 1 篇——`news.pchome.com.tw`（403） | (1)(2) 皆未成立：入口站，07-20 起就在名單上 |
+
+**2026-11-13**：Luke 裁示兩件事。
+- 觸發字面收窄：主流原生媒體要是 403、或同一個網域連續兩個 daily 都失敗才算，11-10 那種單次逾時不再命中。
+  status 在同一份 log 的 `GN 充實失敗（保留原欄位）：domain=… status=…` 那行，摘要行只列網域。
+- 長期抓不到的網域「太頻繁的直接 ban 掉」：做成整篇不收、名單由設定檔驅動，另立 `GNS-20261113-m23`。現況沒有逐網域的開關，
+  只有 `buffer.daily_enrich` 全開全關。進了名單的網域之後解除封鎖也看不到，所以那一列要求每個 run 印出丟了哪些。
 
 ## GNS-20261005-gg3 機車事故 require 表的真實 recall 未量
 
