@@ -82,8 +82,8 @@ carbon 回錯的 `modelVersion` 時印 `STOP` 結束、carbon 那一筆沒有寫
 
 ## 結果（2026-11-12 跑；全部數字在 `data/q_report_max65536.md`，prod 設定那批在 `data/q_report.md`）
 
-**Luke 11-12 定方向：按需求／功能分模型，不全綁在同一個 `GEMINI_MODEL_NAME`。** 哪幾條呼叫端分出自己的變數（FFXIV、交通日常要不要也分，先都指到 3.8）
-還沒定案。carbon 的三軸（交通熱點，`analyze_hot_topic`）品質到 L2；彙整只到 L1。argon 與 carbon 同價；10-19 那輪 argon 對 3.8 過不了 L1
+**Luke 11-12 定方向：按需求／功能分模型，不全綁在同一個 `GEMINI_MODEL_NAME`。** 範圍 11-13 定案：三軸、彙整、FFXIV、auto-KB 四條各有自己的變數，
+除三軸外先不設（見「之後」）。carbon 的三軸（交通熱點，`analyze_hot_topic`）品質到 L2；彙整只到 L1。argon 與 carbon 同價；10-19 那輪 argon 對 3.8 過不了 L1
 （總平均 −0.26，觸發制紀律 −1.22、文本依據 −0.50，後者可能受裁判只看 200 字影響；`../model-quality-3p8flash-vs-argon/README.md`）。
 換 carbon 的那條路徑要放寬輸出上限與 timeout（`_call_gemini` 寫死 120 秒）。
 prod 在 11-23 那份週報之前不換（見閘門那節）。
@@ -130,8 +130,9 @@ prod 在 11-23 那份週報之前不換（見閘門那節）。
 
 ### 之後
 
-- **按功能分模型**（Luke 11-12 定方向，實作未開）：三軸差距大、每週只 1–2 次；FFXIV 是呼叫量的大頭、這輪沒評品質；彙整只到 L1。
-  讓呼叫端讀自己的模型設定，三軸換成 carbon，其餘先指到 3.8；哪幾條分出變數未定案（下個 session 確認）。要改 code（`GEMINI_MODEL_NAME` 現在是全部呼叫端共用），並放寬三軸那一條路徑的輸出上限與 timeout。
+- **按功能分模型**（Luke 11-12 定方向、11-13 定範圍，實作未開）：三軸差距大、每週只 1–2 次；FFXIV 是呼叫量的大頭、這輪沒評品質；彙整只到 L1。
+  四條 prod 呼叫端各讀自己的模型變數，沒設時退回 `GEMINI_MODEL_NAME`：三軸 `analyze_hot_topic`、彙整 `analyze_category_digest`、FFXIV 的 `analyze_article`、
+  auto-KB（`scripts/auto_kb.py`）。三軸換成 carbon，其餘三條先不設。要改 code（`GEMINI_MODEL_NAME` 現在是全部呼叫端共用），並放寬三軸那一條路徑的輸出上限與 timeout。
 - **`_call_gemini` 遇到沒有 parts 的回應會丟 `KeyError`**（`src/analyzer.py:538`）：thinking 用完上限、一個字都沒輸出時，不是回空字串而是例外。
-  這輪是裁判撞到的；prod 的模型只要想到撞上限就會走到這條路。要不要開一列由 Luke 決定。
+  這輪是裁判撞到的；prod 的模型只要想到撞上限就會走到這條路。Luke 11-13：不另開列，併進分模型的實作（BACKLOG `GNS-20261019-1vk` 的完成標準）。
 - 這套 framework 的裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，下一輪要換裁判。
