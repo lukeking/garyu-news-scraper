@@ -700,7 +700,10 @@ Luke 2026-11-08 改寫來源追查的問題：「可能不是管線篩的問題�
 - 功能上線了、驗收還需要時間，這一段在 SDD 裡算不算 spec 的一環（Luke 11-14 提出，沒有裁示）。現況是算一半：讀回是 `tasks.md` 的 task（019 的 T017、T014，018 的 T053）、
   「連兩週」是 `spec.md` 的 SC，但 BACKLOG 列在功能 PR merge 時就移出，之後「還欠讀回」只剩 `tasks.md` 的 `[ ]` 與 handoff 在記。spec-kit 的指令到 implement 為止，沒有上線後驗收的階段。
   三種答法：算（spec 開到讀回過了才關）；不算（spec 只收 merge 前驗得到的，其餘當觀測）；分成上線與驗收完成兩個時點（回收檢驗是同一個 spec 的一片，有自己的 PR 與自己的一列 BACKLOG，
-  配一個會自己響的執行者）。agent 偏第三種。這題也決定「連兩週」這類 Gate 放哪。
+  配一個會自己響的執行者）。這題也決定「連兩週」這類 Gate 放哪。
+  Luke 11-14 的傾向：「我也偏第三種，只是要補上觸發缺的那一塊。第一種綁太死就像現在，第二種等於 nomading，都不是很理想。」（agent 也偏第三種。）
+  觸發缺的那一塊：BACKLOG 的宣告只能綁檔案編輯、skill、agent 或指令開頭，綁不到「某次實跑完成」或日期；現在會自己去讀實跑的只有週驗收 routine（讀 `routines/weekly-verify/FOCUS.md`）。
+  功能 merge 之後，讀回那一列靠什麼響，spec 要定。
 - 專案規則寫在哪：憲章（進版控、雲端 session 讀得到，修訂要升版與 cold review），或 `CLAUDE.local.md`（只有這台機器看得到）。
 - 上面 agent 提的四類要不要收。
 - 一個 spec 分成數個 PR 之後，它的 BACKLOG 列在哪一片的 PR 移出。
