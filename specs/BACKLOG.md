@@ -50,7 +50,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 Gemini 文字生成模型釋出 GA（官方 changelog 沒標 flash／pro 的也算，argon、carbon 都是）；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：changelog 讀到 10-30 那則，沒有新的 GA；2026-11-12 觸發：`gemini-4-carbon` 11-10 GA，那輪已跑（本節「2026-11-12」），Luke 定方向：按功能分模型 | 照 Luke 11-12 的方向、11-13 的範圍實作按功能分模型：三軸、彙整、FFXIV 的 `analyze_article`、auto-KB 四條各有自己的模型變數，沒設時退回 `GEMINI_MODEL_NAME`；三軸（交通熱點）換 carbon 並放寬那條路徑的輸出上限與 timeout，其餘三條先不設，prod 不早於 11-23 週報之後換；同一個 PR 讓 `_call_gemini` 遇到沒有 parts 的回應印一行原因、回 `None`（Luke 11-13，本節「2026-11-13」）；下一輪照 `experiments/model-quality-3p8flash-vs-carbon/` 的做法（018 重播素材、裁判看到與生成相同的輸入），但裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，要先換裁判 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定；取樣那半已由 spec 019 做掉） | `trigger: none — 觸發是 019 上線後連兩週的週報讀回，沒有檔案或指令是它的入口`<br>019（`#210`）上線後連兩週的讀回做完時（`specs/019-ffxiv-sampling-window/evaluation.md`，預計 11-23 週報之後），看論壇版的串夠不夠當 patch-triggered 的討論來源——原設計用 Reddit，Reddit 因 robots.txt 拿掉（11-10），要另找來源。聚合那半仍卡在日文來源（10-19 Luke：沒有進展） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | 任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」） | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
-| `GNS-20261015-0cz` | 中文 YouTube 頻道取不到逐字稿，只剩標題＋描述 | `pre-edit: {"paths":["src/collector.py","config/sources_traffic.example.yml"]}`<br>下次動 YouTube 來源設定，或 `src/collector.py` 的 `_fetch_transcript` 時；2026-10-31 延後：兩個觸發點都還沒發生 | 對 4 個中文頻道量一次近期影片的逐字稿取得率；取不到的頻道決定停用、改用別的方法補資訊，或寫明保留的理由 |
 | `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | `pre-edit: {"paths":[".github/workflows/weekly.yml"]}`<br>下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt）；2026-11-02 動了 `weekly.yml`（加 FFXIV 候選池 artifact 上傳）但不拆，Luke 裁示延後：11-02 是 14.3 分（job 14m20s，多出的 215 秒拆解在 `routines/weekly-verify/FOCUS.md` 的 runtime 基準），還沒到 20 分 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}`<br>下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall；2026-11-14 收窄（Luke）：宣告只能指到檔案，只改檔頭註解或別的類別不算碰到這一列，處置記 not done | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口`<br>daily log 的 `GN 充實：…（失敗網域：…）` 裡，主流原生媒體（UDN／自由／中時／中央社／TVBS／三立）的網域是 403，或同一個主流原生媒體網域連續兩個 daily 都失敗（status 看同一份 log 的 `GN 充實失敗…status=` 那行）；或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄）；2026-11-11 再延後：11-10 的 `money.udn.com` 是 2 次逾時、不是 403，11-11 未再出現（本節觀測記錄）；2026-11-13 Luke 裁示收窄成上面的字面：單次逾時不算（本節「2026-11-13」） | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
@@ -325,17 +324,6 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 這是 11-07 判定不採用的主因，正式呼叫端全部改用每月最多只省約 US$0.54（2027 起約 US$0.94）。
 本列拆的是 traffic／FFXIV，不是送件／收件，但動的是同一個 `weekly.yml`：拆的時候順便判斷要不要再拆成兩段，
 不拆就不用重看。判定與官方事實：`git log -S "GNS-20261021-5yg" -- specs/BACKLOG.md`。
-
-## GNS-20261015-0cz 中文 YouTube 頻道取不到逐字稿
-
-**出處**：spec 014 T019（PR #162，2026-10-15）。改寫 traffic 鏡像檔頭「中文 YouTube 頻道不建議收錄」那句時量到。
-
-**證據**（實測，10-15）：`火花羅`、`台灣解碼中` 取不到逐字稿，退回標題＋描述；`貓頭鷹交通書`、`企鵝交通手扎` 取得到。
-當時沒記重跑方法，完成標準那次量測要把方法寫回本節。
-
-**Actions 上**（實測，10-18／10-20 daily log）：四個頻道全部取不到——10-18 是 7 支全失敗，10-20 是 6 支全失敗
-（火花羅那天沒有新影片），合計 0／13。本機取得到的兩個頻道在 Actions 上也取不到。
-數法：`gh run view <run id> --log`，數 `逐字稿無法取得` 的行數，對照各頻道 `[youtube] <頻道>: N 筆` 的合計。
 
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 

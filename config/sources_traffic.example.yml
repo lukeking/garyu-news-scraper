@@ -43,8 +43,8 @@
 #
 # ⚠️  中文頻道注意：中文 YouTube 頻道多半用內嵌字幕或不上字幕，很少提供 CC，
 #   transcript API 常只能拿到標題＋說明，分析深度與 RSS 文章無異，所以原本不建議收錄。
-#   現況：prod 仍啟用 4 個中文頻道；2026-10-15 實測 火花羅、台灣解碼中 取不到逐字稿（退回標題＋說明），
-#   貓頭鷹交通書、企鵝交通手扎 取得到。後續見 specs/BACKLOG.md 的 GNS-20261015-0cz。
+#   現況：4 個中文頻道 2026-11-14 起停用（Luke 裁示）。Actions 上 10-31～11-13 的 12 個 daily 共 61 筆、
+#   逐字稿成功 0（雲端 IP 被 YouTube 擋）。量法與數字在移出 GNS-20261015-0cz 的那個 PR。
 
 sources:
 
@@ -184,28 +184,28 @@ sources:
 
   - name: 火花羅
     type: youtube
-    enabled: true
+    enabled: false
     channel_id: "@sparklo"                  # @handle 或 UC 開頭 id 皆可（collector 會解析）
     max_items: 3                            # 每次最多抓幾支影片（過濾 Shorts 前）
     lookback_days: 2                        # 只抓最近幾天發布的影片
 
   - name: 貓頭鷹交通書
     type: youtube
-    enabled: true
+    enabled: false
     channel_id: "@owlfuko"
     max_items: 2                            # 更新頻率低的頻道可設低一點
     lookback_days: 30                       # 省略時使用預設值 2
 
   - name: 企鵝交通手扎
     type: youtube
-    enabled: true
+    enabled: false
     channel_id: "@icypenguinTFC"
     max_items: 3
     lookback_days: 14
 
   - name: 台灣解碼中
     type: youtube
-    enabled: true
+    enabled: false
     channel_id: "@twcode158"
     max_items: 3
     lookback_days: 14
