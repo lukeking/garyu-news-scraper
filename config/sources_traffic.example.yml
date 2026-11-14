@@ -2,6 +2,7 @@
 # 這是 prod 來源設定的鏡像：sources 與 SOURCES_TRAFFIC_YML 解析後逐筆相同（順序也算），
 # 由 scripts/check_config_drift.py 每天比對。改來源要同步這裡（同一個 PR），否則隔天 daily 會紅。
 # 實際使用的設定存放在 GitHub Environment Variable: SOURCES_TRAFFIC_YML
+# prod-mirror: 這份是 prod 變數的鏡像；有這一行的檔要列在 scripts/check_config_drift.py 的 MIRRORED（測試會比對）
 # 本機開發時複製成 config/sources_traffic.yml；請勿把它加入 git（已在 .gitignore 中排除）。
 #
 # ┌─────────────────────────────────────────────────────────────┐

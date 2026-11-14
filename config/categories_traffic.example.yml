@@ -1,5 +1,6 @@
 # Traffic News Category Taxonomy
 # Stored as GitHub Environment Variable: CATEGORIES_TRAFFIC_YML
+# prod-mirror: 這份是 prod 變數的鏡像；有這一行的檔要列在 scripts/check_config_drift.py 的 MIRRORED（測試會比對）
 # Copy to config/categories_traffic.yml for local development (gitignored).
 #
 # Rules:
