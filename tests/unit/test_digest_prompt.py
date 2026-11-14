@@ -51,7 +51,7 @@ def _fake_gemini(monkeypatch, reply):
     monkeypatch.setenv("GEMINI_API_KEY", "fake-not-a-real-key")
     calls = []
 
-    def fake(prompt, api_key, retries=None, system_prompt=None):
+    def fake(prompt, api_key, retries=None, system_prompt=None, **kw):
         calls.append({"prompt": prompt, "system_prompt": system_prompt})
         return reply
     monkeypatch.setattr("src.analyzer._call_gemini", fake)
