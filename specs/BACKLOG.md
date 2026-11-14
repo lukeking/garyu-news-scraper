@@ -704,6 +704,11 @@ Luke 2026-11-08 改寫來源追查的問題：「可能不是管線篩的問題�
   Luke 11-14 的傾向：「我也偏第三種，只是要補上觸發缺的那一塊。第一種綁太死就像現在，第二種等於 nomading，都不是很理想。」（agent 也偏第三種。）
   觸發缺的那一塊：BACKLOG 的宣告只能綁檔案編輯、skill、agent 或指令開頭，綁不到「某次實跑完成」或日期；現在會自己去讀實跑的只有週驗收 routine（讀 `routines/weekly-verify/FOCUS.md`）。
   功能 merge 之後，讀回那一列靠什麼響，spec 要定。
+  補法的方向（Luke 11-14）：「我們的 backlog pre-edit 格式有個優勢是容易補上這個缺口，backlog 本身可以設定一個必定觸發的日期」。同日查 `~/.agents/bin/preedit_backlog.py`：
+  現在的宣告只有檔案、skill／agent／指令開頭、與「沒有觸發」三種，沒有日期；會照日期自己出聲的是 SessionStart 的 BACKLOG 年齡報告（滿 14、45 天）。
+  所以是在觸發點格加一種日期宣告、沿用年齡報告那條通道：讀回那一列寫上那次實跑的日期，到期後每次開 session 都響，列移出才停。
+  邊界：工具在 user 層（宣告的解析、pre-push 的宣告檢查、年齡報告），要在 bare 另開一列；只在這台機器開 session 時出聲，雲端 session 看不到，不是到點通知；
+  日期不等於那次實跑（排程會晚、會失敗），響了之後先確認 run 存在。
 - 專案規則寫在哪：憲章（進版控、雲端 session 讀得到，修訂要升版與 cold review），或 `CLAUDE.local.md`（只有這台機器看得到）。
 - 上面 agent 提的四類要不要收。
 - 一個 spec 分成數個 PR 之後，它的 BACKLOG 列在哪一片的 PR 移出。
