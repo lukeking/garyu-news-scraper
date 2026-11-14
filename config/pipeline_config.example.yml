@@ -1,5 +1,6 @@
 # Traffic Pipeline Configuration
 # Stored as GitHub Environment Variable: PIPELINE_CONFIG_YML
+# prod-mirror: 這份是 prod 變數的鏡像；有這一行的檔要列在 scripts/check_config_drift.py 的 MIRRORED（測試會比對）
 # Copy to config/pipeline_config.yml for local development (gitignored).
 #
 # All thresholds are configurable here — no code changes required for tuning.

@@ -5,6 +5,7 @@
 且刻意多 14 行註解。逐字比對會天天誤報，天天誤報的檢查最後一定會被關掉——
 所以第一條測試（註解與行尾不同仍判為相符）是這支腳本能不能活下去的關鍵。
 """
+import glob
 import io
 import os
 import sys
@@ -104,16 +105,25 @@ def test_unparseable_yaml_is_a_failure(tmp_path):
     assert "不是合法 YAML" in problems[0]
 
 
-# ── 清單本身：成員與各 example 檔頭自稱的身分一致 ───────────────────────────
+# ── 清單本身：成員由各 example 檔頭的鏡像標記決定 ───────────────────────────
 
-def test_only_declared_mirrors_are_checked(tmp_path):
-    """2026-10-13 起 sources 的 example 是鏡像（`crb`），清單的成員要與各 example 檔頭自稱的身分一致。
-    增減成員前先改那份 example 的檔頭；之前不列 sources，是因為它們當時是格式範本、與 prod 不同步。"""
-    checked = {runtime for runtime, _ in drift.MIRRORED}
+_MARKER = "# prod-mirror:"
 
-    assert checked == {
-        "config/categories_traffic.yml",
-        "config/pipeline_config.yml",
-        "config/sources_traffic.yml",
-        "config/sources_ffxiv.yml",
-    }
+
+def _declared_mirrors():
+    """有 `# prod-mirror:` 那一行的 `config/*.example.yml`，換成 `MIRRORED` 的（執行期, example）形狀。"""
+    pairs = []
+    for path in sorted(glob.glob(os.path.join(_REPO, "config", "*.example.yml"))):
+        with io.open(path, encoding="utf-8") as f:
+            if any(line.startswith(_MARKER) for line in f):
+                name = os.path.basename(path)
+                pairs.append((f"config/{name.replace('.example.yml', '.yml')}", f"config/{name}"))
+    return pairs
+
+
+def test_mirrored_list_matches_example_header_markers():
+    """`MIRRORED` 與檔頭標記要兩邊一致：有標記沒進清單、進了清單沒標記，都會紅。"""
+    declared = _declared_mirrors()
+
+    assert declared, "一個鏡像標記都沒找到：是標記的寫法變了，不是沒有鏡像"
+    assert sorted(drift.MIRRORED) == declared

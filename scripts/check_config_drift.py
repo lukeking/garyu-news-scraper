@@ -26,9 +26,8 @@ import yaml
 
 _REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# 只放**檔頭自稱是 prod 鏡像**的 example。categories／pipeline 兩份寫「Stored as GitHub
-# Environment Variable … Copy to config/X.yml」，sources 兩份寫「這是 prod … 來源設定的
-# 鏡像」（2026-10-13 起，`crb`）。改清單前先看那份 example 的檔頭。
+# 只放檔頭有 `# prod-mirror:` 那一行的 example。增減成員時清單與那一行一起改：
+# `tests/unit/test_check_config_drift.py` 比對兩邊，只改一邊會紅。
 MIRRORED = [
     ("config/categories_traffic.yml", "config/categories_traffic.example.yml"),
     ("config/pipeline_config.yml", "config/pipeline_config.example.yml"),
