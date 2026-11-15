@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain
+- [x] No [NEEDS CLARIFICATION] markers remain
 - [x] Requirements are testable and unambiguous
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -32,7 +32,7 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
-- 2026-11-15 第一輪：`[NEEDS CLARIFICATION]` 還有 3 處——FR-015（專案規則寫在哪）、FR-018（BACKLOG 列在哪一片的 PR 移出）、FR-019（上線後才驗得到的部分算不算 spec 的一環）。
-  三題都是 BACKLOG `GNS-20261114-bh8` 小節「未定」裡的題目；同一節的第四題（提案的四類要不要收）在 Assumptions 標成 Unchecked。
+- 2026-11-15 第一輪：`[NEEDS CLARIFICATION]` 3 處（FR-015、FR-018、FR-019），加上 Assumptions 一條 Unchecked（提案的四類要不要收），是 BACKLOG `GNS-20261114-bh8` 小節「未定」的四題。
+- 2026-11-15 第二輪：四題都定了，寫回 spec（Clarifications 的 Session 2026-11-15）；`[NEEDS CLARIFICATION]` 0 處，全部項目通過。
 - 「No implementation details」的讀法：正文只用領域的說法（報告、buffer、彙整池、兩個站的部署、術語收錄流程）；檔名與函式名只出現在 Assumptions 的 `Checked:` 證據裡，那是範本要求的寫法。
 - 「Written for non-technical stakeholders」的讀法：這個功能的使用者就是維護者與在這個專案規劃改動的人，沒有另一群非技術的讀者。
