@@ -244,32 +244,23 @@ class TrafficCategory:
 
     def _dump_collected(self, articles: list) -> None:
         """不發布：TRAFFIC_POOL_DIR 有設才寫 collected.json（級別、逐來源漏斗、buffer 會收到的列）；沒設或寫不進去都印一行。"""
-        import json
-        from src import run_mode
+        from src import artifacts, run_mode
         from src.storage import traffic_buffer_rows
-        out_dir = os.environ.get("TRAFFIC_POOL_DIR", "").strip()
-        if not out_dir:
-            logger.info("交通候選清單：未設 TRAFFIC_POOL_DIR，不寫檔")
-            return
-        week_id = self._current_week_id()
-        rows = traffic_buffer_rows(articles, week_id, datetime.now(timezone.utc), self._buffer_max_age_weeks())
-        funnel = getattr(self, "last_funnel", {})
-        data = {
-            "run_mode": run_mode.current(),
-            "week_id": week_id,
-            "sources": [{"source": s, **dict(zip(FUNNEL_FIELDS, counts))} for s, counts in funnel.items()],
-            "article_count": len(rows),
-            "articles": rows,
-        }
-        path = os.path.join(out_dir, "collected.json")
-        try:
-            os.makedirs(out_dir, exist_ok=True)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(data, f, ensure_ascii=False, indent=1, default=str)
-        except OSError as e:
-            logger.warning("交通候選清單：寫入 %s 失敗（%s）", path, e)
-            return
-        logger.info("交通候選清單：寫入 %s（%d 篇）", path, len(rows))
+
+        def build():
+            week_id = self._current_week_id()
+            rows = traffic_buffer_rows(articles, week_id, datetime.now(timezone.utc), self._buffer_max_age_weeks())
+            funnel = getattr(self, "last_funnel", {})
+            data = {
+                "run_mode": run_mode.current(),
+                "week_id": week_id,
+                "sources": [{"source": s, **dict(zip(FUNNEL_FIELDS, counts))} for s, counts in funnel.items()],
+                "article_count": len(rows),
+                "articles": rows,
+            }
+            return data, f"{len(rows)} 篇"
+
+        artifacts.write_json(logger, "交通候選清單", "TRAFFIC_POOL_DIR", build, "collected.json")
 
     def publish(self, articles: list) -> str:
         from src import run_mode

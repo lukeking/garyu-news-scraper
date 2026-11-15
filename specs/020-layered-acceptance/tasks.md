@@ -77,14 +77,14 @@
 
 同形的寫檔現在有三處：`src/filter.py` 的 `_dump_ffxiv_pool`、`src/pipeline/traffic.py` 的 `_dump_collected`、`src/publisher.py` 的 `_dump_analysis_output`。T011、T013 再加寫入點之前先收成一個函式（已定 2026-11-15）。
 
-- [ ] T040 [US1] [FR-008] 寫 `tests/unit/test_artifacts.py`，對象是新模組 `src/artifacts.py` 的共用寫檔函式：
+- [-] T040 [US1] [FR-008] 寫 `tests/unit/test_artifacts.py`，對象是新模組 `src/artifacts.py` 的共用寫檔函式：
   - 路徑變數沒設或只有空白：印 `<標籤>：未設 <變數名>，不寫檔`，不寫檔
   - 變數是目錄（`TRAFFIC_POOL_DIR`、`ANALYSIS_OUTPUT_DIR` 這一種）：目錄不存在就建，寫 `<目錄>/<檔名>`；變數是檔案路徑（`FFXIV_POOL_DUMP` 這一種）：直接寫那個路徑，不建上層目錄
   - 內容是 UTF-8 的 JSON：非 ASCII 字元照原樣、縮排 1、序列化不了的值轉成字串；成功印 `<標籤>：寫入 <路徑>（<呼叫端給的摘要>）`
   - 寫不進去（`OSError`）：印一行 warning `<標籤>：寫入 <路徑> 失敗（<原因>）`，不丟例外
   - 三個呼叫點都經過它：把共用函式換成只記錄呼叫的替身之後，`_dump_ffxiv_pool`、`_dump_collected`、`_dump_analysis_output` 各呼叫它一次，而且沒有任何檔被寫出來
   - 先確認紅
-- [ ] T041 [US1] [FR-008] 實作 `src/artifacts.py`，把上面三個函式的讀變數、寫檔與三種訊息改成呼叫它；各自的內容怎麼組留在原處。三處寫出的檔、路徑與訊息逐字不變：`tests/unit/test_ffxiv_ranking.py`、`tests/unit/test_main_dry_run.py`、`tests/unit/test_dry_run_log_consistency.py` 不改就全過。T011、T013 新增的產物寫入也用它
+- [-] T041 [US1] [FR-008] 實作 `src/artifacts.py`，把上面三個函式的讀變數、寫檔與三種訊息改成呼叫它；各自的內容怎麼組留在原處。三處寫出的檔、路徑與訊息逐字不變：`tests/unit/test_ffxiv_ranking.py`、`tests/unit/test_main_dry_run.py`、`tests/unit/test_dry_run_log_consistency.py` 不改就全過。T011、T013 新增的產物寫入也用它
 
 ### 交通分析腳本的兩級
 
