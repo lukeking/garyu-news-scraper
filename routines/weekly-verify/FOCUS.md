@@ -6,6 +6,24 @@
 
 (1)(2) 追的 GNS-014（PostgREST 1000 列上限，PR #132）與 GNS-013（embedding 429，PR #128／#137）已完成、移出 BACKLOG，需要的脈絡已寫在各條裡；(3) 的 `來源失敗` 彙總行由 PR #152 加入，PTT 兩個看板 10-31 停用，11-10 連程式一起移除（Luke 裁示）。BACKLOG 的舊條目是 `GNS-NNN`（舊的 `#14` 就是 `GNS-014`），10-05 起的新條目是 `GNS-YYYYMMDD-xxx`；PROMPT.md 常設檢查 (A) 追的 `GNS-20261019-dkm` 在 10-19 接手了 `GNS-008`（spec 014 closeout）。
 
+## (0) 不發布的跑法上線後，正式週報照常寫入與發布（`#225`；spec 020 SC-006）
+
+<!-- 維護者：FOCUS 每週滾動時帶著這一節，spec 020 的 T037（讀回）做完才拿掉。放在最前面：後面各節的「本節其餘不做」不會擋到它。 -->
+
+`#225` 讓週報流程的三支程式（`main.py`、交通分析、術語收錄）多了一個不發布的模式，只有手動觸發的 `weekly-dry-run.yml` 會設。排程的 `weekly.yml` 與 `auto-kb.yml` 沒設，行為應該跟以前一樣。
+
+**先判斷本週適不適用**：`gh pr view 225 --json state,mergedAt` 與 `gh run view <週報 ID> --json event,createdAt`。
+
+- `state` 不是 `MERGED`，或 `mergedAt` 晚於本週週報的 `createdAt` → 寫「`#225` 還沒在本週週報之前 merge，(0) 不適用」，往下做 (1)。
+- `event` 不是 `schedule` → 照樣做下面，在本節標出「本週的週報不是排程觸發的」。
+- 其餘 → 做下面四條，結果列在本節。
+
+1. 數週報 log 裡含 `[不發布]` 的行（`grep -F '[不發布]'`）。預期 0 行。**有任何一行** → FAIL，逐字引用前 10 行，標在報告最前面：正式的週報走進了不發布的模式，寫入或發布可能被略過。
+2. 下面每一種行各數幾行，列成表：`✓ Supabase upsert 完成：`、`✓ traffic buffer upsert 完成：`、`已清理過期 buffer：`、`✓ hot_topic_report upserted:`、`✓ hot_topics.json 已寫入：`、`=== 發布完成（`。
+   某一種是 0 行 → 找上一個 `event` 是 `schedule` 的週報，數同一種行；上一次有、本週沒有 → 標出（不判 FAIL：那一週可能本來就沒有熱點或彙整，本地讀回時判）。
+3. 兩個部署步驟：`gh run view <週報 ID> --json jobs`，`Deploy Traffic Pages to Cloudflare`、`Deploy FFXIV Pages to Cloudflare` 的 `conclusion` 都是 `success` → ✅；其他值 → 標出。
+4. 術語收錄的連帶觸發：`gh run list --workflow auto-kb.yml --limit 5 --json databaseId,createdAt,event,conclusion`。本週週報之後有一個 `event` 是 `workflow_run` 的 run → ✅，寫出它的 ID 與 `conclusion`，並數那一次 log 裡含 `[不發布]` 的行（預期 0 行，有 → 同第一條，FAIL）；沒有這個 run → 標出（週報沒有成功結束時本來就不會觸發，一併寫出週報的 `conclusion`）。
+
 ## (1) GNS-014 分頁修法的回歸檢查（PostgREST 1000 列上限）
 
 PR #132 替兩個查詢都加了分頁。指紋那半 09-15 起每個 run 都 > 1000（11-09 週報是 2380／2395），本週是回歸檢查；buffer 那半**在 prod 還沒被行使過**，見第二條。

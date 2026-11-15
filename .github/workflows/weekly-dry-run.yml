@@ -1,0 +1,162 @@
+# 不發布的週報（spec 020）：只能手動觸發，不寫入、不發布、不部署。怎麼用與怎麼讀見 docs/dry-run.md。
+# 準備步驟與程式步驟的 env 跟 weekly.yml、auto-kb.yml 由 tests/unit/test_workflow_parity.py 比對：改那兩個檔時這裡要跟著改。
+name: Garyu News Scraper 不發布週報
+
+on:
+  workflow_dispatch:
+    inputs:
+      level:
+        description: 'dry-input：只到入選，不呼叫生成式 LLM；dry-full：呼叫 LLM，不寫入、不發布'
+        required: true
+        type: choice
+        options:
+          - dry-input
+          - dry-full
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # 跟 weekly.yml 相同：第二級跑的是同一份工作
+    environment: production
+
+    steps:
+      - name: Checkout 程式碼
+        uses: actions/checkout@v5
+
+      - name: 寫入 config/sources_traffic.yml（從 GitHub Variable）
+        run: echo "$SOURCES_TRAFFIC_YML" > config/sources_traffic.yml
+        env:
+          SOURCES_TRAFFIC_YML: ${{ vars.SOURCES_TRAFFIC_YML }}
+
+      - name: 寫入 config/sources_ffxiv.yml（從 GitHub Variable，選填）
+        if: ${{ vars.SOURCES_FFXIV_YML != '' }}
+        run: echo "$SOURCES_FFXIV_YML" > config/sources_ffxiv.yml
+        env:
+          SOURCES_FFXIV_YML: ${{ vars.SOURCES_FFXIV_YML }}
+
+      - name: 寫入 config/categories_traffic.yml（從 GitHub Variable）
+        run: echo "$CATEGORIES_TRAFFIC_YML" > config/categories_traffic.yml
+        env:
+          CATEGORIES_TRAFFIC_YML: ${{ vars.CATEGORIES_TRAFFIC_YML }}
+
+      - name: 寫入 config/pipeline_config.yml（從 GitHub Variable）
+        run: echo "$PIPELINE_CONFIG_YML" > config/pipeline_config.yml
+        env:
+          PIPELINE_CONFIG_YML: ${{ vars.PIPELINE_CONFIG_YML }}
+
+      - name: 寫入 config/jieba_userdict.txt（從 GitHub Variable，選填）
+        if: ${{ vars.JIEBA_USERDICT_TXT != '' }}
+        run: echo "$JIEBA_USERDICT_TXT" > config/jieba_userdict.txt
+        env:
+          JIEBA_USERDICT_TXT: ${{ vars.JIEBA_USERDICT_TXT }}
+
+      - name: 設定 Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 計數（開始）
+        run: python scripts/dry_run_counts.py take --out "$TRAFFIC_POOL_DIR/counts_before.json"
+        env:
+          GARYU_RUN_MODE: ${{ inputs.level }}
+          TRAFFIC_POOL_DIR: traffic-pool
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          # 只用來讀兩個站的最後部署時間（GET），這個 workflow 沒有部署步驟
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: 執行週報程式（不發布）
+        run: python main.py
+        env:
+          GARYU_RUN_MODE: ${{ inputs.level }}
+          TRAFFIC_POOL_DIR: traffic-pool
+          ANALYSIS_OUTPUT_DIR: analysis-output
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
+          FFXIV_SITE_URL: ${{ vars.FFXIV_SITE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          FFXIV_POOL_DUMP: ffxiv_pool.json
+
+      - name: 週交通熱點分析（不發布）
+        run: python scripts/traffic_weekly_analysis.py
+        env:
+          GARYU_RUN_MODE: ${{ inputs.level }}
+          TRAFFIC_POOL_DIR: traffic-pool
+          ANALYSIS_OUTPUT_DIR: analysis-output
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CATEGORIES_TRAFFIC_YML_PATH: config/categories_traffic.yml
+          PIPELINE_CONFIG_YML_PATH: config/pipeline_config.yml
+          JIEBA_USERDICT_PATH: config/jieba_userdict.txt
+          TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
+
+      - name: 術語收錄（不寫入，只有第二級）
+        if: ${{ inputs.level == 'dry-full' }}
+        run: python scripts/auto_kb.py
+        env:
+          GARYU_RUN_MODE: ${{ inputs.level }}
+          ANALYSIS_OUTPUT_DIR: analysis-output
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+
+      # 下面都在前面的步驟失敗時照跑：跑到一半死掉的那一次，最需要知道有沒有寫進任何東西
+      - name: 計數（結束）
+        if: ${{ !cancelled() }}
+        run: python scripts/dry_run_counts.py take --out "$TRAFFIC_POOL_DIR/counts_after.json"
+        env:
+          GARYU_RUN_MODE: ${{ inputs.level }}
+          TRAFFIC_POOL_DIR: traffic-pool
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: 比對前後計數（不同就讓 job 失敗）
+        if: ${{ !cancelled() }}
+        run: python scripts/dry_run_counts.py compare "$TRAFFIC_POOL_DIR/counts_before.json" "$TRAFFIC_POOL_DIR/counts_after.json"
+        env:
+          GARYU_RUN_MODE: ${{ inputs.level }}
+          TRAFFIC_POOL_DIR: traffic-pool
+
+      - name: 上傳 FFXIV 候選池內容
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ffxiv-pool
+          path: ffxiv_pool.json
+          if-no-files-found: warn
+
+      - name: 上傳交通候選清單、選材與兩份計數
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: traffic-pool
+          path: traffic-pool
+          if-no-files-found: warn
+
+      - name: 上傳分析全文與術語收錄的條目
+        if: ${{ !cancelled() && inputs.level == 'dry-full' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: analysis-output
+          path: analysis-output
+          if-no-files-found: warn
