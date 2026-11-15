@@ -33,7 +33,7 @@
 
 **Purpose**: 留下片 1 動程式之前的基準
 
-- [ ] T001 跑 `.venv/bin/python -m pytest tests/unit -q`，把摘要行記下來（2026-11-15 在這個分支是 702 passed），之後寫進 `#225` 的內文
+- [X] T001 跑 `.venv/bin/python -m pytest tests/unit -q`，把摘要行記下來（2026-11-15 在這個分支是 702 passed），之後寫進 `#225` 的內文
 
 ---
 
@@ -121,7 +121,7 @@
 - [X] T017 [US1] [FR-001, FR-004, FR-005, FR-006, FR-008, FR-010] 新增 `.github/workflows/weekly-dry-run.yml`（`weekly.yml` 不動）：準備步驟；`scripts/dry_run_counts.py` 取一次；`python main.py`；`python scripts/traffic_weekly_analysis.py`；`level` 是 `dry-full` 時跑 `python scripts/auto_kb.py`；`scripts/dry_run_counts.py` 再取一次並比對，不同就讓 job 失敗；上傳 `ffxiv-pool`、`traffic-pool`、`analysis-output` 三個產物（含兩份計數），前面的步驟失敗也上傳
 - [X] T018 [P] [US1] [FR-007, FR-008, FR-009] 寫 `docs/dry-run.md`（怎麼觸發、兩級各做什麼與不做什麼、產物叫什麼與怎麼讀回、它驗的是接線與輸出而不是預演週一、產物在公開 repo 上外人讀得到）；`docs/external-services.md` 的 Gemini 那一列補一句：不發布的第二級算在同一個預算裡
 - [X] T019 [US1] [FR-020, SC-006] 在當時適用週的 `routines/weekly-verify/FOCUS.md` 加一條讀回的提醒：片 1 進 `main` 之後第一次排程的週報，紀錄裡不該有任何 `[不發布]` 開頭的行，寫入與發布照常；FOCUS 滾動時帶著，到 T037 做完才收
-- [ ] T020 [US1] [SC-005, FR-017, FR-018] 改寫 `#225` 的標題與內文：這一片的驗收範圍、驗法、結果（T001 的基準與最後的摘要行）、後面還有哪幾片、`GNS-20261114-bh8` 那一列還沒移出的原因、憲章原則 I～III 的符合情形、照 contract 提案實作的固定行文字；`Backlog:` 那一行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出
+- [X] T020 [US1] [SC-005, FR-017, FR-018] 改寫 `#225` 的標題與內文：這一片的驗收範圍、驗法、結果（T001 的基準與最後的摘要行）、後面還有哪幾片、`GNS-20261114-bh8` 那一列還沒移出的原因、憲章原則 I～III 的符合情形、照 contract 提案實作的固定行文字；`Backlog:` 那一行貼 `python3 ~/.agents/bin/backlog_trailers.py pr-line` 的輸出
 
 **Checkpoint**: 片 1 可以轉 ready、merge；不發布的 workflow 進了 `main` 才觸發得了
 
