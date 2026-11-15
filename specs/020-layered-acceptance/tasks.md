@@ -7,6 +7,8 @@
 
 **Organization**: 照驗收範圍分片（FR-016）。每個 Phase 開頭寫這一片的驗收範圍、用什麼驗、要不要等實跑、對應哪個 PR。
 
+> Markers: [ ] not started · [-] implemented, awaiting review · [X] reviewed + verified (verification-only task: main-verified)
+
 ## Format: `[ID] [P?] [Story] [Req] Description`
 
 - **[P]**: 可以並行（不同檔、不相依）
@@ -39,8 +41,8 @@
 
 **Purpose**: 片 1 的每一段都要問「現在是哪一級」，答案只能有一個來源
 
-- [ ] T002 [FR-001, FR-007] 寫 `tests/unit/test_run_mode.py`：`GARYU_RUN_MODE` 沒設或空字串是正式模式；`dry-input` 是第一級、`dry-full` 是第二級（去掉前後空白後要完全相同）；其他任何值（`full`、`input`、`DRY-FULL`、`dry`）丟出錯誤，訊息帶那個值與認得的兩個值；開頭那一行與略過寫入那一行的文字照 `contracts/dry-run.md`「執行紀錄裡的固定行」，正式模式回空、不印。先確認紅
-- [ ] T003 [FR-001, FR-007] 實作 `src/run_mode.py`：讀模式、判斷是不是不發布、產生開頭那一行與略過寫入那一行；預設值（正式）只定義在這裡，別的模組不自己讀 `GARYU_RUN_MODE`
+- [-] T002 [FR-001, FR-007] 寫 `tests/unit/test_run_mode.py`：`GARYU_RUN_MODE` 沒設或空字串是正式模式；`dry-input` 是第一級、`dry-full` 是第二級（去掉前後空白後要完全相同）；其他任何值（`full`、`input`、`DRY-FULL`、`dry`）丟出錯誤，訊息帶那個值與認得的兩個值；開頭那一行與略過寫入那一行的文字照 `contracts/dry-run.md`「執行紀錄裡的固定行」，正式模式回空、不印。先確認紅
+- [-] T003 [FR-001, FR-007] 實作 `src/run_mode.py`：讀模式、判斷是不是不發布、產生開頭那一行與略過寫入那一行；預設值（正式）只定義在這裡，別的模組不自己讀 `GARYU_RUN_MODE`
 
 **Checkpoint**: 模式有唯一的來源，後面的 task 可以開始
 
@@ -56,8 +58,8 @@
 
 ### 寫入出口
 
-- [ ] T004 [US1] [FR-004, FR-007, FR-010] 寫 `tests/unit/test_storage_dry_run.py`：從 `src/storage.py` 的原始碼找出所有呼叫 client 寫入方法的函式（不手寫清單），斷言恰好是 research.md 列的 5 個；兩個不發布模式下逐一斷言 client 呼叫 0 次、計數的回 0、印一行 `[不發布] 略過 <函式名>：<N> 筆`；正式模式下 client 照常被呼叫。另加一條咬合：把一個「有寫入、沒檢查模式」的假函式餵給列舉的邏輯，斷言它被抓到。先確認紅
-- [ ] T005 [US1] [FR-004, FR-007, FR-010] 在 `src/storage.py` 的 `upsert_articles`、`upsert_traffic_buffer`、`expire_buffer_articles`、`mark_articles_analyzed`、`upsert_hot_topic_report` 開頭檢查模式：不發布時不取 client、印略過那一行、回傳原本型別的空結果；讀取函式不動
+- [-] T004 [US1] [FR-004, FR-007, FR-010] 寫 `tests/unit/test_storage_dry_run.py`：從 `src/storage.py` 的原始碼找出所有呼叫 client 寫入方法的函式（不手寫清單），斷言恰好是 research.md 列的 5 個；兩個不發布模式下逐一斷言 client 呼叫 0 次、計數的回 0、印一行 `[不發布] 略過 <函式名>：<N> 筆`；正式模式下 client 照常被呼叫。另加一條咬合：把一個「有寫入、沒檢查模式」的假函式餵給列舉的邏輯，斷言它被抓到。先確認紅
+- [-] T005 [US1] [FR-004, FR-007, FR-010] 在 `src/storage.py` 的 `upsert_articles`、`upsert_traffic_buffer`、`expire_buffer_articles`、`mark_articles_analyzed`、`upsert_hot_topic_report` 開頭檢查模式：不發布時不取 client、印略過那一行、回傳原本型別的空結果；讀取函式不動
 
 ### `main.py` 的兩級與呼叫計數
 
