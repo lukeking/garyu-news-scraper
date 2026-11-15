@@ -88,13 +88,13 @@
 
 ### 交通分析腳本的兩級
 
-- [ ] T010 [P] [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 寫 `tests/unit/test_weekly_analysis_dry_run.py`，替換資料庫讀取與 HTTP 邊界後跑 `scripts/traffic_weekly_analysis.py` 的 `main()`：
+- [-] T010 [P] [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 寫 `tests/unit/test_weekly_analysis_dry_run.py`，替換資料庫讀取與 HTTP 邊界後跑 `scripts/traffic_weekly_analysis.py` 的 `main()`：
   - 兩級：`expire_buffer_articles` 印略過行；分析的輸入是 buffer 疊上 `TRAFFIC_POOL_DIR` 那份清單，同一個 link 只算一次，印 `[不發布] 分析的輸入：buffer <N> 篇，加上這次收集的 <M> 篇（其中 <K> 篇 buffer 裡已經有）`；清單檔不存在時印一行說沒有疊，不靜靜照 buffer 跑
   - `dry-input`：選完熱點 bucket 與彙整池之後印 `[不發布] 第一級在 熱點分析 之前停下`，`analyze_hot_topic`、`analyze_category_digest` 呼叫 0 次；選出的 bucket、彙整池的篇數與來源分布、級別欄位寫進 `TRAFFIC_POOL_DIR`
   - `dry-full`：每份三軸報告與彙整報告的全文寫進 `ANALYSIS_OUTPUT_DIR`；每份報告跑一次 `src/report_review.py` 的 `check_report()`，命中一起寫進去並標「未經逐條判定」，命中不擋任何東西；`upsert_hot_topic_report`、`mark_articles_analyzed` 各印略過行；`pages/traffic/hot_topics.json` 沒有被產生或改動；結尾印次數
   - 正式模式：寫入與發布的呼叫跟現在相同，不呼叫 `check_report()`，沒有 `[不發布]` 開頭的行
   - 先確認紅
-- [ ] T011 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 在 `scripts/traffic_weekly_analysis.py` 實作 T010 的行為；`check_report()` 的輸入怎麼組照 `scripts/replay_report_review.py:115` 的呼叫
+- [-] T011 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 在 `scripts/traffic_weekly_analysis.py` 實作 T010 的行為；`check_report()` 的輸入怎麼組照 `scripts/replay_report_review.py:115` 的呼叫
 
 ### 術語收錄的不寫入模式
 
