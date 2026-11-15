@@ -3,6 +3,7 @@
 PyYAML 把 `on` 讀成布林 True。"""
 import copy
 import os
+import subprocess
 import sys
 
 import pytest
@@ -21,6 +22,11 @@ DRY_FULL_ONLY = "${{ inputs.level == 'dry-full' }}"
 ARTIFACT_VARS = {"TRAFFIC_POOL_DIR", "ANALYSIS_OUTPUT_DIR", "FFXIV_POOL_DUMP"}
 MAIN, TRAFFIC, AUTO_KB = "python main.py", "python scripts/traffic_weekly_analysis.py", "python scripts/auto_kb.py"
 TAKE, COMPARE = "python scripts/dry_run_counts.py take", "python scripts/dry_run_counts.py compare"
+PREP_STEPS = 8
+GUARD_ENV = {"LEVEL": LEVEL_EXPR}
+# level 的檢查要放行的只有那兩個值；None 是環境裡根本沒有 LEVEL
+GUARD_CASES = [("dry-input", True), ("dry-full", True), ("", False), (None, False), ("formal", False), ("dry", False),
+               ("DRY-FULL", False), (" dry-full", False), ("dry-full ", False), ("dry-input dry-full", False)]
 
 
 def load(name):
@@ -52,8 +58,14 @@ def run_of(step):
     return (step.get("run") or "").strip()
 
 
-def is_program(step):
-    return "python " in run_of(step)
+def guard_step(wf):
+    all_steps = steps(wf)
+    return all_steps[PREP_STEPS] if len(all_steps) > PREP_STEPS else {}
+
+
+def program_steps(wf):
+    """準備步驟與 level 的檢查之後，每一個有 run 的步驟都算程式步驟，不看它用什麼指令叫程式。"""
+    return [s for s in steps(wf)[PREP_STEPS + 1:] if "run" in s]
 
 
 def find_run(wf, cmd):
@@ -118,9 +130,32 @@ def level_problems(dry):
         problems.append(f"輸入只能有 level，實際：{sorted(inputs)}")
     if level.get("required") is not True or level.get("type") != "choice" or level.get("options") != LEVELS:
         problems.append(f"level 要是必填的選項、值恰好是 {LEVELS}：{level!r}")
-    for s in steps(dry):
-        if is_program(s) and (s.get("env") or {}).get("GARYU_RUN_MODE") != LEVEL_EXPR:
+    if set(level) - {"description", "required", "type", "options"}:
+        problems.append(f"level 只能有 description、required、type、options（有 default 的話，沒給 level 的觸發照預設值跑）：{sorted(level)}")
+    for where, env in (("workflow", dry.get("env")), ("job", the_job(dry).get("env"))):
+        if "GARYU_RUN_MODE" in (env or {}):
+            problems.append(f"{where} 層不能設 GARYU_RUN_MODE：模式只寫在每個程式步驟上")
+    for s in program_steps(dry):
+        if (s.get("env") or {}).get("GARYU_RUN_MODE") != LEVEL_EXPR:
             problems.append(f"程式步驟 {s.get('name')!r} 的 GARYU_RUN_MODE 不是 {LEVEL_EXPR}")
+    return problems
+
+
+def guard_problems(dry):
+    """空的 level 會被程式當成正式模式（src/run_mode.py），所以第一個程式步驟之前要有一步自己擋。"""
+    g = guard_step(dry)
+    if g.get("env") != GUARD_ENV or "if" in g or "run" not in g:
+        return [f"準備步驟之後的第一步要是 level 的檢查（env 恰好是 {GUARD_ENV}、沒有 if）：{g!r}"]
+    problems = []
+    for value, allowed in GUARD_CASES:
+        env = {"PATH": os.environ.get("PATH", "")}
+        if value is not None:
+            env["LEVEL"] = value
+        done = subprocess.run(["bash", "-e", "-c", run_of(g)], env=env, capture_output=True, text=True)
+        if (done.returncode == 0) != allowed:
+            problems.append(f"level 的檢查對 {value!r} 的結束碼是 {done.returncode}，{'要放行' if allowed else '要失敗'}")
+        elif not allowed and "level" not in done.stdout + done.stderr:
+            problems.append(f"level 的檢查擋下 {value!r} 時沒有說原因")
     return problems
 
 
@@ -173,7 +208,7 @@ def job_problems(weekly, dry):
 
 
 def order_problems(dry):
-    progs = [s for s in steps(dry) if is_program(s)]
+    progs = program_steps(dry)
     runs = [run_of(s) for s in progs]
     shape = [TAKE, MAIN, TRAFFIC, AUTO_KB, TAKE, COMPARE]
     if len(runs) != len(shape) or not all(r == want or (want in (TAKE, COMPARE) and r.startswith(want))
@@ -217,7 +252,7 @@ def upload_problems(weekly, dry):
         problems.append(f"traffic-pool 要在前面失敗時也上傳：if 要是 {ALWAYS}")
     if by_name["analysis-output"].get("if") != "${{ !cancelled() && inputs.level == 'dry-full' }}":
         problems.append("analysis-output 只有第二級有，前面失敗時也上傳")
-    last_program = max(i for i, s in enumerate(all_steps) if is_program(s))
+    last_program = max(i for i, s in enumerate(all_steps) if i > PREP_STEPS and "run" in s)
     if any(all_steps.index(u) < last_program for u in uploads):
         problems.append("上傳要排在最後的計數與比對之後，兩份計數才會在產物裡")
     return problems
@@ -240,6 +275,10 @@ def test_no_deploy_no_read_after_write(files):
 def test_level_is_a_required_choice_passed_unchanged(files):
     assert LEVELS == [run_mode.DRY_INPUT, run_mode.DRY_FULL]
     assert level_problems(files["dry"]) == []
+
+
+def test_level_is_checked_before_any_program_runs(files):
+    assert guard_problems(files["dry"]) == []
 
 
 def test_program_step_env_matches_weekly_and_auto_kb(files):
@@ -302,6 +341,20 @@ def _add_verify(f):
     steps(f["dry"]).append({"name": "驗證本週資料可由 Supabase 讀取", "run": "echo ok"})
 
 
+def _add_step(cmd):
+    def mutate(f):
+        steps(f["dry"]).insert(PREP_STEPS + 4, {"name": "另一支程式", "run": cmd})
+    return mutate
+
+
+def _guard_run(old, new):
+    def mutate(f):
+        g = guard_step(f["dry"])
+        assert old in g["run"], f"level 的檢查裡找不到 {old!r}，對照組要重寫"
+        g["run"] = g["run"].replace(old, new)
+    return mutate
+
+
 def _with(path, fn):
     def mutate(f):
         fn(f, path)
@@ -329,6 +382,17 @@ MUTATIONS = {
     "多一個輸入": (lambda f: f["dry"][True]["workflow_dispatch"]["inputs"].update({"x": {"type": "string"}}), "level"),
     "交通分析寫死 dry-full": (_set_env(TRAFFIC, "GARYU_RUN_MODE", "dry-full"), "level"),
     "計數步驟沒帶模式": (lambda f: _step(f["dry"], lambda s: run_of(s).startswith(TAKE))["env"].pop("GARYU_RUN_MODE"), "level"),
+    "多一個 python3 步驟沒帶模式": (_add_step("python3 scripts/auto_kb.py"), "level"),
+    "多一個 bash 步驟沒帶模式": (_add_step("bash run_weekly.sh"), "level"),
+    "level 有預設值": (lambda f: f["dry"][True]["workflow_dispatch"]["inputs"]["level"].update({"default": "dry-full"}), "level"),
+    "job 層設了空的模式": (lambda f: the_job(f["dry"]).update({"env": {"GARYU_RUN_MODE": ""}}), "level"),
+    "workflow 層設了模式": (lambda f: f["dry"].update({"env": {"GARYU_RUN_MODE": "dry-full"}}), "level"),
+    "拿掉 level 的檢查": (lambda f: steps(f["dry"]).pop(PREP_STEPS), "guard"),
+    "level 的檢查排在計數後面": (lambda f: steps(f["dry"]).insert(PREP_STEPS + 1, steps(f["dry"]).pop(PREP_STEPS)), "guard"),
+    "level 的檢查放行空值": (_guard_run("dry-input|dry-full)", "\"\"|dry-input|dry-full)"), "guard"),
+    "level 的檢查不失敗": (_guard_run("exit 1", "exit 0"), "guard"),
+    "level 的檢查讀寫死的值": (lambda f: guard_step(f["dry"]).update({"env": {"LEVEL": "dry-full"}}), "guard"),
+    "level 的檢查只在失敗後跑": (lambda f: guard_step(f["dry"]).update({"if": "${{ failure() }}"}), "guard"),
     "main 少了模型變數": (_set_env(MAIN, "GEMINI_MODEL_NAME", None), "env"),
     "main 的值不同": (_set_env(MAIN, "GEMINI_MODEL_NAME", "${{ vars.GEMINI_MODEL_NAME }}"), "env"),
     "交通分析少了設定路徑": (_set_env(TRAFFIC, "JIEBA_USERDICT_PATH", None), "env"),
@@ -365,6 +429,7 @@ CHECKS = {
     "trigger": lambda f, t: trigger_problems(f["dry"], f["autokb"]),
     "forbidden": lambda f, t: forbidden_problems(f["dry"], t),
     "level": lambda f, t: level_problems(f["dry"]),
+    "guard": lambda f, t: guard_problems(f["dry"]),
     "env": lambda f, t: env_problems(f["weekly"], f["dry"], f["autokb"]),
     "job": lambda f, t: job_problems(f["weekly"], f["dry"]),
     "order": lambda f, t: order_problems(f["dry"]),

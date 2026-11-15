@@ -39,8 +39,10 @@ gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-full
 | 寫入資料庫（文章、buffer、報告、已分析標記、buffer 過期、術語庫） | 不寫，每一種略過各印一行 | 不寫，每一種略過各印一行 |
 | 產生站台檔、部署兩個站 | 不做 | 不做 |
 
-workflow 的步驟依序是：準備（跟 `weekly.yml` 逐步相同）→ 計數（開始）→ `python main.py` → `python scripts/traffic_weekly_analysis.py` →
-術語收錄（只有第二級）→ 計數（結束）→ 比對 → 上傳產物。前面的程式步驟失敗時，後面的程式步驟照預設不跑；
+workflow 的步驟依序是：準備（跟 `weekly.yml` 逐步相同）→ 檢查 `level` → 計數（開始）→ `python main.py` → `python scripts/traffic_weekly_analysis.py` →
+術語收錄（只有第二級）→ 計數（結束）→ 比對 → 上傳產物。檢查 `level` 那一步在值不是 `dry-input`、`dry-full` 時直接失敗：
+程式把沒設或空的模式當成正式模式，而缺少必填輸入的觸發 GitHub 會不會擋下沒有實測，所以 workflow 自己擋，不讓空值變成一次正式寫入。
+前面的程式步驟失敗時，後面的程式步驟照預設不跑；
 計數（結束）、比對與上傳照跑：跑到一半死掉的那一次，最需要知道有沒有寫進任何東西。
 
 ## 讀執行紀錄
@@ -95,6 +97,8 @@ spec 的「五個計數」在這裡是七項：報告數沒寫是哪一張表，
   現有的 token 有沒有這個權限、正式回應是不是這個形狀，第一次實跑（T021）才知道；取不到時那兩項寫「未取得：HTTP 403：…」之類的原因，比對不會通過。
 - buffer 與彙整池刻意不看 `buffer_expires_at`：週報讀 buffer 時篩「還沒過期」，但一次執行十幾分鐘，跨過過期時間的列會讓計數在沒有任何寫入時就變。
   不篩的話，只有真的刪掉過期列才會改變計數，那正是要抓的寫入。所以這裡的 buffer 筆數比執行紀錄裡 `buffer 中有 N 篇待分析文章` 大，兩者本來就不相等。
+- 彙整池這一項是所有彙整類別加起來的未分析列數，不分類別，也不扣掉分析當下排除的連結（`select_digest_pool` 的 `excluded_links`），
+  所以不等於執行紀錄裡每個類別各自的池篇數。
 - 計數抓不到既有的列被改寫（例如同一週的報告被覆蓋、某篇文章的內容被改）；那一半由 `tests/unit/test_storage_dry_run.py` 與 `tests/unit/test_auto_kb_dry_run.py` 守。
 
 檔的格式（`take` 寫出的 JSON）：
@@ -120,8 +124,12 @@ gh run list --workflow auto-kb.yml --limit 3 --json databaseId,createdAt,updated
 
 - 只有 `articles`、buffer 筆數（可能連彙整池）變多，而 `traffic_daily.yml` 的某一次跟這段時間重疊：多半是每日的交通執行寫進來的（它只新增 buffer 列，不刪、不標已分析）。
   cron 寫 00:00Z，實際起跑常晚幾個小時，所以要看 run 的 `createdAt`、`updatedAt`，不看 cron。避開那段時間重跑一次，兩份相同才算通過。
-- 報告數（`hot_topic_reports`）、術語庫、部署時間變了，或 buffer 與彙整池變少：每日的交通執行改不到這些。先看同一段時間有沒有正式週報、`auto-kb.yml` 或 `deploy-pages-*.yml` 在跑；
-  都沒有，就是這次不發布的執行寫進了東西，先停用、查是哪一個寫入沒有檢查模式。
+- 只有部署時間變了：這一項不分 production 與 preview，而 push 到 PR 分支時 Cloudflare Pages 會自己建一次部署
+  （2026-11-15 `#225` 的 `f0fd1ef` 上有 `Cloudflare Pages: garyu-traffic-news`、`Cloudflare Pages: garyu-ffxiv-news` 兩項 check；同一天 `main` 的 `6551186` 上沒有，
+  別種分支會不會建沒有查）。先看兩份計數的 `taken_at` 之間有沒有 commit 帶這兩項 check：`gh pr checks <PR>` 或
+  `gh api "repos/{owner}/{repo}/commits/<sha>/check-runs" --jq '.check_runs[] | "\(.name) \(.started_at)"'`。有的話避開重跑一次。
+- 報告數（`hot_topic_reports`）、術語庫變了，buffer 與彙整池變少，或部署時間變了而那段時間沒有 push：每日的交通執行改不到這些。
+  先看同一段時間有沒有正式週報、`auto-kb.yml` 或 `deploy-pages-*.yml` 在跑；都沒有，就是這次不發布的執行寫進了東西，先停用、查是哪一個寫入沒有檢查模式。
 - 未取得：照那一行的原因處理（金鑰沒設、權限不夠、回應形狀不對），修好再跑一次；未取得的項目不能當成相同。
 
 ## 跟 `weekly.yml` 保持一致

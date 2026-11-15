@@ -62,6 +62,16 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements.txt
 
+      # 沒設或空的模式會被程式當成正式模式（src/run_mode.py）。缺少必填輸入的觸發 GitHub 會不會擋下，沒有實測，所以這裡自己擋
+      - name: 檢查 level（不是 dry-input、dry-full 就停在這裡）
+        run: |
+          case "$LEVEL" in
+            dry-input|dry-full) echo "level：$LEVEL" ;;
+            *) echo "level 的值不認得：「$LEVEL」；認得的值：dry-input、dry-full。空值會被程式當成正式模式，所以不往下跑" >&2; exit 1 ;;
+          esac
+        env:
+          LEVEL: ${{ inputs.level }}
+
       - name: 計數（開始）
         run: python scripts/dry_run_counts.py take --out "$TRAFFIC_POOL_DIR/counts_before.json"
         env:
