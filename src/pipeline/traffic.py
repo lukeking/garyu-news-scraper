@@ -286,5 +286,7 @@ class TrafficCategory:
         max_age_weeks = self._buffer_max_age_weeks()
 
         count = upsert_traffic_buffer(articles, week_id, max_age_weeks=max_age_weeks)
+        if run_mode.is_dry_run():
+            return ""  # 略過那一行已經由 upsert_traffic_buffer 印了，不再印「寫入完成」
         logger.info("[%s] buffer 寫入完成：%d 筆（week_id=%s）", self.name, count, week_id)
         return f"buffered {count} traffic articles for week {week_id}"

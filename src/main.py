@@ -54,6 +54,7 @@ def _run(mode: str) -> None:
     logger.info("========== Garyu News Scraper 開始執行 ==========")
 
     all_analyzed = []
+    stopped = False  # 第一級有沒有在某個類別的分析之前停下
     for cat in CATEGORIES:
         try:
             logger.info("--- [%s] 開始處理 ---", cat.name)
@@ -64,6 +65,7 @@ def _run(mode: str) -> None:
                 continue
             if mode == run_mode.DRY_INPUT and cat.llm_stage:
                 logger.info(run_mode.stop_line(cat.llm_stage))
+                stopped = True
                 continue
             analyzed = cat.analyze(filtered)
             cat.publish(analyzed)
@@ -73,7 +75,10 @@ def _run(mode: str) -> None:
             logger.error("[%s] 處理失敗：%s", cat.name, e)
 
     if not all_analyzed:
-        logger.warning("所有 category 均無文章，結束執行")
+        if stopped:
+            logger.info("第一級已在分析之前停下，其餘 category 沒有文章，結束執行")
+        else:
+            logger.warning("所有 category 均無文章，結束執行")
         sys.exit(0)
 
     # KB MISS 提示 — 若有未知 FFXIV 術語，提醒使用者更新知識庫

@@ -349,7 +349,9 @@ def test_closing_line_on_the_early_exit_when_nothing_was_analyzed(h, mode, ffxiv
     with pytest.raises(SystemExit) as exc:
         h.run(mode)
     assert exc.value.code == 0
-    assert h.msgs[-2:] == ["所有 category 均無文章，結束執行", _end(0, 0)]
+    # 第一級有類別在分析之前停下時，不說「所有 category 均無文章」：FFXIV 其實有候選
+    reason = "第一級已在分析之前停下，其餘 category 沒有文章，結束執行" if ffxiv else "所有 category 均無文章，結束執行"
+    assert h.msgs[-2:] == [reason, _end(0, 0)]
 
 
 def test_formal_early_exit_prints_no_closing_line(h):

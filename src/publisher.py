@@ -125,7 +125,8 @@ def _save_to_supabase(articles: list, week_id: str) -> bool:
 
     try:
         count = upsert_articles(articles, week_id)
-        logger.info("✓ Supabase 寫入完成：%d 筆（week_id=%s）", count, week_id)
+        if not run_mode.is_dry_run():  # 不發布時 upsert_articles 自己印略過那一行
+            logger.info("✓ Supabase 寫入完成：%d 筆（week_id=%s）", count, week_id)
         return True
     except Exception as e:
         logger.exception("✗ Supabase 寫入失敗：%s", e)
