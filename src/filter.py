@@ -11,6 +11,8 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 
+from src import run_mode
+
 
 def _parse_published(published: str) -> datetime:
     """Parse a published string in either ISO 8601 or RFC 2822 format."""
@@ -505,6 +507,8 @@ def _dump_ffxiv_pool(pool: list, selected_count: int) -> None:
         for rank, a in enumerate(pool, start=1)
     ]
     dump = {"pool_count": len(pool), "selected_count": selected_count, "articles": rows}
+    if run_mode.is_dry_run():
+        dump = {"run_mode": run_mode.current(), **dump}
     try:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(dump, f, ensure_ascii=False, indent=1, default=str)

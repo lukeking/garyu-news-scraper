@@ -15,7 +15,8 @@ try:
 except ImportError:
     pass
 
-from src.analyzer import get_kb_miss_summary
+from src import run_mode
+from src.analyzer import get_call_counts, get_kb_miss_summary
 from src.pipeline.traffic import TrafficCategory
 from src.pipeline.ffxiv import FFXIVCategory
 
@@ -30,6 +31,26 @@ CATEGORIES = [TrafficCategory(), FFXIVCategory()]
 
 
 def main():
+    # 模式先驗：不認得的值在收集之前就丟錯；不能放進下面逐類別的 try，那裡會把例外吞掉
+    mode = run_mode.current()
+    if run_mode.is_dry_run():
+        logger.info(run_mode.start_line())
+    start_counts = get_call_counts()
+    try:
+        _run(mode)
+    finally:
+        _log_call_counts(start_counts)
+
+
+def _log_call_counts(start: dict) -> None:
+    """不發布時印結尾那一行（這次 main() 送出的請求數）；正式模式什麼都不印。"""
+    now = get_call_counts()
+    line = run_mode.end_line(now["generative"] - start["generative"], now["embedding"] - start["embedding"])
+    if line:
+        logger.info(line)
+
+
+def _run(mode: str) -> None:
     logger.info("========== Garyu News Scraper 開始執行 ==========")
 
     all_analyzed = []
@@ -40,6 +61,9 @@ def main():
             filtered = cat.filter(raw)
             if not filtered:
                 logger.info("[%s] 過濾後無文章，跳過", cat.name)
+                continue
+            if mode == run_mode.DRY_INPUT and cat.llm_stage:
+                logger.info(run_mode.stop_line(cat.llm_stage))
                 continue
             analyzed = cat.analyze(filtered)
             cat.publish(analyzed)

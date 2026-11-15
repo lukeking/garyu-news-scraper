@@ -45,3 +45,17 @@ def skip_write_line(func_name: str, count: int | None = None) -> str:
     if count is None:
         return f"[不發布] 略過 {func_name}：沒有查資料庫，筆數未知"
     return f"[不發布] 略過 {func_name}：{count} 筆"
+
+
+def stop_line(stage: str) -> str:
+    """第一級停下的那一行；正式模式回空字串。"""
+    if not is_dry_run():
+        return ""
+    return f"[不發布] 第一級在 {stage} 之前停下"
+
+
+def end_line(generative: int, embedding: int) -> str:
+    """每支程式結束那一行（送出的請求數，重試也算）；正式模式回空字串。"""
+    if not is_dry_run():
+        return ""
+    return f"[不發布] 生成式 LLM 呼叫 {generative} 次，embedding 呼叫 {embedding} 次"

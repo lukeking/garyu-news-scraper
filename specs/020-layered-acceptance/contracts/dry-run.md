@@ -39,7 +39,9 @@
 
 ## 產物
 
-三個產物；每個檔帶一個欄位寫明來自哪一級。目錄裡的檔名與兩個路徑變數（`TRAFFIC_POOL_DIR`、`ANALYSIS_OUTPUT_DIR`，比照現有的 `FFXIV_POOL_DUMP`）是提案。
+三個產物；每個檔的頂層帶一個 `run_mode` 欄位（`dry-input` 或 `dry-full`）寫明來自哪一級。目錄裡的檔名與兩個路徑變數（`TRAFFIC_POOL_DIR`、`ANALYSIS_OUTPUT_DIR`，比照現有的 `FFXIV_POOL_DUMP`）是提案。
+片 1 到目前寫出的檔：`TRAFFIC_POOL_DIR/collected.json`（逐來源的漏斗、正式執行會寫進 buffer 的那些列）、`ANALYSIS_OUTPUT_DIR/ffxiv_articles.json`（FFXIV 逐篇分析全文）。
+路徑變數沒設或寫不進去時各印一行（例：`交通候選清單：未設 TRAFFIC_POOL_DIR，不寫檔`），不失敗、不靜靜略過。站台檔不產生時印 `[不發布] 略過 站台檔 <目錄>：<N> 筆`。
 
 | 產物 | 哪一級 | 內容 |
 |---|---|---|
