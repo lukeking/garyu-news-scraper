@@ -77,24 +77,24 @@
 
 同形的寫檔現在有三處：`src/filter.py` 的 `_dump_ffxiv_pool`、`src/pipeline/traffic.py` 的 `_dump_collected`、`src/publisher.py` 的 `_dump_analysis_output`。T011、T013 再加寫入點之前先收成一個函式（已定 2026-11-15）。
 
-- [-] T040 [US1] [FR-008] 寫 `tests/unit/test_artifacts.py`，對象是新模組 `src/artifacts.py` 的共用寫檔函式：
+- [X] T040 [US1] [FR-008] 寫 `tests/unit/test_artifacts.py`，對象是新模組 `src/artifacts.py` 的共用寫檔函式：
   - 路徑變數沒設或只有空白：印 `<標籤>：未設 <變數名>，不寫檔`，不寫檔
   - 變數是目錄（`TRAFFIC_POOL_DIR`、`ANALYSIS_OUTPUT_DIR` 這一種）：目錄不存在就建，寫 `<目錄>/<檔名>`；變數是檔案路徑（`FFXIV_POOL_DUMP` 這一種）：直接寫那個路徑，不建上層目錄
   - 內容是 UTF-8 的 JSON：非 ASCII 字元照原樣、縮排 1、序列化不了的值轉成字串；成功印 `<標籤>：寫入 <路徑>（<呼叫端給的摘要>）`
   - 寫不進去（`OSError`）：印一行 warning `<標籤>：寫入 <路徑> 失敗（<原因>）`，不丟例外
   - 三個呼叫點都經過它：把共用函式換成只記錄呼叫的替身之後，`_dump_ffxiv_pool`、`_dump_collected`、`_dump_analysis_output` 各呼叫它一次，而且沒有任何檔被寫出來
   - 先確認紅
-- [-] T041 [US1] [FR-008] 實作 `src/artifacts.py`，把上面三個函式的讀變數、寫檔與三種訊息改成呼叫它；各自的內容怎麼組留在原處。三處寫出的檔、路徑與訊息逐字不變：`tests/unit/test_ffxiv_ranking.py`、`tests/unit/test_main_dry_run.py`、`tests/unit/test_dry_run_log_consistency.py` 不改就全過。T011、T013 新增的產物寫入也用它
+- [X] T041 [US1] [FR-008] 實作 `src/artifacts.py`，把上面三個函式的讀變數、寫檔與三種訊息改成呼叫它；各自的內容怎麼組留在原處。三處寫出的檔、路徑與訊息逐字不變：`tests/unit/test_ffxiv_ranking.py`、`tests/unit/test_main_dry_run.py`、`tests/unit/test_dry_run_log_consistency.py` 不改就全過。T011、T013 新增的產物寫入也用它
 
 ### 交通分析腳本的兩級
 
-- [-] T010 [P] [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 寫 `tests/unit/test_weekly_analysis_dry_run.py`，替換資料庫讀取與 HTTP 邊界後跑 `scripts/traffic_weekly_analysis.py` 的 `main()`：
+- [X] T010 [P] [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 寫 `tests/unit/test_weekly_analysis_dry_run.py`，替換資料庫讀取與 HTTP 邊界後跑 `scripts/traffic_weekly_analysis.py` 的 `main()`：
   - 兩級：`expire_buffer_articles` 印略過行；分析的輸入是 buffer 疊上 `TRAFFIC_POOL_DIR` 那份清單，同一個 link 只算一次，印 `[不發布] 分析的輸入：buffer <N> 篇，加上這次收集的 <M> 篇（其中 <K> 篇 buffer 裡已經有）`；清單檔不存在時印一行說沒有疊，不靜靜照 buffer 跑
   - `dry-input`：選完熱點 bucket 與彙整池之後印 `[不發布] 第一級在 熱點分析 之前停下`，`analyze_hot_topic`、`analyze_category_digest` 呼叫 0 次；選出的 bucket、彙整池的篇數與來源分布、級別欄位寫進 `TRAFFIC_POOL_DIR`
   - `dry-full`：每份三軸報告與彙整報告的全文寫進 `ANALYSIS_OUTPUT_DIR`；每份報告跑一次 `src/report_review.py` 的 `check_report()`，命中一起寫進去並標「未經逐條判定」，命中不擋任何東西；`upsert_hot_topic_report`、`mark_articles_analyzed` 各印略過行；`pages/traffic/hot_topics.json` 沒有被產生或改動；結尾印次數
   - 正式模式：寫入與發布的呼叫跟現在相同，不呼叫 `check_report()`，沒有 `[不發布]` 開頭的行
   - 先確認紅
-- [-] T011 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 在 `scripts/traffic_weekly_analysis.py` 實作 T010 的行為；`check_report()` 的輸入怎麼組照 `scripts/replay_report_review.py:115` 的呼叫
+- [X] T011 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 在 `scripts/traffic_weekly_analysis.py` 實作 T010 的行為；`check_report()` 的輸入怎麼組照 `scripts/replay_report_review.py:115` 的呼叫
 
 ### 術語收錄的不寫入模式
 
