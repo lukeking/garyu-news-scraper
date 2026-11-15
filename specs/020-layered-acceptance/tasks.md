@@ -98,12 +98,12 @@
 
 ### 術語收錄的不寫入模式
 
-- [-] T012 [P] [US1] [FR-003, FR-004, FR-007, FR-009, FR-010] 寫 `tests/unit/test_auto_kb_dry_run.py`，替換資料庫 client 與 HTTP 邊界後跑 `scripts/auto_kb.py` 的 `main()`：
+- [X] T012 [P] [US1] [FR-003, FR-004, FR-007, FR-009, FR-010] 寫 `tests/unit/test_auto_kb_dry_run.py`，替換資料庫 client 與 HTTP 邊界後跑 `scripts/auto_kb.py` 的 `main()`：
   - `dry-full`：未知術語取自 `ANALYSIS_OUTPUT_DIR` 裡這次 FFXIV 分析輸出的標記，不取資料庫裡待處理的 `articles`；術語庫照常讀，讀不到就停；`call_gemini` 被呼叫；`knowledge_base` 的 insert 與 `articles` 的 update 都是 0 次；印 `[不發布] 術語收錄：會寫入 <N> 條，沒有寫入` 與逐條內容，結果寫進 `ANALYSIS_OUTPUT_DIR`；結尾印生成式次數
   - `dry-input`：印 `[不發布] 第一級在 術語收錄 之前停下`，`call_gemini` 0 次，正常結束
   - 正式模式：`tests/unit/test_auto_kb_patching.py` 照樣全過
   - 先確認紅
-- [-] T013 [US1] [FR-003, FR-004, FR-007, FR-009, FR-010] 在 `scripts/auto_kb.py` 實作 T012 的行為；`:264`、`:321` 兩處寫入在原處檢查模式，不搬進 `src/storage.py`
+- [X] T013 [US1] [FR-003, FR-004, FR-007, FR-009, FR-010] 在 `scripts/auto_kb.py` 實作 T012 的行為；`:264`、`:321` 兩處寫入在原處檢查模式，不搬進 `src/storage.py`
 
 ### 入口、五個計數與操作說明
 
