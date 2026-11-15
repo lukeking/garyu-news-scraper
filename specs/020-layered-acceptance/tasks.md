@@ -63,15 +63,15 @@
 
 ### `main.py` 的兩級與呼叫計數
 
-- [-] T006 [US1] [FR-009, SC-002] 寫 `tests/unit/test_call_counts.py`：替換 HTTP 邊界（不替換 `_call_gemini` 本身），`src/analyzer.py` 的 `_call_gemini` 每送出一次請求生成式計數加一（重試也算），`generate_embedding` 每送出一次請求 embedding 計數加一；結尾那一行 `[不發布] 生成式 LLM 呼叫 <N> 次，embedding 呼叫 <M> 次` 只在不發布模式印。先確認紅
-- [-] T007 [US1] [FR-009, SC-002] 在 `src/analyzer.py` 實作兩個計數與讀數函式；正式模式的輸出不變
-- [-] T008 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-010] 寫 `tests/unit/test_main_dry_run.py`，替換收集、HTTP 與資料庫 client 的邊界後跑 `src/main.py` 的 `main()`：
+- [X] T006 [US1] [FR-009, SC-002] 寫 `tests/unit/test_call_counts.py`：替換 HTTP 邊界（不替換 `_call_gemini` 本身），`src/analyzer.py` 的 `_call_gemini` 每送出一次請求生成式計數加一（重試也算），`generate_embedding` 每送出一次請求 embedding 計數加一；結尾那一行 `[不發布] 生成式 LLM 呼叫 <N> 次，embedding 呼叫 <M> 次` 只在不發布模式印。先確認紅
+- [X] T007 [US1] [FR-009, SC-002] 在 `src/analyzer.py` 實作兩個計數與讀數函式；正式模式的輸出不變
+- [X] T008 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-010] 寫 `tests/unit/test_main_dry_run.py`，替換收集、HTTP 與資料庫 client 的邊界後跑 `src/main.py` 的 `main()`：
   - 兩級：輸出的第一行是級別那一行；交通跑完 collect → filter（embedding 去重照常）→ analyze（充實），`publish` 不寫 buffer、印略過行，`TRAFFIC_POOL_DIR` 底下的檔有每個來源的收集數、過濾後數、過濾後的清單與級別欄位
   - `dry-input`：FFXIV 跑完 collect → filter 後印 `[不發布] 第一級在 FFXIV 分析 之前停下`，`analyze_all` 呼叫 0 次，結尾的生成式次數是 0
   - `dry-full`：`analyze_all` 被呼叫；`pages/ffxiv/` 底下沒有新增或改動的檔；`ANALYSIS_OUTPUT_DIR` 有 FFXIV 逐篇分析的全文與級別欄位
   - 正式模式：寫入與站台檔跟現在相同，輸出沒有任何 `[不發布]` 開頭的行；`GARYU_RUN_MODE` 是不認得的值時 `main()` 在收集之前就失敗
   - 先確認紅
-- [-] T009 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-010] 實作 T008 的行為：`src/main.py`（開頭那一行、第一級不呼叫 `analyze`／`publish` 的 FFXIV 分支、結尾的次數）、`src/pipeline/traffic.py`（不發布時把 `last_funnel` 與過濾充實後的清單寫進 `TRAFFIC_POOL_DIR`）、`src/pipeline/ffxiv.py`、`src/publisher.py`（不發布時不產生站台檔，把逐篇分析寫進 `ANALYSIS_OUTPUT_DIR`）。`ffxiv-pool` 的檔由 `src/filter.py` 的 `_dump_ffxiv_pool` 寫，正式模式格式不變，不發布時在頂層加級別欄位。另外動到 `src/run_mode.py`（停下與結尾那兩行）與 `src/storage.py`（抽出 `traffic_buffer_rows`，清單檔與正式寫入用同一批列）
+- [X] T009 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-010] 實作 T008 的行為：`src/main.py`（開頭那一行、第一級不呼叫 `analyze`／`publish` 的 FFXIV 分支、結尾的次數）、`src/pipeline/traffic.py`（不發布時把 `last_funnel` 與過濾充實後的清單寫進 `TRAFFIC_POOL_DIR`）、`src/pipeline/ffxiv.py`、`src/publisher.py`（不發布時不產生站台檔，把逐篇分析寫進 `ANALYSIS_OUTPUT_DIR`）。`ffxiv-pool` 的檔由 `src/filter.py` 的 `_dump_ffxiv_pool` 寫，正式模式格式不變，不發布時在頂層加級別欄位。另外動到 `src/run_mode.py`（停下與結尾那兩行）與 `src/storage.py`（抽出 `traffic_buffer_rows`，清單檔與正式寫入用同一批列）
 
 ### 交通分析腳本的兩級
 
