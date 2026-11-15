@@ -406,9 +406,15 @@ def _check_hits(report: dict, template: str, articles: list) -> dict:
 
 
 def _report_output(report: dict, template: str, articles: list) -> dict:
-    """不發布：一份報告的全文加上 check_report() 的命中；命中沒有逐條判定過，也不擋任何東西。"""
-    hits = _check_hits(report, template, articles)
-    return {"template": template, **report, "check_report": {"status": "未經逐條判定", "hits": hits}}
+    """不發布：一份報告的全文加上 check_report() 的命中；命中沒有逐條判定過，也不擋任何東西。
+    檢查自己丟錯時報告照樣留下，那一份標成沒有跑完並印一行。"""
+    try:
+        check = {"status": "未經逐條判定", "hits": _check_hits(report, template, articles)}
+    except Exception as e:
+        error = f"{type(e).__name__}: {e}"
+        logger.warning("check_report() 沒有跑完，%s 的報告照樣留下：%s", report.get("topic_label"), error)
+        check = {"status": "檢查沒有跑完", "error": error}
+    return {"template": template, **report, "check_report": check}
 
 
 def _dump_reports(mode: str, week_start: str, outputs: list) -> None:

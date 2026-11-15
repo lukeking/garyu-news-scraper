@@ -335,6 +335,24 @@ def test_dry_full_with_no_report_skips_no_site_file_and_still_writes_an_empty_ar
     assert msgs[-2:] == ["=== 週交通熱點分析完成，產生 0 份報告，沒有發布 ===", _end(2, 0)]
 
 
+def test_dry_full_keeps_every_report_when_one_check_does_not_finish(h, monkeypatch):
+    checked = report_review.check_report
+
+    def flaky(text, **kwargs):
+        if kwargs["template"] == "hot":
+            raise ValueError("檢查壞了")
+        return checked(text, **kwargs)
+
+    monkeypatch.setattr(report_review, "check_report", flaky)
+    msgs = h.run("dry-full")
+    hot, digest = _read(h.analysis_dir / "traffic_reports.json")["reports"]
+    assert (hot["topic_label"], hot["report_text"]) == (HOT_LABEL, HOT_TEXT)
+    assert hot["check_report"] == {"status": "檢查沒有跑完", "error": "ValueError: 檢查壞了"}
+    assert digest["check_report"] == {"status": "未經逐條判定", "hits": DIGEST_HITS}
+    assert f"check_report() 沒有跑完，{HOT_LABEL} 的報告照樣留下：ValueError: 檢查壞了" in msgs
+    assert msgs[-2:] == ["=== 週交通熱點分析完成，產生 2 份報告，沒有發布 ===", _end(2, 0)]
+
+
 def test_dry_full_reports_are_what_formal_would_upsert_after_the_same_collection(h):
     h.buffer = FORMAL_BUFFER
     h.run(None)
@@ -404,6 +422,17 @@ def test_too_few_articles_exit_still_prints_the_closing_line(h):
     h.collected.unlink()
     msgs = h.run("dry-full")
     assert msgs[-2:] == ["buffer 文章不足 3 篇，本週跳過熱點分析（目前 1 篇）", _end(0, 0)]
+
+
+@pytest.mark.parametrize("mode", ["dry-input", "dry-full"])
+def test_a_run_that_raises_still_prints_the_closing_line(h, monkeypatch, mode):
+    def broken(max_age_weeks=8):
+        raise RuntimeError("讀不到 buffer")
+
+    monkeypatch.setattr(storage, "get_traffic_buffer", broken)
+    with pytest.raises(RuntimeError, match="讀不到 buffer"):
+        h.run(mode)
+    assert (h.msgs[0], h.msgs[-1]) == (START[mode], _end(0, 0))
 
 
 def test_unknown_mode_fails_before_reading_anything(h):
