@@ -405,6 +405,15 @@ def test_unreadable_collection_file_warns_and_runs_on_the_buffer(h):
     assert "digest[道安政策] pool=9 effective=8 threshold=10 → accumulate" in msgs
 
 
+@pytest.mark.parametrize("text", ['{"run_mode": "x"}', "[1, 2]", '{"articles": null}', '{"articles": ["s"]}'])
+def test_collection_file_of_the_wrong_shape_warns_and_runs_on_the_buffer(h, text):
+    h.collected.write_text(text, encoding="utf-8")
+    msgs = h.run("dry-input")
+    line = f"[不發布] 分析的輸入：buffer 11 篇，沒有疊上這次收集的清單（讀不了 {h.collected}：articles 不是物件的清單）"
+    assert line in msgs
+    assert "digest[道安政策] pool=9 effective=8 threshold=10 → accumulate" in msgs
+
+
 def test_unset_artifact_dirs_say_so_and_do_not_fail(h, monkeypatch):
     monkeypatch.delenv("TRAFFIC_POOL_DIR")
     monkeypatch.delenv("ANALYSIS_OUTPUT_DIR")

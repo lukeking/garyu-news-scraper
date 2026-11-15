@@ -404,8 +404,7 @@ def _analysis_output_rows() -> list[dict]:
         return []
     path = os.path.join(out_dir, _FFXIV_OUTPUT_FILE)
     try:
-        with open(path, encoding="utf-8") as f:
-            articles = json.load(f)["articles"]
+        articles = artifacts.read_articles(path)
     except FileNotFoundError:
         logger.info("%s沒有這次的 FFXIV 分析輸出（找不到 %s）", head, path)
         return []

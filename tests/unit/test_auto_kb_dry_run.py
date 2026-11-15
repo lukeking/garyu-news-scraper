@@ -226,6 +226,19 @@ def test_closing_line_counts_every_request_including_retries(h):
     assert msgs[-1] == _end(2)
 
 
+def test_a_request_that_raises_is_counted_too(h, monkeypatch):
+    def post(url, json=None, headers=None, timeout=None):
+        h.posts.append(url)
+        if len(h.posts) == 1:
+            raise TimeoutError("送出去了，沒等到回應")
+        return _ok()
+
+    monkeypatch.setitem(sys.modules, "requests", SimpleNamespace(post=post))
+    msgs = h.run("dry-full")
+    assert len(h.posts) == 2
+    assert msgs[-1] == _end(2)
+
+
 def test_a_failed_gemini_call_says_so_and_would_write_nothing(h):
     h.replies = [_Resp("這不是 JSON")] * 3
     msgs = h.run("dry-full")
@@ -278,6 +291,16 @@ def test_unreadable_input_file_warns_and_sends_nothing(h):
     assert [m for m in msgs if m.startswith(f"{INPUT_HEAD}沒有這次的 FFXIV 分析輸出（讀不了 {h.input}：")]
     assert h.db.calls == [("knowledge_base", "select", None)]
     assert h.gemini_calls == []
+    assert msgs[-1] == _end(0)
+
+
+@pytest.mark.parametrize("text", ['{"run_mode": "x"}', "[1, 2]", '{"articles": null}', '{"articles": ["s"]}'])
+def test_input_file_of_the_wrong_shape_warns_and_sends_nothing(h, text):
+    h.input.write_text(text, encoding="utf-8")
+    msgs = h.run("dry-full")
+    assert f"{INPUT_HEAD}沒有這次的 FFXIV 分析輸出（讀不了 {h.input}：articles 不是物件的清單）" in msgs
+    assert (h.exit, h.gemini_calls) == ("returned", [])
+    assert h.db.calls == [("knowledge_base", "select", None)]
     assert msgs[-1] == _end(0)
 
 

@@ -336,7 +336,7 @@ def _stored_published(value):
 def _overlay_collected(buffer: list) -> list:
     """不發布：buffer 疊上 main.py 這次收集的清單（正式執行時它們先寫進 buffer 才被讀到）。同一個 link 留 buffer 那份
     （正式的寫入不覆寫既有列）；排成 get_traffic_buffer 的順序：新到舊、沒日期的在最前。疊不上也印一行。"""
-    import json
+    from src import artifacts
 
     head = f"[不發布] 分析的輸入：buffer {len(buffer)} 篇，"
     out_dir = os.environ.get("TRAFFIC_POOL_DIR", "").strip()
@@ -345,8 +345,7 @@ def _overlay_collected(buffer: list) -> list:
         return buffer
     path = os.path.join(out_dir, _COLLECTED_FILE)
     try:
-        with open(path, encoding="utf-8") as f:
-            rows = json.load(f)["articles"]
+        rows = artifacts.read_articles(path)
     except FileNotFoundError:
         logger.info("%s沒有疊上這次收集的清單（找不到 %s）", head, path)
         return buffer

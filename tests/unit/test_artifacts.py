@@ -138,3 +138,29 @@ def test_the_three_call_sites_each_call_write_json_once_and_write_nothing_themse
 
 def test_the_three_call_sites_build_their_content_only_inside_build(monkeypatch, tmp_path):
     assert len(_call_the_three(monkeypatch, tmp_path, _Untouchable(ARTICLE))) == 3
+
+
+# ── 讀回產物的 articles ────────────────────────────────────────
+
+def test_read_articles_returns_the_list_of_objects(tmp_path):
+    path = tmp_path / "a.json"
+    path.write_text('{"run_mode": "dry-full", "articles": [{"標題": "甲"}, {}]}', encoding="utf-8")
+    assert artifacts.read_articles(str(path)) == [{"標題": "甲"}, {}]
+
+
+@pytest.mark.parametrize("text", ['{"run_mode": "x"}', "[1, 2]", '"x"', '{"articles": null}',
+                                  '{"articles": ["s"]}', '{"articles": {"a": 1}}'])
+def test_read_articles_rejects_a_file_whose_articles_is_not_a_list_of_objects(tmp_path, text):
+    path = tmp_path / "a.json"
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ValueError, match="articles 不是物件的清單"):
+        artifacts.read_articles(str(path))
+
+
+def test_read_articles_raises_value_error_on_broken_json_and_not_found_on_a_missing_file(tmp_path):
+    path = tmp_path / "a.json"
+    path.write_text("{", encoding="utf-8")
+    with pytest.raises(ValueError):
+        artifacts.read_articles(str(path))
+    with pytest.raises(FileNotFoundError):
+        artifacts.read_articles(str(tmp_path / "none.json"))

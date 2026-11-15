@@ -1,7 +1,18 @@
-"""artifacts.py：產物與 FFXIV 候選池共用的寫檔（spec 020 FR-008）。
-路徑從環境變數讀；沒設、寫不進去都各印一行，不丟例外。"""
+"""artifacts.py：產物與 FFXIV 候選池共用的寫檔，以及讀回產物裡的 articles（spec 020 FR-008）。
+write_json 的路徑從環境變數讀；沒設、寫不進去都各印一行，不丟例外。"""
 import json
 import os
+
+
+def read_articles(path: str) -> list:
+    """讀回產物檔的 articles。找不到檔丟 FileNotFoundError；讀不了、不是 JSON、articles 不是物件的清單丟 OSError 或 ValueError，
+    由呼叫端印一行原因。"""
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    articles = data.get("articles") if isinstance(data, dict) else None
+    if not isinstance(articles, list) or not all(isinstance(a, dict) for a in articles):
+        raise ValueError("articles 不是物件的清單")
+    return articles
 
 
 def write_json(logger, label: str, env_var: str, build, filename: str | None = None) -> None:
