@@ -73,6 +73,19 @@
   - 先確認紅
 - [X] T009 [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-010] 實作 T008 的行為：`src/main.py`（開頭那一行、第一級不呼叫 `analyze`／`publish` 的 FFXIV 分支、結尾的次數）、`src/pipeline/traffic.py`（不發布時把 `last_funnel` 與過濾充實後的清單寫進 `TRAFFIC_POOL_DIR`）、`src/pipeline/ffxiv.py`、`src/publisher.py`（不發布時不產生站台檔，把逐篇分析寫進 `ANALYSIS_OUTPUT_DIR`）。`ffxiv-pool` 的檔由 `src/filter.py` 的 `_dump_ffxiv_pool` 寫，正式模式格式不變，不發布時在頂層加級別欄位。另外動到 `src/run_mode.py`（停下與結尾那兩行）與 `src/storage.py`（抽出 `traffic_buffer_rows`，清單檔與正式寫入用同一批列）
 
+### 產物寫檔的共用函式（Unit 3 的前置）
+
+同形的寫檔現在有三處：`src/filter.py` 的 `_dump_ffxiv_pool`、`src/pipeline/traffic.py` 的 `_dump_collected`、`src/publisher.py` 的 `_dump_analysis_output`。T011、T013 再加寫入點之前先收成一個函式（已定 2026-11-15）。
+
+- [ ] T040 [US1] [FR-008] 寫 `tests/unit/test_artifacts.py`，對象是新模組 `src/artifacts.py` 的共用寫檔函式：
+  - 路徑變數沒設或只有空白：印 `<標籤>：未設 <變數名>，不寫檔`，不寫檔
+  - 變數是目錄（`TRAFFIC_POOL_DIR`、`ANALYSIS_OUTPUT_DIR` 這一種）：目錄不存在就建，寫 `<目錄>/<檔名>`；變數是檔案路徑（`FFXIV_POOL_DUMP` 這一種）：直接寫那個路徑，不建上層目錄
+  - 內容是 UTF-8 的 JSON：非 ASCII 字元照原樣、縮排 1、序列化不了的值轉成字串；成功印 `<標籤>：寫入 <路徑>（<呼叫端給的摘要>）`
+  - 寫不進去（`OSError`）：印一行 warning `<標籤>：寫入 <路徑> 失敗（<原因>）`，不丟例外
+  - 三個呼叫點都經過它：把共用函式換成只記錄呼叫的替身之後，`_dump_ffxiv_pool`、`_dump_collected`、`_dump_analysis_output` 各呼叫它一次，而且沒有任何檔被寫出來
+  - 先確認紅
+- [ ] T041 [US1] [FR-008] 實作 `src/artifacts.py`，把上面三個函式的讀變數、寫檔與三種訊息改成呼叫它；各自的內容怎麼組留在原處。三處寫出的檔、路徑與訊息逐字不變：`tests/unit/test_ffxiv_ranking.py`、`tests/unit/test_main_dry_run.py`、`tests/unit/test_dry_run_log_consistency.py` 不改就全過。T011、T013 新增的產物寫入也用它
+
 ### 交通分析腳本的兩級
 
 - [ ] T010 [P] [US1] [FR-002, FR-003, FR-004, FR-007, FR-008, FR-009, FR-010] 寫 `tests/unit/test_weekly_analysis_dry_run.py`，替換資料庫讀取與 HTTP 邊界後跑 `scripts/traffic_weekly_analysis.py` 的 `main()`：
@@ -184,7 +197,7 @@
 ## Dependencies & Execution Order
 
 - Phase 2（T002、T003）擋住 Phase 3 的全部。
-- Phase 3 裡：T004～T005 → T006～T009 → T010～T011 與 T012～T013（兩組可以並行，都讀 T009 寫出的檔）。T014～T015、T016、T018 不依賴前面幾組的程式；T017 要等 T009、T011、T013、T015 的名字與路徑定下來；T019、T020 最後。
+- Phase 3 裡：T004～T005 → T006～T009 → T040～T041 → T010～T011 與 T012～T013（兩組可以並行，都讀 T009 寫出的檔，新增的產物寫入都用 T041 的函式）。T014～T015、T016、T018 不依賴前面幾組的程式；T017 要等 T009、T011、T013、T015 的名字與路徑定下來；T019、T020 最後。
 - Phase 4 要等 `#225` merge：新的 workflow 檔進預設分支之前觸發不了（GitHub 的行為，沒有在這個 repo 實測；T021 就是第一次實測）。
 - Phase 5、6 不依賴 Phase 4；Phase 6 的 T034 是 `GNS-20261114-bh8` 移出的地方，所以 Phase 6 排在上線前驗得完的片的最後。
 - Phase 7 的 T037 等片 1 之後的第一個週一；T038 等 `2zc` 拆 task。
@@ -222,19 +235,19 @@ T010 與 T012（不同腳本）；T014、T016、T018（各自的檔，不依賴 
 
 ### Unit 3: 交通分析腳本的兩級
 
-- Tasks: T010、T011
-- Outcome: 分析的輸入疊上這次收集的清單；第一級停在選完熱點與彙整池；第二級留下報告全文與 `check_report()` 的命中，不寫報告、不標已分析、不產生 `hot_topics.json`
-- Prerequisites: Unit 1、Unit 2（清單檔的格式）
-- Verification: `pytest tests/unit/test_weekly_analysis_dry_run.py -q` 與全套摘要行
-- Review: `scripts/traffic_weekly_analysis.py`、測試檔、`src/report_review.py` 的呼叫方式、`contracts/dry-run.md`
-- Merge or split: 跟 Unit 4 是不同的程式、不同的寫入點，各自能下完成的判定
+- Tasks: T040、T041、T010、T011
+- Outcome: 產物的寫檔收成 `src/artifacts.py` 的一個函式，既有三處寫出的檔、路徑與訊息不變；分析的輸入疊上這次收集的清單；第一級停在選完熱點與彙整池；第二級留下報告全文與 `check_report()` 的命中，不寫報告、不標已分析、不產生 `hot_topics.json`
+- Prerequisites: Unit 1、Unit 2（清單檔的格式、既有三處的寫檔）；這個 unit 自己包含共用寫檔函式
+- Verification: `pytest tests/unit/test_artifacts.py tests/unit/test_weekly_analysis_dry_run.py -q` 與全套摘要行；`git diff ce8e0b0..HEAD --stat -- tests/unit/test_ffxiv_ranking.py tests/unit/test_main_dry_run.py tests/unit/test_dry_run_log_consistency.py` 是空的（既有三處的行為由沒改過的測試守）
+- Review: `src/artifacts.py`、`src/filter.py`、`src/pipeline/traffic.py`、`src/publisher.py`（後三個只有寫檔那一段）、`scripts/traffic_weekly_analysis.py`、兩個測試檔、`src/report_review.py` 的呼叫方式、`contracts/dry-run.md`
+- Merge or split: 共用寫檔函式沒有自己的新行為可以驗收，它是 T011 新增寫入點的前置，所以併進這個 unit 一起送審（已定 2026-11-15）；跟 Unit 4 是不同的程式、不同的寫入點，各自能下完成的判定
 - Unchecked assumptions: none
 
 ### Unit 4: 術語收錄的不寫入模式
 
 - Tasks: T012、T013
 - Outcome: 第二級用這次的 FFXIV 輸出當輸入、呼叫 LLM、印出會寫入的條目，不寫 `knowledge_base`、不改 `articles`；正式模式不變
-- Prerequisites: Unit 1、Unit 2（`ANALYSIS_OUTPUT_DIR` 的格式）
+- Prerequisites: Unit 1、Unit 2（`ANALYSIS_OUTPUT_DIR` 的格式）、Unit 3 的 T041（共用寫檔函式）
 - Verification: `pytest tests/unit/test_auto_kb_dry_run.py tests/unit/test_auto_kb_patching.py -q` 與全套摘要行
 - Review: `scripts/auto_kb.py`、兩個測試檔
 - Merge or split: 見 Unit 3
