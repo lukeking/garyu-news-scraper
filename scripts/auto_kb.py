@@ -5,7 +5,7 @@ Collects [[term]] markers from Supabase FFXIV articles, resolves unknown terms
 via a single Gemini batch call, writes high-confidence results to the
 knowledge_base table, and patches the source articles inline.
 
-Always exits 0 — failures are logged and non-blocking.
+Exits 0 on its own failures (logged, non-blocking). Dry run (spec 020): reads this run's FFXIV output, writes nothing; an unknown run mode fails.
 """
 import json
 import logging
@@ -13,6 +13,10 @@ import os
 import re
 import sys
 import time
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from src import artifacts, run_mode
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -128,6 +132,12 @@ USER_PROMPT_TMPL = """\
 ]
 """
 
+# 這支送出的 Gemini 請求數（spec 020 FR-009）：每次 req.post 之前加一，重試也算
+_CALL_COUNTS = {"generative": 0}
+# 不發布的第二級：讀這次 FFXIV 分析輸出的檔，會寫入的條目寫進另一個檔，兩個都在 ANALYSIS_OUTPUT_DIR
+_FFXIV_OUTPUT_FILE = "ffxiv_articles.json"
+_ENTRIES_FILE = "auto_kb_entries.json"
+
 
 def call_gemini(terms: list[str], api_key: str, model_name: str) -> list[dict]:
     terms_list = "\n".join(terms)
@@ -147,6 +157,7 @@ def call_gemini(terms: list[str], api_key: str, model_name: str) -> list[dict]:
     for attempt in range(3):
         try:
             import requests as req
+            _CALL_COUNTS["generative"] += 1
             resp = req.post(url, json=payload, headers=headers, timeout=60)
             if resp.status_code >= 500:
                 logger.warning("Gemini 回應 %d，第 %d 次重試", resp.status_code, attempt + 1)
@@ -168,6 +179,24 @@ def call_gemini(terms: list[str], api_key: str, model_name: str) -> list[dict]:
 
 
 def main() -> None:
+    # 模式先驗：不認得的值在讀任何東西之前就丟錯
+    mode = run_mode.current()
+    if mode != run_mode.FORMAL:
+        logger.info(run_mode.start_line())
+    start = _CALL_COUNTS["generative"]
+    try:
+        if mode == run_mode.DRY_INPUT:
+            logger.info(run_mode.stop_line("術語收錄"))
+            return
+        _run(mode)
+    finally:
+        line = run_mode.end_line(_CALL_COUNTS["generative"] - start, 0)
+        if line:
+            logger.info(line)
+
+
+def _run(mode: str) -> None:
+    dry = mode != run_mode.FORMAL
     url = (os.environ.get("SUPABASE_URL") or "").strip()
     key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
     gemini_api_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
@@ -213,18 +242,21 @@ def main() -> None:
     # Step 2 — collect [[term]] misses from FFXIV articles
     # Fetch all FFXIV articles and filter for [[markers]] client-side;
     # supabase-py quotes column names in .like(), breaking JSONB cast syntax.
-    try:
-        articles_result = (
-            supabase.table("articles")
-            .select("id, analysis")
-            .eq("content_type", "ffxiv")
-            .execute()
-        )
-        all_ffxiv: list[dict] = articles_result.data or []  # type: ignore[assignment]
-        article_rows = [r for r in all_ffxiv if "[[" in json.dumps(r.get("analysis") or {}, ensure_ascii=False)]
-    except Exception as exc:
-        logger.error("無法查詢 articles 表格：%s", exc)
-        sys.exit(0)
+    if dry:
+        article_rows = _analysis_output_rows()
+    else:
+        try:
+            articles_result = (
+                supabase.table("articles")
+                .select("id, analysis")
+                .eq("content_type", "ffxiv")
+                .execute()
+            )
+            all_ffxiv: list[dict] = articles_result.data or []  # type: ignore[assignment]
+            article_rows = [r for r in all_ffxiv if "[[" in json.dumps(r.get("analysis") or {}, ensure_ascii=False)]
+        except Exception as exc:
+            logger.error("無法查詢 articles 表格：%s", exc)
+            sys.exit(0)
 
     unknown_terms: set[str] = set()
     for row in article_rows:
@@ -242,7 +274,10 @@ def main() -> None:
     # log 印「沒有未知術語需要解析，結束」→ 一列都沒被修補。
     # 所以未知集為空只該跳過 Gemini（Step 3/4），不該跳過修補（Step 5）。
     if not unknown_terms:
-        logger.info("沒有未知術語需要解析，跳過 Gemini；Step 5 的修補仍會執行")
+        if dry:
+            logger.info("沒有未知術語需要解析，跳過 Gemini")
+        else:
+            logger.info("沒有未知術語需要解析，跳過 Gemini；Step 5 的修補仍會執行")
         gemini_entries: list[dict] = []
     else:
         logger.info("發現未知術語 %d 個：%s", len(unknown_terms), ", ".join(sorted(unknown_terms)))
@@ -251,6 +286,7 @@ def main() -> None:
 
     # Step 4 — insert valid entries
     newly_added: dict[str, str] = {}  # jp_term -> tw_term
+    would_write: list[dict] = []
     for entry in gemini_entries:
         jp = (entry.get("jp_term") or "").strip()
         tw = (entry.get("tw_term") or "").strip()
@@ -260,19 +296,27 @@ def main() -> None:
         if jp in existing_jp:
             logger.info("術語 %s 已存在，跳過", jp)
             continue
+        row = {
+            "jp_term": jp,
+            "tw_term": tw,
+            "en_term": entry.get("en_term") or "",
+            "category": entry.get("category") or "",
+            "notes": entry.get("notes") or "",
+            "auto_generated": True,
+        }
+        if dry:
+            would_write.append(row)
+            newly_added[jp] = tw
+            continue
         try:
-            supabase.table("knowledge_base").insert({
-                "jp_term": jp,
-                "tw_term": tw,
-                "en_term": entry.get("en_term") or "",
-                "category": entry.get("category") or "",
-                "notes": entry.get("notes") or "",
-                "auto_generated": True,
-            }).execute()
+            supabase.table("knowledge_base").insert(row).execute()
             newly_added[jp] = tw
             logger.info("[KB AUTO] 新增術語：%s → %s", jp, tw)
         except Exception as exc:
             logger.warning("無法寫入術語 %s：%s", jp, exc)
+
+    if dry:
+        _report_would_write(mode, would_write, sorted(unknown_terms))
 
     # Step 5 — inline re-resolution
     # replacement_map covers: (a) newly Gemini-resolved jp→tw, (b) already-known
@@ -299,6 +343,7 @@ def main() -> None:
         **known_jp, **known_tw, **ignored_map, **newly_added, **TW_NORMALISATION,
     }
     all_miss_terms: set[str] = set()
+    would_patch = 0
 
     for row in article_rows:
         text = json.dumps(row.get("analysis") or {}, ensure_ascii=False)
@@ -314,7 +359,9 @@ def main() -> None:
 
         patched_text = MARKER_RE.sub(replace_marker, text)
 
-        if replaced:
+        if replaced and dry:
+            would_patch += 1
+        elif replaced:
             try:
                 patched_analysis = json.loads(patched_text)
                 article_id = row["id"]  # type: ignore[index]
@@ -327,16 +374,61 @@ def main() -> None:
         for m in MARKER_RE.finditer(patched_text):
             all_miss_terms.add(m.group(1).strip())
 
+    if dry:
+        logger.info(run_mode.skip_write_line("articles 的內聯修補", would_patch))
     if all_miss_terms:
         logger.warning("========== ⚠️  KB AUTO-MISS 術語待審查 ==========")
         logger.warning("以下術語在本次 Gemini 解析中無法確認翻譯：")
         for t in sorted(all_miss_terms):
             logger.warning("  • %s", t)
-        logger.warning("術語已顯示於 FFXIV 頁面術語池，等待知識庫收錄。")
+        if dry:
+            logger.warning("正式執行時這些術語會顯示於 FFXIV 頁面術語池，等待知識庫收錄。")
+        else:
+            logger.warning("術語已顯示於 FFXIV 頁面術語池，等待知識庫收錄。")
         logger.warning("==============================================")
 
+    if dry:
+        logger.info("Auto-KB 完成：沒有寫入術語庫與文章，%d 個術語仍待審查", len(all_miss_terms))
+        return
     logger.info("Auto-KB 完成：新增 %d 個術語，%d 個術語仍待審查",
                 len(newly_added), len(all_miss_terms))
+
+
+def _analysis_output_rows() -> list[dict]:
+    """不發布的第二級：這次 FFXIV 分析輸出裡帶標記的那幾篇，取代資料庫裡的 articles。
+    路徑沒設、找不到、讀不了都各印一行，回空清單。"""
+    head = "[不發布] 術語收錄的輸入："
+    out_dir = os.environ.get("ANALYSIS_OUTPUT_DIR", "").strip()
+    if not out_dir:
+        logger.info("%s沒有這次的 FFXIV 分析輸出（未設 ANALYSIS_OUTPUT_DIR）", head)
+        return []
+    path = os.path.join(out_dir, _FFXIV_OUTPUT_FILE)
+    try:
+        with open(path, encoding="utf-8") as f:
+            articles = json.load(f)["articles"]
+    except FileNotFoundError:
+        logger.info("%s沒有這次的 FFXIV 分析輸出（找不到 %s）", head, path)
+        return []
+    except (OSError, ValueError) as e:
+        logger.warning("%s沒有這次的 FFXIV 分析輸出（讀不了 %s：%s）", head, path, e)
+        return []
+    rows = [r for r in articles if "[[" in json.dumps(r.get("analysis") or {}, ensure_ascii=False)]
+    logger.info("%s%s 的 %d 篇，其中 %d 篇帶標記", head, path, len(articles), len(rows))
+    return rows
+
+
+def _report_would_write(mode: str, entries: list[dict], unknown_terms: list[str]) -> None:
+    """不發布的第二級：Step 4 會寫進 knowledge_base 的列，逐條印出並寫進 ANALYSIS_OUTPUT_DIR。"""
+    logger.info("[不發布] 術語收錄：會寫入 %d 條，沒有寫入", len(entries))
+    for e in entries:
+        logger.info("  • %s → %s｜en_term：%s｜category：%s｜notes：%s",
+                    e["jp_term"], e["tw_term"], e["en_term"], e["category"], e["notes"])
+
+    def build():
+        data = {"run_mode": mode, "unknown_terms": unknown_terms, "entry_count": len(entries), "entries": entries}
+        return data, f"{len(entries)} 條"
+
+    artifacts.write_json(logger, "術語收錄會寫入的條目", "ANALYSIS_OUTPUT_DIR", build, _ENTRIES_FILE)
 
 
 if __name__ == "__main__":
