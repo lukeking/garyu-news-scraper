@@ -92,6 +92,7 @@ jobs:
           ANALYSIS_OUTPUT_DIR: analysis-output
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_FFXIV: ${{ vars.GEMINI_MODEL_FFXIV }}
           TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
           FFXIV_SITE_URL: ${{ vars.FFXIV_SITE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -108,6 +109,10 @@ jobs:
           ANALYSIS_OUTPUT_DIR: analysis-output
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_HOT_TOPIC: ${{ vars.GEMINI_MODEL_HOT_TOPIC }}
+          GEMINI_MODEL_DIGEST: ${{ vars.GEMINI_MODEL_DIGEST }}
+          GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS: ${{ vars.GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS }}
+          GEMINI_HOT_TOPIC_TIMEOUT_SECONDS: ${{ vars.GEMINI_HOT_TOPIC_TIMEOUT_SECONDS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
@@ -126,6 +131,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_AUTO_KB: ${{ vars.GEMINI_MODEL_AUTO_KB }}
 
       # 下面都在前面的步驟失敗時照跑：跑到一半死掉的那一次，最需要知道有沒有寫進任何東西
       - name: 計數（結束）
