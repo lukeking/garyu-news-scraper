@@ -83,14 +83,14 @@ T010、T011 在從 `main` 切的小 PR 出貨，不在 `#210`（Unit 0）；上�
 ### 先出貨（US2、US3）
 
 - [X] T016 [US2, US3] [FR-004, FR-005, FR-008] 小 PR 的上線：merge 之後、下一次 00:00Z 排程之前（時機的理由見 T012），`gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.yml`（本機檔先與 example 對齊），`gh variable get` 讀回比對（去掉 CR），`scripts/check_config_drift.py` 通過。上線後第一個週一 07:00Z 前，FOCUS 加這週的檢查：Reddit 與論壇列表頁 0 篇、log 沒有對 reddit.com 的請求、FFXIV 篇數會少（日文版加 Lodestone 約 7～11 篇，不判 FAIL）。之後 `#210` 先 merge `origin/main` 再做 T009（同一個檔）。
-- [ ] T017 [SC-002] 先出貨後第一份週報的讀回：讀 log 與 `gh run download <run id> -n ffxiv-pool`，記 SC-002 Gate，寫進 `specs/019-ffxiv-sampling-window/evaluation.md`（`#210`）。
+- [X] T017 [SC-002] 先出貨後第一份週報的讀回：讀 log 與 `gh run download <run id> -n ffxiv-pool`，記 SC-002 Gate，寫進 `specs/019-ffxiv-sampling-window/evaluation.md`（`#210`）。
 
 ### US1 上線
 
 - [X] T012 [FR-001, FR-003, FR-008] prod 設定：`#210` merge 後，`gh variable set SOURCES_FFXIV_YML --env production < config/sources_ffxiv.yml`、`PIPELINE_CONFIG_YML` 同法（本機檔先與 example 對齊，用重導向不用 `--body`），`gh variable get` 讀回逐位元組比對（去掉 CR），`scripts/check_config_drift.py` 通過。
   時機：merge 與兩個變數在同一個排程間隔內做完。daily 與週報都在 00:00Z 從 `main` 跑，daily 的 `check_config_drift.py` 比的是當時 `main` 的 example，`main` 與 prod 不一致時跨過 00:00Z 就紅，週報也會照舊設定跑。所以先 merge（缺鍵時 20，程式不怕設定晚到），隨即設變數、讀回、跑 drift check，不跨過 00:00Z；週一 00:00Z 是週報，不在週日深夜做。
 - [X] T013 [SC-001, SC-002, SC-004, SC-005] `routines/weekly-verify/FOCUS.md`：上線那一週與下一週加 019 的檢查——英文各版的候選與入選數、Reddit 與論壇列表頁 0 篇、截掉論壇那一行、`[ffxiv] 處理失敗`（上限設成非法值時只有這一行，job 不標紅；契約，Luke 2026-11-11）、`來源失敗` 有沒有論壇的 429、週報耗時；照 README「每週維護」的流程，在那一週 07:00Z 前 merge。
-- [ ] T014 [SC-001, SC-002, SC-004, SC-005] 上線後第一次 prod 讀回：讀第一份週報的 log 與 `gh run download <run id> -n ffxiv-pool`，記 SC-001～SC-005 各階，英文版逐篇判讀「講得出這週在討論什麼」，寫進 `specs/019-ffxiv-sampling-window/evaluation.md`；另開 PR 把本 task 翻 `[X]`（018 T053 的做法）。之後的觀察放 FOCUS 與 BACKLOG。
+- [X] T014 [SC-001, SC-002, SC-004, SC-005] 上線後第一次 prod 讀回：讀第一份週報的 log 與 `gh run download <run id> -n ffxiv-pool`，記 SC-001～SC-005 各階，英文版逐篇判讀「講得出這週在討論什麼」，寫進 `specs/019-ffxiv-sampling-window/evaluation.md`；另開 PR 把本 task 翻 `[X]`（018 T053 的做法）。之後的觀察放 FOCUS 與 BACKLOG。
 - [X] T015 Closeout（merge 前）：`specs/BACKLOG.md` 的 `GNS-20261019-3cq` 節記 019 的結果（取樣那半交給 019；Reddit 因 robots.txt 拿掉，patch-triggered 原設計用 Reddit 抓討論的那一半要另想，由 Luke 決定這一列怎麼改或移出）；跑 Feature closeout reconciliation；完整記憶掃描（`/memory-distill`，或說出略過的理由）。
 
 ---
