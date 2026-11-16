@@ -35,6 +35,7 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 
 | id | 項目 | 觸發點 | 完成標準 |
 |---|---|---|---|
+| `GNS-20261115-raw` | `check_report()` 的輸入組法收成一份：`scripts/replay_report_review.py` 的 `as_sources`、`title_only_ids` 與 `scripts/traffic_weekly_analysis.py` 的 `_check_hits` 各組一次，搬進 `src/report_review.py` 共用（已定 2026-11-15：020 片 1 之後做，不放進 `#225`） | `pre-edit: {"paths":["scripts/replay_report_review.py","src/report_review.py"]}`<br>020 片 1（`#225`）merge 之後排入；在那之前動到這兩個檔就先做 | 重播腳本與交通分析腳本都呼叫 `src/report_review.py` 裡的同一份；同一份報告與來源在兩邊組出相同的輸入，有測試守；或寫明不做的理由 |
 | `GNS-20261114-b1r` | 紀錄的寫法清理：進版控的檔拿掉人名與對話體，引原話的地方照三問整理成結論（已定 2026-11-14 全清，見本節） | `trigger: none — 整個 repo 49 個檔都是對象，沒有單一檔案、skill 或指令是它的入口`<br>排入時；規則的正本寫好之前，先照本節的已定事項清 | 進版控的檔裡不再有人名（2026-11-14 數是 297 行、49 個檔，其中 263 行在 `specs/`）；引原話形狀的 41 行逐句照三問分成刪、改寫、留，讀不懂的回頭問過；決定都標「已定＋日期」；可以分幾個 PR，每個 PR 寫明清了哪些路徑；或寫明不做的理由 |
 | `GNS-20261114-bh8` | 分層驗收：改動照驗收範圍分片、一片一個 PR 各自驗收，能用 dry run 驗的不等 weekly；專案規則、Actions 上不發布的跑法、流程接點都要改（已定 2026-11-14） | `on: {"skill":["speckit-specify"]}`<br>下一次在這個 repo 開 spec 之前：這是後面 spec 的底層，排在 `GNS-20261108-2zc` 之前（已定 2026-11-14，見本節「排序」）；inline 的改動在專案規則寫好之前先照本節的原則切 | 開 spec，寫明：驗收範圍的分類（已定的五種加本節提案的四類）、dry run 兩級（不呼叫 LLM 只到入選；呼叫 LLM 但不寫入不發布；都在 Actions 上手動觸發、不設上限）、上線後才驗得到的部分算不算 spec 的一環（本節「未定」）、專案規則寫在哪、BACKLOG 列在哪一片的 PR 移出；spec 自己照分層原則分片出貨；或寫明不做的理由 |
 | `GNS-20261113-m23` | 長期抓不到的媒體網域整篇不收：設定檔驅動的網域名單（Luke 2026-11-13，見 `GNS-20261005-24s` 節「2026-11-13」） | `pre-edit: {"paths":["src/gn_resolver.py"]}`<br>下次動 GN 充實的程式時；或 Luke 排進 spec 排序時 | `pipeline_config` 有一份網域名單（prod 的真身是 `PIPELINE_CONFIG_YML`，`config/pipeline_config.example.yml` 同步）；名單上的網域，文章在還原 Google News 連結後不往下游送（不進 buffer）、也不抓媒體頁；每個 run 印一行丟了幾篇、各是哪個網域，格式用測試鎖住；名單是空的或沒設時行為不變；初始名單由 Luke 定（候選是 07-20 起一直在失敗名單上的 `news.pchome.com.tw`、`n.yam.com`、`www.cdns.com.tw`）；prod 變數設好並讀回；上線那週在 FOCUS 註記篇數基準會變 |
@@ -737,6 +738,9 @@ Luke 2026-11-08 改寫來源追查的問題：「可能不是管線篩的問題�
 **受影響的既有條目**（這一列沒有改它們）：019 的 SC 與 T017、T014；018 的 T053；`GNS-007`、`GNS-20261110-sjc`、`GNS-20261019-3cq`、`GNS-20261013-4g9`、`GNS-20261019-1vk`（`#218`）。
 
 **相鄰**：bare 的 `GUB-20261108-4en`（spec-kit 之外的工作的框架，含「從現況寫驗收、分階」）是 user 層的；這一列只管這個專案。先例：spec 019 分 `#211`（tasks 的 Unit 0）與 `#210` 兩個 PR 上線。
+
+**2026-11-15**：spec 開在 `specs/020-layered-acceptance/`（分支 `020-layered-acceptance`）。本節「未定」的四題已定（2026-11-15），記在 spec 的 Clarifications：
+上線後的讀回分成兩個時點、專案規則寫在憲章、列在最後一個上線前驗得完的片的 PR 移出、提案的四類都收。本節「未定」那一段是 11-14 的狀態，跟 spec 不一致時以 spec 為準。
 
 ## GNS-20261114-b1r 紀錄的寫法清理（2026-11-14）
 

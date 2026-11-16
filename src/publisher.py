@@ -17,6 +17,8 @@ import logging
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+from src import artifacts, run_mode
+
 logger = logging.getLogger(__name__)
 
 TW_TZ = timezone(timedelta(hours=8))
@@ -123,7 +125,8 @@ def _save_to_supabase(articles: list, week_id: str) -> bool:
 
     try:
         count = upsert_articles(articles, week_id)
-        logger.info("✓ Supabase 寫入完成：%d 筆（week_id=%s）", count, week_id)
+        if not run_mode.is_dry_run():  # 不發布時 upsert_articles 自己印略過那一行
+            logger.info("✓ Supabase 寫入完成：%d 筆（week_id=%s）", count, week_id)
         return True
     except Exception as e:
         logger.exception("✗ Supabase 寫入失敗：%s", e)
@@ -356,6 +359,9 @@ def publish(
                          os.environ.get("SITE_URL") or
                          "https://lukeking.github.io/traffic-issue-scraper")
 
+    if run_mode.is_dry_run():
+        return _publish_dry(articles, output_dir)
+
     logger.info("=== 開始發布（%s）===", output_dir)
     data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -379,6 +385,28 @@ def publish(
 
     logger.info("=== 發布完成（%s），week_id=%s ===", output_dir, week_id)
     return week_id
+
+
+def _publish_dry(articles: list, output_dir: str) -> str:
+    """不發布：站台檔一個都不產生；資料庫照樣經過 upsert_articles（它自己印略過那一行），逐篇分析寫進 ANALYSIS_OUTPUT_DIR。"""
+    week_id = _week_id()
+    logger.info(run_mode.skip_write_line(f"站台檔 {output_dir}", len(articles)))
+    _save_to_supabase(articles, week_id)
+    _dump_analysis_output(articles, week_id, output_dir)
+    return week_id
+
+
+def _dump_analysis_output(articles: list, week_id: str, output_dir: str) -> None:
+    """ANALYSIS_OUTPUT_DIR 有設才寫 <站台目錄名>_articles.json（級別與逐篇分析全文）；沒設或寫不進去都印一行。"""
+    def build():
+        rows = [
+            {"title": a.get("title"), "link": a.get("link"), "source": a.get("source"), "analysis": a.get("analysis")}
+            for a in articles
+        ]
+        data = {"run_mode": run_mode.current(), "week_id": week_id, "article_count": len(rows), "articles": rows}
+        return data, f"{len(rows)} 篇"
+
+    artifacts.write_json(logger, "逐篇分析全文", "ANALYSIS_OUTPUT_DIR", build, f"{Path(output_dir).name}_articles.json")
 
 
 # ── Hot Topic Reports (US1) ───────────────────────────────────────────────────
