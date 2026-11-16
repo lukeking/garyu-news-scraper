@@ -251,6 +251,15 @@ def get_kb_miss_summary() -> list:
     return sorted(_KB_MISS_ACCUMULATOR)
 
 
+# 這個行程送出的 Gemini 請求數（spec 020 FR-009）：每次 requests.post 之前加一，重試也算
+_CALL_COUNTS = {"generative": 0, "embedding": 0}
+
+
+def get_call_counts() -> dict:
+    """generative＝_call_gemini 送出的請求數，embedding＝generate_embedding 的；回傳副本。"""
+    return dict(_CALL_COUNTS)
+
+
 def _get_api_key():
     key = os.environ.get("GEMINI_API_KEY", "")
     if not key:
@@ -277,6 +286,7 @@ def generate_embedding(text: str, budget: dict | None = None) -> list | None:
     for attempt in range(1, EMBED_MAX_RETRIES + 2):
         resp = None
         try:
+            _CALL_COUNTS["embedding"] += 1
             resp = requests.post(GEMINI_EMBED_URL, json=payload, headers=headers, timeout=30)
             resp.raise_for_status()
             return resp.json()["embedding"]["values"]
@@ -554,6 +564,7 @@ def _call_gemini(prompt, api_key, retries=None, system_prompt=None, model=None, 
     for attempt in range(1, retries + 1):
         resp = None
         try:
+            _CALL_COUNTS["generative"] += 1
             resp = requests.post(url, json=payload, headers=headers, timeout=timeout)
             last_status = resp.status_code
             if resp.status_code == 200:

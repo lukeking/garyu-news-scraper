@@ -13,6 +13,8 @@ import re
 import logging
 from typing import Tuple
 
+from src import run_mode
+
 logger = logging.getLogger(__name__)
 
 _client = None
@@ -140,6 +142,9 @@ def upsert_articles(articles: list, week_id: str) -> int:
 
     回傳：成功寫入的筆數
     """
+    if run_mode.is_dry_run():
+        logger.info(run_mode.skip_write_line("upsert_articles", len(articles)))
+        return 0
     if not articles:
         logger.warning("upsert_articles：articles 為空，跳過")
         return 0
@@ -240,22 +245,12 @@ def is_configured() -> bool:
 
 # ── Traffic Buffer (US1) ──────────────────────────────────────────────────────
 
-def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) -> int:
-    """
-    Insert traffic articles into the buffer (articles table with content_type='traffic').
-    Sets major_category, initial_quality_score, buffered_at, buffer_expires_at,
-    hot_topic_analyzed=FALSE. Link is the conflict key; rows whose link already
-    exists are skipped, never overwritten. Returns count of newly inserted rows.
-    """
-    from datetime import datetime, timezone, timedelta
+def traffic_buffer_rows(articles: list, week_id: str, now, max_age_weeks: int = 8) -> list:
+    """upsert_traffic_buffer 送進 buffer 的列，純函數、不碰 client；不發布時同一批列寫進清單檔。
+    同一個 link 只留第一篇，沒有 link 的用指紋占位鍵；now 是帶時區的 datetime。"""
+    from datetime import timedelta
 
-    if not articles:
-        return 0
-
-    client = _get_client()
-    now = datetime.now(timezone.utc)
     expires_at = now + timedelta(weeks=max_age_weeks)
-
     seen_links: set = set()
     rows = []
     for a in articles:
@@ -286,6 +281,26 @@ def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) 
             "embedding": a.get("embedding"),
             "image_url": a.get("image") or None,
         })
+    return rows
+
+
+def upsert_traffic_buffer(articles: list, week_id: str, max_age_weeks: int = 8) -> int:
+    """
+    Insert traffic articles into the buffer (articles table with content_type='traffic').
+    Sets major_category, initial_quality_score, buffered_at, buffer_expires_at,
+    hot_topic_analyzed=FALSE. Link is the conflict key; rows whose link already
+    exists are skipped, never overwritten. Returns count of newly inserted rows.
+    """
+    if run_mode.is_dry_run():
+        logger.info(run_mode.skip_write_line("upsert_traffic_buffer", len(articles)))
+        return 0
+    from datetime import datetime, timezone
+
+    if not articles:
+        return 0
+
+    client = _get_client()
+    rows = traffic_buffer_rows(articles, week_id, datetime.now(timezone.utc), max_age_weeks)
 
     try:
         # ignore_duplicates: a re-fetched link must not overwrite the existing
@@ -361,6 +376,9 @@ def expire_buffer_articles() -> int:
     Removes rows where content_type='traffic', hot_topic_analyzed=FALSE,
     buffer_expires_at < NOW(). Returns count deleted.
     """
+    if run_mode.is_dry_run():
+        logger.info(run_mode.skip_write_line("expire_buffer_articles"))
+        return 0
     from datetime import datetime, timezone
 
     client = _get_client()
@@ -391,6 +409,9 @@ def mark_articles_analyzed(links: list) -> int:
     but must not fail the rest of the weekly run; the un-marked residual simply
     re-enters the pool next week.
     """
+    if run_mode.is_dry_run():
+        logger.info(run_mode.skip_write_line("mark_articles_analyzed", len(links)))
+        return 0
     if not links:
         return 0
     client = _get_client()
@@ -446,6 +467,9 @@ def upsert_hot_topic_report(report: dict) -> None:
     Upsert one row to hot_topic_reports using (week_start_date, topic_label) as conflict key.
     After upsert, marks all source articles as hot_topic_analyzed=TRUE.
     """
+    if run_mode.is_dry_run():
+        logger.info(run_mode.skip_write_line("upsert_hot_topic_report", 1))
+        return
     client = _get_client()
 
     row = {

@@ -39,9 +39,15 @@ def funnel_line(source, counts: tuple) -> str:
     a, b, c, d, e, f, g, h = counts
     return f"[來源漏斗] {source}：收集 {a} → 新鮮度 {b} → 過濾 {c} → 封鎖 {d} → 同批去重 {e} → 向量去重 {f} → 寫入上限 {g}（匯流四類 {h}）"
 
+
+# collected.json 的逐來源欄位，依序對到 funnel_line 的 a…h；kept 是 filter() 交出去的篇數（寫入上限之後）
+FUNNEL_FIELDS = ("collected", "after_freshness", "after_keyword_filter", "after_source_block",
+                 "after_batch_dedup", "after_vector_dedup", "kept", "kept_in_confluence")
+
 class TrafficCategory:
     name = "traffic"
     content_type = "traffic"
+    llm_stage = None  # analyze() 只做 HTTP 充實、不呼叫生成式 LLM，不發布的兩級都照跑
     max_articles = 20  # degraded fallback only (config-load failure); buffer cap is buffer.max_daily_articles
     output_dir = "pages/traffic"
     site_url = (os.environ.get("TRAFFIC_SITE_URL") or
@@ -228,22 +234,50 @@ class TrafficCategory:
         # point (main.py) that runs the HTTP-only prefetch on post-dedup articles.
         return self.prefetch(articles)
 
-    def publish(self, articles: list) -> str:
-        from src.storage import upsert_traffic_buffer, is_configured
+    def _buffer_max_age_weeks(self) -> int:
         from src.pipeline_config import load_pipeline_config
+        try:
+            config = load_pipeline_config()
+            return config.get("buffer", {}).get("max_age_weeks", 8)
+        except Exception:
+            return 8
+
+    def _dump_collected(self, articles: list) -> None:
+        """不發布：TRAFFIC_POOL_DIR 有設才寫 collected.json（級別、逐來源漏斗、buffer 會收到的列）；沒設或寫不進去都印一行。"""
+        from src import artifacts, run_mode
+        from src.storage import traffic_buffer_rows
+
+        def build():
+            week_id = self._current_week_id()
+            rows = traffic_buffer_rows(articles, week_id, datetime.now(timezone.utc), self._buffer_max_age_weeks())
+            funnel = getattr(self, "last_funnel", {})
+            data = {
+                "run_mode": run_mode.current(),
+                "week_id": week_id,
+                "sources": [{"source": s, **dict(zip(FUNNEL_FIELDS, counts))} for s, counts in funnel.items()],
+                "article_count": len(rows),
+                "articles": rows,
+            }
+            return data, f"{len(rows)} 篇"
+
+        artifacts.write_json(logger, "交通候選清單", "TRAFFIC_POOL_DIR", build, "collected.json")
+
+    def publish(self, articles: list) -> str:
+        from src import run_mode
+        from src.storage import upsert_traffic_buffer, is_configured
+
+        if run_mode.is_dry_run():
+            self._dump_collected(articles)
 
         if not is_configured():
             logger.warning("[%s] Supabase 未設定，跳過 buffer 寫入", self.name)
             return ""
 
         week_id = self._current_week_id()
-
-        try:
-            config = load_pipeline_config()
-            max_age_weeks = config.get("buffer", {}).get("max_age_weeks", 8)
-        except Exception:
-            max_age_weeks = 8
+        max_age_weeks = self._buffer_max_age_weeks()
 
         count = upsert_traffic_buffer(articles, week_id, max_age_weeks=max_age_weeks)
+        if run_mode.is_dry_run():
+            return ""  # 略過那一行已經由 upsert_traffic_buffer 印了，不再印「寫入完成」
         logger.info("[%s] buffer 寫入完成：%d 筆（week_id=%s）", self.name, count, week_id)
         return f"buffered {count} traffic articles for week {week_id}"

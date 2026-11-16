@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 class FFXIVCategory:
     name = "ffxiv"
     content_type = "ffxiv"
+    llm_stage = "FFXIV 分析"  # analyze() 呼叫生成式 LLM；不發布的第一級在這一步之前停下
     max_articles = 30
     output_dir = "pages/ffxiv"
     site_url = os.environ.get("FFXIV_SITE_URL", "https://garyu-ffxiv-news.pages.dev")

@@ -4,12 +4,13 @@ filter.py
 """
 
 import hashlib
-import json
 import logging
 import os
 import re
 from collections import Counter
 from datetime import datetime, timedelta, timezone
+
+from src import artifacts, run_mode
 
 
 def _parse_published(published: str) -> datetime:
@@ -487,31 +488,26 @@ def _ffxiv_source_counts(label: str, articles: list) -> str:
 
 def _dump_ffxiv_pool(pool: list, selected_count: int) -> None:
     """FFXIV_POOL_DUMP 有設才把整個候選池（排序後、summary 不截斷）寫成 JSON；沒設或寫不進去都印一行。"""
-    path = os.environ.get("FFXIV_POOL_DUMP", "").strip()
-    if not path:
-        logger.info("FFXIV 候選池內容：未設 FFXIV_POOL_DUMP，不寫檔")
-        return
-    rows = [
-        {
-            "rank": rank,
-            "selected": rank <= selected_count,
-            "source": a.get("source"),
-            "source_weight": a.get("source_weight"),
-            "title": a.get("title"),
-            "link": a.get("link"),
-            "published": a.get("published"),
-            "summary": a.get("summary"),
-        }
-        for rank, a in enumerate(pool, start=1)
-    ]
-    dump = {"pool_count": len(pool), "selected_count": selected_count, "articles": rows}
-    try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(dump, f, ensure_ascii=False, indent=1, default=str)
-    except OSError as e:
-        logger.warning("FFXIV 候選池內容：寫入 %s 失敗（%s）", path, e)
-        return
-    logger.info("FFXIV 候選池內容：寫入 %s（%d 篇，入選 %d 篇）", path, len(pool), selected_count)
+    def build():
+        rows = [
+            {
+                "rank": rank,
+                "selected": rank <= selected_count,
+                "source": a.get("source"),
+                "source_weight": a.get("source_weight"),
+                "title": a.get("title"),
+                "link": a.get("link"),
+                "published": a.get("published"),
+                "summary": a.get("summary"),
+            }
+            for rank, a in enumerate(pool, start=1)
+        ]
+        dump = {"pool_count": len(pool), "selected_count": selected_count, "articles": rows}
+        if run_mode.is_dry_run():
+            dump = {"run_mode": run_mode.current(), **dump}
+        return dump, f"{len(pool)} 篇，入選 {selected_count} 篇"
+
+    artifacts.write_json(logger, "FFXIV 候選池內容", "FFXIV_POOL_DUMP", build)
 
 
 def _ffxiv_max_selected(config: dict) -> int:
