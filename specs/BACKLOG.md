@@ -332,6 +332,24 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 本列拆的是 traffic／FFXIV，不是送件／收件，但動的是同一個 `weekly.yml`：拆的時候順便判斷要不要再拆成兩段，
 不拆就不用重看。判定與官方事實：`git log -S "GNS-20261021-5yg" -- specs/BACKLOG.md`。
 
+**2026-11-16**：這次在 `#218` 實作（已定 2026-11-16），目標是 11-22 前 merge，11-23 的排程週報是第一次拆開跑（已定 2026-11-16）。
+`#218` 原本的範圍是分模型變數的接線（`GNS-20261019-1vk`）；三個分模型變數在 11-23 之前不設，這一點不變（已定 2026-11-12）。
+
+拆法（提案，除了標已定的）：
+
+- 兩支正式的 workflow 各自排程、各自設 `timeout-minutes`、各自部署自己的站；用同一個 cron，各跑各的，不串接。
+  兩邊沒有共寫的列（`src/storage.py`：交通寫 `content_type='traffic'` 的 buffer 列與 `hot_topic_reports`；FFXIV 寫 FFXIV 的文章列，術語收錄寫 `knowledge_base`），共用的只有 Gemini 那把 key。
+- `src/main.py` 現在固定跑交通與 FFXIV 兩個類別（`CATEGORIES`），要先能只跑其中一類；沒指定時維持兩類都跑，不認得的值直接失敗。
+- `auto-kb.yml` 的 `workflow_run` 改認 FFXIV 那一支的名字。
+- `weekly-dry-run.yml` 維持一個檔，多一個必填的下拉選項選交通或 FFXIV；計數、比對、上傳共用。必填選項沒給時 GitHub 會拒絕觸發（020 的 `evaluation.md`，2026-11-16 實測 HTTP 422）。
+  `tests/unit/test_workflow_parity.py` 改成對兩支正式的檔各自比對。
+- 跟著改的：`routines/weekly-verify/PROMPT.md` 與 `FOCUS.md`（現在用 `--workflow weekly.yml` 找週報；要能處理一支跑完、另一支還沒）、
+  `.specify/memory/constitution.md` 點名 `weekly.yml` 的那一段、`README.md`、`docs/dry-run.md`、`docs/external-services.md`、`traffic_daily.yml` 的註解。
+  `PROMPT.md` 與憲章在 cold review 路徑上，merge 前要跑一輪。
+
+驗法：merge 前對這條分支觸發不發布的執行（兩個選項、兩級）；排程那一半只有 11-23 的實跑驗得到，這一列在那次讀回之後才移出。
+已知的限制：三軸的呼叫路徑要有 topic 通過 novelty gate 才會被走到，11-16 的排程週報與同一天兩次不發布的執行都沒有。
+
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
 **出處**：spec 014 closeout（PR #166，2026-10-19）。接手 `GNS-008`（政策池的單一 feed 依賴）：014 補了來源，`GNS-008` 移出，
