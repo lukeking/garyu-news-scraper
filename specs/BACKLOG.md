@@ -350,6 +350,27 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 驗法：merge 前對這條分支觸發不發布的執行（兩個選項、兩級）；排程那一半只有 11-23 的實跑驗得到，這一列在那次讀回之後才移出。
 已知的限制：三軸的呼叫路徑要有 topic 通過 novelty gate 才會被走到，11-16 的排程週報與同一天兩次不發布的執行都沒有。
 
+**Review units**（2026-11-16；委派閘門：4 個 review unit，`delegate-long`，逐個依序委派；文件那一個沒有 runner，是 `degraded`）：
+
+| Unit | Outcome | Prerequisites | Verification | Review |
+|---|---|---|---|---|
+| 分模型變數（`GNS-20261019-1vk`，已實作、還沒審） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
+| 類別選擇 | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
+| 拆 workflow | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
+| 讀者端（`degraded`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
+
+另外兩個是驗證型，不算 review unit：對這條分支的實跑（020 的 T023）、11-23 排程的讀回。
+合或拆的理由：正式的兩支、不發布的一支與 parity 測試拆不開，中間任何一步 parity 都是紅的；類別選擇不靠 workflow 就驗得完，所以另外一個。
+
+**類別選擇的契約**（已定 2026-11-16 的是「能只跑一類、沒指定時兩類都跑、不認得的值直接失敗」；變數名與那一行的文字是提案）：
+
+- 環境變數 `GARYU_CATEGORY`，在 `main()` 執行時讀，只有一個地方讀它。值先去掉前後空白，大小寫要相同。
+- 沒設或空字串：兩類都跑，順序是 traffic → ffxiv；執行紀錄跟加這個變數之前逐行相同，不多印。
+- `traffic` 或 `ffxiv`：只跑那一類。在 `========== Garyu News Scraper 開始執行 ==========` 之後、第一個 `--- [<類別>] 開始處理 ---` 之前印一行
+  `[類別] 只跑 <選的>；略過 <沒選的>（GARYU_CATEGORY）`。沒選的那一類不 collect、不寫入、不印它自己的任何一行。
+- 其他任何值：在任何類別 collect 之前丟 `ValueError`，訊息有變數名、收到的值與認得的值；不能被逐類別的 `try` 吞掉，process 以非 0 結束。
+- 跟不發布的兩級可以同時用，`[不發布]` 的固定行照舊，只是只有那一類的；結尾的篇數只算跑了的那一類。
+
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
 **出處**：spec 014 closeout（PR #166，2026-10-19）。接手 `GNS-008`（政策池的單一 feed 依賴）：014 補了來源，`GNS-008` 移出，
