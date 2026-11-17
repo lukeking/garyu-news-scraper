@@ -2,7 +2,8 @@ name: Auto KB Expansion
 
 on:
   workflow_run:
-    workflows: ["Garyu News Scraper 週報"]
+    # 只認 FFXIV 那一支週報（weekly-ffxiv.yml）：術語收錄只處理 FFXIV 的文章
+    workflows: ["Garyu News Scraper 週報（FFXIV）"]
     types: [completed]
   # 手動重跑：KB 是手工補條目之後唯一能讓既有 [[marker]] 被修補的路徑。
   # 沒有這個入口的話，補完 DB 只能等下週一的週報跑完才會連帶觸發。
@@ -37,4 +38,5 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_AUTO_KB: ${{ vars.GEMINI_MODEL_AUTO_KB }}
         run: python scripts/auto_kb.py

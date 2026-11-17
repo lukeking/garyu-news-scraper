@@ -414,7 +414,7 @@ def _dump_analysis_output(articles: list, week_id: str, output_dir: str) -> None
 def publish_hot_topic_reports(reports: list) -> None:
     """
     Write hot topic reports as JSON to pages/traffic/hot_topics.json.
-    weekly.yml deploys it beside the traffic page as a static file; nothing in this repo reads it
+    weekly-traffic.yml deploys it beside the traffic page as a static file; nothing in this repo reads it
     (the frontend reads the Worker's /api/hot-topics).
     """
     output_path = ROOT_DIR / "pages" / "traffic" / "hot_topics.json"

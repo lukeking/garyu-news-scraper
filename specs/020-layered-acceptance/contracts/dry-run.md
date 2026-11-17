@@ -9,8 +9,10 @@
 - 一個必填的輸入 `level`：
   - `dry-input`（第一級）：收集、過濾、充實、選出入選；不呼叫生成式 LLM。交通過濾階段的 embedding 去重照常呼叫，它是入選的一部分。
   - `dry-full`（第二級）：第一級的全部，加分析、對每份報告跑一次 `check_report()`、術語收錄；不寫入、不發布。
+- 一個必填的輸入 `category`（`traffic`、`ffxiv`，沒有預設值；提案，`GNS-20261013-4g9` 的「拆 workflow 的契約」，2026-11-17）：一次只跑一類，
+  跟兩支正式的週報相同；交通分析那一步只在 `traffic` 跑，術語收錄只在 `ffxiv` 的第二級跑。空值與這兩個以外的值在任何程式步驟之前擋下。
 - 可以選任一個分支執行；跑的是那個分支的程式。
-- 跟 `weekly.yml` 共用的準備步驟（寫設定檔、裝 Python、裝相依）逐步相同，程式步驟的 env 鍵也相同，由 `tests/unit/test_workflow_parity.py` 守。
+- 跟 `weekly-traffic.yml`、`weekly-ffxiv.yml` 共用的準備步驟（寫設定檔、裝 Python、裝相依）逐步相同，程式步驟的 env 鍵也相同，由 `tests/unit/test_workflow_parity.py` 守。
 - 沒有部署步驟，也沒有「驗證本週資料可由資料庫讀取」那一步（它驗的是剛寫進去的資料）。
 - 開頭與結尾各跑一次 `scripts/dry_run_counts.py`，比對「不變的東西」那五個計數；不同就讓 job 失敗。
 

@@ -178,6 +178,15 @@ def call_gemini(terms: list[str], api_key: str, model_name: str) -> list[dict]:
     return []
 
 
+def _gemini_model() -> str:
+    """auto-KB 自己的模型變數優先；沒設或空字串退回 GEMINI_MODEL_NAME，再退回預設。"""
+    for name in ("GEMINI_MODEL_AUTO_KB", "GEMINI_MODEL_NAME"):
+        value = (os.environ.get(name) or "").strip()
+        if value:
+            return value
+    return "gemini-2.5-flash"
+
+
 def main() -> None:
     # 模式先驗：不認得的值在讀任何東西之前就丟錯
     mode = run_mode.current()
@@ -200,7 +209,7 @@ def _run(mode: str) -> None:
     url = (os.environ.get("SUPABASE_URL") or "").strip()
     key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
     gemini_api_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
-    gemini_model = (os.environ.get("GEMINI_MODEL_NAME") or "gemini-2.5-flash").strip()
+    gemini_model = _gemini_model()
 
     if not url or not key:
         logger.error("SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY 未設定，中止")

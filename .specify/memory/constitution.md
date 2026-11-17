@@ -1,19 +1,30 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 2.1.0 → 2.1.1
-**Bump rationale**: PATCH — one Operations & Deployment sentence corrected so that following it
-  produces the evidence it asks for. A manual dispatch of the weekly workflow is confirmed by the
-  run concluding successfully; the weekly verification routine verifies the scheduled weekly run,
-  so its report confirms a manual dispatch only when that dispatch is the run it verified. Found by
-  the retroactive cold review of #161, #163 and #172 (2026-10-31). No principle changes.
+**Version change**: 2.1.1 → 2.2.0
+**Bump rationale**: MINOR — Principle I gains guidance on how the stage contract holds when the
+  weekly traffic run's own collection fails or stores nothing: the weekly Analyze and Publish
+  stages consume the buffer and do not wait on that collection, and such a run must end as failed.
+  This is expanded guidance of the same kind as 2.1.0 (how stage order holds across two
+  workflows); no principle is removed or redefined. Found by the cold review of #218
+  (2026-11-18): the traffic workflow's read-back verification runs after deploy and only marks
+  the run failed, which the earlier text of Principle I did not cover.
+  The rest is wording that follows the split of the weekly workflow into one workflow per content
+  type (`weekly-traffic.yml`, `weekly-ffxiv.yml`; #218, BACKLOG `GNS-20261013-4g9`): the sentences
+  that said "the weekly workflow" or named `weekly.yml` now name the two workflows. The
+  authoritative environment and the canonical test are what they were, stated for two weekly
+  workflows instead of one.
 
 ### Modified Principles
-- None
+- I. Pipeline Integrity → the traffic bullet now says the weekly Analyze and Publish stages run on
+  the stored buffer when the weekly run's own collection fails or stores nothing, and that such a
+  run MUST end as failed. Wording: the authoritative environment is the daily traffic buffer and
+  the two weekly runs; traffic is analyzed by the weekly traffic workflow, FFXIV runs in its own
+  weekly workflow.
 
 ### Modified Sections
-- Operations & Deployment → the canonical-test bullet no longer asks for the routine's report as
-  the confirmation of every manual dispatch.
+- Operations & Deployment → the canonical-test bullet names both weekly workflows, each confirmed
+  by its own run; the shared-secret bullet says "the weekly workflows".
 
 ### Added Sections
 - None
@@ -25,8 +36,8 @@
 - ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic; no
     operations procedure restated. No changes required.
 - The other spec-kit templates are user-level since #179 and not in this repo; not checked here.
-- ✅ `README.md`, `CLAUDE.md`, `docs/`, `routines/weekly-verify/` — none restates the
-    canonical-test bullet. No changes required.
+- ✅ `README.md`, `docs/`, `routines/weekly-verify/` — updated in the same PR to name the two
+    weekly workflows. `CLAUDE.md` names neither; no change required.
 
 ### Deferred Items
 - None
@@ -47,13 +58,15 @@ The system is a strictly ordered data pipeline:
 - No stage may skip upstream output or produce output without valid upstream input.
 - Both content types (traffic news and FFXIV information) MUST pass through the same
   pipeline stage contract; content-type-specific logic is encapsulated within each stage.
-- The scheduled pipeline workflows on GitHub Actions (the daily traffic buffer and the weekly
-  run) are the authoritative execution environment; local runs are for development and
-  debugging only.
+- The scheduled pipeline workflows on GitHub Actions (the daily traffic buffer and the two weekly
+  runs, one per content type) are the authoritative execution environment; local runs are for
+  development and debugging only.
 - Traffic runs across two workflows: every run, daily and weekly, collects, filters and stores
-  into a buffer, and the weekly workflow then analyzes that buffer and publishes. The buffer is
-  the upstream output the weekly Analyze stage consumes. FFXIV runs entirely in the weekly
-  workflow.
+  into a buffer, and the weekly traffic workflow then analyzes that buffer and publishes. The
+  buffer is the upstream output the weekly Analyze stage consumes, so the weekly Analyze and
+  Publish stages do not wait on the weekly run's own collection: when that collection fails or
+  stores nothing, they still run on what earlier runs stored, and the run MUST end as failed so
+  the gap is visible. FFXIV runs entirely in its own weekly workflow.
 
 ### II. Configuration over Code
 
@@ -163,10 +176,11 @@ they are configuration and live where they are set (Principles II and IV).
 
 Standard operating procedures that all contributors MUST follow.
 
-- The canonical test for a full pipeline run is a manual dispatch of
-  `.github/workflows/weekly.yml`, confirmed by the run concluding successfully. The weekly
-  verification routine (`routines/weekly-verify/`) verifies the scheduled weekly run; its report
-  confirms a manual dispatch only when that dispatch is the run it verified.
+- The canonical test for a full pipeline run is a manual dispatch of both weekly workflows,
+  `.github/workflows/weekly-traffic.yml` and `.github/workflows/weekly-ffxiv.yml`, each confirmed
+  by its run concluding successfully. The weekly verification routine (`routines/weekly-verify/`)
+  verifies the scheduled weekly runs; its report confirms a manual dispatch only when that
+  dispatch is a run it verified.
 - Local development MUST use `.env` (copied from `.env.example`) and local copies of both
   `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example`
   counterparts). All four files MUST remain in `.gitignore`.
@@ -174,7 +188,7 @@ Standard operating procedures that all contributors MUST follow.
   in GitHub Environment Variables. If that variable has a mirror (Principle II), update the
   mirror to match in a PR; the scheduled drift check fails when it was skipped.
 - To rotate secrets: update the relevant GitHub Secret. No PR needed.
-- The `SUPABASE_SERVICE_ROLE_KEY` secret MUST be shared between the weekly workflow and the
+- The `SUPABASE_SERVICE_ROLE_KEY` secret MUST be shared between the weekly workflows and the
   Cloudflare Worker; both require the ability to bypass RLS on the `articles` table.
 - To add or modify KB terms manually: insert or update rows in the Supabase `knowledge_base`
   table directly (dashboard or migration script). Set `auto_generated = false` for manually
@@ -204,4 +218,4 @@ wins unless the constitution is formally amended.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 2.1.1 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-10-31
+**Version**: 2.2.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-11-18

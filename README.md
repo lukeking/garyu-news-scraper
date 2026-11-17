@@ -32,7 +32,7 @@ AI 分析（analyzer.py）── Gemini（可設定模型）
         ↓
 發布靜態檔案（publisher.py）── feed.xml、week/*.html
         ↓
-部署至 Cloudflare Pages（weekly.yml 觸發）
+部署至 Cloudflare Pages（weekly-traffic.yml、weekly-ffxiv.yml 各自部署自己的站）
         ↓
 前端讀取 CF Worker API（/api/*）← 從 Supabase 查詢資料
 ```
@@ -129,7 +129,7 @@ Dashboard → Pages 專案 → Settings → Functions → Service bindings → A
 依序執行 GitHub Actions（手動觸發 workflow_dispatch）：
 
 1. `Deploy Cloudflare Worker API` — 建立 Worker 並上傳 Secret
-2. `Garyu News Scraper 週報` — 執行完整 pipeline 並部署兩個 Pages
+2. `Garyu News Scraper 週報（交通）` 與 `Garyu News Scraper 週報（FFXIV）` — 各跑自己那一類的 pipeline、各自部署自己的 Pages
 
 ---
 
@@ -218,7 +218,8 @@ cd workers/api && npx wrangler dev
 | `config/sources_ffxiv.example.yml` | FFXIV 來源設定的 prod 鏡像（`SOURCES_FFXIV_YML`，daily 漂移檢查比對） |
 | `db/supabase_schema.sql` | 資料庫 schema |
 | `db/supabase_migrations/` | 增量 migration SQL |
-| `.github/workflows/weekly.yml` | 週報 pipeline + 部署 |
+| `.github/workflows/weekly-traffic.yml` | 交通週報 pipeline + 部署 |
+| `.github/workflows/weekly-ffxiv.yml` | FFXIV 週報 pipeline + 部署 |
 | `.github/workflows/deploy-worker.yml` | Worker 手動部署 |
 | `.github/workflows/deploy-pages-traffic.yml` | Traffic Pages 快速部署（index.html 異動時） |
 | `.github/workflows/deploy-pages-ffxiv.yml` | FFXIV Pages 快速部署（index.html 異動時） |
