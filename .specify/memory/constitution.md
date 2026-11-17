@@ -1,17 +1,26 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 2.1.1 → 2.1.2
-**Bump rationale**: PATCH — wording follows the split of the weekly workflow into one workflow per
-  content type (`weekly-traffic.yml`, `weekly-ffxiv.yml`; #218, BACKLOG `GNS-20261013-4g9`). The
-  sentences that said "the weekly workflow" or named `weekly.yml` now name the two workflows. No
-  rule is added, removed or redefined: the stage contract, the authoritative environment and the
-  canonical test are what they were, stated for two weekly workflows instead of one.
+**Version change**: 2.1.1 → 2.2.0
+**Bump rationale**: MINOR — Principle I gains guidance on how the stage contract holds when the
+  weekly traffic run's own collection fails or stores nothing: the weekly Analyze and Publish
+  stages consume the buffer and do not wait on that collection, and such a run must end as failed.
+  This is expanded guidance of the same kind as 2.1.0 (how stage order holds across two
+  workflows); no principle is removed or redefined. Found by the cold review of #218
+  (2026-11-18): the traffic workflow's read-back verification runs after deploy and only marks
+  the run failed, which the earlier text of Principle I did not cover.
+  The rest is wording that follows the split of the weekly workflow into one workflow per content
+  type (`weekly-traffic.yml`, `weekly-ffxiv.yml`; #218, BACKLOG `GNS-20261013-4g9`): the sentences
+  that said "the weekly workflow" or named `weekly.yml` now name the two workflows. The
+  authoritative environment and the canonical test are what they were, stated for two weekly
+  workflows instead of one.
 
 ### Modified Principles
-- I. Pipeline Integrity → wording only: the authoritative environment is the daily traffic buffer
-  and the two weekly runs; traffic is analyzed by the weekly traffic workflow, FFXIV runs in its
-  own weekly workflow.
+- I. Pipeline Integrity → the traffic bullet now says the weekly Analyze and Publish stages run on
+  the stored buffer when the weekly run's own collection fails or stores nothing, and that such a
+  run MUST end as failed. Wording: the authoritative environment is the daily traffic buffer and
+  the two weekly runs; traffic is analyzed by the weekly traffic workflow, FFXIV runs in its own
+  weekly workflow.
 
 ### Modified Sections
 - Operations & Deployment → the canonical-test bullet names both weekly workflows, each confirmed
@@ -54,8 +63,10 @@ The system is a strictly ordered data pipeline:
   development and debugging only.
 - Traffic runs across two workflows: every run, daily and weekly, collects, filters and stores
   into a buffer, and the weekly traffic workflow then analyzes that buffer and publishes. The
-  buffer is the upstream output the weekly Analyze stage consumes. FFXIV runs entirely in its
-  own weekly workflow.
+  buffer is the upstream output the weekly Analyze stage consumes, so the weekly Analyze and
+  Publish stages do not wait on the weekly run's own collection: when that collection fails or
+  stores nothing, they still run on what earlier runs stored, and the run MUST end as failed so
+  the gap is visible. FFXIV runs entirely in its own weekly workflow.
 
 ### II. Configuration over Code
 
@@ -207,4 +218,4 @@ wins unless the constitution is formally amended.
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 2.1.2 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-11-17
+**Version**: 2.2.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-11-18

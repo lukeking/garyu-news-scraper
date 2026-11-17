@@ -129,7 +129,7 @@ Dashboard → Pages 專案 → Settings → Functions → Service bindings → A
 依序執行 GitHub Actions（手動觸發 workflow_dispatch）：
 
 1. `Deploy Cloudflare Worker API` — 建立 Worker 並上傳 Secret
-2. `Garyu News Scraper 週報` — 執行完整 pipeline 並部署兩個 Pages
+2. `Garyu News Scraper 週報（交通）` 與 `Garyu News Scraper 週報（FFXIV）` — 各跑自己那一類的 pipeline、各自部署自己的 Pages
 
 ---
 

@@ -23,7 +23,7 @@
    （拆之前這六種行在同一份 log 裡；11-16 的 log 照類別分開數，就是這個分法，每一種各 1 行。）
    某一種是 0 行 → 跟上一次排程的週報比（11-16 的 run `43798739037`，拆之前的單一支）；上一次有、本週沒有 → 標出（不判 FAIL：那一週可能本來就沒有熱點或彙整，本地讀回時判）。
 3. 兩個部署步驟：各自 `gh run view <ID> --json jobs`，交通那一支的 `Deploy Traffic Pages to Cloudflare`、FFXIV 那一支的 `Deploy FFXIV Pages to Cloudflare`，`conclusion` 都是 `success` → ✅；其他值 → 標出。
-4. 術語收錄的連帶觸發：`gh run list --workflow auto-kb.yml --limit 5 --json databaseId,createdAt,event,conclusion`。`auto-kb.yml` 只認 FFXIV 那一支的名字：FFXIV 那一支之後有一個 `event` 是 `workflow_run` 的 run → ✅，寫出它的 ID 與 `conclusion`，並數那一次 log 裡含 `[不發布]` 的行（預期 0 行，有 → 同第一條，FAIL）；沒有這個 run → 標出（FFXIV 那一支沒有成功結束時本來就不會觸發，一併寫出它的 `conclusion`）。本週一之後有兩個以上 `workflow_run` 的 run → 標出（交通那一支不該觸發它）。
+4. 術語收錄的連帶觸發：`gh run list --workflow auto-kb.yml --limit 5 --json databaseId,createdAt,event,conclusion`。`auto-kb.yml` 只認 FFXIV 那一支的名字，FFXIV 那一支一結束（不論成不成功）就會有一個 `event` 是 `workflow_run` 的 run；術語收錄有沒有真的跑，看那個 run 的 `conclusion`。`success` → ✅，寫出它的 ID，並數那一次 log 裡含 `[不發布]` 的行（預期 0 行，有 → 同第一條，FAIL）；`skipped` → 標出：術語收錄沒有跑（FFXIV 那一支沒有成功結束時 job 會被跳過，一併寫出 FFXIV 那一支的 `conclusion`）；其他值 → 標出，寫出那個值；沒有這個 run → 標出（FFXIV 那一支還沒結束或不存在，一併寫出它的狀態）。本週一之後有兩個以上 `workflow_run` 的 run → 標出（交通那一支不該觸發它）。
 
 ## (9) 週報拆成兩支之後的第一次排程（`#218`；BACKLOG `GNS-20261013-4g9`）
 
@@ -34,7 +34,7 @@
 - 兩支各找到一個本週一的 run，`event` 都是 `schedule` → ✅；少一支，或不是排程觸發 → 標在報告最前面。
 - 每一支的 log 逐字引用含 `[類別] 只跑 ` 的那行：交通那一支預期 `[類別] 只跑 traffic；略過 ffxiv（GARYU_CATEGORY）`，FFXIV 那一支預期 `[類別] 只跑 ffxiv；略過 traffic（GARYU_CATEGORY）`。**沒有這行**、或類別不對 → FAIL（那一支跑了兩類，或跑錯類）。
 - 每一支的 log 數 `--- [traffic] 開始處理 ---` 與 `--- [ffxiv] 開始處理 ---` 各幾行：自己那一類 1 行、另一類 0 行 → ✅；另一類不是 0 行 → FAIL。
-- 兩支各自的「驗證本週資料可由 Supabase 讀取」那一步（`gh run view <ID> --json jobs`）：`conclusion` 各是什麼。交通那一支的排在部署之後，失敗時照 PROMPT.md 步驟 2 分出是沒有新的交通列還是收集失敗；FFXIV 那一支的排在部署之前，失敗時部署不會跑，一併寫出 `Deploy FFXIV Pages to Cloudflare` 的 `conclusion`。
+- 兩支各自的「驗證本週資料可由 Supabase 讀取」那一步（`gh run view <ID> --json jobs`）：`conclusion` 各是什麼。交通那一支的排在部署之後，失敗時照 PROMPT.md 步驟 2 寫出是哪一種（沒有新的交通列、收集失敗，或驗證那一步自己失敗）；FFXIV 那一支的排在部署之前，失敗時部署不會跑，一併寫出 `Deploy FFXIV Pages to Cloudflare` 的 `conclusion`。
 - 兩支的 `createdAt` 與 job 的起訖時間列成表（只記錄）。
 
 ## (1) GNS-014 分頁修法的回歸檢查（PostgREST 1000 列上限）
