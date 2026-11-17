@@ -186,8 +186,8 @@ def test_auto_kb_reads_its_own_model_variable_first(monkeypatch, own, shared, ex
 
 
 @pytest.mark.parametrize("workflow, command, names", [
-    ("weekly.yml", "python main.py", ["GEMINI_MODEL_FFXIV"]),
-    ("weekly.yml", "python scripts/traffic_weekly_analysis.py",
+    ("weekly-ffxiv.yml", "python main.py", ["GEMINI_MODEL_FFXIV"]),
+    ("weekly-traffic.yml", "python scripts/traffic_weekly_analysis.py",
      ["GEMINI_MODEL_HOT_TOPIC", "GEMINI_MODEL_DIGEST", "GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS", "GEMINI_HOT_TOPIC_TIMEOUT_SECONDS"]),
     ("auto-kb.yml", "python scripts/auto_kb.py", ["GEMINI_MODEL_AUTO_KB"]),
 ])

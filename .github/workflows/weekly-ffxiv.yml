@@ -1,4 +1,4 @@
-name: Garyu News Scraper 週報
+name: Garyu News Scraper 週報（FFXIV）
 
 on:
   schedule:
@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 實測最長 15.2 分鐘（09-07），20 的餘裕不夠，見憲章 IV
+    timeout-minutes: 30  # 入選上限 30 篇推算約 14.6 分（實測最長 9.8 分）的約 2 倍，見憲章 IV
     environment: production
 
     steps:
@@ -79,6 +79,8 @@ jobs:
       - name: 執行週報程式（寫入 Supabase）
         run: python main.py
         env:
+          # 只跑 FFXIV。其餘 env 兩支相同、不照類別刪：少一個變數時程式照跑，只是少收來源
+          GARYU_CATEGORY: ffxiv
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           # 模型 id 非機密：建議在 Repository variables 設定 GEMINI_MODEL_NAME，日誌才不會被 *** 遮罩
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
@@ -115,14 +117,14 @@ jobs:
           if not key:
               raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY 或 SUPABASE_KEY 未設定")
           resp = requests.get(
-              f"{url}/rest/v1/articles?select=week_id&id=not.is.null&week_id=eq.{week_id}&limit=1",
+              f"{url}/rest/v1/articles?select=week_id&id=not.is.null&week_id=eq.{week_id}&content_type=eq.ffxiv&limit=1",
               headers={"apikey": key, "Authorization": f"Bearer {key}"},
               timeout=15,
           )
           resp.raise_for_status()
           rows = resp.json()
           if not rows:
-              raise RuntimeError(f"Supabase 尚未讀到本週資料: {week_id}")
+              raise RuntimeError(f"Supabase 尚未讀到本週 ffxiv 資料: {week_id}")
           print(f"Supabase read-after-write OK: {week_id}")
           EOF
         env:
@@ -130,28 +132,9 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
 
-      - name: 週交通熱點分析
-        run: python scripts/traffic_weekly_analysis.py
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
-          GEMINI_MODEL_HOT_TOPIC: ${{ vars.GEMINI_MODEL_HOT_TOPIC }}
-          GEMINI_MODEL_DIGEST: ${{ vars.GEMINI_MODEL_DIGEST }}
-          GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS: ${{ vars.GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS }}
-          GEMINI_HOT_TOPIC_TIMEOUT_SECONDS: ${{ vars.GEMINI_HOT_TOPIC_TIMEOUT_SECONDS }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-          CATEGORIES_TRAFFIC_YML_PATH: config/categories_traffic.yml
-          PIPELINE_CONFIG_YML_PATH: config/pipeline_config.yml
-          JIEBA_USERDICT_PATH: config/jieba_userdict.txt
-          TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
-
-      - name: 複製共用靜態資源至各站台目錄
+      - name: 複製共用靜態資源至 pages/ffxiv
         run: |
-          cp pages/shared/app.js pages/traffic/app.js
           cp pages/shared/app.js pages/ffxiv/app.js
-          cp pages/shared/shared.css pages/traffic/shared.css
           cp pages/shared/shared.css pages/ffxiv/shared.css
 
       - uses: actions/setup-node@v5
@@ -159,16 +142,6 @@ jobs:
           node-version: '22'
 
       # 與 deploy-pages-*.yml 同做法；cloudflare/pages-action 上游已不存在（run 35552895858）
-      - name: Deploy Traffic Pages to Cloudflare
-        run: |
-          mkdir -p /tmp/deploy-traffic
-          cp -r pages/traffic/. /tmp/deploy-traffic/
-          cd /tmp/deploy-traffic
-          npx wrangler@4.144.0 pages deploy . --project-name=garyu-traffic-news --commit-dirty=true
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Deploy FFXIV Pages to Cloudflare
         run: |
           mkdir -p /tmp/deploy-ffxiv
