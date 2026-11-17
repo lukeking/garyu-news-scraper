@@ -49,7 +49,7 @@ def load_sources() -> list:
         raise FileNotFoundError(
             f"找不到 {SOURCES_FILE}。"
             "請確認 GitHub Variable SOURCES_TRAFFIC_YML 有設定，"
-            "且 weekly.yml 有寫入該檔案的步驟。"
+            "且執行它的 workflow 有寫入該檔案的步驟。"
         )
     with open(SOURCES_FILE, "r", encoding="utf-8") as f:
         config = yaml.safe_load(f)

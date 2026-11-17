@@ -12,20 +12,22 @@
 
 ## 怎麼觸發
 
-只能手動觸發，沒有排程。`level` 是必填的選項：
+只能手動觸發，沒有排程。`level` 與 `category` 都是必填的選項：
 
 ```bash
-gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-input
-gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-full
+gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-input -f category=traffic
+gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-full -f category=ffxiv
 ```
 
-網頁上是 Actions → `Garyu News Scraper 不發布週報` → Run workflow，選分支與 `level`。
+網頁上是 Actions → `Garyu News Scraper 不發布週報` → Run workflow，選分支、`level` 與 `category`。
+
+- `category` 是 `traffic` 或 `ffxiv`，一次只跑一類，跟兩支正式的週報（`weekly-traffic.yml`、`weekly-ffxiv.yml`）相同；兩類都要驗就各觸發一次。
 
 - 跑的是 `--ref` 那個分支的程式與那個分支的 workflow 檔，所以還沒 merge 的分支也能驗。
 - workflow 檔要先在預設分支上才觸發得了（GitHub 的行為，這個 repo 的第一次實測是 spec 020 的 T021）。分支是在這個檔進 `main` 之前切的，先 merge `main` 再觸發。
 - 次數沒有上限。第二級跟正式週報共用同一把 Gemini key 與同一個月預算（`docs/external-services.md` 的 Gemini 那一列），緊接在週一排程之前觸發可能讓正式那次碰到額度上限；每支程式結尾印出這次送出的呼叫次數。
 - 跟正式的排程同時跑：兩個 workflow 沒有共用的 concurrency 設定，不發布的這次不會讓排程那次被取消或排隊；資料面只有讀。同時跑會讓計數對不上，見下面「比對不同時怎麼讀」。
-- 成功結束不會連帶觸發 `auto-kb.yml`：那個檔的 `workflow_run` 只認 `Garyu News Scraper 週報` 這個名字。
+- 成功結束不會連帶觸發 `auto-kb.yml`：那個檔的 `workflow_run` 只認 `Garyu News Scraper 週報（FFXIV）` 這個名字。
 
 ## 兩級各做什麼
 
@@ -39,9 +41,14 @@ gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-full
 | 寫入資料庫（文章、buffer、報告、已分析標記、buffer 過期、術語庫） | 不寫，每一種略過各印一行 | 不寫，每一種略過各印一行 |
 | 產生站台檔、部署兩個站 | 不做 | 不做 |
 
-workflow 的步驟依序是：準備（跟 `weekly.yml` 逐步相同）→ 檢查 `level` → 計數（開始）→ `python main.py` → `python scripts/traffic_weekly_analysis.py` →
-術語收錄（只有第二級）→ 計數（結束）→ 比對 → 上傳產物。檢查 `level` 那一步在值不是 `dry-input`、`dry-full` 時直接失敗：
-程式把沒設或空的模式當成正式模式，而缺少必填輸入的觸發 GitHub 會不會擋下沒有實測，所以 workflow 自己擋，不讓空值變成一次正式寫入。
+`category` 決定跑哪一類：`traffic` 只跑交通（`main.py` 的交通那一段與交通分析那一步），`ffxiv` 只跑 FFXIV（`main.py` 的 FFXIV 那一段，第二級再加術語收錄）。
+哪一類會留下哪幾個產物還沒有實跑過，對拆開後的分支實跑（spec 020 的 T023）之後補在「產物」那一節。
+
+workflow 的步驟依序是：準備（跟兩支正式的週報逐步相同）→ 檢查 `level` → 檢查 `category` → 計數（開始）→ `python main.py`（只跑選的那一類）→
+`python scripts/traffic_weekly_analysis.py`（只有 `traffic`）→ 術語收錄（只有 `ffxiv` 的第二級）→ 計數（結束）→ 比對 → 上傳產物。
+檢查 `level` 那一步在值不是 `dry-input`、`dry-full` 時直接失敗，檢查 `category` 那一步在值不是 `traffic`、`ffxiv` 時直接失敗：
+程式把沒設或空的模式當成正式模式、把空的類別當成兩類都跑。缺少必填輸入的觸發 GitHub 會以 HTTP 422 拒絕（2026-11-16 實測，`#229`），
+workflow 仍自己擋，不靠平台的行為，不讓空值變成一次正式寫入。
 前面的程式步驟失敗時，後面的程式步驟照預設不跑；
 計數（結束）、比對與上傳照跑：跑到一半死掉的那一次，最需要知道有沒有寫進任何東西。
 
@@ -118,7 +125,8 @@ spec 的「五個計數」在這裡是七項：報告數沒寫是哪一張表，
 
 ```bash
 gh run list --workflow traffic_daily.yml --limit 5 --json databaseId,createdAt,updatedAt,conclusion
-gh run list --workflow weekly.yml --limit 3 --json databaseId,createdAt,updatedAt,conclusion
+gh run list --workflow weekly-traffic.yml --limit 3 --json databaseId,createdAt,updatedAt,conclusion
+gh run list --workflow weekly-ffxiv.yml --limit 3 --json databaseId,createdAt,updatedAt,conclusion
 gh run list --workflow auto-kb.yml --limit 3 --json databaseId,createdAt,updatedAt,conclusion
 ```
 
@@ -132,8 +140,9 @@ gh run list --workflow auto-kb.yml --limit 3 --json databaseId,createdAt,updated
   先看同一段時間有沒有正式週報、`auto-kb.yml` 或 `deploy-pages-*.yml` 在跑；都沒有，就是這次不發布的執行寫進了東西，先停用、查是哪一個寫入沒有檢查模式。
 - 未取得：照那一行的原因處理（金鑰沒設、權限不夠、回應形狀不對），修好再跑一次；未取得的項目不能當成相同。
 
-## 跟 `weekly.yml` 保持一致
+## 跟兩支正式的週報保持一致
 
-`tests/unit/test_workflow_parity.py` 比對：準備步驟逐步相同；程式步驟的 env 鍵與值跟 `weekly.yml`（術語收錄那一步跟 `auto-kb.yml`）相同，
-多的只能是 `GARYU_RUN_MODE` 與產物路徑；`timeout-minutes`、`environment`、`permissions` 相同；沒有排程、沒有部署、沒有讀回驗證那一步。
-改 `weekly.yml` 或 `auto-kb.yml`（例如加一個模型變數）時，這條測試會指出這個檔要跟著改哪裡。
+`tests/unit/test_workflow_parity.py` 比對：準備步驟逐步相同；程式步驟的 env 鍵與值跟 `weekly-traffic.yml`、`weekly-ffxiv.yml`（術語收錄那一步跟 `auto-kb.yml`）相同，
+多的只能是 `GARYU_RUN_MODE` 與產物路徑；`environment`、`permissions` 相同，`timeout-minutes` 是兩支裡較大的那個；
+`category` 的選項跟兩支的 `GARYU_CATEGORY`、程式認得的類別一致；沒有排程、沒有部署、沒有讀回驗證那一步。
+改那兩支或 `auto-kb.yml`（例如加一個模型變數）時，這條測試會指出這個檔要跟著改哪裡。

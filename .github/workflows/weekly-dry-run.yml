@@ -69,7 +69,7 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements.txt
 
-      # 沒設或空的模式會被程式當成正式模式（src/run_mode.py）。缺少必填輸入的觸發 GitHub 會不會擋下，沒有實測，所以這裡自己擋
+      # 沒設或空的模式會被程式當成正式模式（src/run_mode.py）。缺少必填輸入的觸發 GitHub 會以 HTTP 422 拒絕（2026-11-16 實測，#229），這裡仍自己擋，不靠平台的行為
       - name: 檢查 level（不是 dry-input、dry-full 就停在這裡）
         run: |
           case "$LEVEL" in
