@@ -390,6 +390,30 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 還是提案的：`weekly-dry-run.yml` 的 `timeout-minutes` 維持 30（兩支裡較大的那個）；兩支用同一個 cron、不串接；
 `weekly-dry-run.yml` 維持一個檔、加類別的下拉選項；`GARYU_CATEGORY` 這個變數名與 `[類別]` 那一行的文字。
 
+**拆 workflow 的契約**（2026-11-17；檔名、顯示名稱、`timeout-minutes` 與驗證分類別是已定，其餘是提案）：
+
+- `weekly.yml` 刪掉，換成 `weekly-traffic.yml`（`name: Garyu News Scraper 週報（交通）`、`timeout-minutes: 25`）與
+  `weekly-ffxiv.yml`（`name: Garyu News Scraper 週報（FFXIV）`、`timeout-minutes: 30`）。
+  兩支的觸發（同一個 cron 加 `workflow_dispatch`）、`permissions`、`runs-on`、`environment` 跟原本的 `weekly.yml` 相同。
+- 兩支的準備步驟（checkout、五個寫設定檔、設定 Python、安裝相依）與「Ping Supabase」原樣保留、彼此相同。
+  兩個類別在 import 時就建好，少了另一類的設定檔會不會出事沒有量過，所以不刪。
+- 兩支的「執行週報程式」那一步，env 跟原本相同，只多一個寫成字面值的 `GARYU_CATEGORY`（`traffic`、`ffxiv`）。
+  不照類別刪變數：少一個變數時程式照跑、只少收來源（`weekly.yml` 曾經沒傳 `YOUTUBE_API_KEY`，10-20 才從 log 讀到）。
+- 「驗證本週資料可由 Supabase 讀取」兩支都有，查詢各加 `content_type=eq.<自己那一類>`，讀不到時的訊息寫出是哪一類。
+- 只在交通那一支：「週交通熱點分析」、複製共用資源到 `pages/traffic`、部署 `garyu-traffic-news`。
+  只在 FFXIV 那一支：上傳 `ffxiv-pool`、複製共用資源到 `pages/ffxiv`、部署 `garyu-ffxiv-news`。
+  除了這裡寫到的，每一步的內容跟原本 `weekly.yml` 的那一步相同。
+- `auto-kb.yml` 的 `workflow_run.workflows` 恰好一個，是 FFXIV 那一支的 `name`。
+- `weekly-dry-run.yml` 多一個必填的選項 `category`（`traffic`、`ffxiv`，沒有預設值），任何程式步驟之前擋下這兩個值以外的
+  `category`；空值也擋，因為程式會把空值當成兩類都跑。`python main.py` 帶 `GARYU_CATEGORY: ${{ inputs.category }}`；
+  「週交通熱點分析」只在 `traffic` 跑；「術語收錄」只在 `ffxiv` 的第二級跑；計數、比對與三個上傳照舊。
+  `timeout-minutes` 是兩支正式的裡較大的那個。
+- `tests/unit/test_workflow_parity.py` 把上面每一條對住：`weekly-dry-run.yml` 對兩支正式的檔各自比對（準備步驟、程式步驟的 env、
+  job 設定）；兩支正式的 `GARYU_CATEGORY`、`weekly-dry-run.yml` 的 `category` 選項與 `src/main.py` 認得的類別三者一致；
+  每一個跑 `python main.py` 的 workflow 都指定了類別；`weekly.yml` 不存在；`auto-kb.yml` 的觸發；驗證步驟的 `content_type`；
+  兩類各自獨有的步驟沒有出現在另一支。每一類檢查都有改壞一處的對照組。`timeout-minutes` 的數字不寫進測試。
+- `tests/unit/test_per_function_models.py` 點名 `weekly.yml` 的兩列改指到新的檔。
+
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
 **出處**：spec 014 closeout（PR #166，2026-10-19）。接手 `GNS-008`（政策池的單一 feed 依賴）：014 補了來源，`GNS-008` 移出，
