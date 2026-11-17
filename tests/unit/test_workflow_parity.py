@@ -304,6 +304,11 @@ def exclusive_problems(f):
         want = [f"cp pages/shared/{x} pages/{cat}/{x}" for x in ("app.js", "shared.css")]
         if sorted(copies) != want:
             problems.append(f"{FORMAL[cat]} 要把 app.js、shared.css 各複製一次到 pages/{cat}：{copies}")
+        other_keys = [_step_key(s) for s in steps(f[OTHER[cat]])]
+        extra = [_step_key(s) for s in steps(f[cat])
+                 if _step_key(s) not in other_keys and not any(is_it(s) for is_it in own_steps(cat).values())]
+        if extra:
+            problems.append(f"{FORMAL[cat]} 有兩支不共有、也不是 {cat} 獨有的步驟：{extra}")
     return problems
 
 
@@ -374,6 +379,23 @@ def verify_place_problems(f):
                      if not any(map(is_it, all_steps[:at]))]
         problems += [f"{FORMAL[cat]} 的「{VERIFY}」要排在「{k}」之前" for k, is_it in later.items()
                      if not any(map(is_it, all_steps[at + 1:]))]
+    return problems
+
+
+def gate_problems(f):
+    """main 起的每一步靠預設的「前面都成功才跑」串起來：讀回驗證失敗要讓 run 變紅，FFXIV 那支還靠它擋下複製與部署。
+    所以 job 與這些步驟都不能有 if 或 continue-on-error；例外只有 ffxiv-pool 的上傳（前面失敗時也要傳）。"""
+    problems = []
+    for cat in CATEGORIES:
+        all_steps = steps(f[cat])
+        first = next((i for i, s in enumerate(all_steps) if runs_main(s)), None)
+        if first is None:
+            problems.append(f"{FORMAL[cat]} 找不到跑 main.py 的步驟，檢查打偏了")
+            continue
+        gated = [("job", the_job(f[cat]))] + [(f"「{_step_key(s)}」", s) for s in all_steps[first:]
+                                              if (s.get("with") or {}).get("name") != "ffxiv-pool"]
+        problems += [f"{FORMAL[cat]} 的 {what} 不能有 {key}：{it[key]!r}" for what, it in gated
+                     for key in ("if", "continue-on-error") if key in it]
     return problems
 
 
@@ -563,6 +585,10 @@ def test_read_after_write_sits_where_each_file_needs_it(files):
     assert verify_place_problems(files) == []
 
 
+def test_steps_from_main_on_run_by_default_and_fail_the_run(files):
+    assert gate_problems(files) == []
+
+
 def test_level_and_category_are_checked_before_any_program_runs(files):
     assert guard_problems(files["dry"]) == []
 
@@ -719,6 +745,24 @@ def _is_verify(s):
     return s.get("name") == VERIFY
 
 
+def _is_setup_node(s):
+    return s.get("uses", "").startswith("actions/setup-node@")
+
+
+def _set_key(wfs, pred, key, value):
+    def mutate(f):
+        for wf in wfs:
+            _step(f[wf], pred)[key] = value
+    return mutate
+
+
+def _set_job_key(key, value):
+    def mutate(f):
+        for cat in CATEGORIES:
+            the_job(f[cat])[key] = value
+    return mutate
+
+
 MUTATIONS = {
     "準備步驟改一個字": (_edit_prep_char("dry"), "prep"),
     "FFXIV 那支的準備步驟改一個字": (_edit_prep_char("ffxiv"), "prep"),
@@ -766,6 +810,7 @@ MUTATIONS = {
     "auto-kb 還認舊的週報名": (_autokb_lists(["Garyu News Scraper 週報"]), "autokb"),
     "auto-kb 兩支都認": (_autokb_lists(["traffic", "ffxiv"]), "autokb"),
     "auto-kb 認交通那支": (_autokb_lists(["traffic"]), "autokb"),
+    "auto-kb 多認一支不相干的": (_autokb_lists(["ffxiv", "別的 workflow"]), "autokb"),
     "FFXIV 改名、auto-kb 沒跟上": (lambda f: f["ffxiv"].update({"name": f["ffxiv"]["name"] + " v2"}), "autokb"),
     "交通的 name 跟 FFXIV 相同": (lambda f: f["traffic"].update({"name": f["ffxiv"]["name"]}), "autokb"),
     "交通的 name 是 FFXIV 的開頭": (lambda f: f["traffic"].update({"name": "Garyu News Scraper 週報"}), "autokb"),
@@ -776,11 +821,17 @@ MUTATIONS = {
     "FFXIV 讀不到時的訊息沒寫類別": (_verify_run("ffxiv", "本週 ffxiv 資料", "本週資料"), "verify"),
     "交通讀不到時的訊息寫成 FFXIV": (_verify_run("traffic", "本週 traffic 資料", "本週 ffxiv 資料"), "verify"),
     "讀不到也通過": (_verify_run("traffic", "if not rows:", "if rows is None:"), "verify"),
+    "交通讀不到時的訊息兩類都寫": (_verify_run("traffic", "本週 traffic 資料", "本週 traffic、ffxiv 資料"), "verify"),
+    "FFXIV 讀不到時只印訊息、照樣通過": (_verify_run("ffxiv", "raise RuntimeError(f\"Supabase 尚未讀到",
+                                           "import sys; sys.stderr.write(f\"Supabase 尚未讀到"), "verify"),
     "讀得到也失敗": (_verify_run("ffxiv", "print(f\"Supabase read-after-write OK", "raise SystemExit(f\"x"), "verify"),
     "交通那支少了讀回驗證": (_drop_step("traffic", lambda s: s.get("name") == VERIFY), "verify"),
     "交通那支多了 ffxiv-pool 上傳": (_copy_step_into("ffxiv", "traffic", lambda s: (s.get("with") or {}).get("name") == "ffxiv-pool"),
                              "exclusive"),
     "FFXIV 那支多了交通分析": (_copy_step_into("traffic", "ffxiv", lambda s: run_of(s) == TRAFFIC), "exclusive"),
+    "FFXIV 那支多一步術語收錄": (lambda f: steps(f["ffxiv"]).append({"name": "術語收錄", "run": AUTO_KB}), "exclusive"),
+    "交通那支在讀回驗證前多一步": (lambda f: steps(f["traffic"]).insert(PREP_STEPS + 2, {"name": "多的一步", "run": "echo hi"}),
+                         "exclusive"),
     "FFXIV 那支部署了交通的站": (_copy_step_into("traffic", "ffxiv", _is_deploy("traffic")), "exclusive"),
     "交通那支還複製到 pages/ffxiv": (lambda f: _step(f["traffic"], _is_copy("traffic")).update(
         {"run": _step(f["traffic"], _is_copy("traffic"))["run"] + "cp pages/shared/app.js pages/ffxiv/app.js\n"}), "exclusive"),
@@ -810,6 +861,21 @@ MUTATIONS = {
     "FFXIV 的讀回驗證排在複製之後": (_move_next_to("ffxiv", _is_verify, _is_copy("ffxiv"), 1), "verify_place"),
     "FFXIV 的部署排到讀回驗證之前": (_move_next_to("ffxiv", _is_deploy("ffxiv"), _is_verify), "verify_place"),
     "FFXIV 的讀回驗證排在 main 之前": (_move_next_to("ffxiv", _is_verify, runs_main), "verify_place"),
+    "交通的熱點分析排到讀回驗證之後": (_move_next_to("traffic", own_steps("traffic")["週交通熱點分析"], _is_verify, 1),
+                            "verify_place"),
+    "交通的複製排到讀回驗證之後": (_move_next_to("traffic", _is_copy("traffic"), _is_verify, 1), "verify_place"),
+    "交通的 main 排到讀回驗證之後": (_move_next_to("traffic", runs_main, _is_verify, 1), "verify_place"),
+    "FFXIV 的部署在驗證失敗時也跑": (_set_key(["ffxiv"], _is_deploy("ffxiv"), "if", ALWAYS), "gate"),
+    "FFXIV 的複製在驗證失敗時也跑": (_set_key(["ffxiv"], _is_copy("ffxiv"), "if", ALWAYS), "gate"),
+    "FFXIV 的部署被關掉": (_set_key(["ffxiv"], _is_deploy("ffxiv"), "if", "${{ false }}"), "gate"),
+    "交通的部署被關掉": (_set_key(["traffic"], _is_deploy("traffic"), "if", "${{ false }}"), "gate"),
+    "交通的熱點分析被關掉": (_set_key(["traffic"], own_steps("traffic")["週交通熱點分析"], "if", "${{ false }}"), "gate"),
+    "兩支的讀回驗證失敗都不算": (_set_key(CATEGORIES, _is_verify, "continue-on-error", True), "gate"),
+    "兩支的讀回驗證都被關掉": (_set_key(CATEGORIES, _is_verify, "if", "${{ false }}"), "gate"),
+    "兩支的 main 失敗都不算": (_set_key(CATEGORIES, runs_main, "continue-on-error", True), "gate"),
+    "兩支的 setup-node 都被關掉": (_set_key(CATEGORIES, _is_setup_node, "if", "${{ false }}"), "gate"),
+    "兩支的 job 失敗都不算": (_set_job_key("continue-on-error", True), "gate"),
+    "兩支的 job 都被關掉": (_set_job_key("if", "${{ false }}"), "gate"),
     "拿掉 level 的檢查": (lambda f: steps(f["dry"]).pop(PREP_STEPS), "guard"),
     "level 的檢查排在計數後面": (lambda f: steps(f["dry"]).insert(PREP_STEPS + 2, steps(f["dry"]).pop(PREP_STEPS)), "guard"),
     "level 的檢查放行空值": (_guard_run("dry-input|dry-full)", "\"\"|dry-input|dry-full)"), "guard"),
@@ -886,6 +952,7 @@ CHECKS = {
     "exclusive": lambda f, t: exclusive_problems(f),
     "formal": lambda f, t: formal_problems(f),
     "verify_place": lambda f, t: verify_place_problems(f),
+    "gate": lambda f, t: gate_problems(f),
     "guard": lambda f, t: guard_problems(f["dry"]),
     "env": lambda f, t: env_problems(f),
     "job": lambda f, t: job_problems(f),

@@ -356,7 +356,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 |---|---|---|---|---|
 | 分模型變數（`GNS-20261019-1vk`，已審 2026-11-17，兩條 finding 修在 `778ed18`） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
 | 類別選擇（`561dfc2`，已審 2026-11-17） | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
-| 拆 workflow（實作在 `5daf1c2`，交通那一支驗證步驟的位置改在它之後的一個 commit；還沒審） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
+| 拆 workflow（實作在 `5daf1c2`，交通那一支驗證步驟的位置改在 `7e40cd2`；第一輪 review 在 `7e40cd2` 是 REJECTED，測試的修正在它之後的一個 commit，等第二輪） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
 | 讀者端（`degraded`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
 
 另外兩個是驗證型，不算 review unit：對這條分支的實跑（020 的 T023）、11-23 排程的讀回。
