@@ -357,7 +357,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 | 分模型變數（`GNS-20261019-1vk`，已審 2026-11-17，兩條 finding 修在 `778ed18`） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
 | 類別選擇（`561dfc2`，已審 2026-11-17） | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
 | 拆 workflow（`5daf1c2`、`7e40cd2`、`1d8331d`，已審 2026-11-17：第一輪 REJECTED、第二輪 APPROVED） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
-| 讀者端（`degraded`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
+| 讀者端（`45a3be0`，`degraded`；cold review 2026-11-18，7 條修在 `9235287`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
 
 另外兩個是驗證型，不算 review unit：對這條分支的實跑（020 的 T023）、11-23 排程的讀回。
 合或拆的理由：正式的兩支、不發布的一支與 parity 測試拆不開，中間任何一步 parity 都是紅的；類別選擇不靠 workflow 就驗得完，所以另外一個。
@@ -427,6 +427,22 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 每一步不是兩支共有，就要是上面契約列的那一類獨有步驟。第二輪（`1d8331d`）APPROVED，三條舊 finding 都 resolved，兩輪的物證逐條重跑過。
 不修的三條（`7e40cd2-2`、`7e40cd2-3`、`1d8331d-1`）理由在 review 帳本；帳本上這一列 8 條、0 條未關。
 兩支正式的 workflow 還沒有真的跑過；對這條分支的不發布實跑（020 的 T023）還沒做。
+
+**2026-11-18**：「讀者端」（`45a3be0`）過了 cold review，紀錄在 `#218` 的留言（`issuecomment-6955930590`）。
+範圍只含這一個 commit（已定 2026-11-18）：整個 PR 是 23 個檔、全文約 34 萬字，超過一輪讀得完的量，動到 cold review 路徑的只有它。
+7 條都成立，重大 3、次要 4，都修在 `9235287`（次要四條都修，已定 2026-11-18）：
+
+- 憲章：週一的交通收集失敗或沒有新的交通列時，週報的 Analyze 與 Publish 照跑、run 以失敗結束，這件事寫進原則 I（已定 2026-11-18）。
+  版本是 2.2.0（MINOR，跟 2.1.0 同類）；`45a3be0` 提的 PATCH 不採用。`Last Amended` 在 merge 當天對成 merge 日。
+- `PROMPT.md`：交通的讀回驗證失敗時多一種歸因（驗證那一步自己失敗）；兩支都沒有跑完、狀態卻不同時也停。
+- `FOCUS.md`：術語收錄那一條改成看 auto-kb 那個 run 的 `conclusion`。FFXIV 那一支沒成功時照樣有一個 `workflow_run` 的 run，只是 `skipped`
+  （`35552902082`、`26573891622`）。
+- `README.md` 首次部署的名稱、`docs/external-services.md` 的 timeout、020 的 T022 與 T023 補上 `category`。
+
+讀者端其餘的提案（只缺一支週報時 routine 不停、FOCUS 的 (9) 放在 (1) 之前、找不到來源設定檔的訊息不點名檔名、其他提到 `weekly.yml` 的舊 spec 不動）
+reviewer 沒有報 finding，仍是提案。
+對這條分支的第一級實跑做了（2026-11-18，`44136150021` 交通、`44136176586` FFXIV）：GitHub 接受分支上的 `category`，兩次都成功、七項計數前後相同。
+4 個熱點 bucket 都被 novelty gate 壓下，三軸的呼叫路徑這週在 Actions 上走不到，改用本機重播補驗（已定 2026-11-18）。
 
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
