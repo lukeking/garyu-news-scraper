@@ -356,7 +356,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 |---|---|---|---|---|
 | 分模型變數（`GNS-20261019-1vk`，已審 2026-11-17，兩條 finding 修在 `778ed18`） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
 | 類別選擇（`561dfc2`，已審 2026-11-17） | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
-| 拆 workflow（實作在 `5daf1c2`，還沒審；交通那一支驗證步驟的位置還沒改） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
+| 拆 workflow（實作在 `5daf1c2`，交通那一支驗證步驟的位置改在它之後的一個 commit；還沒審） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
 | 讀者端（`degraded`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
 
 另外兩個是驗證型，不算 review unit：對這條分支的實跑（020 的 T023）、11-23 排程的讀回。
@@ -401,7 +401,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 - 兩支的「執行週報程式」那一步，env 跟原本相同，只多一個寫成字面值的 `GARYU_CATEGORY`（`traffic`、`ffxiv`）。
   不照類別刪變數：少一個變數時程式照跑、只少收來源（`weekly.yml` 曾經沒傳 `YOUTUBE_API_KEY`，10-20 才從 log 讀到）。
 - 「驗證本週資料可由 Supabase 讀取」兩支都有，查詢各加 `content_type=eq.<自己那一類>`，讀不到時的訊息寫出是哪一類。
-  交通那一支把這一步排在部署之後（已定 2026-11-17；`5daf1c2` 還排在熱點分析之前，還沒改）：熱點分析讀的是前六天 daily 寫入的列，
+  交通那一支把這一步排在部署之後（已定 2026-11-17；`5daf1c2` 排在熱點分析之前，它之後的一個 commit 移過去）：熱點分析讀的是前六天 daily 寫入的列，
   不靠週一這次的寫入，排在前面的話，週一沒有新的交通列時驗證會紅、熱點分析與部署不跑。拆之前 FFXIV 的列會讓這一步通過。
   排在部署之後，這一步只標紅、不擋熱點分析與部署（已定 2026-11-17）：週一的收集失敗（`main.py` 的退出碼仍是 0）或沒有新的交通列時，
   熱點分析與部署照跑，run 最後是紅的。拆之前 FFXIV 有寫入時也是照跑，差別是那時 run 是綠的。

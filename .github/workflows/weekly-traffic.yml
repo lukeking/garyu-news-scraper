@@ -95,35 +95,6 @@ jobs:
           # FFXIV 候選池的檔（BACKLOG GNS-20261019-3cq）：只跑交通時不會寫出，上傳在 weekly-ffxiv.yml
           FFXIV_POOL_DUMP: ffxiv_pool.json
 
-      - name: 驗證本週資料可由 Supabase 讀取
-        run: |
-          python - <<'EOF'
-          from datetime import datetime, timezone, timedelta
-          import os
-          import requests
-          tw = timezone(timedelta(hours=8))
-          y, w, _ = datetime.now(tw).isocalendar()
-          week_id = f"{y}-W{w:02d}"
-          url = os.environ["SUPABASE_URL"]
-          key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
-          if not key:
-              raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY 或 SUPABASE_KEY 未設定")
-          resp = requests.get(
-              f"{url}/rest/v1/articles?select=week_id&id=not.is.null&week_id=eq.{week_id}&content_type=eq.traffic&limit=1",
-              headers={"apikey": key, "Authorization": f"Bearer {key}"},
-              timeout=15,
-          )
-          resp.raise_for_status()
-          rows = resp.json()
-          if not rows:
-              raise RuntimeError(f"Supabase 尚未讀到本週 traffic 資料: {week_id}")
-          print(f"Supabase read-after-write OK: {week_id}")
-          EOF
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-
       - name: 週交通熱點分析
         run: python scripts/traffic_weekly_analysis.py
         env:
@@ -160,3 +131,34 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      # 熱點分析讀的是前六天 daily 寫入的列，不靠這次的寫入；這一步排在部署之後，
+      # 讀不到本週的交通列時只把 run 標紅，不擋熱點分析與部署（weekly-ffxiv.yml 的部署靠當次寫入，驗證擋在部署之前）
+      - name: 驗證本週資料可由 Supabase 讀取
+        run: |
+          python - <<'EOF'
+          from datetime import datetime, timezone, timedelta
+          import os
+          import requests
+          tw = timezone(timedelta(hours=8))
+          y, w, _ = datetime.now(tw).isocalendar()
+          week_id = f"{y}-W{w:02d}"
+          url = os.environ["SUPABASE_URL"]
+          key = (os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_KEY") or "").strip()
+          if not key:
+              raise RuntimeError("SUPABASE_SERVICE_ROLE_KEY 或 SUPABASE_KEY 未設定")
+          resp = requests.get(
+              f"{url}/rest/v1/articles?select=week_id&id=not.is.null&week_id=eq.{week_id}&content_type=eq.traffic&limit=1",
+              headers={"apikey": key, "Authorization": f"Bearer {key}"},
+              timeout=15,
+          )
+          resp.raise_for_status()
+          rows = resp.json()
+          if not rows:
+              raise RuntimeError(f"Supabase 尚未讀到本週 traffic 資料: {week_id}")
+          print(f"Supabase read-after-write OK: {week_id}")
+          EOF
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}

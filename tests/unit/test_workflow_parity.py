@@ -334,8 +334,10 @@ def formal_problems(f):
     problems += [f"兩支的 {k} 不同" for k in ("runs-on", "environment") if the_job(t).get(k) != the_job(x).get(k)]
     t_keys, x_keys = [_step_key(s) for s in steps(t)], [_step_key(s) for s in steps(x)]
     shared = [k for k in t_keys if k in x_keys]
-    if shared != [k for k in x_keys if k in t_keys]:
-        problems.append(f"兩支都有的步驟順序不同：{shared}")
+    # 讀回驗證在兩支的位置不同，由 verify_place_problems 各自釘住
+    order = [k for k in shared if k != VERIFY]
+    if order != [k for k in x_keys if k in t_keys and k != VERIFY]:
+        problems.append(f"兩支都有的步驟順序不同（讀回驗證除外）：{order}")
     for k in shared:
         a = _normalized(steps(t)[t_keys.index(k)], "traffic")
         b = _normalized(steps(x)[x_keys.index(k)], "ffxiv")
@@ -346,6 +348,32 @@ def formal_problems(f):
             problems.append(f"兩支都要有「{k}」")
     if not any(str(k).startswith("actions/setup-node@") for k in shared):
         problems.append("兩支都要有 actions/setup-node（部署用）")
+    return problems
+
+
+def _verify_neighbours(cat):
+    """讀回驗證之前要有的步驟、之後要有的步驟（說法 → 判斷）。"""
+    main, own = {MAIN: runs_main}, own_steps(cat)
+    if cat == "traffic":
+        return {**main, **own}, {}
+    return main, {k: own[k] for k in (f"複製共用資源到 pages/{cat}", f"部署 garyu-{cat}-news")}
+
+
+def verify_place_problems(f):
+    """交通的熱點分析讀前六天 daily 的列：讀回驗證排在 main 與交通獨有的步驟全部之後，只標紅、不擋部署。
+    FFXIV 的部署靠當次的寫入：讀回驗證排在 main 之後，擋在複製與部署之前。"""
+    problems = []
+    for cat in CATEGORIES:
+        all_steps, v = steps(f[cat]), find_named(f[cat], VERIFY)
+        if v is None:
+            problems.append(f"{FORMAL[cat]} 要恰好一步「{VERIFY}」，位置比不了")
+            continue
+        at = all_steps.index(v)
+        earlier, later = _verify_neighbours(cat)
+        problems += [f"{FORMAL[cat]} 的「{VERIFY}」要排在「{k}」之後" for k, is_it in earlier.items()
+                     if not any(map(is_it, all_steps[:at]))]
+        problems += [f"{FORMAL[cat]} 的「{VERIFY}」要排在「{k}」之前" for k, is_it in later.items()
+                     if not any(map(is_it, all_steps[at + 1:]))]
     return problems
 
 
@@ -531,6 +559,10 @@ def test_formal_files_agree_with_each_other(files):
     assert formal_problems(files) == []
 
 
+def test_read_after_write_sits_where_each_file_needs_it(files):
+    assert verify_place_problems(files) == []
+
+
 def test_level_and_category_are_checked_before_any_program_runs(files):
     assert guard_problems(files["dry"]) == []
 
@@ -644,6 +676,15 @@ def _move_step(wf, name, to):
     return mutate
 
 
+def _move_next_to(wf, moving, anchor, offset=0):
+    """moving 那一步移到 anchor 那一步的前面（offset 0）或後面（offset 1）。"""
+    def mutate(f):
+        all_steps = steps(f[wf])
+        step = all_steps.pop(all_steps.index(_step(f[wf], moving)))
+        all_steps.insert(all_steps.index(_step(f[wf], anchor)) + offset, step)
+    return mutate
+
+
 def _drop_step(wf, pred):
     def mutate(f):
         steps(f[wf]).remove(_step(f[wf], pred))
@@ -672,6 +713,10 @@ def _is_copy(cat):
 
 def _is_deploy(cat):
     return lambda s: f"--project-name=garyu-{cat}-news" in run_of(s)
+
+
+def _is_verify(s):
+    return s.get("name") == VERIFY
 
 
 MUTATIONS = {
@@ -755,6 +800,16 @@ MUTATIONS = {
     "讀回驗證除了類別還有別的不同": (_verify_run("traffic", "timeout=15", "timeout=30"), "formal"),
     "兩支都有的步驟順序不同": (_move_step("ffxiv", PING, PREP_STEPS + 2), "formal"),
     "FFXIV 少了 setup-node": (_drop_step("ffxiv", lambda s: s.get("uses", "").startswith("actions/setup-node@")), "formal"),
+    "交通的讀回驗證排回熱點分析之前": (_move_next_to("traffic", _is_verify, own_steps("traffic")["週交通熱點分析"]),
+                            "verify_place"),
+    "交通的讀回驗證排在熱點分析與部署之間": (_move_next_to("traffic", _is_verify, own_steps("traffic")["週交通熱點分析"], 1),
+                                "verify_place"),
+    "交通的讀回驗證排在部署前一步": (_move_next_to("traffic", _is_verify, _is_deploy("traffic")), "verify_place"),
+    "交通那支有兩步讀回驗證": (_copy_step_into("traffic", "traffic", _is_verify), "verify_place"),
+    "FFXIV 的讀回驗證排到部署之後": (_move_next_to("ffxiv", _is_verify, _is_deploy("ffxiv"), 1), "verify_place"),
+    "FFXIV 的讀回驗證排在複製之後": (_move_next_to("ffxiv", _is_verify, _is_copy("ffxiv"), 1), "verify_place"),
+    "FFXIV 的部署排到讀回驗證之前": (_move_next_to("ffxiv", _is_deploy("ffxiv"), _is_verify), "verify_place"),
+    "FFXIV 的讀回驗證排在 main 之前": (_move_next_to("ffxiv", _is_verify, runs_main), "verify_place"),
     "拿掉 level 的檢查": (lambda f: steps(f["dry"]).pop(PREP_STEPS), "guard"),
     "level 的檢查排在計數後面": (lambda f: steps(f["dry"]).insert(PREP_STEPS + 2, steps(f["dry"]).pop(PREP_STEPS)), "guard"),
     "level 的檢查放行空值": (_guard_run("dry-input|dry-full)", "\"\"|dry-input|dry-full)"), "guard"),
@@ -830,6 +885,7 @@ CHECKS = {
     "verify": lambda f, t: verify_problems(f),
     "exclusive": lambda f, t: exclusive_problems(f),
     "formal": lambda f, t: formal_problems(f),
+    "verify_place": lambda f, t: verify_place_problems(f),
     "guard": lambda f, t: guard_problems(f["dry"]),
     "env": lambda f, t: env_problems(f),
     "job": lambda f, t: job_problems(f),
