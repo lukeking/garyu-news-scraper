@@ -42,7 +42,7 @@ gh workflow run weekly-dry-run.yml --ref <要驗的分支> -f level=dry-full -f 
 | 產生站台檔、部署兩個站 | 不做 | 不做 |
 
 `category` 決定跑哪一類：`traffic` 只跑交通（`main.py` 的交通那一段與交通分析那一步），`ffxiv` 只跑 FFXIV（`main.py` 的 FFXIV 那一段，第二級再加術語收錄）。
-哪一類會留下哪幾個產物還沒有實跑過，對拆開後的分支實跑（spec 020 的 T023）之後補在「產物」那一節。
+哪一類會留下哪幾個產物，見「產物」那一節的第二張表（2026-11-18 對拆開後的分支實跑量的，spec 020 的 T023）。
 
 workflow 的步驟依序是：準備（跟兩支正式的週報逐步相同）→ 檢查 `level` → 檢查 `category` → 計數（開始）→ `python main.py`（只跑選的那一類）→
 `python scripts/traffic_weekly_analysis.py`（只有 `traffic`）→ 術語收錄（只有 `ffxiv` 的第二級）→ 計數（結束）→ 比對 → 上傳產物。
@@ -66,6 +66,13 @@ workflow 仍自己擋，不靠平台的行為，不讓空值變成一次正式�
 | `ffxiv-pool` | 兩級 | `ffxiv_pool.json`：FFXIV 整個候選池與入選（跟正式週報的同名產物相同，只多了頂層的 `run_mode`） |
 | `traffic-pool` | 兩級 | `collected.json`：逐來源的收集數與過濾後數、正式執行會寫進 buffer 的那些列；`selection.json`：選出的熱點 bucket、每個彙整類別的池（篇數、來源分布、入選）；`counts_before.json`、`counts_after.json`：前後兩份計數 |
 | `analysis-output` | 第二級 | `ffxiv_articles.json`：FFXIV 逐篇分析全文；`traffic_reports.json`：每份三軸與彙整報告的全文與 `check_report()` 的命中；`auto_kb_entries.json`：術語收錄會寫入的條目 |
+
+一次只跑一類，所以每一次實際留下的是上表的一部分（2026-11-18 實測，run `44136150021`、`44136176586`、`44146148712`、`44146168333`）：
+
+| `category` | 第一級 | 第二級 |
+|---|---|---|
+| `traffic` | `traffic-pool` 四個檔。沒有 `ffxiv-pool`：上傳那一步印 `No files were found with the provided path: ffxiv_pool.json`，是警告，job 照樣成功 | 同第一級，加 `analysis-output` 的 `traffic_reports.json` |
+| `ffxiv` | `ffxiv-pool`；`traffic-pool` 只有兩份計數（`counts_before.json`、`counts_after.json`） | 同第一級，加 `analysis-output` 的 `ffxiv_articles.json` 與 `auto_kb_entries.json` |
 
 每個檔的頂層有 `run_mode`（`dry-input` 或 `dry-full`），寫明來自哪一級。目錄裡的檔名與 `TRAFFIC_POOL_DIR`、`ANALYSIS_OUTPUT_DIR` 兩個變數名是提案（contract）。
 路徑變數沒設或寫不進去時，執行紀錄各有一行說明，不會靜靜少一個檔。
