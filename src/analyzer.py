@@ -512,15 +512,19 @@ def _model_from_env(env_name):
 
 
 def _number_from_env(env_name, default, cast):
-    """呼叫端自己的數值設定；沒設回 default，不是數字時印一行並回 default。"""
+    """呼叫端自己的數值設定；沒設回 default，不是數字或不是有限的正數時印一行並回 default。"""
     raw = (os.environ.get(env_name) or "").strip()
     if not raw:
         return default
     try:
-        return cast(raw)
+        value = cast(raw)
     except ValueError:
         logger.warning("%s=%r 不是數字，改用 %s", env_name, raw, default)
         return default
+    if not 0 < value < float("inf"):
+        logger.warning("%s=%r 不是正數，改用 %s", env_name, raw, default)
+        return default
+    return value
 
 
 def _article_model(article):

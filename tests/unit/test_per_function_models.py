@@ -136,7 +136,28 @@ def test_analyze_all_log_names_the_model_the_batch_uses(sent, monkeypatch, caplo
     monkeypatch.setenv("GEMINI_MODEL_FFXIV", "gemini-4-own")
     with caplog.at_level(logging.INFO):
         analyzer.analyze_all([dict(FFXIV_ARTICLE)], delay=0)
-    assert "模型尾段=own，" in caplog.text
+    assert "=== 開始 AI 分析，模型尾段=own，" in caplog.text
+
+
+def test_analyze_all_log_names_the_shared_model_when_the_ffxiv_variable_is_blank(sent, monkeypatch, caplog):
+    monkeypatch.setenv("GEMINI_MODEL_FFXIV", "")
+    with caplog.at_level(logging.INFO):
+        analyzer.analyze_all([dict(FFXIV_ARTICLE)], delay=0)
+    assert sent[0]["model"] == BASE
+    assert "=== 開始 AI 分析，模型尾段=model，" in caplog.text
+
+
+@pytest.mark.parametrize("env_name, value", [
+    ("GEMINI_HOT_TOPIC_TIMEOUT_SECONDS", "0"), ("GEMINI_HOT_TOPIC_TIMEOUT_SECONDS", "-5"),
+    ("GEMINI_HOT_TOPIC_TIMEOUT_SECONDS", "nan"), ("GEMINI_HOT_TOPIC_TIMEOUT_SECONDS", "inf"),
+    ("GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS", "0"), ("GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS", "-1"),
+])
+def test_hot_topic_number_that_is_not_positive_keeps_the_default_and_says_so(sent, monkeypatch, caplog, env_name, value):
+    monkeypatch.setenv(env_name, value)
+    with caplog.at_level(logging.WARNING):
+        _hot_topic()
+    assert (sent[0]["max_tokens"], sent[0]["timeout"]) == (8192, 120)
+    assert f"{env_name}={value!r} 不是正數" in caplog.text
 
 
 @pytest.mark.parametrize("article", [
@@ -148,7 +169,7 @@ def test_analyze_all_log_matches_what_non_ffxiv_branches_send(sent, monkeypatch,
     with caplog.at_level(logging.INFO):
         analyzer.analyze_all([article], delay=0)
     assert sent[0]["model"] == BASE
-    assert "模型尾段=model，" in caplog.text
+    assert "=== 開始 AI 分析，模型尾段=model，" in caplog.text
 
 
 @pytest.mark.parametrize("candidate", [
