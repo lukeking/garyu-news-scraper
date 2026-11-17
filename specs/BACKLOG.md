@@ -356,7 +356,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 |---|---|---|---|---|
 | 分模型變數（`GNS-20261019-1vk`，已審 2026-11-17，兩條 finding 修在 `778ed18`） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
 | 類別選擇（`561dfc2`，已審 2026-11-17） | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
-| 拆 workflow（實作在 `5daf1c2`，交通那一支驗證步驟的位置改在 `7e40cd2`；第一輪 review 在 `7e40cd2` 是 REJECTED，測試的修正在它之後的一個 commit，等第二輪） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
+| 拆 workflow（`5daf1c2`、`7e40cd2`、`1d8331d`，已審 2026-11-17：第一輪 REJECTED、第二輪 APPROVED） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
 | 讀者端（`degraded`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
 
 另外兩個是驗證型，不算 review unit：對這條分支的實跑（020 的 T023）、11-23 排程的讀回。
@@ -420,6 +420,13 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
   每一個跑 `python main.py` 的 workflow 都指定了類別；`weekly.yml` 不存在；`auto-kb.yml` 的觸發；驗證步驟的 `content_type`；
   兩類各自獨有的步驟沒有出現在另一支。每一類檢查都有改壞一處的對照組。`timeout-minutes` 的數字不寫進測試。
 - `tests/unit/test_per_function_models.py` 點名 `weekly.yml` 的兩列改指到新的檔。
+
+**2026-11-17**：「拆 workflow」審過了，紀錄在 `#218` 的留言（`issuecomment-6950582559`）。
+第一輪（`7e40cd2`）REJECTED，類別 weak-test：四個 workflow 檔符合契約，但「FFXIV 的驗證擋下複製與部署、交通的驗證只標紅」只靠步驟順序釘住。
+修正在 `1d8331d`，只動測試：兩支正式的檔裡，job 與 main 起的每一步都不能有 `if` 或 `continue-on-error`（例外只有 `ffxiv-pool` 的上傳）；
+每一步不是兩支共有，就要是上面契約列的那一類獨有步驟。第二輪（`1d8331d`）APPROVED，三條舊 finding 都 resolved，兩輪的物證逐條重跑過。
+不修的三條（`7e40cd2-2`、`7e40cd2-3`、`1d8331d-1`）理由在 review 帳本；帳本上這一列 8 條、0 條未關。
+兩支正式的 workflow 還沒有真的跑過；對這條分支的不發布實跑（020 的 T023）還沒做。
 
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
