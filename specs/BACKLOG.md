@@ -46,10 +46,10 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261108-2zc` | 熱點分析補足新聞缺的元素：抓內文定位地點，接警政署逐案 A1／A2 的現場欄位（來源追查的第一層） | `trigger: none — 開不開由 Luke 決定，還沒有檔案或指令是它的入口`<br>開 spec 的時點由 Luke 決定；開 spec 時先做 `GNS-20261108-tz1`（`5xf` 在 018 以 FR-005c 出貨、只到 SC-008 的門檻，全文輸入下只寫到設施的事故會被推成 [雙因交織]） | 開 spec，寫明進入點（新聞，地點從內文）、資料來源與欄位語意（即時 A1、即時 A2 月檔、年度逐案資料；例「有照明未開啟或故障」不等於故障、肇因研判標成警方研判）、同一件事的驗證（日期、路名、車種、死傷），並在能定位的事故上量過對中率；或寫明不做的理由 |
 | `GNS-20261105-v4e` | CI 版面測試的成本分層：觸發面、安裝來源、上限、量測 | `pre-edit: {"paths":[".github/workflows/tests.yml"]}`<br>Luke 2026-11-05 裁示先分層，實作順序與時間點之後再決定；`timeout-minutes` 維持 10。下次 `unit` job 逾時、或進入密集改前端的時期時重新評估 | 四層各有裁示（做，或寫明不做與理由）；做了的那幾層上線後，`unit` job 每次的安裝耗時查得到 |
 | `GNS-20261103-f71` | 交通的週次清單被截在 1000 列：W30～W37 不在週次導覽裡，最舊那週的篇數算少 | `pre-edit: {"paths":["workers/api/src/index.js"]}`<br>下次動 `workers/api/src/index.js` 的 `handleWeeks` 時；或讀者發現週次導覽缺週時 | `/api/weeks?content_type=traffic` 列出所有有文章的週次，每週篇數與 `/api/weeks/<週>` 的 `article_count` 一致；Worker 有測試 runner，並有一條在超過 1000 列時會紅的測試（故意改壞看它紅）；或寫明不修的理由 |
-| `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口`<br>等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補 | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
-| `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口`<br>spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker） | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
+| `GNS-20261103-4j4` | 熱點／新文章有新內容時推播通知 | `trigger: none — 前提是 n9n 先完成，那之前沒有檔案、skill 或指令是它的入口`<br>等 `GNS-20261103-n9n`（可安裝的 PWA）完成；Luke 2026-11-03：通知另外開 spec 補；2026-11-17 延後：前提的 `GNS-20261103-n9n` 同一天延後，還沒開；重開條件是本列原本的觸發點（`n9n` 完成） | 有新報告或新文章時，手機收到推播，點開落在對應的那一條；或寫明不做的理由 |
+| `GNS-20261103-n9n` | 交通站做成可安裝的 PWA（manifest＋service worker） | `trigger: none — 開不開由 Luke 決定，還沒有任何檔案、skill 或指令是它的入口`<br>spec 017 上線之後由 Luke 決定何時開；或下次要做推播通知時（推播需要 service worker）；2026-11-17 延後：spec 的排序已定 `GNS-20261114-bh8` → `GNS-20261108-2zc` → `GNS-007`（2026-11-14，`#224`），PWA 不在裡面；重開條件是那三個做完，或要做推播通知時 | 交通站可以加到手機主畫面、以 app 形式開啟，部署新版後打開的是新版（service worker 的快取不會留住舊頁面）；或寫明不做的理由 |
 | `GNS-20261026-fwz` | 015 上線後日文論壇每週帶進未知術語，KB 術語池的人工補條目可能變成每週的工作 | `pre-edit: {"paths":["scripts/auto_kb.py"]}`<br>每次週報後的 auto-kb run（log 的「N 個術語仍待審查」）；或下次動 `scripts/auto_kb.py` 時 | 10-26 起連 4 週的待審數與自動收錄數寫回本節，據此決定處理方式（固定人工補條目的時點、改 auto_kb 的做法，或寫明維持現狀的理由） |
-| `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | 要重新啟用這個來源時；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
+| `GNS-20261020-rhd` | FFXIV TW 修正說明 來源壞掉：selector 對到導覽列、中文被當成 Latin-1 解碼 | `pre-edit: {"paths":["config/sources_ffxiv.example.yml"]}`<br>要重新啟用這個來源時（prod 變數與鏡像同一天改，會動到 `config/sources_ffxiv.example.yml`）；或下次動 `src/collector.py` 的 `_fetch_html_patch` 時（這一半沒有宣告：綁那支檔會在每次改收集程式時響，已定 2026-11-17）；2026-11-17 延後：來源 10-20 起停用（鏡像裡是 `enabled: false`），週報沒有它的項目；重開條件是本列原本的觸發點 | 週報裡這個來源的項目是真的修正說明（標題可讀、連到修正說明頁），然後改回 `enabled: true`（prod 變數與鏡像同一天）；或寫明放棄並把它從設定移除 |
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 Gemini 文字生成模型釋出 GA（官方 changelog 沒標 flash／pro 的也算，argon、carbon 都是）；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：changelog 讀到 10-30 那則，沒有新的 GA；2026-11-12 觸發：`gemini-4-carbon` 11-10 GA，那輪已跑（本節「2026-11-12」），Luke 定方向：按功能分模型 | 照 Luke 11-12 的方向、11-13 的範圍實作按功能分模型：三軸、彙整、FFXIV 的 `analyze_article`、auto-KB 四條各有自己的模型變數，沒設時退回 `GEMINI_MODEL_NAME`；三軸（交通熱點）換 carbon 並放寬那條路徑的輸出上限與 timeout，其餘三條先不設，prod 不早於 11-23 週報之後換；同一個 PR 讓 `_call_gemini` 遇到沒有 parts 的回應印一行原因、回 `None`（Luke 11-13，本節「2026-11-13」）；下一輪照 `experiments/model-quality-3p8flash-vs-carbon/` 的做法（018 重播素材、裁判看到與生成相同的輸入），但裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，要先換裁判 |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定；取樣那半已由 spec 019 做掉） | `trigger: none — 觸發是 019 上線後連兩週的週報讀回，沒有檔案或指令是它的入口`<br>019（`#210`）上線後連兩週的讀回做完時（`specs/019-ffxiv-sampling-window/evaluation.md`，預計 11-23 週報之後），看論壇版的串夠不夠當 patch-triggered 的討論來源——原設計用 Reddit，Reddit 因 robots.txt 拿掉（11-10），要另找來源。聚合那半仍卡在日文來源（10-19 Luke：沒有進展）；2026-11-16 延後：11-16 是 019 上線後第一份讀回（候選池 10 篇，論壇版 9 串），連兩週要等 11-23 那一份 | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | `trigger: none — 條件是週驗收報告每週的 L1 判定，沒有檔案、skill 或指令是它的入口`<br>任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」）；2026-11-16 延後：常設追蹤列，11-16 的 L1 是 26（過），11-02／11-09／11-16 三週都過，重開條件沒有成立 | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
@@ -355,7 +355,7 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 | Unit | Outcome | Prerequisites | Verification | Review |
 |---|---|---|---|---|
 | 分模型變數（`GNS-20261019-1vk`，已實作、還沒審） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
-| 類別選擇 | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
+| 類別選擇（`561dfc2`，已審 2026-11-17） | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
 | 拆 workflow | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
 | 讀者端（`degraded`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
 
@@ -370,6 +370,25 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
   `[類別] 只跑 <選的>；略過 <沒選的>（GARYU_CATEGORY）`。沒選的那一類不 collect、不寫入、不印它自己的任何一行。
 - 其他任何值：在任何類別 collect 之前丟 `ValueError`，訊息有變數名、收到的值與認得的值；不能被逐類別的 `try` 吞掉，process 以非 0 結束。
 - 跟不發布的兩級可以同時用，`[不發布]` 的固定行照舊，只是只有那一類的；結尾的篇數只算跑了的那一類。
+
+**2026-11-17**：「類別選擇」（`561dfc2`）審過了：獨立 review APPROVED，物證逐條重跑過，紀錄在 `#218` 的留言（`issuecomment-6948130238`）。
+兩條 non-blocking finding 不修，理由在 review 帳本（`561dfc2-1`、`561dfc2-2`）。
+
+拆 workflow 定了的（已定 2026-11-17）：
+
+- 檔名 `weekly-traffic.yml` 與 `weekly-ffxiv.yml`，`weekly.yml` 刪掉；顯示名稱 `Garyu News Scraper 週報（交通）` 與 `Garyu News Scraper 週報（FFXIV）`。
+- `timeout-minutes`：交通 25、FFXIV 30，都取估出的最長耗時的約 2 倍（拆之前的 30 分對實測最長 15.2 分也是這個比例）。
+  來源是 09-07～11-16 十次排程週報的步驟耗時照類別重新加總，每支各算一次安裝與設定（18～26 秒）：
+  交通那一支 2.2～11.6 分，最長是 09-07（收集 100 篇）；FFXIV 那一支 3.9～9.8 分，都是入選 20 篇以下。
+  FFXIV 的入選上限 11-11 起是 30，還沒有一次跑滿；用最慢那次的每篇 28.3 秒（11-02）推算，30 篇約 14.6 分（推論）。
+  重算：步驟耗時取自 `gh api repos/<owner>/<repo>/actions/runs/<id>/jobs`，`python main.py` 那一步裡兩類的分界是 log 的 `--- [ffxiv] 開始處理 ---`。
+- 兩支的「驗證本週資料可由 Supabase 讀取」各加自己的 `content_type` 條件：原本的查詢不分類別，拆開後會被另一支寫的列滿足。
+  代價是某一類整週沒有寫入時，那一支會是紅的。
+- `main.py` 的退出碼不動。`561dfc2` 上的探針（在 collect 的邊界丟例外、各選一類）：紀錄是 `[<類別>] 處理失敗：…` 接
+  `所有 category 均無文章，結束執行`，退出碼 0。類別失敗由驗證那一步擋，跟拆之前一樣。
+
+還是提案的：`weekly-dry-run.yml` 的 `timeout-minutes` 維持 30（兩支裡較大的那個）；兩支用同一個 cron、不串接；
+`weekly-dry-run.yml` 維持一個檔、加類別的下拉選項；`GARYU_CATEGORY` 這個變數名與 `[類別]` 那一行的文字。
 
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
