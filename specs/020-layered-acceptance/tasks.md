@@ -136,9 +136,9 @@
 **Independent Test**: `quickstart.md`「片 1 的實跑」「`#218` 的接線」
 
 - [X] T021 [US1] [SC-001, SC-002] `gh workflow run weekly-dry-run.yml --ref main -f level=dry-input`；讀執行紀錄與三個產物，把 run id、兩份計數與比對結果、生成式次數（要是 0）、embedding 次數、每個類別的收集數與過濾後數與入選清單記進 `specs/020-layered-acceptance/evaluation.md`
-- [ ] T022 [US1] [SC-001, SC-002, FR-009] 同一個指令改 `-f level=dry-full`（`#218` merge 之後 `category` 是必填，一次只跑一類：`-f category=traffic`、`-f category=ffxiv` 各觸發一次）；另外記每份報告的全文讀不讀得回來、`check_report()` 的命中、術語收錄會寫入的條目、生成式與 embedding 的次數，並對照 `docs/external-services.md` 的 Gemini 預算，寫進 `evaluation.md`（這一筆檢查 spec 的假設「第二級與正式執行共用額度不會讓正式週報額度不足」）
-- [ ] T023 [US4] [FR-022, SC-003] `#218` 的分支（`feat/per-function-gemini-models`）merge `main`、解 `specs/BACKLOG.md` 的衝突，把它加在 `weekly.yml` 的變數同樣加進 `weekly-dry-run.yml`（T016 的比對會指出缺哪些）；對那個分支觸發 `dry-full`（`category` 兩類各一次：`traffic`、`ffxiv`），把三軸、彙整、FFXIV 逐篇、術語收錄四條呼叫路徑各自讀到的模型設定與 run id 留言在 `#218`。分支上的改動由 `#218` 自己的 review 收
-- [ ] T024 [US1] [SC-005, FR-017] 開紀錄的 PR：`evaluation.md`、T021～T023 的標記；內文寫驗收範圍（輸出）、驗法、結果與剩下的片
+- [X] T022 [US1] [SC-001, SC-002, FR-009] 同一個指令改 `-f level=dry-full`（`#218` merge 之後 `category` 是必填，一次只跑一類：`-f category=traffic`、`-f category=ffxiv` 各觸發一次）；另外記每份報告的全文讀不讀得回來、`check_report()` 的命中、術語收錄會寫入的條目、生成式與 embedding 的次數，並對照 `docs/external-services.md` 的 Gemini 預算，寫進 `evaluation.md`（這一筆檢查 spec 的假設「第二級與正式執行共用額度不會讓正式週報額度不足」）
+- [X] T023 [US4] [FR-022, SC-003] `#218` 的分支（`feat/per-function-gemini-models`）merge `main`、解 `specs/BACKLOG.md` 的衝突，把它加在 `weekly.yml` 的變數同樣加進 `weekly-dry-run.yml`（T016 的比對會指出缺哪些）；對那個分支觸發 `dry-full`（`category` 兩類各一次：`traffic`、`ffxiv`），把三軸、彙整、FFXIV 逐篇、術語收錄四條呼叫路徑各自讀到的模型設定與 run id 留言在 `#218`。分支上的改動由 `#218` 自己的 review 收
+- [X] T024 [US1] [SC-005, FR-017] 開紀錄的 PR：`evaluation.md`、T021～T023 的標記；內文寫驗收範圍（輸出）、驗法、結果與剩下的片
 
 **Checkpoint**: 片 1 的 Gate（SC-001）有實測；`#218` 可以照它自己的條件 merge
 
