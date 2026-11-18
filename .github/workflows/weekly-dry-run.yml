@@ -1,5 +1,5 @@
 # 不發布的週報（spec 020）：只能手動觸發，不寫入、不發布、不部署。怎麼用與怎麼讀見 docs/dry-run.md。
-# 準備步驟與程式步驟的 env 跟 weekly.yml、auto-kb.yml 由 tests/unit/test_workflow_parity.py 比對：改那兩個檔時這裡要跟著改。
+# 準備步驟、程式步驟的 env 與 job 設定跟 weekly-traffic.yml、weekly-ffxiv.yml、auto-kb.yml 由 tests/unit/test_workflow_parity.py 比對：改那三個檔時這裡要跟著改。
 name: Garyu News Scraper 不發布週報
 
 on:
@@ -12,6 +12,13 @@ on:
         options:
           - dry-input
           - dry-full
+      category:
+        description: 'traffic：只跑交通（同 weekly-traffic.yml）；ffxiv：只跑 FFXIV（同 weekly-ffxiv.yml）'
+        required: true
+        type: choice
+        options:
+          - traffic
+          - ffxiv
 
 permissions:
   contents: read
@@ -19,7 +26,7 @@ permissions:
 jobs:
   dry-run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 跟 weekly.yml 相同：第二級跑的是同一份工作
+    timeout-minutes: 30  # 兩支正式週報裡較大的那個（weekly-ffxiv.yml）：第二級跑的是同一份工作
     environment: production
 
     steps:
@@ -62,7 +69,7 @@ jobs:
       - name: 安裝相依套件
         run: pip install -r requirements.txt
 
-      # 沒設或空的模式會被程式當成正式模式（src/run_mode.py）。缺少必填輸入的觸發 GitHub 會不會擋下，沒有實測，所以這裡自己擋
+      # 沒設或空的模式會被程式當成正式模式（src/run_mode.py）。缺少必填輸入的觸發 GitHub 會以 HTTP 422 拒絕（2026-11-16 實測，#229），這裡仍自己擋，不靠平台的行為
       - name: 檢查 level（不是 dry-input、dry-full 就停在這裡）
         run: |
           case "$LEVEL" in
@@ -71,6 +78,16 @@ jobs:
           esac
         env:
           LEVEL: ${{ inputs.level }}
+
+      # 空的類別會被程式當成兩類都跑（src/main.py 的 GARYU_CATEGORY），所以這裡自己擋
+      - name: 檢查 category（不是 traffic、ffxiv 就停在這裡）
+        run: |
+          case "$CATEGORY" in
+            traffic|ffxiv) echo "category：$CATEGORY" ;;
+            *) echo "category 的值不認得：「$CATEGORY」；認得的值：traffic、ffxiv。空值會被程式當成兩類都跑，所以不往下跑" >&2; exit 1 ;;
+          esac
+        env:
+          CATEGORY: ${{ inputs.category }}
 
       - name: 計數（開始）
         run: python scripts/dry_run_counts.py take --out "$TRAFFIC_POOL_DIR/counts_before.json"
@@ -88,10 +105,12 @@ jobs:
         run: python main.py
         env:
           GARYU_RUN_MODE: ${{ inputs.level }}
+          GARYU_CATEGORY: ${{ inputs.category }}
           TRAFFIC_POOL_DIR: traffic-pool
           ANALYSIS_OUTPUT_DIR: analysis-output
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_FFXIV: ${{ vars.GEMINI_MODEL_FFXIV }}
           TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
           FFXIV_SITE_URL: ${{ vars.FFXIV_SITE_URL }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -101,6 +120,7 @@ jobs:
           FFXIV_POOL_DUMP: ffxiv_pool.json
 
       - name: 週交通熱點分析（不發布）
+        if: ${{ inputs.category == 'traffic' }}
         run: python scripts/traffic_weekly_analysis.py
         env:
           GARYU_RUN_MODE: ${{ inputs.level }}
@@ -108,6 +128,10 @@ jobs:
           ANALYSIS_OUTPUT_DIR: analysis-output
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_HOT_TOPIC: ${{ vars.GEMINI_MODEL_HOT_TOPIC }}
+          GEMINI_MODEL_DIGEST: ${{ vars.GEMINI_MODEL_DIGEST }}
+          GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS: ${{ vars.GEMINI_HOT_TOPIC_MAX_OUTPUT_TOKENS }}
+          GEMINI_HOT_TOPIC_TIMEOUT_SECONDS: ${{ vars.GEMINI_HOT_TOPIC_TIMEOUT_SECONDS }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
@@ -116,8 +140,8 @@ jobs:
           JIEBA_USERDICT_PATH: config/jieba_userdict.txt
           TRAFFIC_SITE_URL: ${{ vars.TRAFFIC_SITE_URL }}
 
-      - name: 術語收錄（不寫入，只有第二級）
-        if: ${{ inputs.level == 'dry-full' }}
+      - name: 術語收錄（不寫入，只有 ffxiv 的第二級）
+        if: ${{ inputs.level == 'dry-full' && inputs.category == 'ffxiv' }}
         run: python scripts/auto_kb.py
         env:
           GARYU_RUN_MODE: ${{ inputs.level }}
@@ -126,6 +150,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL_NAME: ${{ vars.GEMINI_MODEL_NAME || secrets.GEMINI_MODEL_NAME }}
+          GEMINI_MODEL_AUTO_KB: ${{ vars.GEMINI_MODEL_AUTO_KB }}
 
       # 下面都在前面的步驟失敗時照跑：跑到一半死掉的那一次，最需要知道有沒有寫進任何東西
       - name: 計數（結束）

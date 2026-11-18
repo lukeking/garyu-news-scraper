@@ -130,7 +130,7 @@ def h(monkeypatch, tmp_path, caplog):
     h = SimpleNamespace(client=_Client(), posts=[], collected=[], analyze_all_calls=0, site=tmp_path / "site",
                         pool_dir=tmp_path / "traffic-pool", analysis_dir=tmp_path / "analysis-output",
                         ffxiv_pool=tmp_path / "ffxiv-pool.json")
-    for name in ("GARYU_RUN_MODE", "SUPABASE_KEY"):
+    for name in ("GARYU_RUN_MODE", "GARYU_CATEGORY", "SUPABASE_KEY"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("SUPABASE_URL", "http://supabase.invalid")
     monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "dummy-test-key")

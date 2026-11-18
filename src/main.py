@@ -5,6 +5,7 @@ Garyu News Scraper 主程式入口
 """
 
 import logging
+import os
 import sys
 
 try:
@@ -28,18 +29,32 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 CATEGORIES = [TrafficCategory(), FFXIVCategory()]
+CATEGORY_ENV = "GARYU_CATEGORY"
 
 
 def main():
-    # 模式先驗：不認得的值在收集之前就丟錯；不能放進下面逐類別的 try，那裡會把例外吞掉
+    # 模式與類別先驗：不認得的值在收集之前就丟錯；不能放進下面逐類別的 try，那裡會把例外吞掉
     mode = run_mode.current()
+    selected, skipped = _select_categories()
     if run_mode.is_dry_run():
         logger.info(run_mode.start_line())
     start_counts = get_call_counts()
     try:
-        _run(mode)
+        _run(mode, selected, skipped)
     finally:
         _log_call_counts(start_counts)
+
+
+def _select_categories() -> tuple[list, list]:
+    """回傳（要跑的, 略過的）類別。沒設或空字串是全部；不認得的值直接丟錯，不退回全部。"""
+    raw = os.environ.get(CATEGORY_ENV)
+    value = (raw or "").strip()
+    if not value:
+        return list(CATEGORIES), []
+    names = [c.name for c in CATEGORIES]
+    if value in names:
+        return [c for c in CATEGORIES if c.name == value], [c for c in CATEGORIES if c.name != value]
+    raise ValueError(f"{CATEGORY_ENV} 的值不認得：{raw!r}；認得的值：{'、'.join(names)}（沒設或空字串是全部都跑）")
 
 
 def _log_call_counts(start: dict) -> None:
@@ -50,12 +65,15 @@ def _log_call_counts(start: dict) -> None:
         logger.info(line)
 
 
-def _run(mode: str) -> None:
+def _run(mode: str, categories: list, skipped: list) -> None:
     logger.info("========== Garyu News Scraper 開始執行 ==========")
+    if skipped:
+        logger.info("[類別] 只跑 %s；略過 %s（%s）", "、".join(c.name for c in categories),
+                    "、".join(c.name for c in skipped), CATEGORY_ENV)
 
     all_analyzed = []
     stopped = False  # 第一級有沒有在某個類別的分析之前停下
-    for cat in CATEGORIES:
+    for cat in categories:
         try:
             logger.info("--- [%s] 開始處理 ---", cat.name)
             raw      = cat.collect()
