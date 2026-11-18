@@ -102,6 +102,20 @@ def test_digest_template_says_dates_are_report_dates():
     assert "除非來源明文寫出事件發生的日期" in instructions
 
 
+def test_digest_template_keeps_report_date_off_the_action():
+    """來源沒寫事件日時，報導日只當句首標示，不接在動作上（GNS-20261108-sx9）。"""
+    instructions = _between(DIGEST_PROMPT_TEMPLATE, "【彙整指令】", "【輸出格式】")
+    assert "報導日只能放在句首當標示" in instructions
+    assert "不得接在動作上當成事件的日期" in instructions
+
+
+def test_digest_template_keeps_source_date_precision():
+    """來源只寫到月就寫到月，不補成某一天（GNS-20261108-sx9）。"""
+    instructions = _between(DIGEST_PROMPT_TEMPLATE, "【彙整指令】", "【輸出格式】")
+    assert "只寫到月" in instructions
+    assert "不補成某一天" in instructions
+
+
 def test_digest_template_overview_leaves_counts_to_program():
     """本期概覽不要模型數篇數或事件數。"""
     overview = _between(DIGEST_PROMPT_TEMPLATE, "### 本期概覽", "### 分節彙整")
