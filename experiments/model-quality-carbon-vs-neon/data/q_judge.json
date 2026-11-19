@@ -1,0 +1,789 @@
+{
+  "judge_model": "gemini-2.5-pro",
+  "results": [
+    {
+      "report": "2026-08-03｜機車事故 · 中時",
+      "run": 1,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 1,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 1,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"兩份報告皆錯誤計數事故件數，但報告 B 在分類上正確適用「工程資料未載」準則，而報告 A 則在來源無工程資訊下誤用「工程未見放大」，違反分類判定規則。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 38.4,
+      "usage": {
+        "promptTokenCount": 2060,
+        "candidatesTokenCount": 200,
+        "totalTokenCount": 7080,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2060
+          }
+        ],
+        "thoughtsTokenCount": 4820,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 1,
+          "文本依據": 5,
+          "分類與因果解構": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 1,
+          "文本依據": 5,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "兩份報告皆錯誤計數事故件數，但報告 B 在分類上正確適用「工程資料未載」準則，而報告 A 則在來源無工程資訊下誤用「工程未見放大」，違反分類判定規則。"
+    },
+    {
+      "report": "2026-08-03｜機車事故 · 中時",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 準確遵循分類準則，將所有來源未載工程條件的報導歸類為 [工程資料未載]，而報告 B 在此出現錯誤。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 35.4,
+      "usage": {
+        "promptTokenCount": 2060,
+        "candidatesTokenCount": 184,
+        "totalTokenCount": 6658,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2060
+          }
+        ],
+        "thoughtsTokenCount": 4414,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告 A 準確遵循分類準則，將所有來源未載工程條件的報導歸類為 [工程資料未載]，而報告 B 在此出現錯誤。"
+    },
+    {
+      "report": "2026-08-03｜機車事故 · 中時",
+      "run": 2,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 2,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 的分類計數與引證標示完整可供查核，報告 B 則在交織度分布欄位缺漏來源編號且分類計數有誤。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 32.6,
+      "usage": {
+        "promptTokenCount": 2176,
+        "candidatesTokenCount": 188,
+        "totalTokenCount": 6271,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2176
+          }
+        ],
+        "thoughtsTokenCount": 3907,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 2,
+          "文本依據": 5,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "報告 A 的分類計數與引證標示完整可供查核，報告 B 則在交織度分布欄位缺漏來源編號且分類計數有誤。"
+    },
+    {
+      "report": "2026-08-03｜機車事故 · 中時",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 2,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"B準確分類了所有來源文章，而A在事故與非事故的計數上有根本性錯誤。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 33.9,
+      "usage": {
+        "promptTokenCount": 2176,
+        "candidatesTokenCount": 172,
+        "totalTokenCount": 6695,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2176
+          }
+        ],
+        "thoughtsTokenCount": 4347,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 2,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "B準確分類了所有來源文章，而A在事故與非事故的計數上有根本性錯誤。"
+    },
+    {
+      "report": "2026-09-07｜機車事故 · TVBS",
+      "run": 1,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「分類與因果解構」軸上，更準確地依據準則區分了「工程資料未載」與「工程未見放大」兩類，展現了更細緻的判讀能力。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 30.0,
+      "usage": {
+        "promptTokenCount": 3113,
+        "candidatesTokenCount": 200,
+        "totalTokenCount": 7070,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3113
+          }
+        ],
+        "thoughtsTokenCount": 3757,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "報告 A 在「分類與因果解構」軸上，更準確地依據準則區分了「工程資料未載」與「工程未見放大」兩類，展現了更細緻的判讀能力。"
+    },
+    {
+      "report": "2026-09-07｜機車事故 · TVBS",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 3,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 4,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A在分類嚴謹度與官方論述偏誤的分析完整度上優於報告B，報告B對僅有標題的來源做出無法證實的分類。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 28.8,
+      "usage": {
+        "promptTokenCount": 3113,
+        "candidatesTokenCount": 187,
+        "totalTokenCount": 6896,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3113
+          }
+        ],
+        "thoughtsTokenCount": 3596,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 3,
+          "分類與因果解構": 3,
+          "觸發制紀律": 4,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告A在分類嚴謹度與官方論述偏誤的分析完整度上優於報告B，報告B對僅有標題的來源做出無法證實的分類。"
+    },
+    {
+      "report": "2026-09-07｜機車事故 · TVBS",
+      "run": 2,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 4,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 對所有個案的分類，比報告 B 更嚴格一致地遵循了「須寫出來源寫到的工程條件怎麼放大人因動作」的判定規則。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 31.3,
+      "usage": {
+        "promptTokenCount": 3554,
+        "candidatesTokenCount": 186,
+        "totalTokenCount": 7840,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3554
+          }
+        ],
+        "thoughtsTokenCount": 4100,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 4,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "報告 A 對所有個案的分類，比報告 B 更嚴格一致地遵循了「須寫出來源寫到的工程條件怎麼放大人因動作」的判定規則。"
+    },
+    {
+      "report": "2026-09-07｜機車事故 · TVBS",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 3,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「文本依據」與「分類與因果解構」兩軸的嚴謹度與分析深度均顯著優於報告 B。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 33.9,
+      "usage": {
+        "promptTokenCount": 3554,
+        "candidatesTokenCount": 182,
+        "totalTokenCount": 7591,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3554
+          }
+        ],
+        "thoughtsTokenCount": 3855,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 3,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告 A 在「文本依據」與「分類與因果解構」兩軸的嚴謹度與分析深度均顯著優於報告 B。"
+    },
+    {
+      "report": "2026-09-21｜行人事故 · 行人",
+      "run": 1,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"B\",\n  \"reason\": \"B報告在「文本依據」軸向上更完整地摘錄了來源[1]的傷亡人數資訊，而A報告有所遺漏。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 29.8,
+      "usage": {
+        "promptTokenCount": 2124,
+        "candidatesTokenCount": 181,
+        "totalTokenCount": 5750,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2124
+          }
+        ],
+        "thoughtsTokenCount": 3445,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "B報告在「文本依據」軸向上更完整地摘錄了來源[1]的傷亡人數資訊，而A報告有所遺漏。"
+    },
+    {
+      "report": "2026-09-21｜行人事故 · 行人",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「文本依據」軸向上更為嚴謹，所有論述均標註了來源 ID，而報告 B 則在第一段遺漏了兩處標註。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 31.8,
+      "usage": {
+        "promptTokenCount": 2124,
+        "candidatesTokenCount": 189,
+        "totalTokenCount": 5859,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2124
+          }
+        ],
+        "thoughtsTokenCount": 3546,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告 A 在「文本依據」軸向上更為嚴謹，所有論述均標註了來源 ID，而報告 B 則在第一段遺漏了兩處標註。"
+    },
+    {
+      "report": "2026-09-21｜行人事故 · 行人",
+      "run": 2,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 4,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 3\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「格式遵循」與「轉譯紀律」兩軸的嚴謹度與細節完整性，皆優於報告 B。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 62.2,
+      "usage": {
+        "promptTokenCount": 2095,
+        "candidatesTokenCount": 180,
+        "totalTokenCount": 10957,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2095
+          }
+        ],
+        "thoughtsTokenCount": 8682,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 4,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 3
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "報告 A 在「格式遵循」與「轉譯紀律」兩軸的嚴謹度與細節完整性，皆優於報告 B。"
+    },
+    {
+      "report": "2026-09-21｜行人事故 · 行人",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 4,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 在「官方論述偏誤」的審查中，比報告 B 多辨識出一項來源 [3] 中存在的「時間窗口操縱」偏誤。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 27.8,
+      "usage": {
+        "promptTokenCount": 2095,
+        "candidatesTokenCount": 186,
+        "totalTokenCount": 5773,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2095
+          }
+        ],
+        "thoughtsTokenCount": 3492,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 4,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告 A 在「官方論述偏誤」的審查中，比報告 B 多辨識出一項來源 [3] 中存在的「時間窗口操縱」偏誤。"
+    },
+    {
+      "report": "2026-10-26｜機車事故 · 機車",
+      "run": 1,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 1,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"分類與因果解構\": 0,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"兩份報告在「交織度分布」總數上皆未依全清單準確分類，但報告 B 進一步錯判其代表個案 [2] 的分類，且在「文本依據」上遺漏了個案 [1] 的關鍵傷亡資訊，故報告 A 勝出。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 32.4,
+      "usage": {
+        "promptTokenCount": 2717,
+        "candidatesTokenCount": 216,
+        "totalTokenCount": 6885,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2717
+          }
+        ],
+        "thoughtsTokenCount": 3952,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 1,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "分類與因果解構": 0,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "兩份報告在「交織度分布」總數上皆未依全清單準確分類，但報告 B 進一步錯判其代表個案 [2] 的分類，且在「文本依據」上遺漏了個案 [1] 的關鍵傷亡資訊，故報告 A 勝出。"
+    },
+    {
+      "report": "2026-10-26｜機車事故 · 機車",
+      "run": 1,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 4,\n    \"文本依據\": 4,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告A的分析更全面嚴謹，涵蓋多個代表性個案，並一致地應用了引證與分類解構的準則。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 38.7,
+      "usage": {
+        "promptTokenCount": 2717,
+        "candidatesTokenCount": 181,
+        "totalTokenCount": 7742,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 2717
+          }
+        ],
+        "thoughtsTokenCount": 4844,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 4,
+          "文本依據": 4,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告A的分析更全面嚴謹，涵蓋多個代表性個案，並一致地應用了引證與分類解構的準則。"
+    },
+    {
+      "report": "2026-10-26｜機車事故 · 機車",
+      "run": 2,
+      "order": "base_first",
+      "A_model": "gemini-4-carbon",
+      "B_model": "gemini-4-neon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 對個案 [2] 的歸類更準確，其指出「待轉區」此一工程設施將傷亡規模放大，符合 [工程主導] 定義；報告 B 則因來源細節不足而迴避判定，且將其歸類為 [工程未見放大]，違反了「有人因直接證據時應歸 [人因主導]」的評分準則。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 34.8,
+      "usage": {
+        "promptTokenCount": 3039,
+        "candidatesTokenCount": 238,
+        "totalTokenCount": 7435,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3039
+          }
+        ],
+        "thoughtsTokenCount": 4158,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        }
+      },
+      "winner": "gemini-4-carbon",
+      "reason": "報告 A 對個案 [2] 的歸類更準確，其指出「待轉區」此一工程設施將傷亡規模放大，符合 [工程主導] 定義；報告 B 則因來源細節不足而迴避判定，且將其歸類為 [工程未見放大]，違反了「有人因直接證據時應歸 [人因主導]」的評分準則。"
+    },
+    {
+      "report": "2026-10-26｜機車事故 · 機車",
+      "run": 2,
+      "order": "chal_first",
+      "A_model": "gemini-4-neon",
+      "B_model": "gemini-4-carbon",
+      "ok": true,
+      "raw": "```json\n{\n  \"A\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 5,\n    \"分類與因果解構\": 5,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 5\n  },\n  \"B\": {\n    \"格式遵循\": 5,\n    \"文本依據\": 4,\n    \"分類與因果解構\": 3,\n    \"觸發制紀律\": 5,\n    \"轉譯紀律\": 4\n  },\n  \"winner\": \"A\",\n  \"reason\": \"報告 A 對來源文本的解讀與引用紀律更為嚴謹，尤其在處理資訊有限的來源 [2] 時，其分類判斷比報告 B 更符合評分準則要求。\"\n}\n```",
+      "modelVersion": "gemini-2.5-pro",
+      "seconds": 39.4,
+      "usage": {
+        "promptTokenCount": 3039,
+        "candidatesTokenCount": 192,
+        "totalTokenCount": 8044,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 3039
+          }
+        ],
+        "thoughtsTokenCount": 4813,
+        "serviceTier": "standard"
+      },
+      "finishReason": "STOP",
+      "sent": {
+        "maxOutputTokens": 65536,
+        "timeout": 600
+      },
+      "attempts": 1,
+      "failed_attempts": 0,
+      "scores": {
+        "gemini-4-neon": {
+          "格式遵循": 5,
+          "文本依據": 5,
+          "分類與因果解構": 5,
+          "觸發制紀律": 5,
+          "轉譯紀律": 5
+        },
+        "gemini-4-carbon": {
+          "格式遵循": 5,
+          "文本依據": 4,
+          "分類與因果解構": 3,
+          "觸發制紀律": 5,
+          "轉譯紀律": 4
+        }
+      },
+      "winner": "gemini-4-neon",
+      "reason": "報告 A 對來源文本的解讀與引用紀律更為嚴謹，尤其在處理資訊有限的來源 [2] 時，其分類判斷比報告 B 更符合評分準則要求。"
+    }
+  ]
+}

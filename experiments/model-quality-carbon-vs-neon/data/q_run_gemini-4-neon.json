@@ -1,0 +1,791 @@
+{
+  "model": "gemini-4-neon",
+  "per_report": {
+    "2026-08-03｜機車事故 · 中時": [
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 3篇 ／ [非事故] 7篇\n代表個案：[2]（僅標題）、[6]（僅標題）\n人因變數：[2]（僅標題）稱機車「搶快起步」撞上轎車，致女騎士小腿骨折送醫，該行為描述未附客觀佐證，屬單方歸因 [推斷，非直接證據]，且轎車駕駛行為來源未載；[6]（僅標題）僅稱接體車「清晨趕接遺體」撞機車，致74歲翁送醫不治，雙方事故當下具體駕駛決策與操作行為來源未載。\n工程變數：來源未載\n交織說明：來源未載，無法判定工程是否放大人因。針對 [2]（僅標題），待查證：事發地點是否位於交會路口？該處號誌全紅清道時間與視距條件為何，以及是否存在直行與轉向同相位交織的衝突設計？針對 [6]（僅標題），當不同質量車輛於高車速環境交會時，動能（½mv²）落差隨速度平方放大，待查證：事發路段是否依速度與質量透過實體保護（註：此指依速度的實體保護，非台灣現行車種側分），或透過車道縮減、實體減速丘、幾何彎線等物理設施將車速壓低至 30km/h 以下？清晨時段該處照明條件及幹支道邊界辨識度為何？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+        "input_text": "[1] 標題：男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押 - 中時新聞網\n    摘要：（僅標題）\n\n[2] 標題：台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[3] 標題：電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 - 中時新聞網\n    摘要：（僅標題）\n\n[4] 標題：扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[5] 標題：機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[6] 標題：奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[7] 標題：桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[8] 標題：機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[9] 標題：基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[10] 標題：噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 - 中時新聞網\n    摘要：（僅標題）",
+        "sources": [
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1qM2hQcGstUkJOaHJMMlJPbDlnQWlhNDB2a2tpWks5S1o0ck1WYVEyZVRTTzBsMGp0MFJYU0MwMktabVlLMVlVQmRGNklrOEZwaWYzT0lzS3Q3XzRoTFRxWWN5VjZWdnZqcjJ1ZUp3?oc=5",
+            "title": "男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押 - 中時新聞網",
+            "published": "2026-06-16",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMibkFVX3lxTE1qM2hQcGstUkJOaHJMMlJPbDlnQWlhNDB2a2tpWks5S1o0ck1WYVEyZVRTTzBsMGp0MFJYU0MwMktabVlLMVlVQmRGNklrOEZwaWYzT0lzS3Q3XzRoTFRxWWN5VjZWdnZqcjJ1ZUp3?oc=5\" target=\"_blank\">男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">中時新聞網</font>"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1JODZvcVNUUFV0Y0c3UHpmenBJb19KOVY5dUg1TGUyVFF1ZXJPM3FKZ0lsWlQ5UDkzUFdGbzVWalF6S1NHX2pGenh6S0ZaUlZfRG83WHByZVpoTnZXLWpVOVZFczhiendWTW90MlpR?oc=5",
+            "title": "台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 - 中時新聞網",
+            "published": "2026-07-28",
+            "summary": "台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1xM0FGeVVqbUlPekx3LVk3aWJpT05vLWcya3ZmOUlaczlrY1FCc2JkX0VkV01sU18xUFc3ZlZyOEpCd0YwdUFQOVhvLU1CZ1VtVmpMbWF5Y2ZMZmZqTk9BaDNwRlNZLXdTNHhBSlNn?oc=5",
+            "title": "電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 - 中時新聞網",
+            "published": "2026-07-27",
+            "summary": "電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9xLWxSV3FxMVVfNThmR05WbHAzdDM2ZGdHTEdtS2hydXhIdHhxZWFDQWhOdHhTWW5PQjMzVnRPcDdkV3ZOazQzRlBra2hTUUZmZERzaTVtbFJ3VW52S2Nwc3NrNkFFZjM1c3R0U2Vn?oc=5",
+            "title": "扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 - 中時新聞網",
+            "published": "2026-07-28",
+            "summary": "扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE10anpkdDJLVDFsWTFkbVBDSmQ3by1NZHByRDR2UlQ5QU1CbVNKTU93b2lkZ3dHZm4wQ1ZHenpVdzdaejhqRFVpNEM4NzBNdWdpal80bV8yLW95dDhhN1lJSEktbGhOMGRfdFhsdDdB?oc=5",
+            "title": "機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 - 中時新聞網",
+            "published": "2026-07-21",
+            "summary": "機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1aQmo5SVVlYWlMX3k2MXZJbWpIYS1NU0V6bkpEZEZoOFNuc1ZvZE44ZEJlNm5KVkdibF8xdVNXYWZqa1l0c1R1RUptSGRkREl2Tl9KMVJ6anJfa3VvVVduMjhaYkhDQnNlU3o1UW5n?oc=5",
+            "title": "奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 - 中時新聞網",
+            "published": "2026-07-16",
+            "summary": "奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5LaWhFQnBsd3FqYWctUU5hNnIwV0lrM0hIV0lTc1B5TDRFY2FqckZpMXdIcTZfcUpGaWpOT2NZR3cxbzFYQzBCbHc4aWhFQzNBWXk0c2NUckZCYV84OWlpcGxFM2g0LUJaREp6N0tR?oc=5",
+            "title": "桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 - 中時新聞網",
+            "published": "2026-07-03",
+            "summary": "桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE42Unl0RUIwSmJ0Y0pNV2ExaE5jSUVabTZUOVFmUGZwRzZQMXh5a1JiTU9wWWlfdmhLZ3pjQUladGF6VjBkUk4yZlVXY1B6aGRmN1BlNllDUGx1VkdnYURzR1RUUkVLYk5Lam55eC1n?oc=5",
+            "title": "機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 - 中時新聞網",
+            "published": "2026-06-30",
+            "summary": "機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1zSHRheEhvb2JDUVJpQS1rQUlhaV9TNjBZUHhSQWFZSlRHcEt2NHJSencxVVZGUDREWWxEekl4WjdENms3ZXVKVVNwcXc0M0t4SWpwVWJSNWpKdUJhYkFFVkxiSnNVMGZkYTNHYzJn?oc=5",
+            "title": "基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 - 中時新聞網",
+            "published": "2026-06-20",
+            "summary": "基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5HemRLREJrSm44ODkzMnZTZktzYUFLdGF2MlZ3WDhBNXhiQlVqVEVoc2h3MjJNckMtU296WF9EaTB0ZDQ1dzk2NEpQTFZJYjFfUUZVcnprNnM5RkxpQk9zUTNCbGM2ejdvVElVTVlB?oc=5",
+            "title": "噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 - 中時新聞網",
+            "published": "2026-06-22",
+            "summary": "噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 中時新聞網"
+          }
+        ],
+        "title_only_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 64.0,
+        "usage": {
+          "promptTokenCount": 2405,
+          "candidatesTokenCount": 450,
+          "totalTokenCount": 9867,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2405
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 450
+            }
+          ],
+          "thoughtsTokenCount": 7012,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      },
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 4篇 ／ [非事故] 6篇\n代表個案：[6]（僅標題）、[2]（僅標題）\n人因變數：[6]（僅標題）稱接體車清晨「趕接遺體」撞機車、74歲翁送醫不治，「趕接」涉及急行或操作失當與否屬 [推斷，非直接證據]，雙方實際駕駛行為與行向來源未載；[2]（僅標題）稱機車「搶快起步」撞上轎車、女騎士小腿骨折送醫，「搶快起步」屬標題歸因之 [推斷，非直接證據]，轎車駕駛行為與雙方行向來源未載。\n工程變數：來源未載\n交織說明：來源未載，無法判定工程是否放大人因。待查證：[6]（僅標題）事發處之道路幾何與清晨照明條件為何，該路段是否採取依速度與質量的實體保護（非車種側分），或透過車道縮減、實體減速丘、幾何彎線等物理限速工程將車速壓低至 30km/h 以下，以控制不同質量載具碰撞時的動能（½mv²）落差？[2]（僅標題）事發處是否位於路口，且涉及幹支道邊界辨識、視距條件，或直行與轉向同相位交織等幾何與號誌配置，進而放大起步判斷失誤之碰撞風險？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+        "input_text": "[1] 標題：男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押 - 中時新聞網\n    摘要：（僅標題）\n\n[2] 標題：台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[3] 標題：電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 - 中時新聞網\n    摘要：（僅標題）\n\n[4] 標題：扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[5] 標題：機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[6] 標題：奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[7] 標題：桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[8] 標題：機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[9] 標題：基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 - 中時新聞網\n    摘要：（僅標題）\n\n[10] 標題：噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 - 中時新聞網\n    摘要：（僅標題）",
+        "sources": [
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1qM2hQcGstUkJOaHJMMlJPbDlnQWlhNDB2a2tpWks5S1o0ck1WYVEyZVRTTzBsMGp0MFJYU0MwMktabVlLMVlVQmRGNklrOEZwaWYzT0lzS3Q3XzRoTFRxWWN5VjZWdnZqcjJ1ZUp3?oc=5",
+            "title": "男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押 - 中時新聞網",
+            "published": "2026-06-16",
+            "summary": "<a href=\"https://news.google.com/rss/articles/CBMibkFVX3lxTE1qM2hQcGstUkJOaHJMMlJPbDlnQWlhNDB2a2tpWks5S1o0ck1WYVEyZVRTTzBsMGp0MFJYU0MwMktabVlLMVlVQmRGNklrOEZwaWYzT0lzS3Q3XzRoTFRxWWN5VjZWdnZqcjJ1ZUp3?oc=5\" target=\"_blank\">男子機車違規遭攔全身K味 去年已涉毒駕獲緩刑 這次馬上遭羈押</a>&nbsp;&nbsp;<font color=\"#6f6f6f\">中時新聞網</font>"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1JODZvcVNUUFV0Y0c3UHpmenBJb19KOVY5dUg1TGUyVFF1ZXJPM3FKZ0lsWlQ5UDkzUFdGbzVWalF6S1NHX2pGenh6S0ZaUlZfRG83WHByZVpoTnZXLWpVOVZFczhiendWTW90MlpR?oc=5",
+            "title": "台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 - 中時新聞網",
+            "published": "2026-07-28",
+            "summary": "台中機車搶快起步撞上轎車女騎士小腿骨折送醫- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1xM0FGeVVqbUlPekx3LVk3aWJpT05vLWcya3ZmOUlaczlrY1FCc2JkX0VkV01sU18xUFc3ZlZyOEpCd0YwdUFQOVhvLU1CZ1VtVmpMbWF5Y2ZMZmZqTk9BaDNwRlNZLXdTNHhBSlNn?oc=5",
+            "title": "電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 - 中時新聞網",
+            "published": "2026-07-27",
+            "summary": "電動機車行駛中冒白煙！ 「瞬陷火海」騎士驚逃 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE9xLWxSV3FxMVVfNThmR05WbHAzdDM2ZGdHTEdtS2hydXhIdHhxZWFDQWhOdHhTWW5PQjMzVnRPcDdkV3ZOazQzRlBra2hTUUZmZERzaTVtbFJ3VW52S2Nwc3NrNkFFZjM1c3R0U2Vn?oc=5",
+            "title": "扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 - 中時新聞網",
+            "published": "2026-07-28",
+            "summary": "扯！高雄機車雙載童沒戴帽警：涉兩項違規再加通報社會局- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE10anpkdDJLVDFsWTFkbVBDSmQ3by1NZHByRDR2UlQ5QU1CbVNKTU93b2lkZ3dHZm4wQ1ZHenpVdzdaejhqRFVpNEM4NzBNdWdpal80bV8yLW95dDhhN1lJSEktbGhOMGRfdFhsdDdB?oc=5",
+            "title": "機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 - 中時新聞網",
+            "published": "2026-07-21",
+            "summary": "機車被扣沒車用！男竟連偷2車「代步」 1小時落網代價慘- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1aQmo5SVVlYWlMX3k2MXZJbWpIYS1NU0V6bkpEZEZoOFNuc1ZvZE44ZEJlNm5KVkdibF8xdVNXYWZqa1l0c1R1RUptSGRkREl2Tl9KMVJ6anJfa3VvVVduMjhaYkhDQnNlU3o1UW5n?oc=5",
+            "title": "奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 - 中時新聞網",
+            "published": "2026-07-16",
+            "summary": "奪命瞬間曝！接體車清晨趕接遺體撞機車74歲翁送醫不治- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5LaWhFQnBsd3FqYWctUU5hNnIwV0lrM0hIV0lTc1B5TDRFY2FqckZpMXdIcTZfcUpGaWpOT2NZR3cxbzFYQzBCbHc4aWhFQzNBWXk0c2NUckZCYV84OWlpcGxFM2g0LUJaREp6N0tR?oc=5",
+            "title": "桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 - 中時新聞網",
+            "published": "2026-07-03",
+            "summary": "桃園機車竊案！偷車賊「代步趴趴走」 警20分鐘圍捕到案- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE42Unl0RUIwSmJ0Y0pNV2ExaE5jSUVabTZUOVFmUGZwRzZQMXh5a1JiTU9wWWlfdmhLZ3pjQUladGF6VjBkUk4yZlVXY1B6aGRmN1BlNllDUGx1VkdnYURzR1RUUkVLYk5Lam55eC1n?oc=5",
+            "title": "機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 - 中時新聞網",
+            "published": "2026-06-30",
+            "summary": "機車上摟腰摸腿！同事4年辯「不知她已婚」 綠帽尪怒求償- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1zSHRheEhvb2JDUVJpQS1rQUlhaV9TNjBZUHhSQWFZSlRHcEt2NHJSencxVVZGUDREWWxEekl4WjdENms3ZXVKVVNwcXc0M0t4SWpwVWJSNWpKdUJhYkFFVkxiSnNVMGZkYTNHYzJn?oc=5",
+            "title": "基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 - 中時新聞網",
+            "published": "2026-06-20",
+            "summary": "基隆自小客「自撞電桿」翻覆四輪朝天2機車慘遭漏油波及- 社會 中時新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE5HemRLREJrSm44ODkzMnZTZktzYUFLdGF2MlZ3WDhBNXhiQlVqVEVoc2h3MjJNckMtU296WF9EaTB0ZDQ1dzk2NEpQTFZJYjFfUUZVcnprNnM5RkxpQk9zUTNCbGM2ejdvVElVTVlB?oc=5",
+            "title": "噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 - 中時新聞網",
+            "published": "2026-06-22",
+            "summary": "噁爆！國中男師瘋狂報復同事 對他機車、安全帽「吐痰潑糞」 中時新聞網"
+          }
+        ],
+        "title_only_ids": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 53.9,
+        "usage": {
+          "promptTokenCount": 2405,
+          "candidatesTokenCount": 440,
+          "totalTokenCount": 9418,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2405
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 440
+            }
+          ],
+          "thoughtsTokenCount": 6573,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      }
+    ],
+    "2026-09-07｜機車事故 · TVBS": [
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 7篇 ／ [非事故] 1篇\n代表個案：[2]、[6]\n人因變數：[2] 標題稱白色轎車從巷子口右轉出且機車「車速也不慢」、「肇責非百分百駕駛錯」，惟摘要僅載雙方於巷口碰撞且「詳細肇事責任仍待釐清」，未見車速量測或未禮讓之客觀事證，故車速與肇責說法均屬 [推斷，非直接證據]；[6] 神岡案僅載休旅車右轉時與直行打檔車碰撞，雙方轉向確認、號誌遵循與視線決策均為來源未載，斗六案稱休旅車駕駛開門時「未注意後方來車」將雙載機車推倒，為報導轉述而無客觀影像或筆錄佐證 [推斷，非直接證據]。\n工程變數：來源未載（[2] 僅提及花蓮瑞穗鄉溫泉路與巷子口，[6] 僅提及台中神岡交流道附近與他車停等紅燈，均未載車道寬度、路口幾何、速限、號誌時相或實體減速設施；斗六案亦未載停車格與車道配置）。\n交織說明：來源未載，無法判定工程是否放大人因。待查證：[2] 溫泉路與該巷口之幹支道邊界是否清晰，且面對高、低速與大、小質量載具間顯著的動能（½mv²）落差，該路段是否採依速度與質量的實體保護（指實體分隔，非台灣「車種分流」框架），或透過車道縮減、實體減速丘、幾何彎線等物理限速工程將速度壓低至 30km/h 以縮小碰撞動能與反應時間差？[6] 神岡交流道周邊該號誌化路口是否仍允許直行與右轉同相位交織（使轉向與直行車流於同時間與空間重疊，放大視野盲區與判斷誤差），且鄰近交流道之高動能車流是否採依速度與質量的實體保護（非台灣「車種分流」框架），或將衝突區速度壓低至 30km/h？另 [6] 斗六案路側停車空間與行車動線之間是否設有實體緩衝區，或採物理幾何將行車速度降至 30km/h 以降低開門碰撞之動能落差？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：[8]\n審查結果：□ 工程問題個體化歸因：[8] 引用「機車」死傷占整體6成並宣導「人本交通」，但交通安全月對應措施僅呈現代言人宣導、串聯7000多家機車行推出免費健檢與「零違規抽獎」，並呼籲將安全落實於每一次上路，將機車高死傷占比之政策回應限縮於個體守法與車況維護，未納入道路幾何與速度管理等工程因素 [8]；□ 未交代分母的統計：[8] 僅呈現「機車」死傷占整體6成與全台超過1470萬輛機車，未交代該占比之統計期間與基準，亦未以旅次或行駛里程等流量分母呈現單位曝險風險 [8]。",
+        "input_text": "[1] 標題：8輪撞倒2輪 穿直排輪衝馬路「撞翻機車騎士」！年輕人道歉：煞不下來 - TVBS新聞網\n    摘要：（僅標題）\n\n[2] 標題：騎士撞右轉車「重摔在地」！肇責非百分百駕駛錯 機車車速也不慢 - TVBS新聞網\n    摘要：花蓮瑞穗鄉溫泉路10日上午9點多發生一起交通事故，一輛白色轎車從巷子口轉出時，與直行的機車發生猛烈碰撞，機車騎士瞬間噴飛、連人帶車重摔在地，所幸意識清楚，手腳多處擦挫傷，已緊急送醫治療，詳細肇事責任仍待釐清。\n\n[3] 標題：影音／無照男擦撞機車急掏千元和解 目擊民眾幫報警遭嗆「老子有錢」 - TVBS新聞網\n    摘要：台中市區30日中午發生一起交通糾紛，一名江姓男子駕車起步時擦撞旁邊停放的機車，遭路過民眾目擊並報警處理，過程中江男不僅態度囂張嗆聲，還被發現無照駕駛，警方到場後依法舉發並移置保管車輛。\n\n[4] 標題：​新北大漢橋嚴重車禍！機車猛撞噴飛汽車道 2人重傷留一灘血 - TVBS新聞網\n    摘要：（僅標題）\n\n[5] 標題：阿嬤過馬路遭撞飛！82歲翁機車「堆滿回收物」擋車燈釀禍 - TVBS新聞網\n    摘要：（僅標題）\n\n[6] 標題：神岡交流道驚險車禍！休旅車擦撞機車 「下巴撞掉」畫面曝 - TVBS新聞網\n    摘要：台中神岡交流道附近12日下午5點多發生一起交通事故，一輛休旅車右轉時與直行的打檔車發生碰撞，導致騎士摔飛並波及停等紅燈的另一輛機車，休旅車前保險桿也被撞落。另外，雲林斗六也發生「開門殺」意外，休旅車駕駛開門時未注意後方來車，將雙載機車推倒，造成一對母女受傷送醫。\n\n[7] 標題：逆向超車沒切回！ 自小客失控「掃倒機車」撞爛圍牆 - TVBS新聞網\n    摘要：台南市仁德區27日上午發生一起交通事故，24歲林姓男子駕駛自小客車逆向超車後，未即時切回原車道，為閃避前方左轉機車而失控，不僅掃倒對向22歲徐姓機車騎士，最後更撞上路旁圍牆，造成車毀牆塌，兩人均受傷送醫，所幸無生命危險。\n\n[8] 標題：「機車」死傷占整體6成 交通安全月祭機車健檢 - TVBS新聞網\n    摘要：9月是交通安全月，這回找來八點檔女神陳珮騏擔任代言人，用戲劇梗宣導「8點檔演的都是假的，只有人本交通才是真的」，也鎖定全台超過1470萬輛機車，串聯7000多家機車行，推出免費健檢和零違規抽獎，希望大家把安全真正落實在每一次上路。",
+        "sources": [
+          {
+            "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE81dktXajR1X0hkU0RjVlBtaU9DMFlxeWJuTFZ2YjJtU3A3LXpmR0RRY2gwbVE4UnNLdllyUTlOTWpCZ2NHNWEtTlRNUy1lNFk?oc=5",
+            "title": "8輪撞倒2輪 穿直排輪衝馬路「撞翻機車騎士」！年輕人道歉：煞不下來 - TVBS新聞網",
+            "published": "2026-07-04",
+            "summary": "8輪撞倒2輪 穿直排輪衝馬路「撞翻機車騎士」！年輕人道歉：煞不下來 TVBS新聞網"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4006507",
+            "title": "騎士撞右轉車「重摔在地」！肇責非百分百駕駛錯 機車車速也不慢 - TVBS新聞網",
+            "published": "2026-08-13",
+            "summary": "花蓮瑞穗鄉溫泉路10日上午9點多發生一起交通事故，一輛白色轎車從巷子口轉出時，與直行的機車發生猛烈碰撞，機車騎士瞬間噴飛、連人帶車重摔在地，所幸意識清楚，手腳多處擦挫傷，已緊急送醫治療，詳細肇事責任仍待釐清。"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4015258",
+            "title": "影音／無照男擦撞機車急掏千元和解 目擊民眾幫報警遭嗆「老子有錢」 - TVBS新聞網",
+            "published": "2026-08-31",
+            "summary": "台中市區30日中午發生一起交通糾紛，一名江姓男子駕車起步時擦撞旁邊停放的機車，遭路過民眾目擊並報警處理，過程中江男不僅態度囂張嗆聲，還被發現無照駕駛，警方到場後依法舉發並移置保管車輛。"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE9FTnFqT3ZRaFFudGUxbDBaZUJDM3FYdDh1czBQZXdiY2tTeVFkLXg3S3ZMX243TV9MUTNmM2NQa3ViMXRTRk5TZUJsMXc1M0U?oc=5",
+            "title": "​新北大漢橋嚴重車禍！機車猛撞噴飛汽車道 2人重傷留一灘血 - TVBS新聞網",
+            "published": "2026-07-14",
+            "summary": "​新北大漢橋嚴重車禍！機車猛撞噴飛汽車道 2人重傷留一灘血 TVBS新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE4xNm1jVExoM25JX3AzUlFwdTVkcmIxY3hxVVBlVE1TNHlQQWRwMmEwNEtBVmx0NGpzN21UWFYybS1Fb3hZeVZkaVlyZ1N2SzA?oc=5",
+            "title": "阿嬤過馬路遭撞飛！82歲翁機車「堆滿回收物」擋車燈釀禍 - TVBS新聞網",
+            "published": "2026-07-30",
+            "summary": "阿嬤過馬路遭撞飛！82歲翁機車「堆滿回收物」擋車燈釀禍 TVBS新聞網"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4008018",
+            "title": "神岡交流道驚險車禍！休旅車擦撞機車 「下巴撞掉」畫面曝 - TVBS新聞網",
+            "published": "2026-08-16",
+            "summary": "台中神岡交流道附近12日下午5點多發生一起交通事故，一輛休旅車右轉時與直行的打檔車發生碰撞，導致騎士摔飛並波及停等紅燈的另一輛機車，休旅車前保險桿也被撞落。另外，雲林斗六也發生「開門殺」意外，休旅車駕駛開門時未注意後方來車，將雙載機車推倒，造成一對母女受傷送醫。"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4013968",
+            "title": "逆向超車沒切回！ 自小客失控「掃倒機車」撞爛圍牆 - TVBS新聞網",
+            "published": "2026-08-28",
+            "summary": "台南市仁德區27日上午發生一起交通事故，24歲林姓男子駕駛自小客車逆向超車後，未即時切回原車道，為閃避前方左轉機車而失控，不僅掃倒對向22歲徐姓機車騎士，最後更撞上路旁圍牆，造成車毀牆塌，兩人均受傷送醫，所幸無生命危險。"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/life/4015718",
+            "title": "「機車」死傷占整體6成 交通安全月祭機車健檢 - TVBS新聞網",
+            "published": "2026-09-01",
+            "summary": "9月是交通安全月，這回找來八點檔女神陳珮騏擔任代言人，用戲劇梗宣導「8點檔演的都是假的，只有人本交通才是真的」，也鎖定全台超過1470萬輛機車，串聯7000多家機車行，推出免費健檢和零違規抽獎，希望大家把安全真正落實在每一次上路。"
+          }
+        ],
+        "title_only_ids": [
+          1,
+          4,
+          5
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 172.5,
+        "usage": {
+          "promptTokenCount": 2721,
+          "candidatesTokenCount": 842,
+          "totalTokenCount": 22150,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2721
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 842
+            }
+          ],
+          "thoughtsTokenCount": 18587,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      },
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 1篇 [6] ／ [人因主導] 0篇 ／ [工程未見放大] 2篇 [2]、[4]（僅標題） ／ [工程資料未載] 4篇 [1]（僅標題）、[3]、[5]（僅標題）、[7] ／ [非事故] 1篇 [8]\n代表個案：[6]、[2]\n人因變數：[6]（神岡交流道案）僅載明休旅車右轉與直行打檔車發生碰撞，具體駕駛注意義務或違規行為來源未載；同篇雲林斗六案則載明休旅車駕駛開門時未注意後方來車 [推斷，非直接證據]。[2] 正文載明白色轎車由巷子口轉出、機車直行，並明言詳細肇事責任仍待釐清，惟標題指稱「肇責非百分百駕駛錯 機車車速也不慢」[推斷，非直接證據]，實際車速與雙方過失內容來源未載。\n工程變數：[6]（神岡交流道案）載明事故發生於台中神岡交流道附近之號誌化路口（現場有停等紅燈之機車），休旅車右轉與直行打檔車發生碰撞；對照荷蘭持續路之功能單一化與同質性原則，交流道周邊幹道應消滅直行與轉向同相位交織，並以「依速度與質量的實體分隔（此處指依速度的實體保護，非車種側分）」或「降速至 30km/h」兩者之一控制動能（½mv²）落差，本案呈現之右轉與直行動線直接交會狀態即偏離此標準（同篇雲林斗六案道路條件來源未載）。[2] 僅載明花蓮瑞穗鄉溫泉路與巷子口交會（轎車由巷子口轉出、直行機車碰撞）；對照日本生活道路 30（以車道縮減、實體減速丘、幾何彎線強迫降速）與荷蘭持續路（幹支道邊界清晰，且依速度與質量實體分隔——此處指依速度的實體保護，非車種側分——或降速至 30km/h 以消減 ½mv² 動能落差），文本僅能確認存在巷口匯入直行路段之幾何配置，其餘號誌、視距與減速設施來源未載。\n交織說明：[6]（神岡交流道案）在交流道附近號誌化路口中，右轉車與直行車動線直接交會的運作條件，使高質量與速度落差下的動能（½mv²）風險無法透過動線分離或低速環境吸收，進而將轉向或直行時的視線死角與讓行誤差放大為碰撞並波及停等紅燈之另一輛機車（待查證：該路口是否採直行與右轉同相位放行、轉彎半徑與車速管理設計為何？）；同篇雲林斗六開門案道路條件來源未載，無法判定工程是否放大人因（待查證：該路段路側停車帶與行車空間寬度配置為何？）。[2] 僅載明巷子口轉出與直行車碰撞，未交代該路口視距、速限、號誌或物理減速設施，無法從文本判定何項工程條件放大了人因錯誤，故歸類為 [工程未見放大]（待查證：溫泉路該巷口之幹支道物理邊界、速限、視距與是否具車道縮減或實體減速丘等減速工程？）。\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：[8]\n審查結果：□ 工程問題個體化歸因：9 月交通安全月以「機車」死傷占整體 6 成為訴求背景，但對應措施集中於名人宣導、串聯 7000 多家機車行推出免費健檢及「零違規抽獎」，並訴求「把安全真正落實在每一次上路」，將高死傷占比之治理重心導向個體守法行為與車況維護，未觸及道路幾何與速度管理等工程因素（待查證：主管機關對機車死傷占比之歸因結構中，工程與人因各占何種比重？）[8]；□ 未交代分母的統計：引用「機車」死傷占整體 6 成及全台超過 1470 萬輛機車等數據，惟未交代統計期間與死傷定義基準，亦未提供延車公里或旅次流量等曝險分母，無法區辨該占比係反映運具使用量或單位曝險風險偏高 [8]",
+        "input_text": "[1] 標題：8輪撞倒2輪 穿直排輪衝馬路「撞翻機車騎士」！年輕人道歉：煞不下來 - TVBS新聞網\n    摘要：（僅標題）\n\n[2] 標題：騎士撞右轉車「重摔在地」！肇責非百分百駕駛錯 機車車速也不慢 - TVBS新聞網\n    摘要：花蓮瑞穗鄉溫泉路10日上午9點多發生一起交通事故，一輛白色轎車從巷子口轉出時，與直行的機車發生猛烈碰撞，機車騎士瞬間噴飛、連人帶車重摔在地，所幸意識清楚，手腳多處擦挫傷，已緊急送醫治療，詳細肇事責任仍待釐清。\n\n[3] 標題：影音／無照男擦撞機車急掏千元和解 目擊民眾幫報警遭嗆「老子有錢」 - TVBS新聞網\n    摘要：台中市區30日中午發生一起交通糾紛，一名江姓男子駕車起步時擦撞旁邊停放的機車，遭路過民眾目擊並報警處理，過程中江男不僅態度囂張嗆聲，還被發現無照駕駛，警方到場後依法舉發並移置保管車輛。\n\n[4] 標題：​新北大漢橋嚴重車禍！機車猛撞噴飛汽車道 2人重傷留一灘血 - TVBS新聞網\n    摘要：（僅標題）\n\n[5] 標題：阿嬤過馬路遭撞飛！82歲翁機車「堆滿回收物」擋車燈釀禍 - TVBS新聞網\n    摘要：（僅標題）\n\n[6] 標題：神岡交流道驚險車禍！休旅車擦撞機車 「下巴撞掉」畫面曝 - TVBS新聞網\n    摘要：台中神岡交流道附近12日下午5點多發生一起交通事故，一輛休旅車右轉時與直行的打檔車發生碰撞，導致騎士摔飛並波及停等紅燈的另一輛機車，休旅車前保險桿也被撞落。另外，雲林斗六也發生「開門殺」意外，休旅車駕駛開門時未注意後方來車，將雙載機車推倒，造成一對母女受傷送醫。\n\n[7] 標題：逆向超車沒切回！ 自小客失控「掃倒機車」撞爛圍牆 - TVBS新聞網\n    摘要：台南市仁德區27日上午發生一起交通事故，24歲林姓男子駕駛自小客車逆向超車後，未即時切回原車道，為閃避前方左轉機車而失控，不僅掃倒對向22歲徐姓機車騎士，最後更撞上路旁圍牆，造成車毀牆塌，兩人均受傷送醫，所幸無生命危險。\n\n[8] 標題：「機車」死傷占整體6成 交通安全月祭機車健檢 - TVBS新聞網\n    摘要：9月是交通安全月，這回找來八點檔女神陳珮騏擔任代言人，用戲劇梗宣導「8點檔演的都是假的，只有人本交通才是真的」，也鎖定全台超過1470萬輛機車，串聯7000多家機車行，推出免費健檢和零違規抽獎，希望大家把安全真正落實在每一次上路。",
+        "sources": [
+          {
+            "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE81dktXajR1X0hkU0RjVlBtaU9DMFlxeWJuTFZ2YjJtU3A3LXpmR0RRY2gwbVE4UnNLdllyUTlOTWpCZ2NHNWEtTlRNUy1lNFk?oc=5",
+            "title": "8輪撞倒2輪 穿直排輪衝馬路「撞翻機車騎士」！年輕人道歉：煞不下來 - TVBS新聞網",
+            "published": "2026-07-04",
+            "summary": "8輪撞倒2輪 穿直排輪衝馬路「撞翻機車騎士」！年輕人道歉：煞不下來 TVBS新聞網"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4006507",
+            "title": "騎士撞右轉車「重摔在地」！肇責非百分百駕駛錯 機車車速也不慢 - TVBS新聞網",
+            "published": "2026-08-13",
+            "summary": "花蓮瑞穗鄉溫泉路10日上午9點多發生一起交通事故，一輛白色轎車從巷子口轉出時，與直行的機車發生猛烈碰撞，機車騎士瞬間噴飛、連人帶車重摔在地，所幸意識清楚，手腳多處擦挫傷，已緊急送醫治療，詳細肇事責任仍待釐清。"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4015258",
+            "title": "影音／無照男擦撞機車急掏千元和解 目擊民眾幫報警遭嗆「老子有錢」 - TVBS新聞網",
+            "published": "2026-08-31",
+            "summary": "台中市區30日中午發生一起交通糾紛，一名江姓男子駕車起步時擦撞旁邊停放的機車，遭路過民眾目擊並報警處理，過程中江男不僅態度囂張嗆聲，還被發現無照駕駛，警方到場後依法舉發並移置保管車輛。"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE9FTnFqT3ZRaFFudGUxbDBaZUJDM3FYdDh1czBQZXdiY2tTeVFkLXg3S3ZMX243TV9MUTNmM2NQa3ViMXRTRk5TZUJsMXc1M0U?oc=5",
+            "title": "​新北大漢橋嚴重車禍！機車猛撞噴飛汽車道 2人重傷留一灘血 - TVBS新聞網",
+            "published": "2026-07-14",
+            "summary": "​新北大漢橋嚴重車禍！機車猛撞噴飛汽車道 2人重傷留一灘血 TVBS新聞網"
+          },
+          {
+            "link": "https://news.google.com/rss/articles/CBMiT0FVX3lxTE4xNm1jVExoM25JX3AzUlFwdTVkcmIxY3hxVVBlVE1TNHlQQWRwMmEwNEtBVmx0NGpzN21UWFYybS1Fb3hZeVZkaVlyZ1N2SzA?oc=5",
+            "title": "阿嬤過馬路遭撞飛！82歲翁機車「堆滿回收物」擋車燈釀禍 - TVBS新聞網",
+            "published": "2026-07-30",
+            "summary": "阿嬤過馬路遭撞飛！82歲翁機車「堆滿回收物」擋車燈釀禍 TVBS新聞網"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4008018",
+            "title": "神岡交流道驚險車禍！休旅車擦撞機車 「下巴撞掉」畫面曝 - TVBS新聞網",
+            "published": "2026-08-16",
+            "summary": "台中神岡交流道附近12日下午5點多發生一起交通事故，一輛休旅車右轉時與直行的打檔車發生碰撞，導致騎士摔飛並波及停等紅燈的另一輛機車，休旅車前保險桿也被撞落。另外，雲林斗六也發生「開門殺」意外，休旅車駕駛開門時未注意後方來車，將雙載機車推倒，造成一對母女受傷送醫。"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/local/4013968",
+            "title": "逆向超車沒切回！ 自小客失控「掃倒機車」撞爛圍牆 - TVBS新聞網",
+            "published": "2026-08-28",
+            "summary": "台南市仁德區27日上午發生一起交通事故，24歲林姓男子駕駛自小客車逆向超車後，未即時切回原車道，為閃避前方左轉機車而失控，不僅掃倒對向22歲徐姓機車騎士，最後更撞上路旁圍牆，造成車毀牆塌，兩人均受傷送醫，所幸無生命危險。"
+          },
+          {
+            "link": "https://news.tvbs.com.tw/life/4015718",
+            "title": "「機車」死傷占整體6成 交通安全月祭機車健檢 - TVBS新聞網",
+            "published": "2026-09-01",
+            "summary": "9月是交通安全月，這回找來八點檔女神陳珮騏擔任代言人，用戲劇梗宣導「8點檔演的都是假的，只有人本交通才是真的」，也鎖定全台超過1470萬輛機車，串聯7000多家機車行，推出免費健檢和零違規抽獎，希望大家把安全真正落實在每一次上路。"
+          }
+        ],
+        "title_only_ids": [
+          1,
+          4,
+          5
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 171.1,
+        "usage": {
+          "promptTokenCount": 2721,
+          "candidatesTokenCount": 1126,
+          "totalTokenCount": 20994,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2721
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1126
+            }
+          ],
+          "thoughtsTokenCount": 17147,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      }
+    ],
+    "2026-09-21｜行人事故 · 行人": [
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 1篇 ／ [非事故] 4篇\n代表個案：[1]\n人因變數：警方初步研判2名行人未依規定穿越道路引發碰撞 [推斷，非直接證據]，事故造成騎士與2名行人共3人受傷送醫 [1]；機車騎士當時之車速、注意狀態與行向來源未載 [1]。\n工程變數：來源未載 [1]\n交織說明：來源未載，無法判定工程是否放大人因 [1]。待查證：苗栗市中正路黃昏市場周邊路段之行人穿越設施間距與夜間照明配置為何？該路段於人車密集時段，是否採取依速度與質量的實體保護（指針對速度落差的實體隔離，非車種側分），或透過車道縮減、實體減速丘、幾何彎線將行車速度降至 30km/h，以降低碰撞動能（½mv²）落差？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：[3]\n審查結果：□ 未交代分母的統計：台中市政府交通局引述交通部公布之115年1至6月30日內交通事故死亡統計，指台中市整體30日死亡人數為143人、較112年同期減少35人（下降19.7%），並宣稱上半年行人事故死亡降逾5成、交通安全改善成效居六都前段，惟僅列絕對死亡人數與降幅，未交代對應期間之車流量或行人旅次等暴露量分母，待查證單位暴露量之實際事故風險率變化為何 [3]；□ 時間窗口操縱：115年1至6月數據直接以112年同期作為比較基準，未呈現113年與114年同期統計，待查證跨三年選取基準年而非逐年對照是否影響降幅評估與呈現 [3]。",
+        "input_text": "[1] 標題：苗栗黃昏市場驚見「2行人被撞飛」！疑違規過馬路遇禍 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞\n    摘要：苗栗市中正路黃昏市場昨（1日）晚間發生行人遭機車撞擊事故，造成騎士與2名行人共3人受傷送醫，警方初步研判是2名行人未依規定穿越道路引發碰撞。車禍現場。（圖／民眾提供）據苗栗分局今天公布的相關資訊\n\n[2] 標題：北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞\n    摘要：台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物\n\n[3] 標題：台中上半年行人事故死亡降逾5成 交通安全改善成效居六都前段 - PChome Online 新聞\n    摘要：【今傳媒記者王于誠 報導】 台中市政府交通局表示，交通部27日公布115年1至6月30日內交通事故死亡統計，台中市整體30日死亡人數為143人，較112年同期減少35人，下降19.7%。其中，行人30日內死亡人數降至1\n\n[4] 標題：北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - tw.news.yahoo.com\n    摘要：台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物品的安全隱憂。\n\n[5] 標題：婦騎車未讓行人！ 台中長髮男攔停 怒揍後座夫 - tw.news.yahoo.com\n    摘要：（僅標題）",
+        "sources": [
+          {
+            "link": "https://news.pchome.com.tw/society/ctinews/20260802/index-78563715219368309002.html",
+            "title": "苗栗黃昏市場驚見「2行人被撞飛」！疑違規過馬路遇禍 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞",
+            "published": "2026-08-02",
+            "summary": "苗栗市中正路黃昏市場昨（1日）晚間發生行人遭機車撞擊事故，造成騎士與2名行人共3人受傷送醫，警方初步研判是2名行人未依規定穿越道路引發碰撞。車禍現場。（圖／民眾提供）據苗栗分局今天公布的相關資訊"
+          },
+          {
+            "link": "https://news.pchome.com.tw/society/ctinews/20260902/index-78831481936021309002.html",
+            "title": "北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞",
+            "published": "2026-09-02",
+            "summary": "台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物"
+          },
+          {
+            "link": "https://news.pchome.com.tw/living/focusnews/20260829/index-78797904256144302009.html",
+            "title": "台中上半年行人事故死亡降逾5成 交通安全改善成效居六都前段 - PChome Online 新聞",
+            "published": "2026-08-29",
+            "summary": "【今傳媒記者王于誠 報導】 台中市政府交通局表示，交通部27日公布115年1至6月30日內交通事故死亡統計，台中市整體30日死亡人數為143人，較112年同期減少35人，下降19.7%。其中，行人30日內死亡人數降至1"
+          },
+          {
+            "link": "https://tw.news.yahoo.com/%E5%8C%97%E5%B8%82%E8%8A%B1%E7%9B%86%E9%AB%98%E7%A9%BA%E7%A0%B8%E8%90%BD-%E9%A8%8E%E5%A3%AB%E5%81%9C%E8%AE%93%E8%A1%8C%E4%BA%BA-%E5%B7%AE1%E7%A7%92%E9%9A%AA%E8%A2%AB%E7%A0%B8%E4%B8%AD-020659729.html",
+            "title": "北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - tw.news.yahoo.com",
+            "published": "2026-09-02",
+            "summary": "台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物品的安全隱憂。"
+          },
+          {
+            "link": "https://tw.news.yahoo.com/%E5%A9%A6%E9%A8%8E%E8%BB%8A%E6%9C%AA%E8%AE%93%E8%A1%8C%E4%BA%BA-%E5%8F%B0%E4%B8%AD%E9%95%B7%E9%AB%AE%E7%94%B7%E6%94%94%E5%81%9C-%E6%80%92%E6%8F%8D%E5%BE%8C%E5%BA%A7%E5%A4%AB-085100952.html",
+            "title": "婦騎車未讓行人！ 台中長髮男攔停 怒揍後座夫 - tw.news.yahoo.com",
+            "published": "2026-08-30",
+            "summary": "婦騎車未讓行人！ 台中長髮男攔停 怒揍後座夫 tw.news.yahoo.com"
+          }
+        ],
+        "title_only_ids": [
+          5
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 49.6,
+        "usage": {
+          "promptTokenCount": 2487,
+          "candidatesTokenCount": 510,
+          "totalTokenCount": 8319,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2487
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 510
+            }
+          ],
+          "thoughtsTokenCount": 5322,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      },
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 0篇 ／ [工程未見放大] 0篇 ／ [工程資料未載] 1篇 ／ [非事故] 4篇\n代表個案：[1]\n人因變數：[1] 中警方初步研判為 2 名行人未依規定穿越道路引發碰撞 [推斷，非直接證據]；機車騎士之行車速度、視線與操作行為來源未載。\n工程變數：來源未載\n交織說明：來源未載，無法判定工程是否放大人因。待查證：[1] 事故地點苗栗市中正路黃昏市場周邊是否具備車道縮減、實體減速丘等物理降速工程以降低碰撞動能？該路段行穿線間距、號誌配置與晚間照明條件是否影響行人穿越動線與騎士可視距？\n\n### 二、 政經變數審查\n觸發條件：無觸發條件，不適用\n審查結果：不適用\n\n### 三、 官方論述偏誤\n觸發條件：[3]\n審查結果：□ 未交代分母的統計：[3] 引述台中市政府交通局說法與交通部 115 年 1 至 6 月 30 日內交通事故死亡統計，指台中市整體 30 日死亡人數為 143 人、較 112 年同期減少 35 人（下降 19.7%），標題並稱上半年行人事故死亡降逾 5 成，但僅呈現死亡人數與降幅，未交代同期車流量或行人步行量等暴露量分母數據。 □ 時間窗口操縱：[3] 以 115 年 1 至 6 月對比 112 年同期作為成效基準，未呈現相鄰之 113 年與 114 年同期數據，比較基準跳過中間年度，待查證 112 年同期是否為相對高峰基期及近兩年同期實際變動趨勢。",
+        "input_text": "[1] 標題：苗栗黃昏市場驚見「2行人被撞飛」！疑違規過馬路遇禍 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞\n    摘要：苗栗市中正路黃昏市場昨（1日）晚間發生行人遭機車撞擊事故，造成騎士與2名行人共3人受傷送醫，警方初步研判是2名行人未依規定穿越道路引發碰撞。車禍現場。（圖／民眾提供）據苗栗分局今天公布的相關資訊\n\n[2] 標題：北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞\n    摘要：台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物\n\n[3] 標題：台中上半年行人事故死亡降逾5成 交通安全改善成效居六都前段 - PChome Online 新聞\n    摘要：【今傳媒記者王于誠 報導】 台中市政府交通局表示，交通部27日公布115年1至6月30日內交通事故死亡統計，台中市整體30日死亡人數為143人，較112年同期減少35人，下降19.7%。其中，行人30日內死亡人數降至1\n\n[4] 標題：北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - tw.news.yahoo.com\n    摘要：台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物品的安全隱憂。\n\n[5] 標題：婦騎車未讓行人！ 台中長髮男攔停 怒揍後座夫 - tw.news.yahoo.com\n    摘要：（僅標題）",
+        "sources": [
+          {
+            "link": "https://news.pchome.com.tw/society/ctinews/20260802/index-78563715219368309002.html",
+            "title": "苗栗黃昏市場驚見「2行人被撞飛」！疑違規過馬路遇禍 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞",
+            "published": "2026-08-02",
+            "summary": "苗栗市中正路黃昏市場昨（1日）晚間發生行人遭機車撞擊事故，造成騎士與2名行人共3人受傷送醫，警方初步研判是2名行人未依規定穿越道路引發碰撞。車禍現場。（圖／民眾提供）據苗栗分局今天公布的相關資訊"
+          },
+          {
+            "link": "https://news.pchome.com.tw/society/ctinews/20260902/index-78831481936021309002.html",
+            "title": "北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - 社會新聞 - PChome Online 新聞 - PChome Online 新聞",
+            "published": "2026-09-02",
+            "summary": "台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物"
+          },
+          {
+            "link": "https://news.pchome.com.tw/living/focusnews/20260829/index-78797904256144302009.html",
+            "title": "台中上半年行人事故死亡降逾5成 交通安全改善成效居六都前段 - PChome Online 新聞",
+            "published": "2026-08-29",
+            "summary": "【今傳媒記者王于誠 報導】 台中市政府交通局表示，交通部27日公布115年1至6月30日內交通事故死亡統計，台中市整體30日死亡人數為143人，較112年同期減少35人，下降19.7%。其中，行人30日內死亡人數降至1"
+          },
+          {
+            "link": "https://tw.news.yahoo.com/%E5%8C%97%E5%B8%82%E8%8A%B1%E7%9B%86%E9%AB%98%E7%A9%BA%E7%A0%B8%E8%90%BD-%E9%A8%8E%E5%A3%AB%E5%81%9C%E8%AE%93%E8%A1%8C%E4%BA%BA-%E5%B7%AE1%E7%A7%92%E9%9A%AA%E8%A2%AB%E7%A0%B8%E4%B8%AD-020659729.html",
+            "title": "北市花盆高空砸落！騎士停讓行人 差1秒險被砸中 - tw.news.yahoo.com",
+            "published": "2026-09-02",
+            "summary": "台北市許昌街於8月31日下午發生花盆墜落意外，並砸在機車騎士的正前方，所幸該騎士當時正停讓行人，才得以躲過一劫，現場未有人員受傷。由於此意外發生在車流量大、人來人往的路口，引發民眾對高空掉落物品的安全隱憂。"
+          },
+          {
+            "link": "https://tw.news.yahoo.com/%E5%A9%A6%E9%A8%8E%E8%BB%8A%E6%9C%AA%E8%AE%93%E8%A1%8C%E4%BA%BA-%E5%8F%B0%E4%B8%AD%E9%95%B7%E9%AB%AE%E7%94%B7%E6%94%94%E5%81%9C-%E6%80%92%E6%8F%8D%E5%BE%8C%E5%BA%A7%E5%A4%AB-085100952.html",
+            "title": "婦騎車未讓行人！ 台中長髮男攔停 怒揍後座夫 - tw.news.yahoo.com",
+            "published": "2026-08-30",
+            "summary": "婦騎車未讓行人！ 台中長髮男攔停 怒揍後座夫 tw.news.yahoo.com"
+          }
+        ],
+        "title_only_ids": [
+          5
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 44.7,
+        "usage": {
+          "promptTokenCount": 2487,
+          "candidatesTokenCount": 465,
+          "totalTokenCount": 6832,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2487
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 465
+            }
+          ],
+          "thoughtsTokenCount": 3880,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      }
+    ],
+    "2026-10-26｜機車事故 · 機車": [
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 1篇 ／ [工程未見放大] 1篇 ／ [工程資料未載] 4篇 ／ [非事故] 0篇\n代表個案：[1]、[2]（僅標題）\n人因變數：[1] 林姓女騎士行經建工路遇紅燈，以「高雄式左轉」違規左轉大順二路並與直行賓士車碰撞，來源載明有撞擊畫面曝光 [直接證據]，惟直行車75歲陳姓駕駛之車速與反應狀態來源未載 [1]；[2]（僅標題）僅記載69歲男駕車衝撞待轉區6機車，導致衝撞之具體駕駛行為來源未載 [2]（僅標題）。\n工程變數：[1] 僅載明建工路與大順二路路口設有紅燈號誌，其餘車道幾何、速限、號誌時相與物理限速設施來源未載 [1]；[2]（僅標題）僅載明設有「待轉區」設施，其餘設置位置、幾何設計與實體保護條件來源未載 [2]（僅標題）。對照荷蘭持續路依速度與質量之同質性原則（透過依速度的實體保護〔非車種側分〕「或」降速至 30km/h 以縮小動能 ½mv² 落差，並消滅直行與轉向同相位交織）及日本生活道路30之物理限速工程（車道縮減、實體減速丘、幾何彎線），兩案來源均未載明相關幾何與速限數據，無從斷言現場工程是否符合標準。\n交織說明：[1] 歸為人因主導，女騎士遇紅燈違規左轉進入直行車動線為衝突發生的充分條件，且來源未載明放大此動作之工程條件 [1]，但必須追問「高雄式左轉」為何在台灣路網允許普遍化——待查證：該路口號誌週期與左轉動線設計是否提高合規左轉之時間成本？該路段行車速率是否過高，致使質量與速度差異產生之動能 ½mv² 衝擊致死，以及現場是否具備依速度的實體保護（非車種側分）或以物理限速工程降速至 30km/h 之設計空間？[2]（僅標題）歸為工程未見放大，來源雖提及待轉區設施與6騎士受傷送醫，但未載明駕駛肇事原因與設施幾何條件，無法判定待轉區設計如何放大人因錯誤 [2]（僅標題）；待查證：該待轉區設置位置是否暴露於車流行進軌跡中，以及周邊路段是否具備依速度的實體保護（非車種側分）或物理限速降速至 30km/h 之設計？\n\n### 二、 政經變數審查\n觸發條件：[5]\n審查結果：來源明文提及之執法方式與罰款機制為：針對周姓男子倒車撞倒路邊機車後扶起離去之案件，警方調閱監視器循線查出駕駛，依違反道交條例告發，最高可罰3000元，另吊扣駕照一個月 [5]。\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+        "input_text": "[1] 標題：機車女騎士違規「高雄式左轉」慘遭賓士撞飛畫面曝送醫宣告不治| 社會萬象| 社會 - UDN\n    摘要：林姓女子前晚7時10分許騎機車行經高市建工路遇紅燈，卻以「高雄式左轉」違規左轉大順二路，當場遭直行駕賓士車的75歲陳姓男子撞擊，林女噴飛在地，經送醫因傷重仍宣告不治。\n\n[2] 標題：69歲男駕車衝撞待轉區6機車 台中西屯6騎士受傷送醫 - marketersgo.com\n    摘要：（僅標題）\n\n[3] 標題：左轉跟著前車衝！平鎮男與直行機車碰撞騎士受傷送醫| 社會萬象| 社會 - UDN\n    摘要：桃園平鎮環南路與金陵路口發生車禍，52歲張男左轉時疑跟隨前車，與直行重機碰撞，19歲騎士多處擦挫傷送醫，無生命危險，雙方酒測均為0。\n\n[4] 標題：遊覽車疑超車與機車碰撞 女騎士摔傷送醫 - UDN\n    摘要：台中市東勢區東關路今天下午發生遊覽車和機車碰撞車禍，疑因超車碰撞後，女騎士摔車受傷送醫，肇事原因由警方調查中。\n\n[5] 標題：影／倒車撞倒機車扶起就走男自認「恢復原狀」挨罰還吊照| 社會萬象| 社會 - UDN\n    摘要：台中市南區高工路上月底發生一起肇事逃逸的車禍，周姓男子開車倒車時撞倒路邊機車，下車將機車扶起後，自認已「恢復原狀」便逕自離去，未留下任何聯絡資訊。車主發現愛車多處受損報警，警方調閱監視器循線查出周男，依違反道交條例告發，最高可罰3000元，另吊扣周男駕照一個月。\n\n[6] 標題：台中豐原機車擦撞轎車父與3歲幼女倒地送醫| 社會萬象| 社會 - UDN\n    摘要：台中市豐原區27歲蔣姓男子4日晚間騎機車載著3歲女兒，行駛間機車突然向左偏移，與另輛轎車擦撞，蔣男、女兒倒地，全身多處擦...",
+        "sources": [
+          {
+            "link": "https://udn.com/news/story/7320/9707722",
+            "title": "機車女騎士違規「高雄式左轉」慘遭賓士撞飛畫面曝送醫宣告不治| 社會萬象| 社會 - UDN",
+            "published": "2026-08-22",
+            "summary": "林姓女子前晚7時10分許騎機車行經高市建工路遇紅燈，卻以「高雄式左轉」違規左轉大順二路，當場遭直行駕賓士車的75歲陳姓男子撞擊，林女噴飛在地，經送醫因傷重仍宣告不治。"
+          },
+          {
+            "link": "https://www.marketersgo.com/media-collaboration/202609/69%E6%AD%B2%E7%94%B7%E9%A7%95%E8%BB%8A%E8%A1%9D%E6%92%9E%E5%BE%85%E8%BD%89%E5%8D%806%E6%A9%9F%E8%BB%8A%E3%80%80%E5%8F%B0%E4%B8%AD%E8%A5%BF%E5%B1%AF6%E9%A8%8E%E5%A3%AB%E5%8F%97%E5%82%B7%E9%80%81/",
+            "title": "69歲男駕車衝撞待轉區6機車 台中西屯6騎士受傷送醫 - marketersgo.com",
+            "published": "2026-09-15",
+            "summary": "69歲男駕車衝撞待轉區6機車 台中西屯6騎士受傷送醫 marketersgo.com"
+          },
+          {
+            "link": "https://udn.com/news/story/7320/9826090",
+            "title": "左轉跟著前車衝！平鎮男與直行機車碰撞騎士受傷送醫| 社會萬象| 社會 - UDN",
+            "published": "2026-10-20",
+            "summary": "桃園平鎮環南路與金陵路口發生車禍，52歲張男左轉時疑跟隨前車，與直行重機碰撞，19歲騎士多處擦挫傷送醫，無生命危險，雙方酒測均為0。"
+          },
+          {
+            "link": "https://udn.com/news/story/7320/9805465",
+            "title": "遊覽車疑超車與機車碰撞 女騎士摔傷送醫 - UDN",
+            "published": "2026-10-09",
+            "summary": "台中市東勢區東關路今天下午發生遊覽車和機車碰撞車禍，疑因超車碰撞後，女騎士摔車受傷送醫，肇事原因由警方調查中。"
+          },
+          {
+            "link": "https://udn.com/vote2026/story/7320/9811238",
+            "title": "影／倒車撞倒機車扶起就走男自認「恢復原狀」挨罰還吊照| 社會萬象| 社會 - UDN",
+            "published": "2026-10-13",
+            "summary": "台中市南區高工路上月底發生一起肇事逃逸的車禍，周姓男子開車倒車時撞倒路邊機車，下車將機車扶起後，自認已「恢復原狀」便逕自離去，未留下任何聯絡資訊。車主發現愛車多處受損報警，警方調閱監視器循線查出周男，依違反道交條例告發，最高可罰3000元，另吊扣周男駕照一個月。"
+          },
+          {
+            "link": "https://udn.com/news/story/7320/9795086?from=udn-ch1_breaknews-1-cate2-news",
+            "title": "台中豐原機車擦撞轎車父與3歲幼女倒地送醫| 社會萬象| 社會 - UDN",
+            "published": "2026-10-05",
+            "summary": "台中市豐原區27歲蔣姓男子4日晚間騎機車載著3歲女兒，行駛間機車突然向左偏移，與另輛轎車擦撞，蔣男、女兒倒地，全身多處擦..."
+          }
+        ],
+        "title_only_ids": [
+          2
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 102.6,
+        "usage": {
+          "promptTokenCount": 2556,
+          "candidatesTokenCount": 796,
+          "totalTokenCount": 14312,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2556
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 796
+            }
+          ],
+          "thoughtsTokenCount": 10960,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      },
+      {
+        "text": "### 一、 事故因果解構\n交織度分布：[工程主導] 0篇 ／ [雙因交織] 0篇 ／ [人因主導] 1篇 ／ [工程未見放大] 1篇 ／ [工程資料未載] 4篇 ／ [非事故] 0篇\n代表個案：[1]、[2]（僅標題）\n人因變數：[1] 林姓女騎士行經高市建工路遇紅燈，仍以「高雄式左轉」違規左轉大順二路，報導標題載明「畫面曝」，屬 [直接證據]；直行賓士車 75 歲陳姓駕駛之車速、視線與反應決策則來源未載。[2]（僅標題）僅載明 69 歲男駕車衝撞待轉區 6 機車，其衝撞原因與個體駕駛決策來源未載。\n工程變數：[1] 來源僅載明高市建工路與大順二路口設有號誌（「遇紅燈」），其餘路口幾何、號誌時相配置、是否強制兩段式左轉與路段速限均來源未載；對照荷蘭持續路（功能單一化以消滅直行與轉向同相位交織，並依速度與質量落差採依速度的實體保護〔非台灣之車種側分〕「或」降速至 30 km/h，以降低動能 ½mv² 落差）及日本生活道路 30（以車道縮減、實體減速丘、幾何彎線等物理工程強迫降速），因現場幾何與速限條件未載，無法判定其工程差距。[2]（僅標題）來源僅載明台中西屯設有「待轉區」且發生汽車衝撞待轉區內 6 機車；該設施使 6 名靜止（速度為零）且低質量之用路人集中停等於行駛中高質量車輛可撞及之處，一旦撞擊即承受顯著動能 ½mv² 落差，對照荷蘭持續路同質性原則（依速度與質量處理衝突，解法有二：以依速度的實體保護〔非台灣之車種側分〕隔開動能差異過大之用路人，「或」配合日本生活道路 30 之車道縮減、實體減速丘、幾何彎線等物理工程將車速降至 30 km/h），但該待轉區位置、防護設施與路段速限均來源未載，無法斷言現場是否已採上述任一解法。\n交織說明：[1] 來源僅載明號誌「遇紅燈」，未見已載明之工程條件放大人因錯誤（兩車質量落差屬混合行駛常見條件，不得單獨作為放大機制），且畫面顯示騎士闖紅燈左轉已構成充分條件；惟依 [人因主導] 審查原則，必須追問「高雄式左轉」此類行為為何在台灣路網允許普遍化——待查證：建工路與大順二路口是否強制兩段式左轉、左轉時相與紅燈停等秒數是否誘發違規繞行，以及大順二路車道寬度與速限是否使直行車動能過高而提高致死率？[2]（僅標題）雖載明「待轉區」設施，但未載明衝撞成因與待轉區幾何、防護及速限條件，無法自文本判定哪項工程條件放大人因錯誤；待查證：該待轉區是否凸出於行車動線、是否具依速度的實體保護（非車種側分）或配合降速至 30 km/h 之物理減速工程，以及 69 歲駕駛衝撞之具體成因為何？\n\n### 二、 政經變數審查\n觸發條件：[5]\n審查結果：來源明文提及之制度做法為：針對開車倒車撞倒路邊機車後未留聯絡資訊逕自離去之肇事逃逸案，警方調閱監視器循線查出駕駛人，依違反道交條例告發，最高可罰 3000 元，另吊扣駕駛人駕照一個月 [5]。\n\n### 三、 官方論述偏誤\n觸發條件：無官方統計宣稱，不適用\n審查結果：不適用",
+        "input_text": "[1] 標題：機車女騎士違規「高雄式左轉」慘遭賓士撞飛畫面曝送醫宣告不治| 社會萬象| 社會 - UDN\n    摘要：林姓女子前晚7時10分許騎機車行經高市建工路遇紅燈，卻以「高雄式左轉」違規左轉大順二路，當場遭直行駕賓士車的75歲陳姓男子撞擊，林女噴飛在地，經送醫因傷重仍宣告不治。\n\n[2] 標題：69歲男駕車衝撞待轉區6機車 台中西屯6騎士受傷送醫 - marketersgo.com\n    摘要：（僅標題）\n\n[3] 標題：左轉跟著前車衝！平鎮男與直行機車碰撞騎士受傷送醫| 社會萬象| 社會 - UDN\n    摘要：桃園平鎮環南路與金陵路口發生車禍，52歲張男左轉時疑跟隨前車，與直行重機碰撞，19歲騎士多處擦挫傷送醫，無生命危險，雙方酒測均為0。\n\n[4] 標題：遊覽車疑超車與機車碰撞 女騎士摔傷送醫 - UDN\n    摘要：台中市東勢區東關路今天下午發生遊覽車和機車碰撞車禍，疑因超車碰撞後，女騎士摔車受傷送醫，肇事原因由警方調查中。\n\n[5] 標題：影／倒車撞倒機車扶起就走男自認「恢復原狀」挨罰還吊照| 社會萬象| 社會 - UDN\n    摘要：台中市南區高工路上月底發生一起肇事逃逸的車禍，周姓男子開車倒車時撞倒路邊機車，下車將機車扶起後，自認已「恢復原狀」便逕自離去，未留下任何聯絡資訊。車主發現愛車多處受損報警，警方調閱監視器循線查出周男，依違反道交條例告發，最高可罰3000元，另吊扣周男駕照一個月。\n\n[6] 標題：台中豐原機車擦撞轎車父與3歲幼女倒地送醫| 社會萬象| 社會 - UDN\n    摘要：台中市豐原區27歲蔣姓男子4日晚間騎機車載著3歲女兒，行駛間機車突然向左偏移，與另輛轎車擦撞，蔣男、女兒倒地，全身多處擦...",
+        "sources": [
+          {
+            "link": "https://udn.com/news/story/7320/9707722",
+            "title": "機車女騎士違規「高雄式左轉」慘遭賓士撞飛畫面曝送醫宣告不治| 社會萬象| 社會 - UDN",
+            "published": "2026-08-22",
+            "summary": "林姓女子前晚7時10分許騎機車行經高市建工路遇紅燈，卻以「高雄式左轉」違規左轉大順二路，當場遭直行駕賓士車的75歲陳姓男子撞擊，林女噴飛在地，經送醫因傷重仍宣告不治。"
+          },
+          {
+            "link": "https://www.marketersgo.com/media-collaboration/202609/69%E6%AD%B2%E7%94%B7%E9%A7%95%E8%BB%8A%E8%A1%9D%E6%92%9E%E5%BE%85%E8%BD%89%E5%8D%806%E6%A9%9F%E8%BB%8A%E3%80%80%E5%8F%B0%E4%B8%AD%E8%A5%BF%E5%B1%AF6%E9%A8%8E%E5%A3%AB%E5%8F%97%E5%82%B7%E9%80%81/",
+            "title": "69歲男駕車衝撞待轉區6機車 台中西屯6騎士受傷送醫 - marketersgo.com",
+            "published": "2026-09-15",
+            "summary": "69歲男駕車衝撞待轉區6機車 台中西屯6騎士受傷送醫 marketersgo.com"
+          },
+          {
+            "link": "https://udn.com/news/story/7320/9826090",
+            "title": "左轉跟著前車衝！平鎮男與直行機車碰撞騎士受傷送醫| 社會萬象| 社會 - UDN",
+            "published": "2026-10-20",
+            "summary": "桃園平鎮環南路與金陵路口發生車禍，52歲張男左轉時疑跟隨前車，與直行重機碰撞，19歲騎士多處擦挫傷送醫，無生命危險，雙方酒測均為0。"
+          },
+          {
+            "link": "https://udn.com/news/story/7320/9805465",
+            "title": "遊覽車疑超車與機車碰撞 女騎士摔傷送醫 - UDN",
+            "published": "2026-10-09",
+            "summary": "台中市東勢區東關路今天下午發生遊覽車和機車碰撞車禍，疑因超車碰撞後，女騎士摔車受傷送醫，肇事原因由警方調查中。"
+          },
+          {
+            "link": "https://udn.com/vote2026/story/7320/9811238",
+            "title": "影／倒車撞倒機車扶起就走男自認「恢復原狀」挨罰還吊照| 社會萬象| 社會 - UDN",
+            "published": "2026-10-13",
+            "summary": "台中市南區高工路上月底發生一起肇事逃逸的車禍，周姓男子開車倒車時撞倒路邊機車，下車將機車扶起後，自認已「恢復原狀」便逕自離去，未留下任何聯絡資訊。車主發現愛車多處受損報警，警方調閱監視器循線查出周男，依違反道交條例告發，最高可罰3000元，另吊扣周男駕照一個月。"
+          },
+          {
+            "link": "https://udn.com/news/story/7320/9795086?from=udn-ch1_breaknews-1-cate2-news",
+            "title": "台中豐原機車擦撞轎車父與3歲幼女倒地送醫| 社會萬象| 社會 - UDN",
+            "published": "2026-10-05",
+            "summary": "台中市豐原區27歲蔣姓男子4日晚間騎機車載著3歲女兒，行駛間機車突然向左偏移，與另輛轎車擦撞，蔣男、女兒倒地，全身多處擦..."
+          }
+        ],
+        "title_only_ids": [
+          2
+        ],
+        "counts": {
+          "missing_section": 0,
+          "id_out_of_range": 0,
+          "interweave_sum": 0,
+          "replacement_new_number": 0,
+          "deletion_over_cap": 0
+        },
+        "hits": {
+          "missing_section": [],
+          "id_out_of_range": [],
+          "interweave_sum": [],
+          "replacement_new_number": [],
+          "deletion_over_cap": []
+        },
+        "seconds": 140.2,
+        "usage": {
+          "promptTokenCount": 2556,
+          "candidatesTokenCount": 980,
+          "totalTokenCount": 17881,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 2556
+            }
+          ],
+          "candidatesTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 980
+            }
+          ],
+          "thoughtsTokenCount": 14345,
+          "serviceTier": "standard"
+        },
+        "finishReason": "STOP",
+        "sent": {
+          "maxOutputTokens": 65536,
+          "timeout": 600.0
+        },
+        "attempts": 1,
+        "failed_attempts": 0,
+        "modelVersion": "gemini-4-neon"
+      }
+    ]
+  }
+}
