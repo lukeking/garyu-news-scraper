@@ -22,12 +22,14 @@ def _ts(value: str) -> datetime:
 
 
 def step_seconds(jobs_payload: dict, job: str = JOB, step: str = STEP):
-    """回 (秒數, conclusion)；job 或那一步不在回 None。那一步在卻沒有起訖時間就丟 MeasureError，不補 0。"""
+    """回 (秒數, conclusion)；job 或那一步不在回 None，被跳過回 (None, "skipped")。那一步跑了卻沒有起訖時間就丟 MeasureError，不補 0。"""
     for j in jobs_payload.get("jobs") or []:
         if j.get("name") != job:
             continue
         for s in j.get("steps") or []:
             if s.get("name") == step:
+                if s.get("conclusion") == "skipped":
+                    return None, "skipped"
                 if not s.get("started_at") or not s.get("completed_at"):
                     raise MeasureError(f"「{step}」沒有起訖時間（conclusion={s.get('conclusion')}）")
                 return (_ts(s["completed_at"]) - _ts(s["started_at"])).total_seconds(), s.get("conclusion")
@@ -38,7 +40,7 @@ def summary_line(rows: list, slow: float) -> str:
     measured = [r["seconds"] for r in rows if r["seconds"] is not None]
     if not measured:
         raise MeasureError(f"{len(rows)} 次裡沒有一次量到「{STEP}」：步驟改名了，或這些 run 都還沒跑到")
-    return (f"量到 {len(measured)} 次（另 {len(rows) - len(measured)} 次沒有那一步）：中位數 {statistics.median(measured):.0f} 秒、"
+    return (f"量到 {len(measured)} 次（另 {len(rows) - len(measured)} 次沒量到，原因見各列）：中位數 {statistics.median(measured):.0f} 秒、"
             f"最長 {max(measured):.0f} 秒、超過 {slow:g} 秒 {sum(1 for s in measured if s > slow)} 次")
 
 

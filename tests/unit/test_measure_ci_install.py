@@ -42,9 +42,15 @@ def test_step_without_end_time_refuses():
         m.step_seconds(_jobs(running))
 
 
+def test_skipped_step_is_not_a_measurement():
+    """前面的步驟失敗時這一步被跳過，起訖時間相同；算成 0 秒會把中位數往下拉。"""
+    skipped = dict(INSTALL, completed_at=INSTALL["started_at"], conclusion="skipped")
+    assert m.step_seconds(_jobs(skipped)) == (None, "skipped")
+
+
 def test_summary_counts_only_measured_runs():
     rows = [{"seconds": 30.0}, {"seconds": 562.0}, {"seconds": 26.0}, {"seconds": None}]
-    assert m.summary_line(rows, slow=120) == "量到 3 次（另 1 次沒有那一步）：中位數 30 秒、最長 562 秒、超過 120 秒 1 次"
+    assert m.summary_line(rows, slow=120) == "量到 3 次（另 1 次沒量到，原因見各列）：中位數 30 秒、最長 562 秒、超過 120 秒 1 次"
 
 
 def test_summary_refuses_when_nothing_was_measured():
