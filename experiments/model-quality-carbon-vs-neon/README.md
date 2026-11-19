@@ -24,8 +24,8 @@ changelog 與定價頁是 2026-11-19 經摘要工具讀的，不是逐字讀。c
 - **裁判**：`gemini-2.5-pro` 盲評、位置對調，4 份 × 2 run × 2 位置 = 16 次。評分準則、裁判的 system prompt 與版型和上一輪逐字相同（用 `ast` 比對過兩支腳本的常數）。
 
 **存檔的 carbon 為什麼能當對照**：`HOT_TOPIC_PROMPT_TEMPLATE`、`HOT_TOPIC_SYSTEM_PROMPT`、`HOT_SUMMARY_CHARS`、`build_hot_topic_input` 與整支
-`scripts/replay_report_review.py`，在上一輪分支的 tip `2fd019f` 與這一輪的基準 `c592a87` 之間逐字相同；`analyze_hot_topic` 與 `_call_gemini` 只多了模型、
-輸出上限、timeout 的參數與沒有 parts 時的處理。`run` 另外逐次比對 neon 看到的清單與存檔的 `input_text`，不同就停。
+`scripts/replay_report_review.py`，在上一輪分支的 tip `2fd019f` 與這一輪的基準 `c592a87` 之間逐字相同；`analyze_hot_topic` 與 `_call_gemini` 多了模型、
+輸出上限、timeout 的參數與沒有 parts 時的處理，另加了呼叫計數與一行 log，送出的內容不受影響。`run` 另外逐次比對 neon 看到的清單與存檔的 `input_text`，不同就停。
 
 **沒有比的**：neon 對 3.8 沒有直接比（上一輪 carbon 對 3.8 是 L2）；彙整、FFXIV、auto-KB；政策類與科技執法的兩份三軸；neon 的 thinking level 只跑預設值。
 
@@ -109,7 +109,8 @@ neon 勝的那一份差在 carbon 的分布寫了 [工程未見放大] 1 篇卻�
 
 - **輸入規模**：這 4 份的生成輸入是 587～1,005 字（prompt 2,405～2,721 tokens）；三軸的理論上限約 6,600 字（10 篇 × 600 字摘要）。
   上一輪 carbon 的三軸 12 次裡，輸入字數對 thinking 的相關是 −0.19，輸入大小預測不了 thinking。
-- **尾巴沒量到**：carbon 的三軸 12 次有 2 次是單次嘗試跑滿 600 秒才重試成功（746 秒、718 秒）；neon 8 次裡 0 次。如果 neon 的比例也是六分之一，
+- **尾巴沒量到**：carbon 的三軸 12 次有 2 次總秒數超過 600 秒的 timeout（746 秒、718 秒），所以中間至少重試過一次；上一輪沒有記嘗試次數，
+  「第一次嘗試跑滿 timeout」是推論，也可能是伺服器錯誤之後的重試。neon 8 次都是一次嘗試。如果 neon 的比例也是六分之一，
   8 次都沒遇到的機率約 23%，所以這一輪不能說 neon 沒有這個尾巴。跑滿 timeout 被放棄的嘗試照樣計費，usage 拿不到。
 - **換工作量就不成立**：同一套設定（carbon、輸出上限 65536）用在另一個專案較重的工作量時，撞到 65536 的上限，放寬後單次超過 500K tokens、八九成是 thinking，
   一個階段跑了 20 分鐘沒有跑完（2026-11-19 得知的觀測，不是這個 repo 量的）。這裡量到的上限與 timeout 只對這裡的輸入成立。
@@ -120,7 +121,7 @@ neon 勝的那一份差在 carbon 的分布寫了 [工程未見放大] 1 篇卻�
 - **模型**：傾向 neon（未定案，2026-11-19）——品質分不出來、12-01 起略便宜、這 8 次比較快。差距小，照原訂換 carbon 也說得通。
 - **輸出上限留在 65536**：它同時是單次呼叫的費用上限，用滿時 neon 約 $0.98、carbon 12-01 起約 $1.31。量到的最大值是上限的三成。
 - **timeout 與重試**：`weekly-traffic.yml` 沒有傳 `GEMINI_MAX_RETRIES`，prod 是預設的 8 次，單次呼叫最長是 timeout × 8——600 秒時 80 分鐘、300 秒時 40 分鐘，
-  都超過那支 workflow 的 `timeout-minutes: 25`。觀測到成功的單次嘗試最長是 neon 172.5 秒、carbon 211.7 秒。提案：timeout 設 300 秒，不照評比用的 600 秒；
+  都超過那支 workflow 的 `timeout-minutes: 25`。neon 8 次都是一次嘗試，最長 172.5 秒；carbon 沒超過 timeout 的最長一次是 211.7 秒（上一輪沒記嘗試次數，當成單次嘗試是推論）。提案：timeout 設 300 秒，不照評比用的 600 秒；
   三軸那條路徑的重試次數要不要另外設上限未定（要動 workflow 或程式）。
 
 ### 之後
