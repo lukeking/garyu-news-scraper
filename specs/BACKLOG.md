@@ -53,7 +53,6 @@ python3 ~/.agents/bin/backlog.py remove specs/BACKLOG.md <id>                   
 | `GNS-20261019-1vk` | 模型評比的下一輪：新的 Gemini flash／pro GA，或 prod 的模型被自動轉送 | `trigger: none — 條件是 Gemini 官方 changelog 的公告，沒有檔案或指令是它的入口`<br>新的 Gemini 文字生成模型釋出 GA（官方 changelog 沒標 flash／pro 的也算，argon、carbon 都是）；或官方 changelog 公告 `GEMINI_MODEL_NAME` 那個模型 deprecated、被轉送（10-08 那次沒人看到，見本節「沒有執行者」）；2026-11-02 延後：changelog 讀到 10-30 那則，沒有新的 GA；2026-11-12 觸發：`gemini-4-carbon` 11-10 GA，那輪已跑（本節「2026-11-12」），Luke 定方向：按功能分模型；2026-11-19 觸發：`gemini-4-neon` 11-18 GA，縮小範圍的那輪已跑（本節「2026-11-19」） | 照 Luke 11-12 的方向、11-13 的範圍實作按功能分模型：三軸、彙整、FFXIV 的 `analyze_article`、auto-KB 四條各有自己的模型變數，沒設時退回 `GEMINI_MODEL_NAME`；三軸（交通熱點）換 carbon 或 neon（未定，見本節「2026-11-19」）並放寬那條路徑的輸出上限與 timeout，其餘三條先不設，prod 不早於 11-23 週報之後換；同一個 PR 讓 `_call_gemini` 遇到沒有 parts 的回應印一行原因、回 `None`（Luke 11-13，本節「2026-11-13」）；下一輪照 `experiments/model-quality-3p8flash-vs-carbon/` 的做法（018 重播素材、裁判看到與生成相同的輸入），但裁判 `gemini-2.5-pro` 12-01 起被轉給 3.8-flash，要先換裁判；開跑前先提縮小的範圍與費用估計，核過才跑（已定 2026-11-19） |
 | `GNS-20261019-3cq` | FFXIV 改 patch-triggered、套用聚合 digest（07-13 的方向決定；取樣那半已由 spec 019 做掉） | `trigger: none — 觸發是 Lodestone 收進編號 patch 公告那一週的週報讀回，沒有檔案或指令是它的入口`<br>FFXIV 週報的 `FFXIV Lodestone JP 更新資訊` 收進編號 patch 公告的那一週，讀回時看論壇版的串數與內容夠不夠當 patch-triggered 的討論來源——原設計用 Reddit，Reddit 因 robots.txt 拿掉（11-10），要另找來源。聚合那半仍卡在日文來源（10-19：沒有進展）；2026-11-16 延後：11-16 是 019 上線後第一份讀回（候選池 10 篇，論壇版 9 串），連兩週要等 11-23 那一份；2026-11-23 延後（已定 2026-11-23）：連兩週的讀回做完（窗口內 11-16 是 9 串、11-23 是 13 串），兩週都沒有編號的 patch，看不出 patch 之後論壇的討論量，重開條件改成本格開頭的字面（本節「2026-11-23」） | 兩半各自開 spec，或寫明不做的理由並設重開條件 |
 | `GNS-20261019-dkm` | 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件 | `trigger: none — 條件是週驗收報告每週的 L1 判定，沒有檔案、skill 或指令是它的入口`<br>任意連續三週裡 L1 有兩週未過（週驗收 routine 每週判定，見本節「重開條件」）；2026-11-16 延後：常設追蹤列，11-16 的 L1 是 26（過），11-02／11-09／11-16 三週都過，重開條件沒有成立 | 條件成立時開 spec 補來源，或再關一次並寫明理由；11-09 週報後把 10-19 起四週的 SC-001 L1／L2 寫進本節（本列不因此移出） |
-| `GNS-20261013-4g9` | 週報拆成兩個 workflow（traffic／FFXIV） | `pre-edit: {"paths":[".github/workflows/weekly.yml"]}`<br>下次動 `.github/workflows/weekly.yml`，或週報 run 耗時 ≥ 20 分（timeout 30 分）時；2026-10-28 延後：10-05～10-26 的 run 為 8.3／9.1／10.3／10.8 分（startedAt→updatedAt）；2026-11-02 動了 `weekly.yml`（加 FFXIV 候選池 artifact 上傳）但不拆，Luke 裁示延後：11-02 是 14.3 分（job 14m20s，多出的 215 秒拆解在 `routines/weekly-verify/FOCUS.md` 的 runtime 基準），還沒到 20 分；2026-11-16 延後：11-16 是 6.2 分（job 6m09s，FFXIV 入選 10 篇），11-09 是 10.5 分，還沒到 20 分 | traffic 週報與 FFXIV 週報各自一個 workflow、各自設 `timeout-minutes`，部署步驟跟著拆，連兩週都成功；或寫明不拆的理由 |
 | `GNS-20261005-gg3` | 機車事故 require 表的真實 recall 未量 | `pre-edit: {"paths":["config/categories_traffic.yml","config/categories_traffic.example.yml"]}`<br>下次要改機車事故的 `require_any` token 表時；2026-10-28 延後：沒有下游在等，改表時才用得到 recall；2026-11-14 收窄（Luke）：宣告只能指到檔案，只改檔頭註解或別的類別不算碰到這一列，處置記 not done | 08-10 那 119 篇通過者人工標記完，recall 寫回本節（附標記檔位置） |
 | `GNS-20261005-24s` | 重新考慮正文抓取的做法（Actions IP 被媒體擋） | `trigger: none — 條件在 daily log 的 GN 充實摘要行裡，沒有檔案、skill 或指令是它的入口`<br>daily log 的 `GN 充實：…（失敗網域：…）` 裡，主流原生媒體（UDN／自由／中時／中央社／TVBS／三立）的網域是 403，或同一個主流原生媒體網域連續兩個 daily 都失敗（status 看同一份 log 的 `GN 充實失敗…status=` 那行）；或某個高價值來源持續 403；2026-10-28 延後：兩條都未成立（本節觀測記錄）；2026-11-11 再延後：11-10 的 `money.udn.com` 是 2 次逾時、不是 403，11-11 未再出現（本節觀測記錄）；2026-11-13 Luke 裁示收窄成上面的字面：單次逾時不算（本節「2026-11-13」） | 條件成立時評估 self-hosted runner／代理並開 spec，或再關一次並寫明理由 |
 | `GNS-009` | 桶分數門檻殺乾淨小桶 | `trigger: none — 基準集量測沒有排程；要綁 measure_relevance.py 得先在 bare 登記 bash 前綴`<br>基準集再量到同形狀的 on-topic 損失時（降門檻、改用過濾前分數兩條捷徑已量測否決）；2026-10-28 延後，並拿掉「有新解法可比時」：它不是會自己發生的事件 | 開 spec 比較候選解法，SC-004 從 L0 升到 L1；或寫明不做的理由 |
@@ -324,129 +323,6 @@ GNS-003 讓每日也做 og 充實，**請求量變 7 倍**。每天打同一批 
 **這 9 筆是下限，不是全部**：近失詞掃描只抓得到**清單裡列出的詞**，一篇用完全不同詞彙
 描述的真事故對這個掃描是隱形的。要拿到真實 recall 必須人工標記那 119 篇通過者
 （08-10 未做）。**不要把 9 當成「誤殺總數」引用**；本輪救回的 8 篇同樣是下限。
-
-## GNS-20261013-4g9 週報拆成兩個 workflow（traffic／FFXIV）
-
-**Gemini Batch API 的重開點**（2026-11-07，`GNS-20261021-5yg` 移出時寫入）：Batch 是非同步的（目標 24 小時，
-48 小時沒完成就過期），週報的熱點／彙整與 FFXIV 單篇要改用它，就得把呼叫拆成「送件」與「收件」兩次執行——
-這是 11-07 判定不採用的主因，正式呼叫端全部改用每月最多只省約 US$0.54（2027 起約 US$0.94）。
-本列拆的是 traffic／FFXIV，不是送件／收件，但動的是同一個 `weekly.yml`：拆的時候順便判斷要不要再拆成兩段，
-不拆就不用重看。判定與官方事實：`git log -S "GNS-20261021-5yg" -- specs/BACKLOG.md`。
-
-**2026-11-16**：這次在 `#218` 實作（已定 2026-11-16），目標是 11-22 前 merge，11-23 的排程週報是第一次拆開跑（已定 2026-11-16）。
-`#218` 原本的範圍是分模型變數的接線（`GNS-20261019-1vk`）；三個分模型變數在 11-23 之前不設，這一點不變（已定 2026-11-12）。
-
-拆法（提案，除了標已定的）：
-
-- 兩支正式的 workflow 各自排程、各自設 `timeout-minutes`、各自部署自己的站；用同一個 cron，各跑各的，不串接。
-  兩邊沒有共寫的列（`src/storage.py`：交通寫 `content_type='traffic'` 的 buffer 列與 `hot_topic_reports`；FFXIV 寫 FFXIV 的文章列，術語收錄寫 `knowledge_base`），共用的只有 Gemini 那把 key。
-- `src/main.py` 現在固定跑交通與 FFXIV 兩個類別（`CATEGORIES`），要先能只跑其中一類；沒指定時維持兩類都跑，不認得的值直接失敗。
-- `auto-kb.yml` 的 `workflow_run` 改認 FFXIV 那一支的名字。
-- `weekly-dry-run.yml` 維持一個檔，多一個必填的下拉選項選交通或 FFXIV；計數、比對、上傳共用。必填選項沒給時 GitHub 會拒絕觸發（020 的 `evaluation.md`，2026-11-16 實測 HTTP 422）。
-  `tests/unit/test_workflow_parity.py` 改成對兩支正式的檔各自比對。
-- 跟著改的：`routines/weekly-verify/PROMPT.md` 與 `FOCUS.md`（現在用 `--workflow weekly.yml` 找週報；要能處理一支跑完、另一支還沒）、
-  `.specify/memory/constitution.md` 點名 `weekly.yml` 的那一段、`README.md`、`docs/dry-run.md`、`docs/external-services.md`、`traffic_daily.yml` 的註解。
-  `PROMPT.md` 與憲章在 cold review 路徑上，merge 前要跑一輪。
-
-驗法：merge 前對這條分支觸發不發布的執行（兩個選項、兩級）；排程那一半只有 11-23 的實跑驗得到，這一列在那次讀回之後才移出。
-已知的限制：三軸的呼叫路徑要有 topic 通過 novelty gate 才會被走到，11-16 的排程週報與同一天兩次不發布的執行都沒有。
-
-**Review units**（2026-11-16；委派閘門：4 個 review unit，`delegate-long`，逐個依序委派；文件那一個沒有 runner，是 `degraded`）：
-
-| Unit | Outcome | Prerequisites | Verification | Review |
-|---|---|---|---|---|
-| 分模型變數（`GNS-20261019-1vk`，已審 2026-11-17，兩條 finding 修在 `778ed18`） | 四條呼叫路徑各讀自己的模型設定，沒設時退回共用的 | 無 | `tests/unit/test_per_function_models.py`、`test_digest_prompt.py`；突變 | `src/analyzer.py`、`scripts/auto_kb.py` 與這兩支測試 |
-| 類別選擇（`561dfc2`，已審 2026-11-17） | `main.py` 能只跑一類，契約在下面 | 無 | pytest，走真的 `main()`（比照 `tests/unit/test_main_dry_run.py`）；突變 | `src/main.py` 與新的測試檔 |
-| 拆 workflow（`5daf1c2`、`7e40cd2`、`1d8331d`，已審 2026-11-17：第一輪 REJECTED、第二輪 APPROVED） | 兩支正式的 workflow、`auto-kb.yml` 的觸發、`weekly-dry-run.yml` 的類別選項，三者由 parity 測試互相對住 | 類別選擇 | `tests/unit/test_workflow_parity.py`（含它的突變表）；對這條分支觸發不發布的執行 | `.github/workflows/` 與 parity 測試 |
-| 讀者端（`45a3be0`，`degraded`；cold review 2026-11-18，7 條修在 `9235287`） | routine 的 `PROMPT.md`／`FOCUS.md`、憲章、`README.md`、`docs/` 跟著改 | 拆 workflow（名字定了才寫得了） | 沒有 runner；cold review 一輪；殘留的 `weekly.yml` 指涉用搜尋對 | 上列文件 |
-
-另外兩個是驗證型，不算 review unit：對這條分支的實跑（020 的 T023）、11-23 排程的讀回。
-合或拆的理由：正式的兩支、不發布的一支與 parity 測試拆不開，中間任何一步 parity 都是紅的；類別選擇不靠 workflow 就驗得完，所以另外一個。
-
-**類別選擇的契約**（已定 2026-11-16 的是「能只跑一類、沒指定時兩類都跑、不認得的值直接失敗」；變數名與那一行的文字是提案）：
-
-- 環境變數 `GARYU_CATEGORY`，在 `main()` 執行時讀，只有一個地方讀它。值先去掉前後空白，大小寫要相同。
-- 沒設或空字串：兩類都跑，順序是 traffic → ffxiv；執行紀錄跟加這個變數之前逐行相同，不多印。
-- `traffic` 或 `ffxiv`：只跑那一類。在 `========== Garyu News Scraper 開始執行 ==========` 之後、第一個 `--- [<類別>] 開始處理 ---` 之前印一行
-  `[類別] 只跑 <選的>；略過 <沒選的>（GARYU_CATEGORY）`。沒選的那一類不 collect、不寫入、不印它自己的任何一行。
-- 其他任何值：在任何類別 collect 之前丟 `ValueError`，訊息有變數名、收到的值與認得的值；不能被逐類別的 `try` 吞掉，process 以非 0 結束。
-- 跟不發布的兩級可以同時用，`[不發布]` 的固定行照舊，只是只有那一類的；結尾的篇數只算跑了的那一類。
-
-**2026-11-17**：「類別選擇」（`561dfc2`）審過了：獨立 review APPROVED，物證逐條重跑過，紀錄在 `#218` 的留言（`issuecomment-6948130238`）。
-兩條 non-blocking finding 不修，理由在 review 帳本（`561dfc2-1`、`561dfc2-2`）。
-
-拆 workflow 定了的（已定 2026-11-17）：
-
-- 檔名 `weekly-traffic.yml` 與 `weekly-ffxiv.yml`，`weekly.yml` 刪掉；顯示名稱 `Garyu News Scraper 週報（交通）` 與 `Garyu News Scraper 週報（FFXIV）`。
-- `timeout-minutes`：交通 25、FFXIV 30，都取估出的最長耗時的約 2 倍（拆之前的 30 分對實測最長 15.2 分也是這個比例）。
-  來源是 09-07～11-16 十次排程週報的步驟耗時照類別重新加總，每支各算一次安裝與設定（18～26 秒）：
-  交通那一支 2.2～11.6 分，最長是 09-07（收集 100 篇）；FFXIV 那一支 3.9～9.8 分，都是入選 20 篇以下。
-  FFXIV 的入選上限 11-11 起是 30，還沒有一次跑滿；用最慢那次的每篇 28.3 秒（11-02）推算，30 篇約 14.6 分（推論）。
-  重算：步驟耗時取自 `gh api repos/<owner>/<repo>/actions/runs/<id>/jobs`，`python main.py` 那一步裡兩類的分界是 log 的 `--- [ffxiv] 開始處理 ---`。
-- 兩支的「驗證本週資料可由 Supabase 讀取」各加自己的 `content_type` 條件：原本的查詢不分類別，拆開後會被另一支寫的列滿足。
-  代價是某一類整週沒有寫入時，那一支會是紅的。
-- `main.py` 的退出碼不動。`561dfc2` 上的探針（在 collect 的邊界丟例外、各選一類）：紀錄是 `[<類別>] 處理失敗：…` 接
-  `所有 category 均無文章，結束執行`，退出碼 0。類別失敗由驗證那一步標紅：FFXIV 那一支的驗證在部署之前，會擋下部署；
-  交通那一支的驗證在部署之後，只標紅、不擋熱點分析與部署（已定 2026-11-17，見下面的契約）。
-
-還是提案的：`weekly-dry-run.yml` 的 `timeout-minutes` 維持 30（兩支裡較大的那個）；兩支用同一個 cron、不串接；
-`weekly-dry-run.yml` 維持一個檔、加類別的下拉選項；`GARYU_CATEGORY` 這個變數名與 `[類別]` 那一行的文字。
-
-**拆 workflow 的契約**（2026-11-17；檔名、顯示名稱、`timeout-minutes` 與驗證分類別是已定，其餘是提案）：
-
-- `weekly.yml` 刪掉，換成 `weekly-traffic.yml`（`name: Garyu News Scraper 週報（交通）`、`timeout-minutes: 25`）與
-  `weekly-ffxiv.yml`（`name: Garyu News Scraper 週報（FFXIV）`、`timeout-minutes: 30`）。
-  兩支的觸發（同一個 cron 加 `workflow_dispatch`）、`permissions`、`runs-on`、`environment` 跟原本的 `weekly.yml` 相同。
-- 兩支的準備步驟（checkout、五個寫設定檔、設定 Python、安裝相依）與「Ping Supabase」原樣保留、彼此相同。
-  兩個類別在 import 時就建好，少了另一類的設定檔會不會出事沒有量過，所以不刪。
-- 兩支的「執行週報程式」那一步，env 跟原本相同，只多一個寫成字面值的 `GARYU_CATEGORY`（`traffic`、`ffxiv`）。
-  不照類別刪變數：少一個變數時程式照跑、只少收來源（`weekly.yml` 曾經沒傳 `YOUTUBE_API_KEY`，10-20 才從 log 讀到）。
-- 「驗證本週資料可由 Supabase 讀取」兩支都有，查詢各加 `content_type=eq.<自己那一類>`，讀不到時的訊息寫出是哪一類。
-  交通那一支把這一步排在部署之後（已定 2026-11-17；`5daf1c2` 排在熱點分析之前，它之後的一個 commit 移過去）：熱點分析讀的是前六天 daily 寫入的列，
-  不靠週一這次的寫入，排在前面的話，週一沒有新的交通列時驗證會紅、熱點分析與部署不跑。拆之前 FFXIV 的列會讓這一步通過。
-  排在部署之後，這一步只標紅、不擋熱點分析與部署（已定 2026-11-17）：週一的收集失敗（`main.py` 的退出碼仍是 0）或沒有新的交通列時，
-  熱點分析與部署照跑，run 最後是紅的。拆之前 FFXIV 有寫入時也是照跑，差別是那時 run 是綠的。
-  週一寫入的交通列數，09-07～11-16 十次是 67、46、52、50、18、18、18、18、15、6。FFXIV 那一支不動，它的部署靠當次的寫入。
-  parity 測試裡「兩支共有的步驟順序相同」那一條要跟著改。
-- 只在交通那一支：「週交通熱點分析」、複製共用資源到 `pages/traffic`、部署 `garyu-traffic-news`。
-  只在 FFXIV 那一支：上傳 `ffxiv-pool`、複製共用資源到 `pages/ffxiv`、部署 `garyu-ffxiv-news`。
-  除了這裡寫到的，每一步的內容跟原本 `weekly.yml` 的那一步相同。
-- `auto-kb.yml` 的 `workflow_run.workflows` 恰好一個，是 FFXIV 那一支的 `name`。
-- `weekly-dry-run.yml` 多一個必填的選項 `category`（`traffic`、`ffxiv`，沒有預設值），任何程式步驟之前擋下這兩個值以外的
-  `category`；空值也擋，因為程式會把空值當成兩類都跑。`python main.py` 帶 `GARYU_CATEGORY: ${{ inputs.category }}`；
-  「週交通熱點分析」只在 `traffic` 跑；「術語收錄」只在 `ffxiv` 的第二級跑；計數、比對與三個上傳照舊。
-  `timeout-minutes` 是兩支正式的裡較大的那個。
-- `tests/unit/test_workflow_parity.py` 把上面每一條對住：`weekly-dry-run.yml` 對兩支正式的檔各自比對（準備步驟、程式步驟的 env、
-  job 設定）；兩支正式的 `GARYU_CATEGORY`、`weekly-dry-run.yml` 的 `category` 選項與 `src/main.py` 認得的類別三者一致；
-  每一個跑 `python main.py` 的 workflow 都指定了類別；`weekly.yml` 不存在；`auto-kb.yml` 的觸發；驗證步驟的 `content_type`；
-  兩類各自獨有的步驟沒有出現在另一支。每一類檢查都有改壞一處的對照組。`timeout-minutes` 的數字不寫進測試。
-- `tests/unit/test_per_function_models.py` 點名 `weekly.yml` 的兩列改指到新的檔。
-
-**2026-11-17**：「拆 workflow」審過了，紀錄在 `#218` 的留言（`issuecomment-6950582559`）。
-第一輪（`7e40cd2`）REJECTED，類別 weak-test：四個 workflow 檔符合契約，但「FFXIV 的驗證擋下複製與部署、交通的驗證只標紅」只靠步驟順序釘住。
-修正在 `1d8331d`，只動測試：兩支正式的檔裡，job 與 main 起的每一步都不能有 `if` 或 `continue-on-error`（例外只有 `ffxiv-pool` 的上傳）；
-每一步不是兩支共有，就要是上面契約列的那一類獨有步驟。第二輪（`1d8331d`）APPROVED，三條舊 finding 都 resolved，兩輪的物證逐條重跑過。
-不修的三條（`7e40cd2-2`、`7e40cd2-3`、`1d8331d-1`）理由在 review 帳本；帳本上這一列 8 條、0 條未關。
-兩支正式的 workflow 還沒有真的跑過；對這條分支的不發布實跑（020 的 T023）還沒做。
-
-**2026-11-18**：「讀者端」（`45a3be0`）過了 cold review，紀錄在 `#218` 的留言（`issuecomment-6955930590`）。
-範圍只含這一個 commit（已定 2026-11-18）：整個 PR 是 23 個檔、全文約 34 萬字，超過一輪讀得完的量，動到 cold review 路徑的只有它。
-7 條都成立，重大 3、次要 4，都修在 `9235287`（次要四條都修，已定 2026-11-18）：
-
-- 憲章：週一的交通收集失敗或沒有新的交通列時，週報的 Analyze 與 Publish 照跑、run 以失敗結束，這件事寫進原則 I（已定 2026-11-18）。
-  版本是 2.2.0（MINOR，跟 2.1.0 同類）；`45a3be0` 提的 PATCH 不採用。`Last Amended` 在 merge 當天對成 merge 日。
-- `PROMPT.md`：交通的讀回驗證失敗時多一種歸因（驗證那一步自己失敗）；兩支都沒有跑完、狀態卻不同時也停。
-- `FOCUS.md`：術語收錄那一條改成看 auto-kb 那個 run 的 `conclusion`。FFXIV 那一支沒成功時照樣有一個 `workflow_run` 的 run，只是 `skipped`
-  （`35552902082`、`26573891622`）。
-- `README.md` 首次部署的名稱、`docs/external-services.md` 的 timeout、020 的 T022 與 T023 補上 `category`。
-
-讀者端其餘的提案（只缺一支週報時 routine 不停、FOCUS 的 (9) 放在 (1) 之前、找不到來源設定檔的訊息不點名檔名、其他提到 `weekly.yml` 的舊 spec 不動）
-reviewer 沒有報 finding，仍是提案。
-對這條分支的第一級實跑做了（2026-11-18，`44136150021` 交通、`44136176586` FFXIV）：GitHub 接受分支上的 `category`，兩次都成功、七項計數前後相同。
-4 個熱點 bucket 都被 novelty gate 壓下，三軸的呼叫路徑這週在 Actions 上走不到，改用本機重播補驗（已定 2026-11-18）。
-第二級也做了（`44146148712` 交通、`44146168333` FFXIV，跑在 `4277fde`）：彙整 1 次、FFXIV 逐篇 9 次、術語收錄 1 次生成式呼叫，都成功、七項計數前後相同。
-本機重播 2026-11-02 的「機車事故 · 中時」走了兩次三軸的真呼叫：變數不設時走得通；在行程裡設三軸自己的三個變數時，印出用自己設定的那一行。
-逐條的紀錄留言在 `#218`（020 的 T023）。兩支正式的 workflow 仍然沒有真的跑過，第一次是 11-23 的排程。
 
 ## GNS-20261019-dkm 政策池的來源依賴：spec 014 新來源上線後的追蹤與常設重開條件
 
