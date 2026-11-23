@@ -202,3 +202,123 @@ def test_no_line_when_cap_cuts_only_non_forum_items(caplog, quiet_dump):
     assert len(result) == 20
     assert {a["title"] for a in result} >= {"jpdps0", "jpdps1", "jpdps2"}
     assert _warnings(caplog) == []
+
+
+# ── GNS-20261123-033：論壇串的身分是 dedup_key，標題相近不算重複；被拿掉的篇每篇印一行 ──
+
+CAP_30 = {**CONFIG, "ffxiv": {"max_selected": 30}}
+EVOLVED_HEALERS = 'What Would You Have Wanted From "Evolved" Healers'
+EVOLVED_DPS = 'What Would You Have Wanted From "Evolved" DPS?'
+
+# 11-23 週報窗口內的 13 串（來源、串 id、標題），照當週的排序；補師版與 DPS 版那兩串標題只差最後一個字
+THREADS_1123 = [
+    ("FFXIV JP Forum - その他バトルシステム", 533188, "【要望】１ジョブにつき２種の武器を使えるようになりたい"),
+    ("FFXIV EN Forum - Tank Roles", 529932, "Bastion- Discussions and thoughts"),
+    ("FFXIV EN Forum - Other Battle Systems", 533177, "Request for Blue Mage change"),
+    ("FFXIV JP Forum - DPS", 325458, "赤魔導士 スレッド"),
+    ("FFXIV EN Forum - Healer Roles", 531628, EVOLVED_HEALERS),
+    ("FFXIV JP Forum - DPS", 116277, "竜騎士改善の具体案"),
+    ("FFXIV JP Forum - DPS", 188453, "黒魔導士"),
+    ("FFXIV JP Forum - DPS", 498925, "獣使いスレ"),
+    ("FFXIV JP Forum - その他バトルシステム", 452719, "種族ステータス補正を廃止してほしい"),
+    ("FFXIV JP Forum - TANK", 527721, "新システムによるMT/ST分けへの不満"),
+    ("FFXIV JP Forum - TANK", 517309, "先釣りについて"),
+    ("FFXIV EN Forum - DPS Roles", 532142, EVOLVED_DPS),
+    ("FFXIV JP Forum - HEALER", 432393, "賢者スレ"),
+]
+
+
+def _thread(source, tid, title, hours=0):
+    return _ranked(title, source, 80, hours, dedup_key=f"forum:{tid}:1")
+
+
+def _dedup_lines(caplog):
+    msgs = [r.getMessage() for r in caplog.records if r.name == "src.filter" and r.levelno == logging.INFO]
+    return [m for m in msgs if m.startswith("FFXIV 去重拿掉")]
+
+
+def _run(articles, caplog, config=CAP_30):
+    with caplog.at_level(logging.INFO, logger="src.filter"):
+        return game_deduplicate(articles, config)
+
+
+def test_1123_window_threads_all_stay_in_pool(caplog, quiet_dump):
+    articles = [_thread(s, tid, t, hours=i) for i, (s, tid, t) in enumerate(THREADS_1123)]
+    result = _run(articles, caplog)
+    assert [a["title"] for a in result] == [t for _, _, t in THREADS_1123]
+    assert _dedup_lines(caplog) == []
+
+
+def test_forum_threads_with_the_same_title_on_two_boards_both_stay(caplog, quiet_dump):
+    tank = _thread("FFXIV EN Forum - Tank Roles", 101, "Job feedback megathread", 1)
+    dps = _thread("FFXIV EN Forum - DPS Roles", 202, "Job feedback megathread", 2)
+    assert _run([tank, dps], caplog) == [tank, dps]
+    assert _dedup_lines(caplog) == []
+
+
+def test_same_forum_thread_twice_is_dropped_with_a_line(caplog, quiet_dump):
+    first = _thread("FFXIV EN Forum - Tank Roles", 301, "Tank feedback", 1)
+    again = _thread("FFXIV EN Forum - Tank Roles", 301, "Tank feedback", 2)
+    assert _run([first, again], caplog) == [first]
+    assert _dedup_lines(caplog) == [
+        "FFXIV 去重拿掉：FFXIV EN Forum - Tank Roles「Tank feedback」，"
+        "與 FFXIV EN Forum - Tank Roles「Tank feedback」重複（同一串）"
+    ]
+
+
+def test_jaccard_duplicate_prints_one_line_with_the_score(caplog, quiet_dump):
+    kept = _ranked(EVOLVED_HEALERS, "Reddit r/ffxiv", 20, 1)
+    dropped = _ranked(EVOLVED_DPS, "FFXIV TW 修正說明", 20, 2)
+    assert _run([kept, dropped], caplog) == [kept]
+    assert _dedup_lines(caplog) == [
+        f"FFXIV 去重拿掉：FFXIV TW 修正說明「{EVOLVED_DPS}」，"
+        f"與 Reddit r/ffxiv「{EVOLVED_HEALERS}」重複（Jaccard 0.778 > 0.5）"
+    ]
+
+
+def test_title_inclusion_duplicate_prints_one_line(caplog, quiet_dump):
+    kept = _ranked("FFXIV 7.2 更新 職業 調整 詳細 說明", hours=1)
+    dropped = _ranked("FFXIV 更新", hours=2)
+    assert _run([kept, dropped], caplog) == [kept]
+    assert _dedup_lines(caplog) == [
+        "FFXIV 去重拿掉：FFXIV Lodestone「FFXIV 更新」，"
+        "與 FFXIV Lodestone「FFXIV 7.2 更新 職業 調整 詳細 說明」重複（標題包含）"
+    ]
+
+
+def test_forum_thread_against_other_source_still_compares_titles(caplog, quiet_dump):
+    news = _ranked("Patch 7.4 Notes", "FFXIV Lodestone JP 更新資訊", 100, 1)
+    thread = _thread("FFXIV EN Forum - Tank Roles", 401, "Patch 7.4 Notes", 2)
+    assert _run([news, thread], caplog) == [news]
+    assert _dedup_lines(caplog) == [
+        "FFXIV 去重拿掉：FFXIV EN Forum - Tank Roles「Patch 7.4 Notes」，"
+        "與 FFXIV Lodestone JP 更新資訊「Patch 7.4 Notes」重複（標題包含）"
+    ]
+
+
+def test_drop_line_names_the_article_it_matched_among_several_kept(caplog, quiet_dump):
+    first = _ranked("alpha beta gamma delta", "S1", 80, 1)
+    matched = _ranked("one two three four five", "S2", 80, 2)
+    last = _ranked("red green blue yellow", "S3", 80, 3)
+    dropped = _ranked("one two three four five six", "S4", 80, 4)
+    assert _run([first, matched, last, dropped], caplog) == [first, matched, last]
+    assert _dedup_lines(caplog) == [
+        "FFXIV 去重拿掉：S4「one two three four five six」，與 S2「one two three four five」重複（標題包含）"
+    ]
+
+
+def test_jaccard_line_prints_the_configured_threshold(caplog, quiet_dump):
+    kept = _ranked(EVOLVED_HEALERS, "Reddit r/ffxiv", 20, 1)
+    dropped = _ranked(EVOLVED_DPS, "FFXIV TW 修正說明", 20, 2)
+    assert _run([kept, dropped], caplog, {"jaccard": {"game_threshold": 0.6}}) == [kept]
+    assert _dedup_lines(caplog) == [
+        f"FFXIV 去重拿掉：FFXIV TW 修正說明「{EVOLVED_DPS}」，"
+        f"與 Reddit r/ffxiv「{EVOLVED_HEALERS}」重複（Jaccard 0.778 > 0.6）"
+    ]
+
+
+def test_dedup_key_that_is_not_a_forum_thread_still_compares_titles(caplog, quiet_dump):
+    first = _ranked("Patch 7.4 Notes", "Other", 80, 1, dedup_key="video:1")
+    second = _ranked("Patch 7.4 Notes", "Other", 80, 2, dedup_key="video:2")
+    assert _run([first, second], caplog) == [first]
+    assert _dedup_lines(caplog) == ["FFXIV 去重拿掉：Other「Patch 7.4 Notes」，與 Other「Patch 7.4 Notes」重複（標題包含）"]

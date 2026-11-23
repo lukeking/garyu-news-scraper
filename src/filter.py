@@ -73,6 +73,11 @@ def _make_hash(article: dict) -> str:
     return hashlib.md5(title.encode("utf-8")).hexdigest()
 
 
+def _is_forum_thread(article: dict) -> bool:
+    """論壇串（vb_forum 項目）：dedup_key 是 forum:<串 id>:<最新回覆 id>，串的身分看它、不看標題。"""
+    return (article.get("dedup_key") or "").startswith("forum:")
+
+
 def _topic_key(title: str) -> str | None:
     """
     判斷文章屬於哪個需要限流的主題，回傳主題識別字串或 None。
@@ -239,7 +244,8 @@ def filter_and_deduplicate(articles: list, throttle: bool = True) -> list:
             logger.debug("[youtube] 關鍵字篩選通過：%s", article.get("title", "")[:60])
 
         h = _make_hash(article)
-        if h in seen_hashes:
+        # 論壇串不拿標題 hash 擋：不同版可以有同名的串；同一串重複由 game_deduplicate 擋並印一行
+        if h in seen_hashes and not _is_forum_thread(article):
             continue
 
         if throttle:
@@ -524,9 +530,9 @@ def _ffxiv_max_selected(config: dict) -> int:
 
 
 def game_deduplicate(articles: list, config: dict) -> list:
-    """FFXIV 去重：排除包含關係與 Jaccard > game_threshold 的標題，重複時留先出現的（呼叫端先依 ffxiv_rank_key
-    排好，留下的就是權重高的那份）；再依同一個鍵取前 ffxiv.max_selected 篇（缺鍵 20），並印候選池與入選的
-    逐來源篇數；上限截掉論壇（vb_forum）串時多印一行 WARNING。"""
+    """FFXIV 去重：排除包含關係與 Jaccard > game_threshold 的標題（兩篇都是論壇串時只看 dedup_key），重複時留先出現的
+    （呼叫端先依 ffxiv_rank_key 排好，留下的就是權重高的那份）並每篇印一行；再依同一個鍵取前 ffxiv.max_selected 篇
+    （缺鍵 20），印候選池與入選的逐來源篇數；上限截掉論壇（vb_forum）串時多印一行 WARNING。"""
     cap = _ffxiv_max_selected(config)
     game_threshold = config.get("jaccard", {}).get("game_threshold", 0.50)
 
@@ -540,20 +546,34 @@ def game_deduplicate(articles: list, config: dict) -> list:
     retained_token_sets: list[frozenset] = []
 
     for i, (article, ts_i) in enumerate(zip(articles, token_sets)):
-        duplicate = False
-        for j, ts_j in enumerate(retained_token_sets):
+        reason = None
+        for j, ts_j in zip(retained_indices, retained_token_sets):
+            kept = articles[j]
+            if _is_forum_thread(article) and _is_forum_thread(kept):
+                # 兩篇都是論壇串：dedup_key 相同才是同一串，標題相近不算重複
+                if article["dedup_key"] == kept["dedup_key"]:
+                    reason = "同一串"
+                    break
+                continue
             if not ts_i or not ts_j:
                 continue
             # 包含關係：短標題 token set 是長標題 token set 的子集
             if ts_i <= ts_j or ts_j <= ts_i:
-                duplicate = True
+                reason = "標題包含"
                 break
-            if compute_jaccard(ts_i, ts_j) > game_threshold:
-                duplicate = True
+            jaccard = compute_jaccard(ts_i, ts_j)
+            if jaccard > game_threshold:
+                reason = f"Jaccard {jaccard:.3f} > {game_threshold}"
                 break
-        if not duplicate:
+        if reason is None:
             retained_indices.append(i)
             retained_token_sets.append(ts_i)
+        else:
+            logger.info(
+                "FFXIV 去重拿掉：%s「%s」，與 %s「%s」重複（%s）",
+                article.get("source", ""), article.get("title", ""),
+                kept.get("source", ""), kept.get("title", ""), reason,
+            )
 
     retained = [articles[i] for i in retained_indices]
     retained.sort(key=ffxiv_rank_key)
