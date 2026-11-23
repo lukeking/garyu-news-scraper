@@ -233,7 +233,7 @@ def _thread(source, tid, title, hours=0):
 
 
 def _dedup_lines(caplog):
-    msgs = [r.getMessage() for r in caplog.records if r.name == "src.filter"]
+    msgs = [r.getMessage() for r in caplog.records if r.name == "src.filter" and r.levelno == logging.INFO]
     return [m for m in msgs if m.startswith("FFXIV 去重拿掉")]
 
 
@@ -294,3 +294,31 @@ def test_forum_thread_against_other_source_still_compares_titles(caplog, quiet_d
         "FFXIV 去重拿掉：FFXIV EN Forum - Tank Roles「Patch 7.4 Notes」，"
         "與 FFXIV Lodestone JP 更新資訊「Patch 7.4 Notes」重複（標題包含）"
     ]
+
+
+def test_drop_line_names_the_article_it_matched_among_several_kept(caplog, quiet_dump):
+    first = _ranked("alpha beta gamma delta", "S1", 80, 1)
+    matched = _ranked("one two three four five", "S2", 80, 2)
+    last = _ranked("red green blue yellow", "S3", 80, 3)
+    dropped = _ranked("one two three four five six", "S4", 80, 4)
+    assert _run([first, matched, last, dropped], caplog) == [first, matched, last]
+    assert _dedup_lines(caplog) == [
+        "FFXIV 去重拿掉：S4「one two three four five six」，與 S2「one two three four five」重複（標題包含）"
+    ]
+
+
+def test_jaccard_line_prints_the_configured_threshold(caplog, quiet_dump):
+    kept = _ranked(EVOLVED_HEALERS, "Reddit r/ffxiv", 20, 1)
+    dropped = _ranked(EVOLVED_DPS, "FFXIV TW 修正說明", 20, 2)
+    assert _run([kept, dropped], caplog, {"jaccard": {"game_threshold": 0.6}}) == [kept]
+    assert _dedup_lines(caplog) == [
+        f"FFXIV 去重拿掉：FFXIV TW 修正說明「{EVOLVED_DPS}」，"
+        f"與 Reddit r/ffxiv「{EVOLVED_HEALERS}」重複（Jaccard 0.778 > 0.6）"
+    ]
+
+
+def test_dedup_key_that_is_not_a_forum_thread_still_compares_titles(caplog, quiet_dump):
+    first = _ranked("Patch 7.4 Notes", "Other", 80, 1, dedup_key="video:1")
+    second = _ranked("Patch 7.4 Notes", "Other", 80, 2, dedup_key="video:2")
+    assert _run([first, second], caplog) == [first]
+    assert _dedup_lines(caplog) == ["FFXIV 去重拿掉：Other「Patch 7.4 Notes」，與 Other「Patch 7.4 Notes」重複（標題包含）"]
