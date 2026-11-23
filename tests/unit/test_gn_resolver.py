@@ -336,3 +336,40 @@ def test_article_date_without_timezone_does_not_fall_back_to_a_related_item():
     head = _jsonld(RELATED, '{"@type": ["NewsArticle"], "datePublished": "2026-11-09T09:00:00"}')
     _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
     assert published == ""
+
+
+# ── #212 review N4（GNS-20261110-sjc）：宣告編碼的優先序、刊出日期的來源順序、沒時區的日期不猜 ──
+
+def test_header_charset_wins_over_meta_charset():
+    resp = _Resp(headers={"Content-Type": "text/html; charset=big5"})
+    assert gn._declared_charset(resp, b'<meta charset="utf-8">') == "cp950"
+
+
+def test_meta_charset_is_used_when_header_has_none():
+    resp = _Resp(headers={"Content-Type": "text/html"})
+    assert gn._declared_charset(resp, b'<meta charset="shift_jis">') == "cp932"
+
+
+def test_unknown_declared_charset_falls_back_to_detection():
+    """宣告的編碼 Python 不認得時交給 bs4 偵測，不拿那個名字去解碼（#238 review 4ba610c-1）。"""
+    text = "交通部公告機車新制上路，騎士須注意相關規定與罰則內容說明"
+    page = f'<meta property="og:description" content="{text}">'.encode("utf-8")
+
+    class S(_RecordingSession):
+        def get(self, url, headers=None, timeout=None):
+            return _Resp(content=page, headers={"Content-Type": "text/html; charset=x-bogus"})
+    desc, _, _ = gn.fetch_og_meta(S(), REAL_URL)
+    assert desc == text
+
+
+def test_page_date_without_timezone_is_not_guessed():
+    head = '<meta property="article:published_time" content="2026-10-01T10:56:00">'
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
+    assert published == ""
+
+
+def test_meta_published_time_wins_over_jsonld():
+    head = ('<meta property="article:published_time" content="2026-10-01T10:56:00+08:00">'
+            '<script type="application/ld+json">{"@type": "NewsArticle", "datePublished": "2019-03-05T08:00:00Z"}</script>')
+    _, _, published = gn.fetch_og_meta(_RecordingSession(page=_page(head)), REAL_URL)
+    assert published == "2026-10-01T02:56:00+00:00"
