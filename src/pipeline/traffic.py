@@ -220,7 +220,8 @@ class TrafficCategory:
         kept = []
         for a in articles:
             if _is_too_old_by_age(a)[0]:
-                logger.info("[充實後過時] 擋下：%s 日期 %s「%s」", urlparse(a.get("link") or "").netloc,
+                logger.info("[充實後過時] 擋下：%s（%s）日期 %s「%s」", a.get("source") or "",
+                            urlparse(a.get("link") or "").netloc,
                             (a.get("published") or "")[:10], (a.get("title") or "")[:40])
             else:
                 kept.append(a)

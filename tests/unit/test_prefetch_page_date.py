@@ -14,12 +14,12 @@ OLD_URL, NEW_URL = "https://news.pts.org.tw/article/1", "https://udn.com/news/st
 FRESH = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
 
 
-def _prefetch(monkeypatch, caplog, articles, dates):
+def _prefetch(monkeypatch, caplog, articles, dates, entry="prefetch"):
     monkeypatch.setattr(gn, "resolve_gn_link", lambda s, link: {OLD_GN: OLD_URL, NEW_GN: NEW_URL}[link])
     monkeypatch.setattr(gn, "fetch_og_meta", lambda s, url: ("摘要" * 30, "", dates[url]))
     monkeypatch.setattr(gn.time, "sleep", lambda *_: None)
     with caplog.at_level(logging.INFO, logger="src.pipeline.traffic"):
-        return TrafficCategory().prefetch(articles)
+        return getattr(TrafficCategory(), entry)(articles)
 
 
 def _art(title, link):
@@ -31,7 +31,7 @@ def test_old_page_date_is_dropped_with_reason(monkeypatch, caplog):
     kept = _prefetch(monkeypatch, caplog, [_art("舊文", OLD_GN), _art("新文", NEW_GN)],
                      {OLD_URL: "2019-03-05T08:00:00+00:00", NEW_URL: FRESH})
     assert [a["title"] for a in kept] == ["新文"]
-    assert "[充實後過時] 擋下：news.pts.org.tw 日期 2019-03-05「舊文」" in caplog.text
+    assert "[充實後過時] 擋下：Google News 交通安全教育（news.pts.org.tw）日期 2019-03-05「舊文」" in caplog.text
     assert "[充實後過時] 擋下 1/2 篇（充實後的日期早於 30 天前）" in caplog.text
 
 
@@ -39,3 +39,26 @@ def test_summary_line_is_printed_when_nothing_is_dropped(monkeypatch, caplog):
     kept = _prefetch(monkeypatch, caplog, [_art("新文", NEW_GN)], {NEW_URL: FRESH})
     assert [a["title"] for a in kept] == ["新文"]
     assert "[充實後過時] 擋下 0/1 篇（充實後的日期早於 30 天前）" in caplog.text
+
+
+# ── #212 review N4（GNS-20261110-sjc）：週報走 analyze()；充實整批失敗時門檻照跑 ──
+
+def test_analyze_returns_what_prefetch_kept(monkeypatch, caplog):
+    kept = _prefetch(monkeypatch, caplog, [_art("舊文", OLD_GN), _art("新文", NEW_GN)],
+                     {OLD_URL: "2019-03-05T08:00:00+00:00", NEW_URL: FRESH}, entry="analyze")
+    assert [a["title"] for a in kept] == ["新文"]
+
+
+def test_age_gate_still_runs_when_enrichment_fails_as_a_whole(monkeypatch, caplog):
+    def boom(articles):
+        raise RuntimeError("network down")
+
+    monkeypatch.setattr(gn, "enrich_articles", boom)
+    # 連結已經是媒體頁的篇（直接 RSS）才看 published；沒還原的 GN 連結只看網址裡的日期
+    old = {**_art("舊文", OLD_URL), "published": "2019-03-05T08:00:00+00:00"}
+    new = {**_art("新文", NEW_URL), "published": FRESH}
+    with caplog.at_level(logging.INFO, logger="src.pipeline.traffic"):
+        kept = TrafficCategory().prefetch([old, new])
+    assert [a["title"] for a in kept] == ["新文"]
+    assert "GN 充實整批失敗，文章維持原樣：network down" in caplog.text
+    assert "[充實後過時] 擋下 1/2 篇（充實後的日期早於 30 天前）" in caplog.text
