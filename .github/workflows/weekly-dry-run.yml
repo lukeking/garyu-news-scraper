@@ -26,7 +26,7 @@ permissions:
 jobs:
   dry-run:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 兩支正式週報裡較大的那個（weekly-ffxiv.yml）：第二級跑的是同一份工作
+    timeout-minutes: 60  # 兩支正式週報裡較大的那個（weekly-ffxiv.yml）：第二級跑的是同一份工作
     environment: production
 
     steps:

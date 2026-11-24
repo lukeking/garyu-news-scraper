@@ -11,7 +11,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # 入選上限 30 篇推算約 14.6 分（實測最長 9.8 分）的約 2 倍，見憲章 IV
+    timeout-minutes: 60  # 入選上限 60 篇＋論壇 42 版推算約 27～34 分（實測最長 9.8 分，上限 30 時）的約 2 倍，見憲章 IV
     environment: production
 
     steps:
