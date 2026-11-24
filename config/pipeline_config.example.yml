@@ -11,8 +11,9 @@ jaccard:
   game_threshold: 0.50       # Game (FFXIV): Jaccard > this → discard as duplicate
 
 ffxiv:
-  max_selected: 30           # Max FFXIV articles analysed per weekly run (one Gemini call each). Missing → 20;
-                             # not a positive integer → the FFXIV run fails, no fallback. Luke 2026-11-10 (spec 019 R6).
+  max_selected: 60           # Max FFXIV articles analysed per weekly run (one Gemini call each). Missing → 20;
+                             # not a positive integer → the FFXIV run fails, no fallback. 30 decided 2026-11-10 (spec 019 R6);
+                             # 60 decided 2026-11-24 (GNS-20261123-aqq: forum grew to 42 boards, ~95 candidates/week).
                              # When it cuts vb_forum threads the log prints "FFXIV 上限 N 截掉論壇 k 篇：…".
 
 topic_scoring:

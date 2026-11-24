@@ -53,7 +53,7 @@ sources:
     url: "https://jp.finalfantasyxiv.com/lodestone/news/category/3"
     enabled: true
     content_type: "ffxiv"
-    weight: 60
+    weight: 90                             # 2026-11-24 由 60 調高（aqq）：論壇加到 42 版後，編號 patch 公告不被擠出名額
     selector: "li.news__list"              # 每則新聞的外層容器 CSS selector
     title_selector: "p.news__list--title"  # 標題文字的 CSS selector（找不到時 fallback 到 a）
     max_items: 10
@@ -176,6 +176,341 @@ sources:
     enabled: true
     content_type: "ffxiv"
     weight: 80
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # ── 其他看板（type: vb_forum，GNS-20261123-aqq，2026-11-24）───────────────────────
+  # 版號與版名取自 2026-11-24 的分類頁；robots.txt 回 404（無限制）。權重 70：排在職業版（80）之後、Lodestone（90）不受影響。
+
+  # JP Forum 其他看板：ゲームシステム、クラフター
+
+  - name: "FFXIV JP Forum - 世界設定"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=539&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - クエスト"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=540&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - ダンジョン"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=541&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - PvP"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1017&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - ハウジング"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1018&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - ゴールドソーサー"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1270&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - アイテム・製作・採集"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=546&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - ユーザーインターフェース"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=548&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - クラフター"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=555&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # JP Forum 其他看板：雑談
+
+  - name: "FFXIV JP Forum - ジェネラルディスカッション"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=560&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - この装備を武具投影したい！！"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1266&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # JP Forum 其他看板：ニュース、プロデューサーレター、サイト、初心者
+
+  - name: "FFXIV JP Forum - 一般情報"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=516&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - アップデート情報"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=517&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - 障害情報"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=518&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - プロデューサーレター"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=536&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - サイトに関する不具合報告"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=557&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV JP Forum - 初心者用"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=613&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # EN Forum 其他看板：Gameplay
+
+  - name: "FFXIV EN Forum - Dungeons"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=648&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - PvP"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1019&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Exploratory Missions"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1330&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Housing"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1020&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Gold Saucer"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=1271&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - User Interface"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=655&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # EN Forum 其他看板：General Discussion
+
+  - name: "FFXIV EN Forum - General Discussion"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=667&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  # EN Forum 其他看板：Information、Letters、Feedback、New Player Help
+
+  - name: "FFXIV EN Forum - General"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=623&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Updates"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=624&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Status"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=625&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Letters from the Producer"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=643&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Website Bugs"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=664&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Website/Companion App Feedback & Suggestions"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=665&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - Localization"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=937&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
+    max_pages: 3
+    max_replies: 20
+    max_chars: 6000
+
+  - name: "FFXIV EN Forum - New Player Help"
+    type: vb_forum
+    url: "https://forum.square-enix.com/ffxiv/external.php?type=RSS2&forumids=670&lastpost=1"
+    enabled: true
+    content_type: "ffxiv"
+    weight: 70
     max_pages: 3
     max_replies: 20
     max_chars: 6000

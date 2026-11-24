@@ -27,7 +27,7 @@
 2. 找 run：
    - `gh run list --workflow weekly-traffic.yml --limit 3 --json databaseId,createdAt,status,conclusion`
    - `gh run list --workflow weekly-ffxiv.yml --limit 3 --json databaseId,createdAt,status,conclusion`
-   - `gh run list --workflow traffic_daily.yml --limit 10 --json databaseId,createdAt,status,conclusion`
+   - `gh run list --workflow traffic_daily.yml --limit 15 --json databaseId,createdAt,status,conclusion`（routine 週四跑，週一之後的 daily 也會列在前面）
 
    找本週一的「Garyu News Scraper 週報（交通）」與「Garyu News Scraper 週報（FFXIV）」各一個，加上視窗內的「Traffic News Daily Buffer」。
    週報是兩支 workflow，各跑一類、各有自己的 run 與 log（2026-11-23 那一週起；之前是單一支 `weekly.yml`，已刪）。
@@ -81,7 +81,7 @@ job 耗時達到自己那一支的上限、且 run 沒有成功結束（被 time
    - `description`：整份報告（直接覆寫原本的 placeholder）
    - `title`：`[驗收] MM-DD 週報 — <一句話結論>`
    - `state`：`In Review`
-3. **寫不進去，或你判斷不該寫**：用 `PushNotification` 說明卡在哪一步、錯誤原文或你的理由。不然使用者要到週一晚上看到 issue 還停在 Todo 才會知道。
+3. **寫不進去，或你判斷不該寫**：用 `PushNotification` 說明卡在哪一步、錯誤原文或你的理由。不然使用者要到週四晚上看到 issue 還停在 Todo 才會知道。
 
 ### 報告內容（繁體中文）
 
