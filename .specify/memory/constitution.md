@@ -9,8 +9,8 @@
   `GNS-20261114-bh8`). Before this, acceptance conditions were routinely written as "after the
   next scheduled weekly run", which made the schedule the clock for every change although nothing
   in this constitution made it the authority.
-  The spec's tasks name this amendment 2.1.1 → 2.2.0; 2.2.0 was used on 2026-11-18 (#218), so
-  this one is 2.3.0.
+  The spec's tasks originally named this amendment 2.1.1 → 2.2.0; 2.2.0 was used on 2026-11-18
+  (#218), so this one is 2.3.0, and the tasks were corrected in the same change.
 
 ### Modified Principles
 - None
@@ -224,7 +224,7 @@ not complete.
 | The function itself | the logic, or the rule or record text, is what the requirement asks for | unit tests; for text, a review against the requirements it implements |
 | Required input | the run obtains what it needs: sources are reachable, collected and selected | a non-publishing run up to selection on GitHub Actions (reachability depends on where the run executes), or the log of a daily run |
 | Output | what the pipeline produces from that input is right | a non-publishing run that reaches the output in question, or a replay of stored input |
-| Read-back | the change behaves in a real run once it is live | reading one named real run; this is the slice that waits |
+| Read-back | the change behaves in real runs once it is live | reading the named real run, or each of the runs when the condition needs several; this is the slice that waits |
 | Correction | a fix for a slice that failed acceptance | the verification that failed, run again |
 | State across runs | marks, fingerprints, expiry and cross-run deduplication | two consecutive real runs; a single non-publishing run cannot show it and MUST NOT write that state |
 | Scheduling and chaining | the schedule fires; follow-up workflows and deployments are triggered | a real scheduled event for the schedule itself; a manual dispatch for the rest |
@@ -238,8 +238,9 @@ not complete.
 
 **Writing acceptance conditions**
 
-- An acceptance condition MUST name the earliest verification that is enough: a non-publishing
-  run, a replay, or the log of a daily run. Waiting for a scheduled weekly run is used only for
+- An acceptance condition MUST name the earliest verification that is enough for its scope (the
+  table above). Where a non-publishing run, a replay or the log of a daily run is enough, the
+  condition names that, not a scheduled run. Waiting for a scheduled weekly run is used only for
   what no other verification can show, and the condition MUST say why nothing else can.
 - A condition that needs several real runs ("two weeks in a row") belongs to the read-back slice,
   not to the slices that deliver the function.
