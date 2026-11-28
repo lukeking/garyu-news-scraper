@@ -25,7 +25,7 @@
 | 4 | 6 | 功能本身（紀錄） | SC-004 逐列對照 | 不用 | 從 `main` 切 `020-apply-to-inventory` |
 | 讀回 | 7 | 回收檢驗 | 讀片 1 之後第一次排程的週報；讀 `2zc` 的 `tasks.md` | 要 | 從 `main` 切 `020-readback`，只放紀錄 |
 
-片 1 排第一（已定 2026-11-14）；片 2＋3 併成一個 PR（已定 2026-11-15）；片 2＋3 與片 4 的先後是提案（未定），Unit 8 開工前定。
+片 1 排第一（已定 2026-11-14）；片 2＋3 併成一個 PR（已定 2026-11-15）；片 2＋3 先於片 4（已定 2026-11-28）。
 
 ---
 
@@ -152,14 +152,14 @@
 
 **Independent Test**: 拿 BACKLOG 盤點表的一列，只讀憲章寫出它的分片與每片的驗法，跟盤點表那一列一致
 
-規則落在憲章的哪幾節是 research D6 的提案（未定），這個 Phase 開工前定。
+規則落在憲章的哪幾節照 research D6（已定 2026-11-28）：新增「Layered Acceptance」一節，放在 Operations & Deployment 與 Governance 之間，不編成第七條原則。
 
-- [ ] T025 [US2] [FR-011, FR-012, FR-013, FR-014, FR-015] 在 `.specify/memory/constitution.md` 加「分層驗收」一節：分片原則；九類驗收範圍與各自夠用的驗法；觀測跟驗收分開寫；遇到新的範圍怎麼加；驗收條件先寫最早就夠用的驗法，等排程只用在其他驗法都驗不到的部分並寫明原因；蓋過 user 層「一個 spec 一個 PR」的範圍只限這個專案。只寫原則與結構性的選擇，操作細節指到 `docs/dry-run.md`
-- [ ] T026 [US3] [FR-016, FR-017, FR-018, FR-019, FR-020] 同一個檔寫流程接點：tasks 照驗收範圍分組並標驗法與 PR；小 PR 的內文交代驗收範圍、驗法、結果與剩下的片；BACKLOG 列的移出時點與讀回另開一列；上線與驗收完成是兩個時點；讀回的提醒與日期宣告做好之前的過渡做法。Operations & Deployment 補上不發布的入口（驗的是接線與輸出，不是預演週一）；Governance 的 Compliance review 補上 PR 內文的要求
-- [ ] T027 [US2] [FR-015] 同一個檔照修訂程序升版 2.1.1 → 2.2.0：Sync Impact Report、`Last Amended`；確認 `.specify/templates/` 仍然沒有副本
-- [ ] T028 [US3] [FR-018] 維護者機器上的 `CLAUDE.local.md`「Spec closeout 綁定」一段跟著改（closeout 不再一律在完成它的那個 PR 做）；這個檔不進版控，改完讀回，在 PR 內文記一行
-- [ ] T029 [US2] [FR-015] 對這個 PR 跑一輪 cold review；成立的 finding 修在同一個 PR，分級表留言後貼 `cold-reviewed`
-- [ ] T030 [US2] [SC-005] 做 User Story 2 的 Independent Test（建議拿 `GNS-007` 那一列），對照結果寫進 PR 內文，連同這一片的驗收範圍、驗法與剩下的片
+- [-] T025 [US2] [FR-011, FR-012, FR-013, FR-014, FR-015] 在 `.specify/memory/constitution.md` 加「分層驗收」一節：分片原則；九類驗收範圍與各自夠用的驗法；觀測跟驗收分開寫；遇到新的範圍怎麼加；驗收條件先寫最早就夠用的驗法，等排程只用在其他驗法都驗不到的部分並寫明原因；蓋過 user 層「一個 spec 一個 PR」的範圍只限這個專案。只寫原則與結構性的選擇，操作細節指到 `docs/dry-run.md`
+- [-] T026 [US3] [FR-016, FR-017, FR-018, FR-019, FR-020] 同一個檔寫流程接點：tasks 照驗收範圍分組並標驗法與 PR；小 PR 的內文交代驗收範圍、驗法、結果與剩下的片；BACKLOG 列的移出時點與讀回另開一列；上線與驗收完成是兩個時點；讀回的提醒與日期宣告做好之前的過渡做法。Operations & Deployment 補上不發布的入口（驗的是接線與輸出，不是預演週一）；Governance 的 Compliance review 補上 PR 內文的要求
+- [-] T027 [US2] [FR-015] 同一個檔照修訂程序升版 2.2.0 → 2.3.0（2026-11-28 改：原寫 2.1.1 → 2.2.0，2.2.0 已在 2026-11-18 由 `#218` 用掉）：Sync Impact Report、`Last Amended`；確認 `.specify/templates/` 仍然沒有副本
+- [-] T028 [US3] [FR-018] 維護者機器上的 `CLAUDE.local.md`「Spec closeout 綁定」一段跟著改（closeout 不再一律在完成它的那個 PR 做）；這個檔不進版控，改完讀回，在 PR 內文記一行
+- [X] T029 [US2] [FR-015] 對這個 PR 跑一輪 cold review；成立的 finding 修在同一個 PR，分級表留言後貼 `cold-reviewed`
+- [X] T030 [US2] [SC-005] 做 User Story 2 的 Independent Test（建議拿 `GNS-007` 那一列），對照結果寫進 PR 內文，連同這一片的驗收範圍、驗法與剩下的片
 
 **Checkpoint**: `GNS-20261108-2zc` 拆 task 時讀得到規則
 
@@ -221,7 +221,7 @@ T010 與 T012（不同腳本）；T014、T016、T018（各自的檔，不依賴 
 - Unchecked assumptions:
   - 「第二級與正式執行共用額度，不會讓正式週報額度不足」：這個 unit 驗不到，要一次真的第二級才有用量；第一個驗它的是 Unit 7 的 T022
   - 「日期宣告（bare `GUB-20261114-gw7`）會在讀回那一片需要之前做好」：是之後的狀態，現在只查得到還沒開工；第一個驗它的是 Unit 9 的 T035，在那之前 T019 走過渡做法
-  - 「其餘三片的先後照提案」：不是程式驗得到的事，是一個還沒定的先後；Unit 8 開工前定
+  - 「其餘三片的先後照提案」：不是程式驗得到的事，是一個先後的決定；已定 2026-11-28（片 2＋3 → 片 4 → 讀回）
 
 ### Unit 2: `main.py` 的兩級與呼叫計數
 
@@ -286,12 +286,12 @@ T010 與 T012（不同腳本）；T014、T016、T018（各自的檔，不依賴 
 ### Unit 8: 憲章修訂（片 2＋3）
 
 - Tasks: T025、T026、T027、T028、T029、T030
-- Outcome: 憲章 2.2.0 有「分層驗收」一節與流程接點；只讀憲章就能替盤點表的一列分片
+- Outcome: 憲章 2.3.0 有「分層驗收」一節與流程接點；只讀憲章就能替盤點表的一列分片
 - Prerequisites: `docs/dry-run.md` 已經在 `main`（憲章要指過去）；D6 的落點與片的先後定案
 - Verification: cold review 的分級表；T030 的對照。限制：規則文字沒有測試，執行者是之後每個 spec 的 Constitution Check
 - Review: `.specify/memory/constitution.md`，對照 spec 的 FR-011～FR-020
 - Merge or split: 片 2 與片 3 都改同一個檔、驗法相同，一次修訂一輪 cold review（已定 2026-11-15）
-- Unchecked assumptions: 「其餘三片的先後照提案」在這個 unit 開工前定
+- Unchecked assumptions: 「其餘三片的先後照提案」已定 2026-11-28：片 2＋3 → 片 4 → 讀回
 
 ### Unit 9: 片 4：盤點表改寫與 BACKLOG 收尾
 
@@ -334,6 +334,5 @@ Task: "T012 寫 tests/unit/test_auto_kb_dry_run.py"
 
 ## 還沒定的
 
-- 片 2＋3 與片 4 的先後（提案：2＋3 → 4）；research D6 規則落在憲章哪幾節（提案）。Unit 8 開工前定。
 - 固定行的文字、產物目錄裡的檔名、`TRAFFIC_POOL_DIR` 與 `ANALYSIS_OUTPUT_DIR` 這兩個名字（提案）：片 1 的測試鎖住的就是定案的版本，列在 `#225` 的內文。
 - 生成式次數算的是送出的請求、重試也算（提案）：理由是這個數字是給額度看的。

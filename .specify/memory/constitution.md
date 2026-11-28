@@ -1,43 +1,39 @@
 <!--
 ## Sync Impact Report
 
-**Version change**: 2.1.1 → 2.2.0
-**Bump rationale**: MINOR — Principle I gains guidance on how the stage contract holds when the
-  weekly traffic run's own collection fails or stores nothing: the weekly Analyze and Publish
-  stages consume the buffer and do not wait on that collection, and such a run must end as failed.
-  This is expanded guidance of the same kind as 2.1.0 (how stage order holds across two
-  workflows); no principle is removed or redefined. Found by the cold review of #218
-  (2026-11-18): the traffic workflow's read-back verification runs after deploy and only marks
-  the run failed, which the earlier text of Principle I did not cover.
-  The rest is wording that follows the split of the weekly workflow into one workflow per content
-  type (`weekly-traffic.yml`, `weekly-ffxiv.yml`; #218, BACKLOG `GNS-20261013-4g9`): the sentences
-  that said "the weekly workflow" or named `weekly.yml` now name the two workflows. The
-  authoritative environment and the canonical test are what they were, stated for two weekly
-  workflows instead of one.
+**Version change**: 2.2.0 → 2.3.0
+**Bump rationale**: MINOR — a section is added, Layered Acceptance: a change is split by
+  acceptance scope into slices, one PR each, and each scope has a verification that is enough for
+  it, so only the slice that needs a scheduled run waits for one. No principle is removed or
+  redefined. Source: spec 020 (`specs/020-layered-acceptance/`, FR-011 to FR-020; BACKLOG
+  `GNS-20261114-bh8`). Before this, acceptance conditions were routinely written as "after the
+  next scheduled weekly run", which made the schedule the clock for every change although nothing
+  in this constitution made it the authority.
+  The spec's tasks originally named this amendment 2.1.1 → 2.2.0; 2.2.0 was used on 2026-11-18
+  (#218), so this one is 2.3.0, and the tasks were corrected in the same change.
 
 ### Modified Principles
-- I. Pipeline Integrity → the traffic bullet now says the weekly Analyze and Publish stages run on
-  the stored buffer when the weekly run's own collection fails or stores nothing, and that such a
-  run MUST end as failed. Wording: the authoritative environment is the daily traffic buffer and
-  the two weekly runs; traffic is analyzed by the weekly traffic workflow, FFXIV runs in its own
-  weekly workflow.
+- None
 
 ### Modified Sections
-- Operations & Deployment → the canonical-test bullet names both weekly workflows, each confirmed
-  by its own run; the shared-secret bullet says "the weekly workflows".
+- Operations & Deployment → new bullet: the non-publishing entry, what it verifies and what it
+  does not.
+- Governance → Compliance review: a PR description states the slice's acceptance scope, the
+  verification used and its result.
 
 ### Added Sections
-- None
+- Layered Acceptance (between Operations & Deployment and Governance).
 
 ### Removed Sections
 - None
 
 ### Templates Checked
-- ✅ `.specify/templates/plan-template.md` — Constitution Check gate is content-agnostic; no
-    operations procedure restated. No changes required.
-- The other spec-kit templates are user-level since #179 and not in this repo; not checked here.
-- ✅ `README.md`, `docs/`, `routines/weekly-verify/` — updated in the same PR to name the two
-    weekly workflows. `CLAUDE.md` names neither; no change required.
+- ✅ `.specify/templates/` — holds no copies (the spec-kit templates are user-level since #179).
+    Task grouping is carried by each plan's Constitution Check, not by a template copy here.
+- ✅ `docs/dry-run.md` — already describes the non-publishing entry; this file points to it.
+- ⚠ The maintainer's untracked `CLAUDE.local.md` ("Spec closeout 綁定") said closeout always
+    happens in the PR that completes the work. It is not in version control; it is updated on the
+    maintainer's machine with this change.
 
 ### Deferred Items
 - None
@@ -181,6 +177,12 @@ Standard operating procedures that all contributors MUST follow.
   by its run concluding successfully. The weekly verification routine (`routines/weekly-verify/`)
   verifies the scheduled weekly runs; its report confirms a manual dispatch only when that
   dispatch is a run it verified.
+- The non-publishing entry is a manual dispatch of `.github/workflows/weekly-dry-run.yml`. It
+  runs the weekly pipeline on GitHub Actions, the same environment as the scheduled workflows,
+  without storing, publishing or deploying. It verifies wiring and output against the buffer and
+  pool as they are when it is dispatched; it is not a rehearsal of the next scheduled run, and it
+  MUST NOT cancel or block one. Its LLM calls count against the same budget as the scheduled
+  runs (Principle IV). How to dispatch it and what it leaves behind: `docs/dry-run.md`.
 - Local development MUST use `.env` (copied from `.env.example`) and local copies of both
   `config/sources_traffic.yml` and `config/sources_ffxiv.yml` (copied from their `.example`
   counterparts). All four files MUST remain in `.gitignore`.
@@ -196,6 +198,72 @@ Standard operating procedures that all contributors MUST follow.
 - Auto-generated KB entries are written by `scripts/auto_kb.py` after each weekly pipeline
   run. They take effect on the next pipeline run. Review auto-generated entries periodically
   via the Supabase dashboard to verify accuracy.
+
+## Layered Acceptance
+
+How a change is split for delivery and how each part is accepted. It applies to spec-driven work
+and to PRs opened directly. For this project only, it overrides the user-level convention of one
+PR per spec.
+
+**Slices**
+
+- A change MUST be split by acceptance scope. Each slice is one PR and is accepted on its own.
+- Each slice MUST state its acceptance scope, the verification it uses, and whether it has to
+  wait for a real run. Only the slice that needs a real run waits for one; the others merge
+  without it.
+- A slice that fails acceptance is fixed in a slice of its own, with its own PR. Slices already
+  merged stay complete.
+
+**Acceptance scopes**
+
+Each scope has a verification that is enough for it. The list gives the scopes met so far; it is
+not complete.
+
+| Scope | What the slice proves | Enough to verify it |
+|---|---|---|
+| The function itself | the logic, or the rule or record text, is what the requirement asks for | unit tests; for text, a review against the requirements it implements |
+| Required input | the run obtains what it needs: sources are reachable, collected and selected | a non-publishing run up to selection on GitHub Actions (reachability depends on where the run executes), or the log of a daily run |
+| Output | what the pipeline produces from that input is right | a non-publishing run that reaches the output in question, or a replay of stored input |
+| Read-back | the change behaves in real runs once it is live | reading the named real run, or each of the runs when the condition needs several; this is the slice that waits |
+| Correction | a fix for a slice that failed acceptance | the verification that failed, run again |
+| State across runs | marks, fingerprints, expiry and cross-run deduplication | two consecutive real runs; a single non-publishing run cannot show it and MUST NOT write that state |
+| Scheduling and chaining | the schedule fires; follow-up workflows and deployments are triggered | a real scheduled event for the schedule itself; a manual dispatch for the rest |
+| Resources | run time, API cost, rate limiting | a real run, or a non-publishing run that calls the LLM |
+
+- Observation is waiting for data to accumulate, not accepting a change. It MUST be written apart
+  from acceptance and MUST NOT be an acceptance condition of any slice.
+- A change that needs a scope not listed names it in its plan, or in the PR description when the
+  PR is opened directly, with what the slice proves and the verification that is enough for it.
+  Adding the scope to this table is an amendment.
+
+**Writing acceptance conditions**
+
+- An acceptance condition MUST name the earliest verification that is enough for its scope (the
+  table above). Where a non-publishing run, a replay or the log of a daily run is enough, the
+  condition names that, not a scheduled run. Waiting for a scheduled weekly run is used only for
+  what no other verification can show, and the condition MUST say why nothing else can.
+- A condition that needs several real runs ("two weeks in a row") belongs to the read-back slice,
+  not to the slices that deliver the function.
+
+**Process**
+
+- In spec-driven work, tasks MUST be grouped by acceptance scope. Each group is a slice: it states
+  its scope and verification and maps to one PR. A group that waits for a real run MUST be placed
+  where it does not block the other groups. Each plan's Constitution Check carries this into the
+  feature.
+- A PR opened directly MUST state its slice's acceptance scope, verification and result in its
+  description, and name the slices that remain when there are more.
+- Going live and acceptance complete are two moments. A read-back is a slice of the same change,
+  with its own PR and its own BACKLOG row; the merge and completion of the slices that deliver
+  the function do not wait for it.
+- When a change ships as several PRs, its BACKLOG row is removed in the PR of the last slice that
+  can be verified before going live. When a read-back remains, that same PR opens the read-back's
+  row. The PR of every earlier slice says why the row is still there.
+- A read-back MUST have a reminder that fires on its own, attached to its BACKLOG row as a date;
+  an unticked task or an untracked handoff file is not one. When the reminder fires, first confirm
+  that the run exists, then read it. A read-back whose row cannot carry a date MUST instead be
+  written into `routines/weekly-verify/FOCUS.md`, and each weekly roll of that file MUST carry
+  the items not yet read back.
 
 ## Governance
 
@@ -215,7 +283,9 @@ wins unless the constitution is formally amended.
   `src/analyzer.py`, `src/storage.py`, `src/publisher.py`) MUST verify
   compliance with Principles I–III in the PR description.
 - PRs that touch FFXIV analysis logic MUST also verify compliance with Principle VI.
+- Every PR that delivers a slice of a change MUST state in its description the slice's
+  acceptance scope, the verification used and its result (Layered Acceptance).
 - Complexity violations (e.g., a new cross-module dependency) MUST be documented in the
   plan's Complexity Tracking table before implementation begins.
 
-**Version**: 2.2.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-11-18
+**Version**: 2.3.0 | **Ratified**: 2026-04-25 | **Last Amended**: 2026-11-28
