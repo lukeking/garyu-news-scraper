@@ -158,8 +158,8 @@
 - [-] T026 [US3] [FR-016, FR-017, FR-018, FR-019, FR-020] 同一個檔寫流程接點：tasks 照驗收範圍分組並標驗法與 PR；小 PR 的內文交代驗收範圍、驗法、結果與剩下的片；BACKLOG 列的移出時點與讀回另開一列；上線與驗收完成是兩個時點；讀回的提醒與日期宣告做好之前的過渡做法。Operations & Deployment 補上不發布的入口（驗的是接線與輸出，不是預演週一）；Governance 的 Compliance review 補上 PR 內文的要求
 - [-] T027 [US2] [FR-015] 同一個檔照修訂程序升版 2.2.0 → 2.3.0（2026-11-28 改：原寫 2.1.1 → 2.2.0，2.2.0 已在 2026-11-18 由 `#218` 用掉）：Sync Impact Report、`Last Amended`；確認 `.specify/templates/` 仍然沒有副本
 - [-] T028 [US3] [FR-018] 維護者機器上的 `CLAUDE.local.md`「Spec closeout 綁定」一段跟著改（closeout 不再一律在完成它的那個 PR 做）；這個檔不進版控，改完讀回，在 PR 內文記一行
-- [ ] T029 [US2] [FR-015] 對這個 PR 跑一輪 cold review；成立的 finding 修在同一個 PR，分級表留言後貼 `cold-reviewed`
-- [ ] T030 [US2] [SC-005] 做 User Story 2 的 Independent Test（建議拿 `GNS-007` 那一列），對照結果寫進 PR 內文，連同這一片的驗收範圍、驗法與剩下的片
+- [X] T029 [US2] [FR-015] 對這個 PR 跑一輪 cold review；成立的 finding 修在同一個 PR，分級表留言後貼 `cold-reviewed`
+- [X] T030 [US2] [SC-005] 做 User Story 2 的 Independent Test（建議拿 `GNS-007` 那一列），對照結果寫進 PR 內文，連同這一片的驗收範圍、驗法與剩下的片
 
 **Checkpoint**: `GNS-20261108-2zc` 拆 task 時讀得到規則
 
